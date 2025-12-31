@@ -1,0 +1,30 @@
+import { Option_none, Option_some, type Option } from "./types"
+
+// export type NonEmptyArray<T> = T[] & { readonly __NonEmptyArrayBrand: 'NonEmptyArray' }
+export type NonEmptyArray<T> = readonly [T, ...(readonly T[])]
+
+export function Array_toNonEmptyArray<T>(
+  arr: readonly T[],
+): Option<NonEmptyArray<T>> {
+  if (arr.length === 0) return Option_none
+  return Option_some(arr as NonEmptyArray<T>)
+}
+
+export function Array_toNonEmptyArray_orUndefined<T>(
+  arr: readonly T[],
+): NonEmptyArray<T> | undefined {
+  if (arr.length === 0) return undefined
+  return arr as NonEmptyArray<T>
+}
+
+export function Array_isNonEmptyArray<T>(
+  arr: readonly T[],
+): arr is NonEmptyArray<T> {
+  return arr.length !== 0
+}
+
+export function Array_assertNonEmptyArray<T>(
+  arr: readonly T[],
+): asserts arr is NonEmptyArray<T> {
+  if (arr.length === 0) throw new Error("array should be non-empty")
+}
