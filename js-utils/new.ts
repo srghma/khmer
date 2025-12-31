@@ -100,6 +100,7 @@ const markdownToHtml = (markdown: string): string => {
 
   // Diamond markers -> ◊
   html = html.replace(/\$\\diamond\$/g, "◊");
+  html = html.replace(/<>/g, "◊");
 
   // Newlines -> <br>
   html = html.replace(/\n/g, "<br>");
@@ -126,6 +127,7 @@ const formatForStarDict = (grouped: GroupedEntry): string => {
 };
 
 // Main conversion function
+// npx tsx js-utils/new.ts ./Краткий\ русско-кхмерский\ словарь--content.txt
 const convertToStarDict = (inputFile: string, outputFile: string): void => {
   console.log(`Reading file: ${inputFile}`);
 
