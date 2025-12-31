@@ -88,7 +88,7 @@ export function nonEmptyArrayOfString(
         `Validation Error at line ${line}: Expected a non-empty string, but found an empty string.`,
       )
   }
-  return arr as NonEmptyArray<NonEmptyString>
+  return arr as unknown as NonEmptyArray<NonEmptyString>
 }
 
 export function nonEmptyArrayOfString_afterTrim(
@@ -117,7 +117,7 @@ export function nonEmptyArrayOfString_afterTrim(
       )
     result.push(trimmed as NonEmptyString)
   }
-  return result as NonEmptyArray<NonEmptyString>
+  return result as unknown as NonEmptyArray<NonEmptyString>
 }
 
 export function arrayOfNonEmptyString_filterOut(
