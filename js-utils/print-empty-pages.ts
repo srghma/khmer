@@ -166,7 +166,9 @@ const copyMissingPagesToTemp = (
 
 // Main logic to process the file
 (async (): Promise<void> => {
-  const filePath = "/home/srghma/Downloads/js-utils/concatenated_output.txt";
+  const filePath =
+    // "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
+    "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
 
   try {
     // Step 1: Read the content of the file
@@ -214,19 +216,19 @@ const copyMissingPagesToTemp = (
       console.log("\nNo pages found.");
     }
 
-    // Step 7: Find missing pages
-    const missingPages = findMissingPages(pages.map((x) => x[0]));
-    if (missingPages.length > 0) {
-      const groupedMissingPages = groupConsecutivePages(missingPages);
-      console.log("Missing pages", missingPages.length, ":");
-      console.log(formatMissingPages(groupedMissingPages));
-
-      const srcDir = "/home/srghma/Downloads/Кхмерско-русский";
-      const tempDir = copyMissingPagesToTemp(missingPages, srcDir);
-      console.log("All available missing pages copied to:", tempDir);
-    } else {
-      console.log("No missing pages.");
-    }
+    // // Step 7: Find missing pages
+    // const missingPages = findMissingPages(pages.map((x) => x[0]));
+    // if (missingPages.length > 0) {
+    //   const groupedMissingPages = groupConsecutivePages(missingPages);
+    //   console.log("Missing pages", missingPages.length, ":");
+    //   console.log(formatMissingPages(groupedMissingPages));
+    //
+    //   const srcDir = "/home/srghma/Downloads/Кхмерско-русский";
+    //   const tempDir = copyMissingPagesToTemp(missingPages, srcDir);
+    //   console.log("All available missing pages copied to:", tempDir);
+    // } else {
+    //   console.log("No missing pages.");
+    // }
 
     // Step 8: Find same content but different page numbers
     const sameContentDifferentPages = findSameContentDifferentPages(pages);
