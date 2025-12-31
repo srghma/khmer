@@ -1,4 +1,4 @@
-import { RunButtonState } from "./runButton"
+import { RunButtonState } from './runButton'
 
 const STABILITY_THRESHOLD_SECONDS = 2
 
@@ -22,8 +22,7 @@ export function calculateGenerationStatus(
 
   // 3. Check if stop button is active (meaning generation is still running)
   const isStopButtonActive =
-    runButtonState === "stop_button__disabled_bc_maybe_running" ||
-    runButtonState === "stop_button__ready"
+    runButtonState === 'stop_button__disabled_bc_maybe_running' || runButtonState === 'stop_button__ready'
 
   // 4. Check termination conditions:
   //    - Text must be stable for N seconds.

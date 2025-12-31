@@ -1,11 +1,5 @@
-import {
-  nOfDigitsBeforeDot_string,
-  nOfDigitsBeforeDot_testCases,
-} from "./nOfDigitsBeforeDot"
-import {
-  nOfDigitsAfterDot_string,
-  nOfDigitsAfterDot_testCases,
-} from "./nOfDigitsAfterDot"
+import { nOfDigitsBeforeDot_string, nOfDigitsBeforeDot_testCases } from './nOfDigitsBeforeDot'
+import { nOfDigitsAfterDot_string, nOfDigitsAfterDot_testCases } from './nOfDigitsAfterDot'
 
 export function countDigitsAfterDotAndBeforeDot(num: number): {
   before: number

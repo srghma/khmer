@@ -1,42 +1,62 @@
 // Copyright 2025 srghma
 
-import { assertIsDefinedAndReturn } from "./asserts.js"
-import { type Option } from "./types.js"
+import { assertIsDefinedAndReturn } from './asserts.js'
+import { type Option } from './types.js'
 
-export function Array_filterMap<T, U>(
-  arr: readonly T[],
-  f: (item: T, index: number) => Option<U>,
-): U[] {
+export function Array_eq<T>(eq: (x: T, y: T) => boolean, arr1: readonly T[], arr2: readonly T[]): boolean {
+  if (arr1.length !== arr2.length) return false
+  for (let i = 0; i < arr1.length; i++) {
+    if (!eq(arr1[i]!, arr1[i]!)) return false
+  }
+  return true
+}
+
+// Array_startsWith([1,2,3], [1,2,3]) => true
+// Array_startsWith([1,2,3], [1,2]) => true
+// Array_startsWith([1,2], [1,2,3]) => false
+export const Array_startsWith = <T>(
+  eq: (x: T, y: T) => boolean,
+  array: readonly T[],
+  maybeprefix: readonly T[],
+): boolean => {
+  if (maybeprefix.length > array.length) return false
+  for (let i = 0; i < maybeprefix.length; i++) {
+    if (!eq(maybeprefix[i]!, array[i]!)) return false
+  }
+  return true
+}
+
+export function Array_filterMap<T, U>(arr: readonly T[], f: (item: T, index: number) => Option<U>): U[] {
   const result: U[] = []
   arr.forEach((item, idx) => {
     const opt = f(item, idx)
-    if (opt.t === "some") {
+    if (opt.t === 'some') {
       result.push(opt.v)
     }
   })
   return result
 }
 
-export function Array_findExactlyOneOrNoneBy<T>(
-  arr: readonly T[],
-  predicate: (item: T) => boolean,
-): T | undefined {
+export function Array_filterMap_undefined<T, U>(arr: readonly T[], f: (item: T, index: number) => U | undefined): U[] {
+  const result: U[] = []
+  arr.forEach((item, idx) => {
+    const opt = f(item, idx)
+    if (opt !== undefined) result.push(opt)
+  })
+  return result
+}
+
+export function Array_findExactlyOneOrNoneBy<T>(arr: readonly T[], predicate: (item: T) => boolean): T | undefined {
   const [found, ...others] = arr.filter(predicate)
   if (others.length > 0) throw new Error(`Multiple elements found`)
   return found
 }
 
-export function Array_findExactlyOneBy<T>(
-  arr: readonly T[],
-  predicate: (item: T) => boolean,
-): T {
+export function Array_findExactlyOneBy<T>(arr: readonly T[], predicate: (item: T) => boolean): T {
   return assertIsDefinedAndReturn(Array_findExactlyOneOrNoneBy(arr, predicate))
 }
 
-export function Array_partition<T>(
-  arr: readonly T[],
-  predicate: (item: T, index: number) => boolean,
-): [T[], T[]] {
+export function Array_partition<T>(arr: readonly T[], predicate: (item: T, index: number) => boolean): [T[], T[]] {
   const yes: T[] = []
   const no: T[] = []
   arr.forEach((item, idx) => {
@@ -71,9 +91,7 @@ export function findByAndSplit<T>(
   return { found, withoutFoundOne }
 }
 
-export function Array_unique_usingSet<T extends string | number>(
-  items: readonly T[],
-): T[] {
+export function Array_unique_usingSet<T extends string | number>(items: readonly T[]): T[] {
   return Array.from(new Set(items))
 }
 
@@ -100,14 +118,12 @@ export function assertUniqueArray<T>(items: readonly T[]): void {
 
 export function assertArrayElementsAreSame<T>(items: readonly T[]): void {
   if (items.length === 0) {
-    throw new Error("assertArrayOfSameElements: empty array")
+    throw new Error('assertArrayOfSameElements: empty array')
   }
   const first = items[0]
   for (const item of items) {
     if (item !== first) {
-      throw new Error(
-        `assertArrayOfSameElements: elements differ: ${String(first)} !== ${String(item)}`,
-      )
+      throw new Error(`assertArrayOfSameElements: elements differ: ${String(first)} !== ${String(item)}`)
     }
   }
 }
@@ -142,11 +158,7 @@ export function zipArrayBy_toMaps<A, B, K extends string | number | symbol>(
   return [zipped, leftoversA, leftoversB]
 }
 
-export function zipArrayBy_toMaps_strict<
-  A,
-  B,
-  K extends string | number | symbol,
->(
+export function zipArrayBy_toMaps_strict<A, B, K extends string | number | symbol>(
   a: readonly A[],
   b: readonly B[],
   keyA: (x: A) => K,
@@ -208,10 +220,7 @@ export function zipArrayBy_toMaps_strict<
 //   return zipped
 // }
 
-export function zipArray_byPosition<A, B>(
-  a: readonly A[],
-  b: readonly B[],
-): [Array<[A, B]>, A[], B[]] {
+export function zipArray_byPosition<A, B>(a: readonly A[], b: readonly B[]): [Array<[A, B]>, A[], B[]] {
   const len = Math.min(a.length, b.length)
   const zipped: Array<[A, B]> = []
   for (let i = 0; i < len; i++) {
@@ -224,16 +233,11 @@ export function zipArray_byPosition<A, B>(
   ]
 }
 
-export function splitOnGroupsOf<T>(
-  groupLength: number,
-  ts: readonly T[],
-): T[][] {
-  return ts.reduce((acc: T[][], _, index) => {
-    if (index % groupLength === 0) {
-      acc.push(ts.slice(index, index + groupLength))
-    }
-    return acc
-  }, [])
+export function splitOnGroupsOf<T>(groupLength: number, ts: readonly T[]): T[][] {
+  if (groupLength <= 0) throw new Error('groupLength must be > 0')
+  return Array.from({ length: Math.ceil(ts.length / groupLength) }, (_, i) =>
+    ts.slice(i * groupLength, i * groupLength + groupLength),
+  )
 }
 
 /**
@@ -249,9 +253,7 @@ export function findFirstDuplicate<T>(
 ): { item: T; index: number } | undefined {
   return items
     .map((item, index) => ({ item, index }))
-    .find(({ item, index }, _, arr) =>
-      arr.some((other, j) => j !== index && eqFn(item, other.item)),
-    )
+    .find(({ item, index }, _, arr) => arr.some((other, j) => j !== index && eqFn(item, other.item)))
 }
 
 /**
@@ -295,10 +297,10 @@ export function checkUniqueElements<T>(
  * // }
  * ```
  */
-export function Array_partitionByType<
-  V,
-  Config extends Record<string, (v: V) => boolean>,
->(xs: readonly V[], config: Config): { [K in keyof Config]: V[] } {
+export function Array_partitionByType<V, Config extends Record<string, (v: V) => boolean>>(
+  xs: readonly V[],
+  config: Config,
+): { [K in keyof Config]: V[] } {
   const result = Object.keys(config).reduce((acc, key) => {
     acc[key] = []
     return acc

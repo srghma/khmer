@@ -1,20 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "jsx": "react-jsx",
-    "strict": true,
-    "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "alwaysStrict": true, // Enforces 'use strict' mode for JavaScript
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "dist",
-    // Additional safety options
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true, // Prevents implicit 'any' type
-    "strictNullChecks": true, // Ensures null and undefined are checked
-    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
+    "noImplicitOverride": true,
     "noImplicitThis": true, // Ensures 'this' is typed explicitly
-    "alwaysStrict": true // Enforces 'use strict' mode for JavaScript
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "outDir": "dist",
+    "strict": true,
+    "strictNullChecks": true, // Ensures null and undefined are checked
+    "target": "ESNext",
+    "verbatimModuleSyntax": true
   },
   "include": ["src/**/*"]
 }

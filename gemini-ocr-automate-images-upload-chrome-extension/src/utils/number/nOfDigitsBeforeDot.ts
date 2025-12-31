@@ -1,17 +1,16 @@
 export function nOfDigitsBeforeDot_string(s: string): number {
-  if (s.includes("e")) {
-    const parts = s.split("e")
-    const mantissa = parts[0] ?? "0"
-    const expStr = parts[1] ?? "0"
+  if (s.includes('e')) {
+    const parts = s.split('e')
+    const mantissa = parts[0] ?? '0'
+    const expStr = parts[1] ?? '0'
     const exponent = parseInt(expStr, 10)
 
-    const dotIndex = mantissa.indexOf(".")
-    const digitsBeforeDotInMantissa =
-      dotIndex === -1 ? mantissa.length : dotIndex
+    const dotIndex = mantissa.indexOf('.')
+    const digitsBeforeDotInMantissa = dotIndex === -1 ? mantissa.length : dotIndex
 
     return digitsBeforeDotInMantissa + exponent
   }
-  const dot = s.indexOf(".")
+  const dot = s.indexOf('.')
   return dot === -1 ? s.length : dot
 }
 
@@ -77,8 +76,5 @@ export const nOfDigitsBeforeDot_testCases: [number, number][] = [
 
 for (const [input, expected] of nOfDigitsBeforeDot_testCases) {
   const result = nOfDigitsBeforeDot(input)
-  if (result !== expected)
-    console.log(
-      `❌ nOfDigitsBeforeDot(${input}) = ${result} (expected ${expected})`,
-    )
+  if (result !== expected) console.log(`❌ nOfDigitsBeforeDot(${input}) = ${result} (expected ${expected})`)
 }

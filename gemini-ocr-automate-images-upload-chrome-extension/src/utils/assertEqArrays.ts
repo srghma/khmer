@@ -1,9 +1,6 @@
 // Copyright 2025 srghma
 
-export function assertEqArrays(
-  arrayA: readonly string[],
-  arrayB: readonly string[],
-): void {
+export function assertEqArrays(arrayA: readonly string[], arrayB: readonly string[]): void {
   if (arrayA.length !== arrayB.length) {
     throw new Error(
       `Dynamic attribute group count mismatch:\nnow:    ${JSON.stringify(arrayA)}\nbefore: ${JSON.stringify(arrayB)}`,

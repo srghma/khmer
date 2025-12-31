@@ -1,8 +1,8 @@
 export const scopeToColor = {
-  aistudio: "color: #4ade80",
-  "aistudio-index": "color: #f1d2ff",
-  drive: "color: #00d2ff; font-weight: bold;",
-  "drive-index": "color: #993480; font-weight: bold;",
+  aistudio: 'color: #4ade80',
+  'aistudio-index': 'color: #f1d2ff',
+  drive: 'color: #00d2ff; font-weight: bold;',
+  'drive-index': 'color: #993480; font-weight: bold;',
 } as const
 
 export type Scope = keyof typeof scopeToColor

@@ -1,0 +1,19 @@
+[package]
+name = "bestdict_cracker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+aes = "0.8"
+cbc = "0.1"
+ecb = "0.1"
+pbkdf2 = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+hmac = "0.12"
+base64 = "0.22"
+hex = "0.4"
+memmap2 = "0.9" # For fast file reading
+rayon = "1.8"   # For multi-threading
+anyhow = "1.0"
+cipher = "0.4"

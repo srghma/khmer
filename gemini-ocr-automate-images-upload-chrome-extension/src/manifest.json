@@ -4,10 +4,7 @@
   "version": "3.0",
   "description": "Automate file uploads to Google AI Studio - Ultra Simple Edition",
   "permissions": ["storage"],
-  "host_permissions": [
-    "https://aistudio.google.com/*",
-    "https://docs.google.com/*"
-  ],
+  "host_permissions": ["https://aistudio.google.com/*", "https://docs.google.com/*"],
   "content_scripts": [
     {
       "matches": ["https://aistudio.google.com/*"],

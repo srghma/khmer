@@ -1,8 +1,5 @@
-import { useState, useEffect } from "react"
-import {
-  ValidNonNegativeInt,
-  strToNonNegativeIntOrUndefined_strict,
-} from "./utils/toNumber"
+import { useState, useEffect } from 'react'
+import { ValidNonNegativeInt, strToNonNegativeIntOrUndefined_strict } from './utils/toNumber'
 
 // LocalStorageApi type definition
 export type LocalStorageApi = {
@@ -11,10 +8,7 @@ export type LocalStorageApi = {
 }
 
 // Factory function to create LocalStorageApi for a specific key
-const mkLocalStorageApi = (
-  key: string,
-  defaultValue: ValidNonNegativeInt,
-): LocalStorageApi => ({
+const mkLocalStorageApi = (key: string, defaultValue: ValidNonNegativeInt): LocalStorageApi => ({
   get: () => {
     const val = localStorage.getItem(key)
     const val_ = val ? strToNonNegativeIntOrUndefined_strict(val) : undefined
@@ -27,14 +21,8 @@ const mkLocalStorageApi = (
 })
 
 // Create the specific APIs for StartNum and PageCount
-export const startNum_LocalStorageApi = mkLocalStorageApi(
-  "OCR_START_NUM",
-  100 as ValidNonNegativeInt,
-)
-export const pageCount_LocalStorageApi = mkLocalStorageApi(
-  "OCR_PAGE_COUNT",
-  1 as ValidNonNegativeInt,
-)
+export const startNum_LocalStorageApi = mkLocalStorageApi('OCR_START_NUM', 100 as ValidNonNegativeInt)
+export const pageCount_LocalStorageApi = mkLocalStorageApi('OCR_PAGE_COUNT', 1 as ValidNonNegativeInt)
 
 // Custom hook to sync state with localStorage
 export function useLocalStorageState(

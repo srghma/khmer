@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@gemini-ocr-automate-images-upload-chrome-extension/*": [
+        "./node_modules/gemini-ocr-automate-images-upload-chrome-extension/src/*"
+      ]
+    },
+    "target": "ESnext",
+    "useDefineForClassFields": true,
+    "lib": ["ESnext", "DOM", "DOM.Iterable"],
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    /* Linting */
+    "alwaysStrict": true, // Enforces 'use strict' mode for JavaScript
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true, // Prevents implicit 'any' type
+    "noImplicitOverride": true,
+    "noImplicitThis": true, // Ensures 'this' is typed explicitly
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+    "strictNullChecks": true // Ensures null and undefined are checked
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}

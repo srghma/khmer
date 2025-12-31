@@ -1,11 +1,8 @@
 // Copyright 2025 srghma
 
-import { type Option } from "./types.js"
+import { type Option } from './types.js'
 
-export function Map_every<K, V>(
-  map: Map<K, V>,
-  predicate: (k: K, v: V) => boolean,
-): boolean {
+export function Map_every<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
   for (const [k, v] of map.entries()) {
     if (!predicate(k, v)) return false
   }
@@ -16,10 +13,7 @@ export function Map_keysToSet<K, V>(map: Map<K, V>): Set<K> {
   return new Set(map.keys())
 }
 
-export function Map_entriesToArray<K, V, R>(
-  map: Map<K, V>,
-  fn: (key: K, value: V, index: number) => R,
-): R[] {
+export function Map_entriesToArray<K, V, R>(map: Map<K, V>, fn: (key: K, value: V, index: number) => R): R[] {
   return Array.from(map.entries()).map(([k, v], i) => fn(k, v, i))
 }
 
@@ -34,10 +28,7 @@ export function Map_entriesToRecord<K extends string | number | symbol, V, R>(
   return result
 }
 
-export function Map_entriesFlatMapToArray<K, V, R>(
-  map: Map<K, V>,
-  fn: (key: K, value: V) => readonly R[],
-): R[] {
+export function Map_entriesFlatMapToArray<K, V, R>(map: Map<K, V>, fn: (key: K, value: V) => readonly R[]): R[] {
   // return Array.from(map.entries()).flatMap(([key, value]: [K, V]) => fn(key, value))
   const result: R[] = []
   for (const [key, value] of map) {
@@ -50,10 +41,7 @@ export function Map_entriesFlatMapToArray<K, V, R>(
   return result
 }
 
-export function Map_everyEntry<K, V>(
-  map: Map<K, V>,
-  fn: (key: K, value: V) => boolean,
-): boolean {
+export function Map_everyEntry<K, V>(map: Map<K, V>, fn: (key: K, value: V) => boolean): boolean {
   // return Array.from(map.entries()).every(([key, value]: [K, V]) => fn(key, value))
   for (const [key, value] of map) {
     if (!fn(key, value)) {
@@ -63,10 +51,7 @@ export function Map_everyEntry<K, V>(
   return true
 }
 
-export function Map_find<K, V>(
-  map: Map<K, V>,
-  predicate: (k: K, v: V) => boolean,
-): [K, V] | undefined {
+export function Map_find<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): [K, V] | undefined {
   for (const [k, v] of map) if (predicate(k, v)) return [k, v]
   return undefined
 }
@@ -75,14 +60,11 @@ export function Map_getOr<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
   return map.has(key) ? map.get(key)! : defaultValue
 }
 
-export function Map_union_onCollisionThrow<K, V>(
-  ...maps: readonly Map<K, V>[]
-): Map<K, V> {
+export function Map_union_onCollisionThrow<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) {
-      if (result.has(k))
-        throw new Error(`Map union collision on key: ${String(k)}`)
+      if (result.has(k)) throw new Error(`Map union collision on key: ${String(k)}`)
       result.set(k, v)
     }
   }
@@ -107,9 +89,7 @@ export function Map_union_onCollisionMerge<K, V>(
   return result
 }
 
-export function Map_union_onCollisionPreferFirst<K, V>(
-  ...maps: readonly Map<K, V>[]
-): Map<K, V> {
+export function Map_union_onCollisionPreferFirst<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) {
@@ -119,9 +99,7 @@ export function Map_union_onCollisionPreferFirst<K, V>(
   return result
 }
 
-export function Map_union_onCollisionPreferLast<K, V>(
-  ...maps: readonly Map<K, V>[]
-): Map<K, V> {
+export function Map_union_onCollisionPreferLast<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) result.set(k, v)
@@ -129,11 +107,7 @@ export function Map_union_onCollisionPreferLast<K, V>(
   return result
 }
 
-export function Map_intersection<K, V>(
-  mapA: Map<K, V>,
-  mapB: Map<K, V>,
-  merge?: (a: V, b: V) => V,
-): Map<K, V> {
+export function Map_intersection<K, V>(mapA: Map<K, V>, mapB: Map<K, V>, merge?: (a: V, b: V) => V): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of mapA) {
     if (mapB.has(k)) {
@@ -143,10 +117,7 @@ export function Map_intersection<K, V>(
   return result
 }
 
-export function Map_difference<K, V>(
-  mapA: Map<K, V>,
-  mapB: Map<K, V>,
-): Map<K, V> {
+export function Map_difference<K, V>(mapA: Map<K, V>, mapB: Map<K, V>): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of mapA) {
     if (!mapB.has(k)) result.set(k, v)
@@ -171,10 +142,7 @@ export function Map_difference<K, V>(
  * //   'user' => Map { 2 => {name: 'Bob', ...}, 4 => {name: 'David', ...} }
  * // }
  */
-export function Map_groupBy<K, V, G>(
-  input: Map<K, V>,
-  fn: (key: K, value: V) => G,
-): Map<G, Map<K, V>> {
+export function Map_groupBy<K, V, G>(input: Map<K, V>, fn: (key: K, value: V) => G): Map<G, Map<K, V>> {
   const result = new Map<G, Map<K, V>>()
   for (const [k, v] of input) {
     const groupKey = fn(k, v)
@@ -186,18 +154,12 @@ export function Map_groupBy<K, V, G>(
   return result
 }
 
-export function Map_some<K, V>(
-  map: Map<K, V>,
-  predicate: (k: K, v: V) => boolean,
-): boolean {
+export function Map_some<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
   for (const [k, v] of map) if (predicate(k, v)) return true
   return false
 }
 
-export function Map_none<K, V>(
-  map: Map<K, V>,
-  predicate: (k: K, v: V) => boolean,
-): boolean {
+export function Map_none<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
   return !Map_some(map, predicate)
 }
 
@@ -206,24 +168,18 @@ export function Map_none<K, V>(
  * - If the callback returns Option_none, the entry is skipped.
  * - If it returns Option_some, the transformed value is kept.
  */
-export function Map_filterMap<K, V, U>(
-  map: Map<K, V>,
-  f: (key: K, value: V) => Option<U>,
-): Map<K, U> {
+export function Map_filterMap<K, V, U>(map: Map<K, V>, f: (key: K, value: V) => Option<U>): Map<K, U> {
   const result = new Map<K, U>()
   for (const [k, v] of map) {
     const opt = f(k, v)
-    if (opt.t === "some") {
+    if (opt.t === 'some') {
       result.set(k, opt.v)
     }
   }
   return result
 }
 
-export function Map_filter<K, V>(
-  map: Map<K, V>,
-  predicate: (key: K, value: V) => boolean,
-): Map<K, V> {
+export function Map_filter<K, V>(map: Map<K, V>, predicate: (key: K, value: V) => boolean): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of map) {
     if (predicate(k, v)) {
@@ -233,10 +189,7 @@ export function Map_filter<K, V>(
   return result
 }
 
-export function Map_mapKeys<K, V, J>(
-  map: Map<K, V>,
-  f: (key: K, value: V) => J,
-): Map<J, V> {
+export function Map_mapKeys<K, V, J>(map: Map<K, V>, f: (key: K, value: V) => J): Map<J, V> {
   const result = new Map<J, V>()
   for (const [k, v] of map) {
     result.set(f(k, v), v)
@@ -244,10 +197,7 @@ export function Map_mapKeys<K, V, J>(
   return result
 }
 
-export function Map_mapValues<K, V, U>(
-  inputMap: Map<K, V>,
-  fn: (key: K, value: V) => U,
-): Map<K, U> {
+export function Map_mapValues<K, V, U>(inputMap: Map<K, V>, fn: (key: K, value: V) => U): Map<K, U> {
   const result = new Map<K, U>()
   for (const [key, value] of inputMap) {
     result.set(key, fn(key, value))
@@ -255,10 +205,7 @@ export function Map_mapValues<K, V, U>(
   return result
 }
 
-export function Map_partition<K, V>(
-  map: Map<K, V>,
-  predicate: (key: K, value: V) => boolean,
-): [Map<K, V>, Map<K, V>] {
+export function Map_partition<K, V>(map: Map<K, V>, predicate: (key: K, value: V) => boolean): [Map<K, V>, Map<K, V>] {
   const yes = new Map<K, V>()
   const no = new Map<K, V>()
   for (const [k, v] of map) {
@@ -273,9 +220,7 @@ export function Map_partition<K, V>(
  * @param entries Array of [K, V]
  * @returns Map<K, V[]>
  */
-export function Map_mkSemigroupArray<K, V>(
-  entries: readonly [K, V][],
-): Map<K, V[]> {
+export function Map_mkSemigroupArray<K, V>(entries: readonly [K, V][]): Map<K, V[]> {
   const map = new Map<K, V[]>()
   for (const [key, value] of entries) {
     const existing = map.has(key) ? map.get(key)! : []
@@ -284,9 +229,7 @@ export function Map_mkSemigroupArray<K, V>(
   return map
 }
 
-export function Map_mkOrThrowIfDuplicateKeys<K, V>(
-  entries: readonly [K, V][],
-): Map<K, V> {
+export function Map_mkOrThrowIfDuplicateKeys<K, V>(entries: readonly (readonly [K, V])[]): Map<K, V> {
   const map = new Map<K, V>()
   const duplicates = new Set<K>()
 
@@ -299,16 +242,13 @@ export function Map_mkOrThrowIfDuplicateKeys<K, V>(
   }
 
   if (duplicates.size > 0) {
-    throw new Error(`Duplicate keys found: ${[...duplicates].join(", ")}`)
+    throw new Error(`Duplicate keys found: ${[...duplicates].join(', ')}`)
   }
 
   return map
 }
 
-export function zipMaps<K, A, B>(
-  mapA: Map<K, A>,
-  mapB: Map<K, B>,
-): [Map<K, [A, B]>, Map<K, A>, Map<K, B>] {
+export function zipMaps<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): [Map<K, [A, B]>, Map<K, A>, Map<K, B>] {
   const zipped = new Map<K, [A, B]>()
   const leftoversA = new Map(mapA)
   const leftoversB = new Map(mapB)
@@ -325,37 +265,27 @@ export function zipMaps<K, A, B>(
 }
 
 // Strict version: throws if either map has leftovers
-export function zipMapsStrict<K, A, B>(
-  mapA: Map<K, A>,
-  mapB: Map<K, B>,
-): Map<K, [A, B]> {
+export function zipMapsStrict<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): Map<K, [A, B]> {
   const [zipped, leftoversA, leftoversB] = zipMaps(mapA, mapB)
 
   if (leftoversA.size > 0) {
-    throw new Error(
-      `Keys missing in second map: ${Array.from(leftoversA.keys()).join(", ")}`,
-    )
+    throw new Error(`Keys missing in second map: ${Array.from(leftoversA.keys()).join(', ')}`)
   }
 
   if (leftoversB.size > 0) {
-    throw new Error(
-      `Keys missing in first map: ${Array.from(leftoversB.keys()).join(", ")}`,
-    )
+    throw new Error(`Keys missing in first map: ${Array.from(leftoversB.keys()).join(', ')}`)
   }
 
   return zipped
 }
 
-export function zipMapsLeftIsSubsetOfRight<K extends string, A, B>(
-  mapA: Map<K, A>,
-  mapB: Map<K, B>,
-): Map<K, [A, B]> {
+export function zipMapsLeftIsSubsetOfRight<K extends string, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): Map<K, [A, B]> {
   // FIXME: dont use this method, sh return leftoversB
   const [zipped, leftoversA] = zipMaps(mapA, mapB)
 
   if (leftoversA.size > 0) {
     throw new Error(
-      `zipMapsLeftIsSubsetOfRight: Key(s) missing in second map: ${Array.from(leftoversA.keys()).join(", ")}`,
+      `zipMapsLeftIsSubsetOfRight: Key(s) missing in second map: ${Array.from(leftoversA.keys()).join(', ')}`,
     )
   }
 
@@ -388,24 +318,16 @@ export function zipMaps3<K, A, B, C>(
   return [zipped, leftoversA, leftoversB, leftoversC]
 }
 
-export function zipMaps3Strict<K, A, B, C>(
-  mapA: Map<K, A>,
-  mapB: Map<K, B>,
-  mapC: Map<K, C>,
-): Map<K, [A, B, C]> {
-  const [zipped, leftoversA, leftoversB, leftoversC] = zipMaps3(
-    mapA,
-    mapB,
-    mapC,
-  )
+export function zipMaps3Strict<K, A, B, C>(mapA: Map<K, A>, mapB: Map<K, B>, mapC: Map<K, C>): Map<K, [A, B, C]> {
+  const [zipped, leftoversA, leftoversB, leftoversC] = zipMaps3(mapA, mapB, mapC)
 
   if (leftoversA.size > 0 || leftoversB.size > 0 || leftoversC.size > 0) {
     throw new Error(
       `zipMaps3Strict: maps must have identical keys. ` +
         `Missing or extra keys → ` +
-        `A: [${Array.from(leftoversA.keys()).join(", ")}], ` +
-        `B: [${Array.from(leftoversB.keys()).join(", ")}], ` +
-        `C: [${Array.from(leftoversC.keys()).join(", ")}]`,
+        `A: [${Array.from(leftoversA.keys()).join(', ')}], ` +
+        `B: [${Array.from(leftoversB.keys()).join(', ')}], ` +
+        `C: [${Array.from(leftoversC.keys()).join(', ')}]`,
     )
   }
 
@@ -423,21 +345,33 @@ export function zipMaps3_left_lessThan_middle_lessThan_right<K, A, B, C>(
 
   if (leftoversA.size > 0) {
     throw new Error(
-      `zipMaps3_left_lessThan_middle_lessThan_right: keys in A missing in B or C: ${Array.from(
-        leftoversA.keys(),
-      ).join(", ")}`,
+      `zipMaps3_left_lessThan_middle_lessThan_right: keys in A missing in B or C: ${Array.from(leftoversA.keys()).join(
+        ', ',
+      )}`,
     )
   }
 
   // now ensure B ⊆ C (but allow B to have keys not in A)
   if (leftoversB.size > 0) {
     throw new Error(
-      `zipMaps3_left_lessThan_middle_lessThan_right: keys in B missing in C: ${Array.from(
-        leftoversB.keys(),
-      ).join(", ")}`,
+      `zipMaps3_left_lessThan_middle_lessThan_right: keys in B missing in C: ${Array.from(leftoversB.keys()).join(
+        ', ',
+      )}`,
     )
   }
 
   // leftoverC can exist → that's fine (C is allowed to be a superset)
   return zipped
+}
+
+export function Map_getFirstEntry<K, V>(map: Map<K, V>): [K, V] | undefined {
+  const iterator = map.entries().next()
+  if (iterator.done) return undefined
+  return iterator.value
+}
+
+export function Map_getFirstKey<K, V>(map: Map<K, V>): K | undefined {
+  const iterator = map.keys().next()
+  if (iterator.done) return undefined
+  return iterator.value
 }

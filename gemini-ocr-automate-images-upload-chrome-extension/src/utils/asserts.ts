@@ -6,11 +6,10 @@
  */
 export function assertIsDefinedAndReturn<T>(
   value: T,
-  message: string | (() => string) = "Assertion Error: value is null or undefined",
+  message: string | (() => string) = 'Assertion Error: value is null or undefined',
 ): NonNullable<T> {
   if (value === undefined || value === null) {
-    const errorMessage =
-      typeof message === "function" ? message() : message
+    const errorMessage = typeof message === 'function' ? message() : message
     throw new Error(errorMessage)
   }
 
@@ -25,7 +24,7 @@ export function assertIsDefinedAndReturn<T>(
  */
 export function assertIsDefined<T>(
   value: T,
-  message: string = "Assertion Error: value is null or undefined",
+  message: string = 'Assertion Error: value is null or undefined',
 ): asserts value is NonNullable<T> {
   if (value === undefined || value === null) {
     throw new Error(message)
@@ -56,5 +55,5 @@ export function assertIsDefined<T>(
  * @throws Will always throw an `Error` if called at runtime.
  */
 export function assertNever(x: never): never {
-  throw new Error("Unexpected object: " + JSON.stringify(x))
+  throw new Error('Unexpected object: ' + JSON.stringify(x))
 }

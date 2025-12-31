@@ -9,7 +9,7 @@
 //   not_selected_and_should_not_be_selected: [102],
 // }
 
-import { ValidNonNegativeInt } from "../utils/toNumber"
+import { ValidNonNegativeInt } from '../utils/toNumber'
 
 // GIVEN
 //   starting page to select = 100
@@ -29,9 +29,7 @@ type SelectOrNot<X> = {
   not_selected_and_should_not_be_selected: X[]
 }
 
-export const rowsToSelectOrNot = <
-  X extends { isSelected: boolean; pageNumber: ValidNonNegativeInt },
->(
+export const rowsToSelectOrNot = <X extends { isSelected: boolean; pageNumber: ValidNonNegativeInt }>(
   rows: X[], // must be sorted by pageNumber ascending
   startPage: ValidNonNegativeInt,
   count: ValidNonNegativeInt,
@@ -39,9 +37,9 @@ export const rowsToSelectOrNot = <
   // Determine which pageNumbers should be selected
   const targetPages = new Set(
     rows
-      .filter((r) => r.pageNumber >= startPage)
+      .filter(r => r.pageNumber >= startPage)
       .slice(0, count)
-      .map((r) => r.pageNumber),
+      .map(r => r.pageNumber),
   )
 
   const result: SelectOrNot<X> = {

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from "react"
+import { useRef, useCallback, useEffect } from 'react'
 
 export const useDraggable = (hostElement: HTMLElement) => {
   const isDragging = useRef(false)
@@ -20,8 +20,8 @@ export const useDraggable = (hostElement: HTMLElement) => {
     const onMouseMove = (e: MouseEvent) => {
       if (!isDragging.current) return
 
-      hostElement.style.bottom = "auto"
-      hostElement.style.right = "auto"
+      hostElement.style.bottom = 'auto'
+      hostElement.style.right = 'auto'
       hostElement.style.left = `${e.clientX - offset.current.x}px`
       hostElement.style.top = `${e.clientY - offset.current.y}px`
     }
@@ -30,11 +30,11 @@ export const useDraggable = (hostElement: HTMLElement) => {
       isDragging.current = false
     }
 
-    window.addEventListener("mousemove", onMouseMove)
-    window.addEventListener("mouseup", onMouseUp)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
     return () => {
-      window.removeEventListener("mousemove", onMouseMove)
-      window.removeEventListener("mouseup", onMouseUp)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
     }
   }, [hostElement])
 

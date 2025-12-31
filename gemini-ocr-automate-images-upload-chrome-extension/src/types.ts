@@ -1,4 +1,4 @@
-import { ValidNonNegativeInt } from "./utils/toNumber"
+import { ValidNonNegativeInt } from './utils/toNumber'
 
 export type PopupDomainState = {
   aiStudio_isDriveIframeOpened: boolean

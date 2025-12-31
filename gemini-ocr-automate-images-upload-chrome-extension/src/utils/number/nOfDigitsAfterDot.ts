@@ -1,12 +1,12 @@
 export function nOfDigitsAfterDot_string(s: string): number {
   // Handle scientific notation (e.g., "1.23e+5" or "5e-324")
-  if (s.includes("e")) {
-    const parts = s.split("e")
-    const base = parts[0] ?? "0"
-    const exp = parts[1] ?? "0"
+  if (s.includes('e')) {
+    const parts = s.split('e')
+    const base = parts[0] ?? '0'
+    const exp = parts[1] ?? '0'
 
     const exponent = parseInt(exp, 10)
-    const dotIndex = base.indexOf(".")
+    const dotIndex = base.indexOf('.')
     const baseDecimals = dotIndex === -1 ? 0 : base.length - dotIndex - 1
 
     // After shifting by exponent, how many digits remain after the dot?
@@ -14,7 +14,7 @@ export function nOfDigitsAfterDot_string(s: string): number {
     return Math.max(0, finalDecimals)
   }
 
-  const dot = s.indexOf(".")
+  const dot = s.indexOf('.')
   return dot === -1 ? 0 : s.length - dot - 1
 }
 
@@ -64,8 +64,5 @@ export const nOfDigitsAfterDot_testCases: [number, number][] = [
 // ===== Test runner =====
 for (const [input, expected] of nOfDigitsAfterDot_testCases) {
   const result = nOfDigitsAfterDot(input)
-  if (result !== expected)
-    console.log(
-      `❌ nOfDigitsAfterDot(${input}) = ${result} (expected ${expected})`,
-    )
+  if (result !== expected) console.log(`❌ nOfDigitsAfterDot(${input}) = ${result} (expected ${expected})`)
 }

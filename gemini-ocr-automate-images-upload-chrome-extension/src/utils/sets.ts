@@ -1,15 +1,12 @@
 // Copyright 2023 srghma
 
-import { type Option } from "./types.js"
+import { type Option } from './types.js'
 
-export function Set_filterMap<T, U>(
-  set: Set<T>,
-  f: (item: T) => Option<U>,
-): Set<U> {
+export function Set_filterMap<T, U>(set: Set<T>, f: (item: T) => Option<U>): Set<U> {
   const result: Set<U> = new Set()
   for (const item of set) {
     const opt = f(item)
-    if (opt.t === "some") result.add(opt.v)
+    if (opt.t === 'some') result.add(opt.v)
   }
   return result
 }
@@ -30,10 +27,7 @@ export function Set_map<T, U>(set: Set<T>, fn: (x: T) => U): Set<U> {
   return result
 }
 
-export function Set_filter<T>(
-  set: Set<T>,
-  predicate: (x: T) => boolean,
-): Set<T> {
+export function Set_filter<T>(set: Set<T>, predicate: (x: T) => boolean): Set<T> {
   const result = new Set<T>()
   for (const x of set) {
     if (predicate(x)) result.add(x)
@@ -41,10 +35,7 @@ export function Set_filter<T>(
   return result
 }
 
-export function Set_partition<T>(
-  set: Set<T>,
-  predicate: (x: T) => boolean,
-): [Set<T>, Set<T>] {
+export function Set_partition<T>(set: Set<T>, predicate: (x: T) => boolean): [Set<T>, Set<T>] {
   const yes = new Set<T>()
   const no = new Set<T>()
   for (const x of set) {
@@ -54,18 +45,12 @@ export function Set_partition<T>(
   return [yes, no]
 }
 
-export function Set_some<T>(
-  set: Set<T>,
-  predicate: (x: T) => boolean,
-): boolean {
+export function Set_some<T>(set: Set<T>, predicate: (x: T) => boolean): boolean {
   for (const x of set) if (predicate(x)) return true
   return false
 }
 
-export function Set_every<T>(
-  set: Set<T>,
-  predicate: (x: T) => boolean,
-): boolean {
+export function Set_every<T>(set: Set<T>, predicate: (x: T) => boolean): boolean {
   for (const x of set) if (!predicate(x)) return false
   return true
 }
@@ -116,9 +101,7 @@ export function Set_inter<T>(setA: Set<T>, setB: Set<T>): Set<T> {
   return result
 }
 
-export function Set_union_onCollisionThrow<T>(
-  ...sets: readonly Set<T>[]
-): Set<T> {
+export function Set_union_onCollisionThrow<T>(...sets: readonly Set<T>[]): Set<T> {
   const result = new Set<T>()
   for (const set of sets) {
     for (const item of set) {
@@ -131,9 +114,7 @@ export function Set_union_onCollisionThrow<T>(
   return result
 }
 
-export function Set_union_onCollisionPreferLast<T>(
-  ...sets: readonly Set<T>[]
-): Set<T> {
+export function Set_union_onCollisionPreferLast<T>(...sets: readonly Set<T>[]): Set<T> {
   const result = new Set<T>()
   for (const set of sets) {
     for (const item of set) result.add(item)
@@ -141,10 +122,7 @@ export function Set_union_onCollisionPreferLast<T>(
   return result
 }
 
-export function Set_union_onCollisionMerge<T>(
-  mergeCollision: (a: T, b: T) => T,
-  ...sets: readonly Set<T>[]
-): Set<T> {
+export function Set_union_onCollisionMerge<T>(mergeCollision: (a: T, b: T) => T, ...sets: readonly Set<T>[]): Set<T> {
   const result = new Set<T>()
   for (const set of sets) {
     for (const item of set) {
@@ -187,24 +165,14 @@ function Set_mkOrCollectIfArrayIsNotUnique<T>(entries: readonly T[]): {
   return { seen, duplicates }
 }
 
-export function Set_mkOrThrowIfArrayIsNotUnique<T>(
-  entries: readonly T[],
-): Set<T> {
+export function Set_mkOrThrowIfArrayIsNotUnique<T>(entries: readonly T[]): Set<T> {
   const { seen, duplicates } = Set_mkOrCollectIfArrayIsNotUnique(entries)
-  if (duplicates.size > 0)
-    throw new Error(
-      `Array contains duplicate entries: ${[...duplicates].join(", ")}`,
-    )
+  if (duplicates.size > 0) throw new Error(`Array contains duplicate entries: ${[...duplicates].join(', ')}`)
   return seen
 }
 
-export function Set_mkOrLogIfArrayIsNotUnique<T>(
-  entries: readonly T[],
-): Set<T> {
+export function Set_mkOrLogIfArrayIsNotUnique<T>(entries: readonly T[]): Set<T> {
   const { seen, duplicates } = Set_mkOrCollectIfArrayIsNotUnique(entries)
-  if (duplicates.size > 0)
-    console.error(
-      `Array contains duplicate entries: ${[...duplicates].join(", ")}`,
-    )
+  if (duplicates.size > 0) console.error(`Array contains duplicate entries: ${[...duplicates].join(', ')}`)
   return seen
 }

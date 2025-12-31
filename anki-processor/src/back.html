@@ -1,0 +1,136 @@
+<div>
+  <h1 id="word">{{word}}</h1>
+  <h2 id="word-graphemes"></h2>
+  <h2 id="word-split-ru"></h2>
+
+  {{type:word}} {{wordaudio}}
+  <br />{{worden}}
+</div>
+
+{{#sent}}
+<div class="Item">
+  <h5>Example</h5>
+  <div id="example-sent">{{sent}}</div>
+  <h2 id="example-sent-graphemes"></h2>
+  <h2 id="example-sent-split-ru"></h2>
+
+  {{#sentrom}}<br /><small>{{sentrom}}</small>{{/sentrom}} <br />{{sentaudio}} <br />{{senten}}
+</div>
+{{/sent}}
+
+<a href="https://en.wiktionary.org/wiki/{{word}}" target="_blank" rel="noopener noreferrer" class="wiktionary-link">
+  Wiktionary
+</a>
+
+<a href="https://translate.google.de/?hl=en&ie=UTF-8&eotf=1&sl=km&tl=en&text={{word}}&op=translate"
+  class="wiktionary-link">GTranslate</a>
+
+<a href="#" id="btn-custom-translate" class="wiktionary-link">🔍 Translate</a>
+
+{{#wordrom}}<small>{{wordrom}}</small><br />{{/wordrom}}
+
+<script>
+  document.getElementById('btn-custom-translate').addEventListener('click', function (e) {
+    e.preventDefault() // Stop page jump
+
+    // 1. Find the H1 element where the word is displayed
+    var wordElement = document.getElementById('word')
+
+    if (wordElement) {
+      // 2. Get the plain text (innerText removes all HTML tags and hidden formatting)
+      var cleanText = wordElement.innerText.trim()
+
+      // 3. Open Google Translate if text exists
+      if (cleanText) {
+        var url = 'https://translate.google.com/?sl=km&tl=en&text=' + encodeURIComponent(cleanText) + '&op=translate'
+        window.open(url, '_blank')
+      } else {
+        alert('Could not find text in the H1 element.')
+      }
+    }
+  })
+</script>
+
+<a href="https://www.google.com/search?q={{word}}" class="wiktionary-link">GSearch</a>
+
+<a href="https://forvo.com/word/{{word}}/" class="wiktionary-link">Forvo</a>
+
+{{#senses}}
+<div class="Item">
+  <h5>Wiktionary</h5>
+
+  {{#pronunciation}}
+  <div class="Subitem">
+    <h6>Pronunciation</h6>
+    {{pronunciation}}
+  </div>
+  {{/pronunciation}} {{#senses}}
+  <div class="Subitem">
+    <h6>Meaning</h6>
+    {{#pos}}<small>{{pos}}</small><br /><br />{{/pos}} {{senses}}
+  </div>
+  {{/senses}} {{#ety}}
+  <div class="Subitem">
+    <h6>Etymology</h6>
+    {{ety}}
+  </div>
+  {{/ety}} {{#derivedTerms}}
+  <div class="Subitem">
+    <h6>Derived Terms</h6>
+    {{derivedTerms}}
+  </div>
+  {{/derivedTerms}}
+</div>
+{{/senses}}
+
+<!-- Accordion 1 -->
+{{#wiktionary1}}
+<details class="wikt-accordion">
+  <summary>Wiktionary Entry 1</summary>
+  <div class="wikt-content">{{wiktionary1}}</div>
+</details>
+{{/wiktionary1}}
+
+<!-- Accordion 2 -->
+{{#wiktionary2}}
+<details class="wikt-accordion">
+  <summary>Wiktionary Entry 2</summary>
+  <div class="wikt-content">{{wiktionary2}}</div>
+</details>
+{{/wiktionary2}}
+
+<!-- Accordion 3 -->
+{{#wiktionary3}}
+<details class="wikt-accordion">
+  <summary>Wiktionary Entry 3</summary>
+  <div class="wikt-content">{{wiktionary3}}</div>
+</details>
+{{/wiktionary3}}
+
+<!-- Accordion 4 -->
+{{#wiktionary4}}
+<details class="wikt-accordion">
+  <summary>Wiktionary Entry 4</summary>
+  <div class="wikt-content">{{wiktionary4}}</div>
+</details>
+{{/wiktionary4}}
+
+<!-- Accordion 5 -->
+{{#wiktionary5}}
+<details class="wikt-accordion">
+  <summary>Wiktionary Entry 5</summary>
+  <div class="wikt-content">{{wiktionary5}}</div>
+</details>
+{{/wiktionary5}}
+
+<!-- Accordion 6 -->
+{{#wiktionary6}}
+<details class="wikt-accordion">
+  <summary>Wiktionary Entry 6</summary>
+  <div class="wikt-content">{{wiktionary6}}</div>
+</details>
+{{/wiktionary6}}
+
+<script>
+  // INSERT JS HERE
+</script>

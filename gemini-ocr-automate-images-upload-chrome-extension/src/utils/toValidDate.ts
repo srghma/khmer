@@ -1,17 +1,13 @@
 // Copyright 2025 srghma
 
-export type ValidDate = Date & { readonly __datebrand: "ValidDate" }
+export type ValidDate = Date & { readonly __datebrand: 'ValidDate' }
 
-export function parseStringOrNumberToValidDateOrUndefined(
-  x: string | number,
-): ValidDate | undefined {
+export function parseStringOrNumberToValidDateOrUndefined(x: string | number): ValidDate | undefined {
   const parsed = new Date(x)
   return isValidDate(parsed) ? parsed : undefined
 }
 
-export function parseStringOrNumberToValidDateOrThrow(
-  x: string | number,
-): ValidDate {
+export function parseStringOrNumberToValidDateOrThrow(x: string | number): ValidDate {
   const x_ = parseStringOrNumberToValidDateOrUndefined(x)
   if (x_ === undefined) throw new Error(`'${x}' couldnt parse to a valid Date`)
   return x_
@@ -22,14 +18,11 @@ export function isValidDate(value: Date | unknown): value is ValidDate {
 }
 
 export function assertIsDate(value: unknown): asserts value is ValidDate {
-  if (!isValidDate(value))
-    throw new TypeError(`Expected a valid Date, got: ${String(value)}`)
+  if (!isValidDate(value)) throw new TypeError(`Expected a valid Date, got: ${String(value)}`)
 }
 
 // XXX: better use parseStringOrNumberOrDateToValidDateOrUndefined, bc it will swallow null and undefined
-export function unknownToValidDateOrUndefined(
-  x: Date | unknown,
-): ValidDate | undefined {
+export function unknownToValidDateOrUndefined(x: Date | unknown): ValidDate | undefined {
   return isValidDate(x) ? x : undefined
 }
 
@@ -41,29 +34,19 @@ export function unknownToValidDateOrThrow(date: unknown): ValidDate {
 
 // NOTE: can replace `new Date` with `parseISO` for more consistency (e.g. some engines treat "YYYY-MM-DD" as UTC, others as local time)
 // XXX: better use parseStringOrNumberOrDateToValidDateOrUndefined, bc it will swallow null and undefined
-export function unknownDatelikeToValidDateOrThrow(
-  value: Date | string | number | unknown,
-): ValidDate {
+export function unknownDatelikeToValidDateOrThrow(value: Date | string | number | unknown): ValidDate {
   const date: Date | undefined =
-    value instanceof Date
-      ? value
-      : typeof value === "string" || typeof value === "number"
-        ? new Date(value)
-        : undefined
+    value instanceof Date ? value : typeof value === 'string' || typeof value === 'number' ? new Date(value) : undefined
   if (!date) throw new Error(`Value is not a date-like input: ${String(value)}`)
 
   return unknownToValidDateOrThrow(date)
 }
 
-export function parseDateToValidDateOrUndefined(
-  x: Date,
-): ValidDate | undefined {
+export function parseDateToValidDateOrUndefined(x: Date): ValidDate | undefined {
   return isValidDate(x) ? x : undefined
 }
 
-export function parseStringOrNumberOrDateToValidDateOrUndefined(
-  x: string | number | Date,
-): ValidDate | undefined {
+export function parseStringOrNumberOrDateToValidDateOrUndefined(x: string | number | Date): ValidDate | undefined {
   const parsed = x instanceof Date ? x : new Date(x)
   return isValidDate(parsed) ? parsed : undefined
 }
@@ -73,9 +56,7 @@ export function parseDateToValidDateOrThrow(x: Date): ValidDate {
   return x
 }
 
-export function parseStringOrNumberOrDateToValidDateOrThrow(
-  x: string | number | Date,
-): ValidDate {
+export function parseStringOrNumberOrDateToValidDateOrThrow(x: string | number | Date): ValidDate {
   const x_ = parseStringOrNumberOrDateToValidDateOrUndefined(x)
   if (x_ === undefined) throw new Error(`'${x}' couldnt parse to a valid Date`)
   return x_
@@ -84,9 +65,7 @@ export function parseStringOrNumberOrDateToValidDateOrThrow(
 export function parseStringOrNumberOrDateToValidDateOrThrow_nullableToUndefined(
   x: string | number | Date | null | undefined,
 ): ValidDate | undefined {
-  return x === undefined || x === null
-    ? undefined
-    : parseStringOrNumberOrDateToValidDateOrThrow(x)
+  return x === undefined || x === null ? undefined : parseStringOrNumberOrDateToValidDateOrThrow(x)
 }
 
 export function eqDates(a: ValidDate, b: ValidDate): boolean {
@@ -96,11 +75,7 @@ export function eqDates(a: ValidDate, b: ValidDate): boolean {
 export function eqDates_inDDMMYYYY(a: ValidDate, b: ValidDate): boolean {
   // const s = 'dd/MM/yyyy'
   // return format(a, s) === format(b, s)
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  )
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
 export function makeEqNullable<T>(
@@ -115,10 +90,7 @@ export function makeEqNullable<T>(
 
 export const eqDates_inDDMMYYYY_nullable = makeEqNullable(eqDates_inDDMMYYYY)
 
-export function eqDateLikes(
-  a: string | number | Date,
-  b: string | number | Date,
-): boolean {
+export function eqDateLikes(a: string | number | Date, b: string | number | Date): boolean {
   return eqDates(unknownToValidDateOrThrow(a), unknownToValidDateOrThrow(b))
 }
 
@@ -134,7 +106,7 @@ export function eqDateLikes(
  * parseDate(undefined)    // returns undefined
  */
 export function parseMDYDate(dateString: string): ValidDate | undefined {
-  const parts = dateString.split("/")
+  const parts = dateString.split('/')
   if (parts.length !== 3) return undefined
 
   const [monthStr, dayStr, yearStr] = parts
@@ -165,10 +137,7 @@ export function parseMDYDate(dateString: string): ValidDate | undefined {
   return isValidDate(date) ? date : undefined
 }
 
-export function maxDate_bIsNullable_orThrow(
-  a: Date,
-  b: Date | undefined,
-): ValidDate {
+export function maxDate_bIsNullable_orThrow(a: Date, b: Date | undefined): ValidDate {
   if (!isValidDate(a)) throw new Error(`a is invalid date ${a}`)
   if (!b) return a
   if (!isValidDate(b)) throw new Error(`a is invalid date ${b}`)

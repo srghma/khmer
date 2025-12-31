@@ -1,18 +1,14 @@
-import { useState, useEffect } from "react"
-import { isDriveIframeOpen } from "./aistudio"
-import {
-  unlessUndefined_use,
-} from "../utils/dom"
-import { Set_eq, Set_mkOrThrowIfArrayIsNotUnique } from "../utils/sets"
-import { dom_runButton, dom_runButtonState, dom_runButtonToState, RunButtonState } from "./runButton"
+import { useState, useEffect } from 'react'
+import { isDriveIframeOpen } from './aistudio'
+import { unlessUndefined_use } from '../utils/dom'
+import { Set_eq, Set_mkOrThrowIfArrayIsNotUnique } from '../utils/sets'
+import { dom_runButton, dom_runButtonState, dom_runButtonToState, RunButtonState } from './runButton'
 
 export function dom_getUploadedFilenames(): Set<string> {
-  const nameElements = document.querySelectorAll(
-    "ms-prompt-media .content-container .name",
-  )
+  const nameElements = document.querySelectorAll('ms-prompt-media .content-container .name')
   return Set_mkOrThrowIfArrayIsNotUnique(
     Array.from(nameElements)
-      .map((el) => el.getAttribute("title") || el.textContent?.trim() || "")
+      .map(el => el.getAttribute('title') || el.textContent?.trim() || '')
       .filter(Boolean),
   )
 }
@@ -38,7 +34,7 @@ export const useAIStudioScraper = () => {
       // 3. File Set (The Critical Optimization)
       const newFiles = dom_getUploadedFilenames()
 
-      setCurrentFiles((prevFiles) => {
+      setCurrentFiles(prevFiles => {
         // Compare CONTENT. If content is same, return the OLD reference.
         // This prevents React from seeing a "change" and triggering a re-render.
         if (Set_eq(prevFiles, newFiles)) return prevFiles

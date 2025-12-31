@@ -11,19 +11,34 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bun": "^1.3.5",
     "@types/chrome": "^0.1.32",
+    "@types/cli-progress": "^3.11.6",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "esbuild": "^0.27.2",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-inline-import": "^1.1.0",
     "prettier": "3.7.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   },
   "dependencies": {
+    "@types/jsdom": "^27.0.0",
+    "@types/jsonlines": "^0.1.5",
+    "@vitalets/google-translate-api": "^9.2.1",
+    "cli-progress": "^3.12.0",
+    "fast-xml-parser": "^5.3.3",
+    "html-prettify": "^1.0.7",
+    "html-validate": "^10.6.0",
+    "jsdom": "^27.4.0",
+    "jsonlines": "^0.1.1",
+    "p-queue": "^9.1.0",
     "p-wait-for": "^6.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "translateer": "file:../../translateer",
+    "typescript-parsec": "^0.3.4",
     "zod": "^4.2.1"
   }
 }

@@ -1,0 +1,302 @@
+#!/usr/bin/env node
+
+import * as fs from "fs"
+import {
+  dictionaryEntry_onlyTypedKhmerWord,
+  processTsvFile,
+} from "./wiktionary-parse"
+import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts"
+import {
+  TypedKhmerWord,
+  strToKhmerWordOrUndefined,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
+import { ValidNonNegativeInt } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber"
+import {
+  extractPageData,
+  Page,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page"
+import { NonEmptyString } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string"
+
+// Types
+
+interface GroupedEntry {
+  khmerWord: TypedKhmerWord
+  allContent: NonEmptyString[]
+  pages: Set<ValidNonNegativeInt>
+}
+
+// Helper to create an entry from accumulated data
+const createEntry = (
+  khmerWord: TypedKhmerWord,
+  contentLines: NonEmptyString[],
+  pageNumber: ValidNonNegativeInt,
+): DictionaryEntry => ({
+  khmerWord,
+  content: contentLines.join("\n").trim(),
+  pageNumber,
+})
+
+// Split page content into entries by Khmer headwords
+const splitPageIntoEntries = (
+  pageNumber: ValidNonNegativeInt,
+  pageContent: string,
+): DictionaryEntry[] => {
+  type Acc = {
+    entries: DictionaryEntry[]
+    currentWord: TypedKhmerWord | undefined
+    currentContent: string[]
+  }
+
+  const { entries, currentWord, currentContent } = pageContent
+    .split("\n")
+    .reduce<Acc>(
+      (acc, line) => {
+        const khmerWord = extractKhmerWord(line)
+
+        if (khmerWord) {
+          // Close previous entry if exists, start new one
+          const newEntries =
+            acc.currentWord && acc.currentContent.length > 0
+              ? [
+                  ...acc.entries,
+                  createEntry(acc.currentWord, acc.currentContent, pageNumber),
+                ]
+              : acc.entries
+
+          return {
+            entries: newEntries,
+            currentWord: khmerWord,
+            currentContent: [line],
+          }
+        } else if (acc.currentWord) {
+          // Add line to current entry
+          return {
+            ...acc,
+            currentContent: [...acc.currentContent, line],
+          }
+        } else {
+          // No current word, skip line
+          return acc
+        }
+      },
+      { entries: [], currentWord: undefined, currentContent: [] },
+    )
+
+  // Handle last entry
+  return currentWord && currentContent.length > 0
+    ? [...entries, createEntry(currentWord, currentContent, pageNumber)]
+    : entries
+}
+
+// Split content into entries by Khmer headwords
+const splitIntoEntries = (pages: Page[]): DictionaryEntry[] =>
+  pages.flatMap(([pageNumber, pageContent]) =>
+    splitPageIntoEntries(pageNumber, pageContent),
+  )
+
+// Group entries by Khmer word
+const groupByKhmerWord = (entries: DictionaryEntry[]): GroupedEntry[] => {
+  const grouped = new Map<
+    TypedKhmerWord,
+    { content: string[]; pages: Set<ValidNonNegativeInt> }
+  >()
+
+  for (const entry of entries) {
+    const existing = grouped.get(entry.khmerWord) || {
+      content: [],
+      pages: new Set(),
+    }
+    existing.content.push(entry.content)
+    existing.pages.add(entry.pageNumber)
+    grouped.set(entry.khmerWord, existing)
+  }
+
+  return Array.from(grouped.entries()).map(([khmerWord, data]) => ({
+    khmerWord,
+    allContent: data.content,
+    pages: new Set(Array.from(data.pages).sort((a, b) => a - b)),
+  }))
+}
+
+// Convert markdown to HTML
+const markdownToHtml = (markdown: string): string => {
+  let html = markdown
+
+  // Bold: **text** -> <b>text</b>
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+
+  // Italic: *text* -> <i>text</i>
+  html = html.replace(/\*([^*]+)\*/g, "<i>$1</i>")
+
+  // Diamond markers -> ◊
+  html = html.replace(/\$\\diamond\$/g, "◊")
+  html = html.replace(/<>/g, "◊")
+
+  // Newlines -> <br>
+  html = html.replace(/\n/g, "<br>")
+
+  // Multiple <br> -> paragraph spacing
+  html = html.replace(/(<br>){3,}/g, "<br><br>")
+
+  return html
+}
+
+// Format grouped entry for StarDict
+const formatForStarDict = (grouped: GroupedEntry): string => {
+  const definitions = grouped.allContent.map((content, index) => {
+    const html = markdownToHtml(content)
+
+    if (grouped.allContent.length > 1) {
+      // Multiple entries for same word
+      return `<div style="margin-bottom: 1em;"><b>[${index + 1}]</b><br>${html}</div>`
+    }
+    return html
+  })
+
+  return definitions.join("<hr>")
+}
+
+// Main conversion function
+// npx tsx dicts/src/new.ts ./Краткий\ русско-кхмерский\ словарь--content.txt
+const convertToStarDict = (
+  inputFile: string,
+  outputFile: string,
+  engDict: Set<TypedKhmerWord>,
+): void => {
+  console.log(`Reading file: ${inputFile}`)
+
+  const content = fs.readFileSync(inputFile, "utf8")
+  console.log("Parsing pages...")
+  const pages = extractPageData(content)
+
+  console.log("Extracting entries...")
+  const entries = splitIntoEntries(pages)
+  console.log(`Found ${entries.length} entries`)
+
+  console.log("Grouping by Khmer word...")
+  const grouped = groupByKhmerWord(entries)
+  console.log(`Grouped into ${grouped.length} unique Khmer words`)
+
+  // --- REPORTING LOGIC ---
+  const unknown = grouped.filter((g) => !engDict.has(g.khmerWord))
+
+  if (unknown.length > 0) {
+    console.log("\n⚠️  UNKNOWN WORDS BY PAGE:")
+
+    // Group unknown words by their first occurrence page
+    const byPage = new Map<number, TypedKhmerWord[]>()
+    unknown.forEach((g) => {
+      const p = Array.from(g.pages)[0] || 0
+      const list = byPage.get(p) || []
+      list.push(g.khmerWord)
+      byPage.set(p, list)
+    })
+
+    Array.from(byPage.keys())
+      .sort((a, b) => a - b)
+      .forEach((page) => {
+        console.log(`Page ${page}: ${byPage.get(page)?.join(", ")}`)
+      })
+    console.log(`\nTotal unknown: ${unknown.length}\n`)
+  }
+  // --- END REPORTING ---
+
+  console.log("Converting to StarDict format...")
+  const stardictLines = grouped.map((group) => {
+    const headword = group.khmerWord
+    const definition = formatForStarDict(group)
+
+    // StarDict tab format: word\tdefinition
+    return `${headword}\t${definition}`
+  })
+
+  // Sort by Khmer word for better organization
+  stardictLines.sort((a, b) => {
+    const wordA = assertIsDefinedAndReturn(a.split("\t")[0])
+    const wordB = assertIsDefinedAndReturn(b.split("\t")[0])
+    return wordA.localeCompare(wordB, "km")
+  })
+
+  fs.writeFileSync(outputFile, stardictLines.join("\n"), "utf8")
+
+  console.log(`\n✓ Conversion complete!`)
+  console.log(`  Total entries: ${entries.length}`)
+  console.log(`  Unique words: ${grouped.length}`)
+  console.log(`  Multiple definitions: ${entries.length - grouped.length}`)
+  console.log(`  Output: ${outputFile}`)
+
+  console.log(`\nTo convert to StarDict binary format:`)
+  console.log(
+    `  2. Convert: pyglossary './Краткий русско-кхмерский словарь--content.tab' '/home/srghma/projects/khmer-dicts/Краткий русско-кхмерский словарь--content.slob' --read-format=Tabfile --write-format=Aard2Slob`,
+  )
+}
+
+// Show sample of what was extracted
+const showSamples = (inputFile: string, count: number = 5): void => {
+  const content = fs.readFileSync(inputFile, "utf8")
+  const pages = extractPageData(content)
+  const entries = splitIntoEntries(pages)
+  const grouped = groupByKhmerWord(entries)
+
+  console.log(`\n=== Sample Entries (first ${count}) ===\n`)
+
+  for (let i = 0; i < Math.min(count, grouped.length); i++) {
+    const group = assertIsDefinedAndReturn(grouped[i])
+    console.log(`Khmer: ${group.khmerWord}`)
+    console.log(`Definitions: ${group.allContent.length}`)
+    console.log(
+      `Preview: ${assertIsDefinedAndReturn(group.allContent[0]).substring(0, 100)}...`,
+    )
+    console.log("---")
+  }
+}
+
+// CLI interface
+const main = async (): Promise<void> => {
+  const engDict: Set<TypedKhmerWord> = new Set(
+    (await processTsvFile()).flatMap(dictionaryEntry_onlyTypedKhmerWord),
+  )
+  const args = process.argv.slice(2)
+
+  if (args.length < 1) {
+    console.log("Usage: node script.js <input-file> [output-file] [--sample]")
+    console.log("\nExamples:")
+    console.log("  node script.js dictionary.txt")
+    console.log("  node script.js dictionary.txt output.tab")
+    console.log("  node script.js dictionary.txt --sample")
+    process.exit(1)
+  }
+
+  const inputFile = assertIsDefinedAndReturn(args[0])
+  const hasSampleFlag = args.includes("--sample")
+  const outputFile =
+    args[1] && !args[1].startsWith("--")
+      ? args[1]
+      : inputFile.replace(/\.[^.]+$/, ".tab")
+
+  if (!fs.existsSync(inputFile)) {
+    console.error(`Error: Input file not found: ${inputFile}`)
+    process.exit(1)
+  }
+
+  try {
+    if (hasSampleFlag) {
+      showSamples(inputFile, 10)
+    } else {
+      convertToStarDict(inputFile, outputFile, engDict)
+    }
+  } catch (error) {
+    console.error("Error during conversion:", error)
+    process.exit(1)
+  }
+}
+
+// Run if called directly
+if (require.main === module) {
+  main()
+}
+
+// rm -f "/home/srghma/projects/khmer-dicts/Краткий русско-кхмерский словарь--content.slob"
+// rm -f "/home/srghma/projects/khmer-dicts/Кхмерско-русский словарь-Горгониев--content.slob"
+// pyglossary '/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.tab' '/home/srghma/projects/khmer-dicts/Краткий русско-кхмерский словарь--content.slob' --read-format=Tabfile --write-format=Aard2Slob
+// pyglossary '/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.tab' '/home/srghma/projects/khmer-dicts/Кхмерско-русский словарь-Горгониев--content.slob' --read-format=Tabfile --write-format=Aard2Slob
