@@ -1,12 +1,21 @@
+import {
+  assertIsDefined,
+  assertIsDefinedAndReturn,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts"
+import { Array_partition } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/array"
+import {
+  isKhmerWord,
+  strToKhmerWordOrThrow,
+  TypedKhmerWord,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
 import fs from "node:fs/promises"
-import { assertIsDefined, assertIsDefinedAndReturn } from "./utils/asserts"
 
 // Types
 interface HeadwordData {
-  word: string
-  variants: string[]
-  nounForm?: string
-  pronunciation?: string
+  word: TypedKhmerWord
+  variants: TypedKhmerWord[]
+  nounForms: TypedKhmerWord[]
+  pronunciations: string[]
 }
 
 interface Definition {
@@ -25,25 +34,45 @@ interface DictionaryEntry {
   rawHtml: string
 }
 
+export function dictionaryEntry_onlyTypedKhmerWord(
+  e: DictionaryEntry,
+): TypedKhmerWord[] {
+  const { word, variants, nounForms } = e.headword
+  return [word, ...variants, ...nounForms]
+}
+
 type ParseResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; line?: number }
 
 // Headword parser
 const parseHeadword = (headwordStr: string): ParseResult<HeadwordData> => {
-  const parts = headwordStr.split("|").filter(Boolean)
+  const [word_, ...nonWords] = headwordStr
+    .split("|")
+    .map((x) => x.trim())
+    .filter(Boolean)
 
-  if (parts.length < 1) {
-    return { success: false, error: "Headword must have at least one part" }
-  }
+  const word = strToKhmerWordOrThrow(assertIsDefinedAndReturn(word_))
+
+  const [nounForms_, nonWordsAndNounForms] = Array_partition(
+    nonWords,
+    (p) => p.startsWith("ការ") || p.startsWith("ភាព"),
+  )
+  const nounForms = nounForms_.map(strToKhmerWordOrThrow)
+
+  const [khmerWords_, nonKhmerWords] = Array_partition(
+    nonWordsAndNounForms,
+    isKhmerWord,
+  )
+  const khmerWords = khmerWords_.map(strToKhmerWordOrThrow)
 
   return {
     success: true,
     data: {
-      word: assertIsDefinedAndReturn(parts[0]),
-      variants: parts.slice(1, -2).filter((v) => !/^[a-z]/.test(v)),
-      nounForm: parts.find((p) => p.startsWith("ការ") || p.startsWith("ភាព")),
-      pronunciation: parts.find((p) => /^[a-z]/.test(p)),
+      word,
+      variants: khmerWords,
+      nounForms: nounForms.map(strToKhmerWordOrThrow),
+      pronunciations: nonKhmerWords,
     },
   }
 }
@@ -183,7 +212,9 @@ const parseTsvFile = (tsvContent: string): ParseResult<DictionaryEntry[]> =>
     }
   })()
 
-const processTsvFile = async (filePath: string): Promise<DictionaryEntry[]> => {
+export const processTsvFile = async (): Promise<DictionaryEntry[]> => {
+  const filePath =
+    "/home/srghma/projects/khmer-dicts/Khmer-English Wiktionary dictionary.tsv"
   const content = await fs.readFile(filePath, "utf8")
   const result = parseTsvFile(content)
   if (result.success) {
@@ -198,7 +229,7 @@ const printTsvFile = async (data: DictionaryEntry[]): Promise<void> => {
   console.log(`Parsed ${data.length} entries`)
   data.slice(0, 15).forEach((entry) => {
     console.log(`\nWord: ${entry.headword.word}`)
-    console.log(`Pronunciation: ${entry.headword.pronunciation || "N/A"}`)
+    console.log(`Pronunciation: ${entry.headword.pronunciations}`)
 
     entry.partsOfSpeech.forEach((pos) => {
       console.log(`  ${pos.type}:`)
@@ -229,9 +260,7 @@ const exportToJson = async (
 
 const main = async () => {
   try {
-    await processTsvFile(
-      "/home/srghma/projects/khmer-dicts/Khmer-English Wiktionary dictionary.tsv",
-    )
+    await processTsvFile()
   } catch (err) {
     console.error("Fatal error:", err)
     process.exitCode = 1

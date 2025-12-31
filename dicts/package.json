@@ -18,7 +18,9 @@
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-inline-import": "^1.1.0",
     "prettier": "3.7.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "gemini-ocr-automate-images-upload-chrome-extension": "file:../gemini-ocr-automate-images-upload-chrome-extension/",
+    "js-utils": "file:../js-utils/"
   },
   "dependencies": {
     "@types/node": "^25.0.3",

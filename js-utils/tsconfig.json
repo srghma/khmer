@@ -8,14 +8,6 @@
       "ESNext"
     ],
     "jsx": "react-jsx",
-    "paths": {
-      "@gemini-ocr-automate-images-upload-chrome-extension/*": [
-        "../gemini-ocr-automate-images-upload-chrome-extension/src/*"
-      ],
-      "@js-utils/*": [
-        "../js-utils/src/*"
-      ]
-    },
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -26,7 +18,12 @@
     "strictNullChecks": true, // Ensures null and undefined are checked
     "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
     "noImplicitThis": true, // Ensures 'this' is typed explicitly
-    "alwaysStrict": true // Enforces 'use strict' mode for JavaScript
+    "alwaysStrict": true, // Enforces 'use strict' mode for JavaScript
+    "paths": {
+      "@gemini-ocr-automate-images-upload-chrome-extension/*": [
+        "../gemini-ocr-automate-images-upload-chrome-extension/src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*"

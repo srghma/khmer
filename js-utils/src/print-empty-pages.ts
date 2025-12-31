@@ -8,6 +8,8 @@ import * as os from "os";
 import * as Diff from "diff";
 import chalk from "chalk";
 import { Page, extractPageData } from "./page";
+import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
+import { strToNonNegativeIntOrThrow_strict } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber";
 
 // Constants
 const TOTAL_PAGES = 863;
@@ -59,7 +61,7 @@ const groupConsecutivePages = (missingPages: number[]): PageGroup[] => {
     if (group.length === 0) {
       group.push(page);
     } else {
-      if (page === group[group.length - 1] + 1) {
+      if (page === assertIsDefinedAndReturn(group[group.length - 1]) + 1) {
         group.push(page);
       } else {
         groups.push(group);
@@ -77,7 +79,7 @@ const formatMissingPages = (groups: PageGroup[]): string =>
   groups
     .map((group) =>
       group.length === 1
-        ? group[0].toString()
+        ? assertIsDefinedAndReturn(group[0]).toString()
         : `${group[0]}-${group[group.length - 1]}`,
     )
     .join(", ");
@@ -114,8 +116,18 @@ const findDuplicatePages = (pages: Page[]): DuplicateInfo[] => {
     pageMap[pageNum].push(index);
   });
   return Object.keys(pageMap)
-    .filter((pageNum) => pageMap[Number(pageNum)].length > 1)
-    .map((pageNum) => [parseInt(pageNum, 10), pageMap[Number(pageNum)].length]);
+    .filter(
+      (pageNum) =>
+        assertIsDefinedAndReturn(
+          pageMap[strToNonNegativeIntOrThrow_strict(pageNum)],
+        ).length > 1,
+    )
+    .map((pageNum) => [
+      parseInt(pageNum, 10),
+      assertIsDefinedAndReturn(
+        pageMap[strToNonNegativeIntOrThrow_strict(pageNum)],
+      ).length,
+    ]);
 };
 
 // Utility to find pages with same content but different page numbers
@@ -253,12 +265,12 @@ const copyMissingPagesToTemp = (
         for (let i = 0; i < duplicates.length; i++) {
           for (let j = i + 1; j < duplicates.length; j++) {
             const fileA = writeTempFile(
-              `${duplicates[i][0]}_1`,
-              duplicates[i][1],
+              `${assertIsDefinedAndReturn(duplicates[i])[0]}_1`,
+              assertIsDefinedAndReturn(duplicates[i])[1],
             );
             const fileB = writeTempFile(
-              `${duplicates[j][0]}_2`,
-              duplicates[j][1],
+              `${assertIsDefinedAndReturn(duplicates[j])[0]}_2`,
+              assertIsDefinedAndReturn(duplicates[j])[1],
             );
 
             console.log(`Diff between duplicate contents of Page ${dup[0]}:`);
