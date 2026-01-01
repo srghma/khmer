@@ -1,19 +1,13 @@
-import {
-  NonEmptyString,
-  nonEmptyString_afterTrim,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string"
+import { NonEmptyString, nonEmptyString_afterTrim } from "./non-empty-string"
 
-// Extract Khmer word from bold markdown
-export type ParseLineResult<W> =
-  | { t: "new_word_line"; w: W; content: NonEmptyString }
-  | { t: "continuation"; content: NonEmptyString }
+export type TypedRussianLine<W> = { word: W; content: NonEmptyString }
 
 // --- Logic ---
 
 export const parseLine = <W>(
   line: NonEmptyString,
   strToW: (s: NonEmptyString) => W,
-): ParseLineResult<W> => {
+): TypedLine<W> => {
   const match = line.match(/^\*\*([^*]+)\*\*(.*)/s)
   if (match && match[1] && match[2]) {
     const w = strToW(nonEmptyString_afterTrim(match[1]))

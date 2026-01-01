@@ -15,9 +15,9 @@ import {
   NonEmptyString,
   nonEmptyString_afterTrim,
 } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string"
-import { extractPageData } from "@js-utils/page"
+import { extractPageData } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page"
 import { NonEmptyArray } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array"
-import { parseLine } from "./utils/parseLine"
+import { parseLine } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/parseLine"
 
 // TEST: normal split -> dont join
 //

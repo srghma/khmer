@@ -1,12 +1,12 @@
 import {
   strToNonNegativeIntOrThrow_strict,
   ValidNonNegativeInt,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber";
+} from "./toNumber";
 import {
   NonEmptyString,
   nonEmptyString_afterTrim,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string";
-import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
+} from "./non-empty-string";
+import { assertIsDefinedAndReturn } from "./asserts";
 
 export type EMPTY = "EMPTY" & {
   readonly __EMPTYBrand: "EMPTY";

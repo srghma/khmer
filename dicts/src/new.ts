@@ -11,26 +11,24 @@ import {
   strToKhmerWordOrUndefined,
 } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
 import { ValidNonNegativeInt } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber"
-import { extractPageData, Page } from "@js-utils/page"
+import {
+  extractPageData,
+  Page,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page"
 import { NonEmptyString } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string"
 
 // Types
-interface DictionaryEntry {
-  khmerWord: TypedKhmerWord
-  content: string
-  pageNumber: ValidNonNegativeInt
-}
 
 interface GroupedEntry {
   khmerWord: TypedKhmerWord
-  allContent: string[]
+  allContent: NonEmptyString[]
   pages: Set<ValidNonNegativeInt>
 }
 
 // Helper to create an entry from accumulated data
 const createEntry = (
   khmerWord: TypedKhmerWord,
-  contentLines: string[],
+  contentLines: NonEmptyString[],
   pageNumber: ValidNonNegativeInt,
 ): DictionaryEntry => ({
   khmerWord,
@@ -60,9 +58,9 @@ const splitPageIntoEntries = (
           const newEntries =
             acc.currentWord && acc.currentContent.length > 0
               ? [
-                  ...acc.entries,
-                  createEntry(acc.currentWord, acc.currentContent, pageNumber),
-                ]
+                ...acc.entries,
+                createEntry(acc.currentWord, acc.currentContent, pageNumber),
+              ]
               : acc.entries
 
           return {

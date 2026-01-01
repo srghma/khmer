@@ -7,7 +7,11 @@ import { execSync } from "child_process";
 import * as os from "os";
 import * as Diff from "diff";
 import chalk from "chalk";
-import { Page, const_EMPTY, extractPageData } from "./page";
+import {
+  Page,
+  const_EMPTY,
+  extractPageData,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page";
 import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
 import { strToNonNegativeIntOrThrow_strict } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber";
 import { Set_mkOrThrowIfArrayIsNotUnique } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/sets";
@@ -203,26 +207,7 @@ const copyMissingPagesToTemp = (
   const filePath =
     "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
   const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([
-    592,
-    121,
-    494,
-    258,
-    647,
-    255,
-    147,
-    205,
-    285,
-    548,
-    // 670,
-    // 539,
-    // 286,
-    // 645,
-    // 399,
-    // 62,
-    // 47,
-    // 579,
-    // 308,
-    // 678
+    592, 121, 494, 258, 647, 255, 147, 205, 285, 548,
   ]);
   const startPage = 35;
   const endPage = 709;
