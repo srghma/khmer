@@ -179,8 +179,8 @@ const copyMissingPagesToTemp = (
 // Main logic to process the file
 (async (): Promise<void> => {
   const filePath =
-    // "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
-    "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
+    "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
+    // "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
 
   try {
     // Step 1: Read the content of the file
