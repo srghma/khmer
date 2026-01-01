@@ -207,7 +207,7 @@ const copyMissingPagesToTemp = (
   const filePath =
     "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
   const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([
-    592, 121, 494, 258, 647, 255, 147, 205, 285, 548,
+    592, 121, 494, 258, 647, 255, 147, 205, 285, 548, 583,
   ]);
   const startPage = 35;
   const endPage = 709;

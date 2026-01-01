@@ -1,17 +1,49 @@
 // Copyright 2023 srghma
 
-const RussianWord_REGEX = /^[\p{Script=Cyrillic}\s.-|]+$/u
+import { NonEmptyString } from "./non-empty-string"
 
-export type TypedRussianWord = string & {
-  readonly __uuidbrand: "TypedRussianWord"
+// **май**
+// **маленьк|ий**
+// **улучшить**
+// **сажá|ть**
+const RussianMultiWord_REGEX = /^[\p{Script=Cyrillic}|]+$/u // TODO: support accent?
+
+export type TypedRussianMultiWord = NonEmptyString & {
+  readonly __TypedRussianMultiWordBrand: "TypedRussianMultiWord"
 }
-export const isRussianWord = (value: string): value is TypedRussianWord =>
-  RussianWord_REGEX.test(value)
-export const strToRussianWordOrUndefined = (
+export const isRussianMultiWord = (
   value: string,
-): TypedRussianWord | undefined => (isRussianWord(value) ? value : undefined)
-export const strToRussianWordOrThrow = (value: string): TypedRussianWord => {
-  const uuid = strToRussianWordOrUndefined(value)
-  if (!uuid) throw new Error(`Invalid RussianWord format: '${value}'`)
+): value is TypedRussianMultiWord => RussianMultiWord_REGEX.test(value)
+export const strToRussianMultiWordOrUndefined = (
+  value: string,
+): TypedRussianMultiWord | undefined =>
+  isRussianMultiWord(value) ? value : undefined
+export const strToRussianMultiWordOrThrow = (
+  value: string,
+): TypedRussianMultiWord => {
+  const uuid = strToRussianMultiWordOrUndefined(value)
+  if (!uuid) throw new Error(`Invalid RussianMultiWord format: '${value}'`)
+  return uuid
+}
+
+///////////
+
+// **май**
+const RussianOneWord_REGEX = /^[\p{Script=Cyrillic}]+$/u
+
+export type TypedRussianOneWord = NonEmptyString & {
+  readonly __TypedRussianMultiWordBrand: "TypedRussianOneWord"
+}
+export const isRussianOneWord = (value: string): value is TypedRussianOneWord =>
+  RussianOneWord_REGEX.test(value)
+export const strToRussianOneWordOrUndefined = (
+  value: string,
+): TypedRussianOneWord | undefined =>
+  isRussianOneWord(value) ? value : undefined
+export const strToRussianOneWordOrThrow = (
+  value: string,
+): TypedRussianOneWord => {
+  const uuid = strToRussianOneWordOrUndefined(value)
+  if (!uuid) throw new Error(`Invalid RussianOneWord format: '${value}'`)
   return uuid
 }
