@@ -200,7 +200,18 @@ const copyMissingPagesToTemp = (
 
   const filePath =
     "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
-  const shortPageButCorrect: number[] = [];
+  const shortPageButCorrect: number[] = [
+    592,
+    121,
+    494,
+    258,
+    // 647,
+    // 255,
+    // 147,
+    // 205,
+    // 285,
+    // 548
+  ];
   const startPage = 35;
   const endPage = 709;
 
@@ -260,7 +271,9 @@ const copyMissingPagesToTemp = (
       return p;
     })();
     if (tenShortestPages.length > 0) {
-      console.log(`\nTen shortest contents ${tenShortestPages.map(x => x[0])}:`);
+      console.log(
+        `\nTen shortest contents ${tenShortestPages.map((x) => x[0])}, minimum length=${Math.min(...tenShortestPages.map((x) => x[1].length))}, max length=${Math.max(...tenShortestPages.map((x) => x[1].length))}:`,
+      );
       tenShortestPages.forEach((page) => {
         console.log(
           chalk.green(`Page ${page[0]}:`) + "\n" + chalk.blue(page[1]) + "\n",
