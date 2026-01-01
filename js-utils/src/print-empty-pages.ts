@@ -10,9 +10,10 @@ import chalk from "chalk";
 import { Page, extractPageData } from "./page";
 import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
 import { strToNonNegativeIntOrThrow_strict } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber";
-
-// Constants
-const TOTAL_PAGES = 863;
+import {
+  ascNumber,
+  sortBy_mutating,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/sort";
 
 // Types
 type PageGroup = number[];
@@ -37,19 +38,29 @@ const printCharDiff = (a: string, b: string): void => {
 const findPagesWithoutContent = (pages: Page[]): Page[] =>
   pages.filter((page) => page[1].length === 0);
 
-// Utility to find pages with content but no '**'
+// Utility to find pages with content but no '**' and no EMPTY
 const findPagesWithContentHasNoTwoStars = (pages: Page[]): Page[] =>
-  pages.filter((page) => page[1].indexOf("**") === -1);
+  pages.filter((page) => page[1] !== "EMPTY" && page[1].indexOf("**") === -1);
 
 // Utility to find the ten shortest pages by content length
 const findTenShortestPages = (pages: Page[]): Page[] =>
   [...pages].sort((a, b) => a[1].length - b[1].length).slice(0, 10);
 
 // Utility to find missing pages by comparing the pages we have with the full range
-const findMissingPages = (pageNumbers: number[]): number[] => {
-  const allPages = new Set([...Array(TOTAL_PAGES).keys()].map((i) => i + 1));
+// Utility to find missing pages within an inclusive range
+const findMissingPages = (
+  pageNumbers: number[],
+  shouldBePresentStartingPage: number,
+  shouldBePresentEndPage: number,
+): number[] => {
+  const allPages = new Set<number>();
+
+  for (let p = shouldBePresentStartingPage; p <= shouldBePresentEndPage; p++) {
+    allPages.add(p);
+  }
+
   pageNumbers.forEach((page) => allPages.delete(page));
-  return Array.from(allPages);
+  return Array.from(allPages).sort((a, b) => a - b);
 };
 
 // Utility to group consecutive pages
@@ -158,14 +169,20 @@ const copyMissingPagesToTemp = (
   missingPages: number[],
   srcDir: string,
 ): string => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "missing_pages_"));
+  const tmpDir = path.join(os.tmpdir(), "missing_pages");
+
+  // Clean temp directory first
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpDir, { recursive: true });
+
   console.log("Copying missing pages to temp dir:", tmpDir);
 
   missingPages.forEach((pageNum) => {
     const pageStr = pageNum.toString().padStart(3, "0");
     const srcFile = path.join(srcDir, `page-${pageStr}.png`);
+    const destFile = path.join(tmpDir, `page-${pageStr}.png`);
+
     if (fs.existsSync(srcFile)) {
-      const destFile = path.join(tmpDir, `page-${pageStr}.png`);
       fs.copyFileSync(srcFile, destFile);
       console.log(`Copied page-${pageStr}.png`);
     } else {
@@ -179,8 +196,19 @@ const copyMissingPagesToTemp = (
 // Main logic to process the file
 (async (): Promise<void> => {
   const filePath =
-    "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
-    // "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
+    // "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
+    "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
+
+  // DERIVE srcDir
+  const srcDir = filePath.replace("--content.txt", "");
+
+  // THROW IF DOESN'T EXIST
+  if (!fs.existsSync(srcDir)) {
+    console.error(
+      chalk.red(`Error: Source directory does not exist: ${srcDir}`),
+    );
+    process.exit(1);
+  }
 
   try {
     // Step 1: Read the content of the file
@@ -207,12 +235,12 @@ const copyMissingPagesToTemp = (
     const pagesWithContentHasNoTwoStars =
       findPagesWithContentHasNoTwoStars(pages);
     if (pagesWithContentHasNoTwoStars.length > 0) {
-      console.log("\nPages with content but no '**':");
+      console.log("\nPages with content but no '**' and no 'EMPTY':");
       pagesWithContentHasNoTwoStars.forEach((page) => {
         console.log(`Page ${page[0]}`);
       });
     } else {
-      console.log("\nAll pages have '**' in their content.");
+      console.log("\nAll pages have '**' or 'EMPTY' in their content.");
     }
 
     // Step 6: Find the 10 shortest pages by content length
@@ -228,19 +256,23 @@ const copyMissingPagesToTemp = (
       console.log("\nNo pages found.");
     }
 
-    // // Step 7: Find missing pages
-    // const missingPages = findMissingPages(pages.map((x) => x[0]));
-    // if (missingPages.length > 0) {
-    //   const groupedMissingPages = groupConsecutivePages(missingPages);
-    //   console.log("Missing pages", missingPages.length, ":");
-    //   console.log(formatMissingPages(groupedMissingPages));
-    //
-    //   const srcDir = "/home/srghma/Downloads/Кхмерско-русский";
-    //   const tempDir = copyMissingPagesToTemp(missingPages, srcDir);
-    //   console.log("All available missing pages copied to:", tempDir);
-    // } else {
-    //   console.log("No missing pages.");
-    // }
+    // Step 7: Find missing pages
+    const missingPages = findMissingPages(
+      pages.map((x) => x[0]),
+      23,
+      836,
+    );
+    if (missingPages.length > 0) {
+      const groupedMissingPages = groupConsecutivePages(missingPages);
+      console.log("Missing pages", missingPages.length, ":");
+      console.log(formatMissingPages(groupedMissingPages));
+
+      // Use the derived srcDir
+      const tempDir = copyMissingPagesToTemp(missingPages, srcDir);
+      console.log("All available missing pages copied to:", tempDir);
+    } else {
+      console.log("No missing pages.");
+    }
 
     // Step 8: Find same content but different page numbers
     const sameContentDifferentPages = findSameContentDifferentPages(pages);
@@ -257,7 +289,7 @@ const copyMissingPagesToTemp = (
     const duplicatePages = findDuplicatePages(pages);
     if (duplicatePages.length > 0) {
       console.log("\nPages with duplicate page numbers:");
-      duplicatePages.forEach((dup) => {
+      sortBy_mutating(duplicatePages, (x) => x[0], ascNumber).forEach((dup) => {
         console.log(`Page ${dup[0]} appears ${dup[1]} times`);
 
         const duplicates = pages.filter((p) => p[0] === dup[0]);
