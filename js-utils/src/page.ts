@@ -8,7 +8,13 @@ import {
 } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string";
 import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
 
-export type Page = readonly [ValidNonNegativeInt, NonEmptyString];
+export type EMPTY = "EMPTY" & {
+  readonly __EMPTYBrand: "EMPTY";
+};
+
+export const const_EMPTY: EMPTY = "EMPTY" as EMPTY;
+
+export type Page = readonly [ValidNonNegativeInt, NonEmptyString | EMPTY];
 
 /**
  * Extracts page data from content by splitting on page markers and extracting page numbers

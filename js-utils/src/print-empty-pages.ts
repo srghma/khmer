@@ -7,7 +7,7 @@ import { execSync } from "child_process";
 import * as os from "os";
 import * as Diff from "diff";
 import chalk from "chalk";
-import { Page, extractPageData } from "./page";
+import { Page, const_EMPTY, extractPageData } from "./page";
 import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
 import { strToNonNegativeIntOrThrow_strict } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber";
 import {
@@ -40,13 +40,10 @@ const findPagesWithoutContent = (pages: Page[]): Page[] =>
 
 // Utility to find pages with content but no '**' and no EMPTY
 const findPagesWithContentHasNoTwoStars = (pages: Page[]): Page[] =>
-  pages.filter((page) => page[1] !== "EMPTY" && page[1].indexOf("**") === -1);
+  pages.filter(
+    (page) => page[1] !== const_EMPTY && page[1].indexOf("**") === -1,
+  );
 
-// Utility to find the ten shortest pages by content length
-const findTenShortestPages = (pages: Page[]): Page[] =>
-  [...pages].sort((a, b) => a[1].length - b[1].length).slice(0, 10);
-
-// Utility to find missing pages by comparing the pages we have with the full range
 // Utility to find missing pages within an inclusive range
 const findMissingPages = (
   pageNumbers: number[],
@@ -97,7 +94,7 @@ const formatMissingPages = (groups: PageGroup[]): string =>
 
 // Utility to sort pages by page number
 const sortPagesByNumber = (pages: Page[]): Page[] =>
-  pages.sort((a, b) => a[0] - b[0]);
+  sortBy_mutating(pages, ([numb]) => numb, ascNumber);
 
 // Utility to reformat the sorted pages into the original format
 const formatSortedPages = (sortedPages: Page[]): string =>
@@ -195,9 +192,17 @@ const copyMissingPagesToTemp = (
 
 // Main logic to process the file
 (async (): Promise<void> => {
+  // const filePath =
+  //   "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
+  // const shortPageButCorrect: number[] = [26, 38, 230, 275, 539, 622, 792, 434];
+  // const startPage = 23
+  // const endPage = 836
+
   const filePath =
-    // "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
-    "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
+    "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
+  const shortPageButCorrect: number[] = [];
+  const startPage = 35;
+  const endPage = 709;
 
   // DERIVE srcDir
   const srcDir = filePath.replace("--content.txt", "");
@@ -244,9 +249,18 @@ const copyMissingPagesToTemp = (
     }
 
     // Step 6: Find the 10 shortest pages by content length
-    const tenShortestPages = findTenShortestPages(pages);
+    const tenShortestPages = (() => {
+      let p = pages.filter(
+        ([number, _content]) => !shortPageButCorrect.includes(number),
+      );
+      p = pages.filter(([_number, content]) => content !== const_EMPTY);
+      p = sortBy_mutating(p, ([_number, content]) => content.length, ascNumber);
+      p = p.slice(0, 10);
+      // p = sortBy_mutating(p, ([number, _content]) => number, ascNumber);
+      return p;
+    })();
     if (tenShortestPages.length > 0) {
-      console.log("\nTen shortest contents:");
+      console.log(`\nTen shortest contents ${tenShortestPages.map(x => x[0])}:`);
       tenShortestPages.forEach((page) => {
         console.log(
           chalk.green(`Page ${page[0]}:`) + "\n" + chalk.blue(page[1]) + "\n",
@@ -259,8 +273,8 @@ const copyMissingPagesToTemp = (
     // Step 7: Find missing pages
     const missingPages = findMissingPages(
       pages.map((x) => x[0]),
-      23,
-      836,
+      startPage,
+      endPage,
     );
     if (missingPages.length > 0) {
       const groupedMissingPages = groupConsecutivePages(missingPages);
