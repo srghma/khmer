@@ -10,6 +10,7 @@ import chalk from "chalk";
 import { Page, const_EMPTY, extractPageData } from "./page";
 import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts";
 import { strToNonNegativeIntOrThrow_strict } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber";
+import { Set_mkOrThrowIfArrayIsNotUnique } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/sets";
 import {
   ascNumber,
   sortBy_mutating,
@@ -143,7 +144,8 @@ const findSameContentDifferentPages = (pages: Page[]): number[][] => {
   const map = new Map<string, number[]>();
 
   for (const [num, content] of pages) {
-    if (!content) continue;
+    if (!content) throw new Error("impossible");
+    if (content === const_EMPTY) continue;
     const list = map.get(content) ?? [];
     list.push(num);
     map.set(content, list);
@@ -200,18 +202,9 @@ const copyMissingPagesToTemp = (
 
   const filePath =
     "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
-  const shortPageButCorrect: number[] = [
-    592,
-    121,
-    494,
-    258,
-    // 647,
-    // 255,
-    // 147,
-    // 205,
-    // 285,
-    // 548
-  ];
+  const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([
+    592, 121, 494, 258, 647, 255, 147, 205, 285, 548,
+  ]);
   const startPage = 35;
   const endPage = 709;
 
@@ -262,9 +255,9 @@ const copyMissingPagesToTemp = (
     // Step 6: Find the 10 shortest pages by content length
     const tenShortestPages = (() => {
       let p = pages.filter(
-        ([number, _content]) => !shortPageButCorrect.includes(number),
+        ([number, _content]) => !shortPageButCorrect.has(number),
       );
-      p = pages.filter(([_number, content]) => content !== const_EMPTY);
+      p = p.filter(([_number, content]) => content !== const_EMPTY);
       p = sortBy_mutating(p, ([_number, content]) => content.length, ascNumber);
       p = p.slice(0, 10);
       // p = sortBy_mutating(p, ([number, _content]) => number, ascNumber);
