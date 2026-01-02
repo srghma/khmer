@@ -209,7 +209,9 @@ const copyMissingPagesToTemp = (
 (async (): Promise<void> => {
   const filePath =
     "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
-  const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([26, 38, 240, 230, 275, 539, 622, 792, 434]);
+  const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([
+    26, 38, 240, 230, 275, 539, 622, 792, 434,
+  ]);
   const startPage = 23;
   const endPage = 836;
 
