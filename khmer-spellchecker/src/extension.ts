@@ -10,25 +10,28 @@ export function activate(context: vscode.ExtensionContext) {
   let activeEditor = vscode.window.activeTextEditor
 
   // Default state: Enabled
-  let isEnabled = true;
+  let isEnabled = true
 
   // --- 0. UI Setup (Status Bar) ---
-  const myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  myStatusBarItem.command = "khmer-spellchecker.toggle";
-  context.subscriptions.push(myStatusBarItem);
+  const myStatusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100,
+  )
+  myStatusBarItem.command = "khmer-spellchecker.toggle"
+  context.subscriptions.push(myStatusBarItem)
 
   const updateStatusBar = () => {
     if (isEnabled) {
-      myStatusBarItem.text = "$(paintcan) Khmer: On";
-      myStatusBarItem.tooltip = "Click to disable Khmer highlighting";
-      myStatusBarItem.show();
+      myStatusBarItem.text = "$(paintcan) Khmer: On"
+      myStatusBarItem.tooltip = "Click to disable Khmer highlighting"
+      myStatusBarItem.show()
     } else {
-      myStatusBarItem.text = "$(circle-slash) Khmer: Off";
-      myStatusBarItem.tooltip = "Click to enable Khmer highlighting";
-      myStatusBarItem.show();
+      myStatusBarItem.text = "$(circle-slash) Khmer: Off"
+      myStatusBarItem.tooltip = "Click to enable Khmer highlighting"
+      myStatusBarItem.show()
     }
-  };
-  updateStatusBar();
+  }
+  updateStatusBar()
 
   // --- 1. Load Dictionary ---
   const dictionaryPath = path.join(context.extensionPath, "dictionary.txt")
@@ -53,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.error("Error reading dictionary:", err)
   }
 
-  if (MAX_CHAR_LENGTH === 0) MAX_CHAR_LENGTH = 50;
+  if (MAX_CHAR_LENGTH === 0) MAX_CHAR_LENGTH = 50
 
   // --- 2. Initialize Intl.Segmenter ---
   const segmenter = new Intl.Segmenter("km", { granularity: "grapheme" })
@@ -82,20 +85,20 @@ export function activate(context: vscode.ExtensionContext) {
   // --- 4. Logic Functions ---
 
   const clearDecorations = () => {
-    if (!activeEditor) return;
+    if (!activeEditor) return
     // Set all ranges to empty array to remove colors
-    activeEditor.setDecorations(unknownDecoration, []);
-    knownDecorations.forEach(deco => {
-      activeEditor!.setDecorations(deco, []);
-    });
-  };
+    activeEditor.setDecorations(unknownDecoration, [])
+    knownDecorations.forEach((deco) => {
+      activeEditor!.setDecorations(deco, [])
+    })
+  }
 
   const updateDecorations = () => {
     if (!activeEditor) return
 
     // If disabled, ensure we are clean and exit
     if (!isEnabled) {
-      return;
+      return
     }
 
     const text = activeEditor.document.getText()
@@ -126,37 +129,44 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Maximum Matching Loop
         for (let j = i; j < graphemes.length; j++) {
-          currentString += graphemes[j]!.segment;
+          currentString += graphemes[j]!.segment
 
-          if (currentString.length > MAX_CHAR_LENGTH) break;
+          if (currentString.length > MAX_CHAR_LENGTH) break
 
           if (knownWords.has(currentString)) {
-            matchEndIndex = j;
+            matchEndIndex = j
           }
         }
 
         if (matchEndIndex !== -1) {
-          const startCharIndex = blockStartIndex + graphemes[i]!.index;
-          const lastGrapheme = graphemes[matchEndIndex]!;
-          const endCharIndex = blockStartIndex + lastGrapheme.index + lastGrapheme.segment.length;
+          const startCharIndex = blockStartIndex + graphemes[i]!.index
+          const lastGrapheme = graphemes[matchEndIndex]!
+          const endCharIndex =
+            blockStartIndex + lastGrapheme.index + lastGrapheme.segment.length
 
-          const startPos = activeEditor.document.positionAt(startCharIndex);
-          const endPos = activeEditor.document.positionAt(endCharIndex);
+          const startPos = activeEditor.document.positionAt(startCharIndex)
+          const endPos = activeEditor.document.positionAt(endCharIndex)
 
-          knownRanges[wordCounter % colorPalette.length]!.push(new vscode.Range(startPos, endPos));
+          knownRanges[wordCounter % colorPalette.length]!.push(
+            new vscode.Range(startPos, endPos),
+          )
 
-          i = matchEndIndex + 1;
-          wordCounter++;
-          foundMatch = true;
+          i = matchEndIndex + 1
+          wordCounter++
+          foundMatch = true
         }
 
         if (!foundMatch) {
-          const g = graphemes[i]!;
-          const startPos = activeEditor.document.positionAt(blockStartIndex + g.index);
-          const endPos = activeEditor.document.positionAt(blockStartIndex + g.index + g.segment.length);
+          const g = graphemes[i]!
+          const startPos = activeEditor.document.positionAt(
+            blockStartIndex + g.index,
+          )
+          const endPos = activeEditor.document.positionAt(
+            blockStartIndex + g.index + g.segment.length,
+          )
 
-          unknownRanges.push(new vscode.Range(startPos, endPos));
-          i++;
+          unknownRanges.push(new vscode.Range(startPos, endPos))
+          i++
         }
       }
     }
@@ -177,19 +187,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   // --- 5. Register Toggle Command ---
   context.subscriptions.push(
-    vscode.commands.registerCommand('khmer-spellchecker.toggle', () => {
-      isEnabled = !isEnabled;
-      updateStatusBar();
+    vscode.commands.registerCommand("khmer-spellchecker.toggle", () => {
+      isEnabled = !isEnabled
+      updateStatusBar()
 
       if (isEnabled) {
-        triggerUpdate();
-        vscode.window.showInformationMessage('Khmer Coloring Enabled');
+        triggerUpdate()
+        vscode.window.showInformationMessage("Khmer Coloring Enabled")
       } else {
-        clearDecorations();
-        vscode.window.showInformationMessage('Khmer Coloring Disabled');
+        clearDecorations()
+        vscode.window.showInformationMessage("Khmer Coloring Disabled")
       }
-    })
-  );
+    }),
+  )
 
   // --- 6. Event Listeners ---
   if (activeEditor) triggerUpdate()
@@ -199,8 +209,8 @@ export function activate(context: vscode.ExtensionContext) {
       activeEditor = editor
       if (editor) {
         // If we switch tabs, we either highlight or clear based on setting
-        if (isEnabled) triggerUpdate();
-        else clearDecorations();
+        if (isEnabled) triggerUpdate()
+        else clearDecorations()
       }
     },
     null,
@@ -210,7 +220,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidChangeTextDocument(
     (event) => {
       if (activeEditor && event.document === activeEditor.document) {
-        if (isEnabled) triggerUpdate();
+        if (isEnabled) triggerUpdate()
       }
     },
     null,
@@ -218,4 +228,4 @@ export function activate(context: vscode.ExtensionContext) {
   )
 }
 
-export function deactivate() { }
+export function deactivate() {}

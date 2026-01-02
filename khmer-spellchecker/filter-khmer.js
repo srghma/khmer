@@ -2,8 +2,15 @@
 
 var fs = require("fs")
 var path = require("path")
+var { reorderText } = require("khmer-normalize")
+var { split } = require("split-khmer")
 
 var cwd = process.cwd()
+
+// --- CONFIGURATION ---
+var ENABLE_NORMALIZE = true
+var ENABLE_SPLIT = true
+// ---------------------
 
 // Regex to find ANY Khmer character
 var khmerRegex = /\p{Script=Khmer}/u
@@ -30,7 +37,7 @@ files.forEach((file) => {
 
   if (file === "dictionary1.txt") {
     // === OFFICIAL DICTIONARY LOGIC ===
-    // Do NOT split by non-Khmer (preserve phrases/spaces if official).
+    // Do NOT normalize or split. Keep exact phrases.
     // Just remove lines that don't have Khmer, trim, and unique.
     cleanedWords = content
       .split(/\r?\n/)
@@ -39,18 +46,45 @@ files.forEach((file) => {
       .filter((l) => khmerRegex.test(l)) // Must contain at least one Khmer char
   } else {
     // === SCRAPED/OTHER DICTIONARIES LOGIC ===
-    // Split by anything that is NOT Khmer.
-    // This removes English, spaces, punctuation, numbers, etc.
-    cleanedWords = content
+
+    // 1. Initial Cleanup: Split by garbage (English, numbers, spaces)
+    var rawChunks = content
       .split(nonKhmerSplitRegex)
       .map((w) => w.trim())
       .filter((w) => w.length > 0)
+
+    // 2. Process Chunks
+    cleanedWords = rawChunks.flatMap((chunk) => {
+      let processed = chunk
+
+      // Apply Normalization (fix vowel/subscript order)
+      if (ENABLE_NORMALIZE) {
+        try {
+          processed = reorderText(processed)
+        } catch (e) {
+          // If normalization fails, keep original
+        }
+      }
+
+      // Apply Word Splitting (break "Sentence" into "Words")
+      if (ENABLE_SPLIT) {
+        try {
+          // split returns an array of words
+          return split(processed)
+        } catch (e) {
+          return [processed]
+        }
+      } else {
+        return [processed]
+      }
+    })
+
+    // 3. Deduplicate & Sort locally
     cleanedWords = [...new Set(cleanedWords)]
     cleanedWords = cleanedWords.sort(sorterByL)
   }
 
   // Write the cleaned, unique version back to the individual file
-  // (Optional: You can sort these locally too if you want, currently just listing them)
   fs.writeFileSync(p, cleanedWords.join("\n") + "\n", "utf8")
 
   // Add to master set
