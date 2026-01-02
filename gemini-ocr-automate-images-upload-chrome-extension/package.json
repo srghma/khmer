@@ -24,6 +24,7 @@
     "p-wait-for": "^6.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "typescript-parsec": "^0.3.4",
     "zod": "^4.2.1"
   }
 }
