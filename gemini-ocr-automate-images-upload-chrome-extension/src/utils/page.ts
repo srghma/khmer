@@ -1,20 +1,20 @@
 import {
   strToNonNegativeIntOrThrow_strict,
   ValidNonNegativeInt,
-} from "./toNumber";
+} from "./toNumber"
+import { assertIsDefinedAndReturn } from "./asserts"
 import {
-  NonEmptyString,
   nonEmptyString_afterTrim,
-} from "./non-empty-string";
-import { assertIsDefinedAndReturn } from "./asserts";
+  NonEmptyStringTrimmed,
+} from "./non-empty-string-trimmed"
 
 export type EMPTY = "EMPTY" & {
-  readonly __EMPTYBrand: "EMPTY";
-};
+  readonly __EMPTYBrand: "EMPTY"
+}
 
-export const const_EMPTY: EMPTY = "EMPTY" as EMPTY;
+export const const_EMPTY: EMPTY = "EMPTY" as EMPTY
 
-export type Page = readonly [ValidNonNegativeInt, NonEmptyString | EMPTY];
+export type Page = readonly [ValidNonNegativeInt, NonEmptyStringTrimmed | EMPTY]
 
 /**
  * Extracts page data from content by splitting on page markers and extracting page numbers
@@ -23,25 +23,25 @@ export type Page = readonly [ValidNonNegativeInt, NonEmptyString | EMPTY];
 export const extractPageData = (content: string): Page[] => {
   const parts = content
     .split(/(### (?:\*\*)?(?:Страница|Page) \d+(?:\*\*)?)/i)
-    .filter(Boolean);
+    .filter(Boolean)
 
-  const pages: Page[] = [];
+  const pages: Page[] = []
   for (let i = 0; i < parts.length; i++) {
-    const marker = parts[i];
-    if (!marker) throw new Error("no marker");
+    const marker = parts[i]
+    if (!marker) throw new Error("no marker")
     if (/### (?:\*\*)?(?:Страница|Page) \d+(?:\*\*)?/i.test(marker)) {
-      const match = marker.match(/\d+/);
+      const match = marker.match(/\d+/)
       const pageNumber = match
         ? strToNonNegativeIntOrThrow_strict(match[0])
-        : undefined;
+        : undefined
       if (pageNumber !== undefined) {
         const part = nonEmptyString_afterTrim(
           assertIsDefinedAndReturn(parts[i + 1]),
-        );
-        pages.push([pageNumber, part]);
-        i++; // Skip the content next to the page marker
+        )
+        pages.push([pageNumber, part])
+        i++ // Skip the content next to the page marker
       }
     }
   }
-  return pages;
-};
+  return pages
+}

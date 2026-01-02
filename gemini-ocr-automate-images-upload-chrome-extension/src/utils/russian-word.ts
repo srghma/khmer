@@ -1,49 +1,55 @@
-// Copyright 2023 srghma
-
 import { NonEmptyString } from "./non-empty-string"
 
+// Matches Cyrillic, vertical bars (stems), hyphens, and combining accents (u0300-u036f)
+// Examples: **май**, **сажá|ть**
 // **май**
-// **маленьк|ий**
-// **улучшить**
+// **вагон-ресторан**
 // **сажá|ть**
-const RussianMultiWord_REGEX = /^[\p{Script=Cyrillic}|]+$/u // TODO: support accent?
+const RussianMultiWord_REGEX = /^[\p{Script=Cyrillic}|\-\u0300-\u036f]+$/u
 
 export type TypedRussianMultiWord = NonEmptyString & {
   readonly __TypedRussianMultiWordBrand: "TypedRussianMultiWord"
 }
+
 export const isRussianMultiWord = (
   value: string,
 ): value is TypedRussianMultiWord => RussianMultiWord_REGEX.test(value)
+
 export const strToRussianMultiWordOrUndefined = (
   value: string,
 ): TypedRussianMultiWord | undefined =>
   isRussianMultiWord(value) ? value : undefined
+
 export const strToRussianMultiWordOrThrow = (
   value: string,
 ): TypedRussianMultiWord => {
-  const uuid = strToRussianMultiWordOrUndefined(value)
-  if (!uuid) throw new Error(`Invalid RussianMultiWord format: '${value}'`)
-  return uuid
+  const word = strToRussianMultiWordOrUndefined(value)
+  if (!word) throw new Error(`Invalid RussianMultiWord format: '${value}'`)
+  return word
 }
 
 ///////////
 
-// **май**
-const RussianOneWord_REGEX = /^[\p{Script=Cyrillic}]+$/u
+// **май** - same as multi but typically strictly one word, though your usage implies similar validation.
+// Keeping it distinct as requested, but using the same robust regex for now.
+const RussianOneWord_REGEX = /^[\p{Script=Cyrillic}\u0300-\u036f]+$/u
 
 export type TypedRussianOneWord = NonEmptyString & {
   readonly __TypedRussianMultiWordBrand: "TypedRussianOneWord"
 }
+
 export const isRussianOneWord = (value: string): value is TypedRussianOneWord =>
   RussianOneWord_REGEX.test(value)
+
 export const strToRussianOneWordOrUndefined = (
   value: string,
 ): TypedRussianOneWord | undefined =>
   isRussianOneWord(value) ? value : undefined
+
 export const strToRussianOneWordOrThrow = (
   value: string,
 ): TypedRussianOneWord => {
-  const uuid = strToRussianOneWordOrUndefined(value)
-  if (!uuid) throw new Error(`Invalid RussianOneWord format: '${value}'`)
-  return uuid
+  const word = strToRussianOneWordOrUndefined(value)
+  if (!word) throw new Error(`Invalid RussianOneWord format: '${value}'`)
+  return word
 }
