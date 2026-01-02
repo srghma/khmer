@@ -8,8 +8,8 @@ var { split } = require("split-khmer")
 var cwd = process.cwd()
 
 // --- CONFIGURATION ---
-var ENABLE_NORMALIZE = true
-var ENABLE_SPLIT = true
+var ENABLE_NORMALIZE = false
+var ENABLE_SPLIT = false
 // ---------------------
 
 // Regex to find ANY Khmer character
