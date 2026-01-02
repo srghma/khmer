@@ -7,6 +7,9 @@ import { execSync } from "child_process";
 import * as os from "os";
 import * as Diff from "diff";
 import chalk from "chalk";
+import { reorderText } from "khmer-normalize";
+import { split } from "split-khmer";
+
 import {
   Page,
   const_EMPTY,
@@ -19,6 +22,12 @@ import {
   ascNumber,
   sortBy_mutating,
 } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/sort";
+import { nonEmptyString_afterTrim } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed";
+
+// --- CONFIGURATION ---
+const ENABLE_KHMER_NORMALIZE = true;
+const ENABLE_KHMER_SPLIT = false;
+// ---------------------
 
 // Types
 type PageGroup = number[];
@@ -198,19 +207,19 @@ const copyMissingPagesToTemp = (
 
 // Main logic to process the file
 (async (): Promise<void> => {
-  // const filePath =
-  //   "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
-  // const shortPageButCorrect: number[] = [26, 38, 230, 275, 539, 622, 792, 434];
-  // const startPage = 23
-  // const endPage = 836
-
   const filePath =
-    "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
-  const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([
-    592, 121, 494, 258, 647, 255, 147, 205, 285, 548, 583,
-  ]);
-  const startPage = 35;
-  const endPage = 709;
+    "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt";
+  const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([26, 38, 240, 230, 275, 539, 622, 792, 434]);
+  const startPage = 23;
+  const endPage = 836;
+
+  // const filePath =
+  //   "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt";
+  // const shortPageButCorrect: Set<number> = Set_mkOrThrowIfArrayIsNotUnique([
+  //   592, 121, 494, 258, 647, 255, 147, 205, 285, 548, 583,
+  // ]);
+  // const startPage = 35;
+  // const endPage = 709;
 
   // DERIVE srcDir
   const srcDir = filePath.replace("--content.txt", "");
@@ -228,7 +237,42 @@ const copyMissingPagesToTemp = (
     const content = (await readFile(filePath, "utf8")).replace(/---\n/g, "\n");
 
     // Step 2: Extract the page numbers and their corresponding content
-    const pages = sortPagesByNumber(deduplicatePages(extractPageData(content)));
+    let pages = sortPagesByNumber(deduplicatePages(extractPageData(content)));
+
+    // =========================================================================
+    // OPTIONAL: KHMER TEXT PROCESSING
+    // =========================================================================
+    if (ENABLE_KHMER_NORMALIZE) {
+      console.log(chalk.yellow("Applying Khmer Normalization..."));
+      pages = pages.map(([num, text]) => {
+        try {
+          return [num, nonEmptyString_afterTrim(reorderText(text))];
+        } catch (e) {
+          console.error(chalk.red(`Error normalizing page ${num}:`), e);
+          return [num, text];
+        }
+      });
+    }
+
+    if (ENABLE_KHMER_SPLIT) {
+      console.log(
+        chalk.yellow(
+          "Applying Khmer Word Splitting (Inserting Zero-Width Spaces)...",
+        ),
+      );
+      pages = pages.map(([num, text]) => {
+        try {
+          const words = split(text);
+          // Joining with Zero Width Space (\u200b) to allow word breaking without visual gaps.
+          // Change to " " if you want visible spaces.
+          return [num, nonEmptyString_afterTrim(words.join("\u200b"))];
+        } catch (e) {
+          console.error(chalk.red(`Error splitting page ${num}:`), e);
+          return [num, text];
+        }
+      });
+    }
+    // =========================================================================
 
     // Step 3: Write the formatted content back to the file
     fs.writeFileSync(filePath, formatSortedPages(pages), "utf8");

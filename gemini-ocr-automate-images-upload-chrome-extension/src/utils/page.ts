@@ -6,6 +6,7 @@ import { assertIsDefinedAndReturn } from "./asserts"
 import {
   nonEmptyString_afterTrim,
   NonEmptyStringTrimmed,
+  String_toNonEmptyString_orUndefined_afterTrim,
 } from "./non-empty-string-trimmed"
 
 export type EMPTY = "EMPTY" & {
@@ -35,9 +36,8 @@ export const extractPageData = (content: string): Page[] => {
         ? strToNonNegativeIntOrThrow_strict(match[0])
         : undefined
       if (pageNumber !== undefined) {
-        const part = nonEmptyString_afterTrim(
-          assertIsDefinedAndReturn(parts[i + 1]),
-        )
+        const part = String_toNonEmptyString_orUndefined_afterTrim(assertIsDefinedAndReturn(parts[i + 1]))
+        if (part === undefined) throw new Error(`Page is empty after trim ${pageNumber}`)
         pages.push([pageNumber, part])
         i++ // Skip the content next to the page marker
       }
