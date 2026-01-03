@@ -18,7 +18,8 @@
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-inline-import": "^1.1.0",
     "prettier": "3.7.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   },
   "dependencies": {
     "p-wait-for": "^6.0.0",

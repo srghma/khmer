@@ -1,0 +1,233 @@
+import * as vscode from "vscode"
+import * as path from "path"
+import { split } from "split-khmer"
+import { reorderText } from "khmer-normalize"
+
+import { analyzeKhmerText } from "./analyzer"
+import { DictionaryManager } from "./dictionary"
+
+export function activate(context: vscode.ExtensionContext) {
+  // --- Setup ---
+  const dictPath = path.join(context.extensionPath, "dictionary.txt")
+  const dictionary = new DictionaryManager(dictPath)
+  dictionary.load()
+
+  let isEnabled = true
+  let timeout: NodeJS.Timeout | undefined = undefined
+  let activeEditor = vscode.window.activeTextEditor
+  let currentErrors: vscode.Range[] = []
+
+  // --- UI Elements ---
+  const statusBar = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100,
+  )
+  statusBar.command = "khmer-spellchecker.toggle"
+  context.subscriptions.push(statusBar)
+
+  const updateStatusBar = () => {
+    statusBar.text = isEnabled
+      ? "$(paintcan) Khmer: On"
+      : "$(circle-slash) Khmer: Off"
+    statusBar.show()
+  }
+  updateStatusBar()
+
+  // --- Decoration Types ---
+  const palette = ["#569cd6", "#4ec9b0", "#c586c0", "#dcdcaa", "#ce9178"]
+
+  // FIXED: Use backgroundColor with transparency (Alpha 40 = ~25% opacity)
+  const knownDecos = palette.map((color) =>
+    vscode.window.createTextEditorDecorationType({
+      backgroundColor: color + "40",
+      borderRadius: "3px", // Rounded corners for better aesthetics
+      overviewRulerColor: color,
+    }),
+  )
+
+  // UNKNOWN parts get Red Text + Red Underline
+  const errorDeco = vscode.window.createTextEditorDecorationType({
+    color: "#ff5555", // Red text
+    textDecoration: "underline wavy #ff5555", // Red wavy underline
+    overviewRulerColor: "#ff5555",
+    overviewRulerLane: vscode.OverviewRulerLane.Left,
+  })
+
+  // --- Core Logic Binding ---
+  const updateDecorations = () => {
+    if (!activeEditor || !isEnabled) return
+
+    const text = activeEditor.document.getText()
+    const tokens = analyzeKhmerText(text, dictionary.getWords())
+
+    // Prepare buckets for decorations
+    const knownRanges: vscode.Range[][] = palette.map(() => [])
+    const errorRanges: vscode.Range[] = []
+
+    let colorIndex = 0
+
+    tokens.forEach((token) => {
+      const startPos = activeEditor!.document.positionAt(token.start)
+      const endPos = activeEditor!.document.positionAt(token.end)
+      const range = new vscode.Range(startPos, endPos)
+
+      if (token.isKnown) {
+        // Cycle background colors for known parts (including those found by old algo)
+        knownRanges[colorIndex % palette.length]!.push(range)
+        colorIndex++
+      } else {
+        // Red for unknown parts
+        errorRanges.push(range)
+      }
+    })
+
+    currentErrors = errorRanges
+
+    // Apply to Editor
+    activeEditor.setDecorations(errorDeco, errorRanges)
+    knownDecos.forEach((deco, i) => {
+      activeEditor!.setDecorations(deco, knownRanges[i]!)
+    })
+  }
+
+  const triggerUpdate = () => {
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(updateDecorations, 500)
+  }
+
+  // --- Commands ---
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("khmer-spellchecker.toggle", () => {
+      isEnabled = !isEnabled
+      updateStatusBar()
+      if (isEnabled) triggerUpdate()
+      else {
+        // Clear all
+        activeEditor?.setDecorations(errorDeco, [])
+        knownDecos.forEach((d) => activeEditor?.setDecorations(d, []))
+      }
+    }),
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "khmer-spellchecker.refreshDictionary",
+      () => {
+        const count = dictionary.load()
+        vscode.window.showInformationMessage(`Loaded ${count} words.`)
+        triggerUpdate()
+      },
+    ),
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "khmer-spellchecker.addToDictionary",
+      () => {
+        const editor = vscode.window.activeTextEditor
+        if (!editor) return
+        const text = editor.document.getText(editor.selection).trim()
+
+        if (!text) return
+        try {
+          if (dictionary.add(text)) {
+            vscode.window.showInformationMessage(`Added "${text}"`)
+            triggerUpdate()
+          } else {
+            vscode.window.showInformationMessage(`"${text}" already exists`)
+          }
+        } catch (e) {
+          vscode.window.showErrorMessage(`Error: ${e}`)
+        }
+      },
+    ),
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "khmer-spellchecker.nextError",
+      async () => {
+        const editor = vscode.window.activeTextEditor
+        if (!editor || currentErrors.length === 0) return
+
+        const currentPos = editor.selection.active
+        let next = currentErrors.find((r) => r.start.isAfter(currentPos))
+        if (!next) next = currentErrors[0] // Loop to top
+
+        if (next) {
+          editor.selection = new vscode.Selection(next.start, next.end)
+          editor.revealRange(next, vscode.TextEditorRevealType.InCenter)
+
+          // Page finding logic
+          const doc = editor.document
+          let pageNum = ""
+          for (let i = next.start.line; i >= 0; i--) {
+            const match = doc.lineAt(i).text.match(/^###\s+Страница\s+(\d+)/i)
+            if (match) {
+              pageNum = match[1]!
+              break
+            }
+          }
+          if (pageNum) {
+            await vscode.env.clipboard.writeText(pageNum)
+            vscode.window.setStatusBarMessage(
+              `Jumped to Error. Copied Page ${pageNum}.`,
+              4000,
+            )
+          }
+        }
+      },
+    ),
+  )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("khmer-spellchecker.splitSelection", () => {
+      const e = vscode.window.activeTextEditor
+      if (!e) return
+      e.edit((edit) =>
+        e.selections.forEach((sel) => {
+          const t = e.document.getText(sel)
+          if (t) edit.replace(sel, split(t).join(" "))
+        }),
+      )
+    }),
+    vscode.commands.registerCommand(
+      "khmer-spellchecker.normalizeSelection",
+      () => {
+        const e = vscode.window.activeTextEditor
+        if (!e) return
+        e.edit((edit) =>
+          e.selections.forEach((sel) => {
+            const t = e.document.getText(sel)
+            if (t) edit.replace(sel, reorderText(t))
+          }),
+        )
+      },
+    ),
+  )
+
+  // --- Event Listeners ---
+  if (activeEditor) triggerUpdate()
+
+  vscode.window.onDidChangeActiveTextEditor(
+    (e) => {
+      activeEditor = e
+      if (e && isEnabled) triggerUpdate()
+    },
+    null,
+    context.subscriptions,
+  )
+
+  vscode.workspace.onDidChangeTextDocument(
+    (e) => {
+      if (activeEditor && e.document === activeEditor.document && isEnabled) {
+        triggerUpdate()
+      }
+    },
+    null,
+    context.subscriptions,
+  )
+}
+
+export function deactivate() {}
