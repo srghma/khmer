@@ -5,7 +5,8 @@ var path = require("path")
 var { reorderText } = require("khmer-normalize")
 var { split } = require("split-khmer")
 
-var cwd = process.cwd()
+// var cwd = process.cwd()
+var cwd = "/home/srghma/projects/khmer/khmer-spellchecker"
 
 // --- CONFIGURATION ---
 var ENABLE_NORMALIZE = false
@@ -18,8 +19,8 @@ var khmerRegex = /\p{Script=Khmer}/u
 var nonKhmerSplitRegex = /[^\p{Script=Khmer}]+/u
 
 // Find all dictionary files
-var files = Array.from(fs.readdirSync(cwd)).filter((f) =>
-  /^dictionary\d*\.txt$/.test(f),
+var files = Array.from(fs.readdirSync(cwd)).filter(
+  (f) => /^dictionary\d*\.txt$/.test(f) || f === "dictionary-my.txt",
 )
 
 // Master set to hold all unique words from all files
@@ -42,8 +43,10 @@ files.forEach((file) => {
     cleanedWords = content
       .split(/\r?\n/)
       .map((l) => l.trim())
-      .filter((l) => l.length > 0)
+      .filter((l) => l.length > 1)
       .filter((l) => khmerRegex.test(l)) // Must contain at least one Khmer char
+  } else if (file === "dictionary-my.txt") {
+    cleanedWords = content.split(/\r?\n/).map((l) => l.trim())
   } else {
     // === SCRAPED/OTHER DICTIONARIES LOGIC ===
 
@@ -81,7 +84,10 @@ files.forEach((file) => {
 
     // 3. Deduplicate & Sort locally
     cleanedWords = [...new Set(cleanedWords)]
-    cleanedWords = cleanedWords.sort(sorterByL)
+    cleanedWords = cleanedWords
+      .filter((l) => l.length > 1)
+      .filter((l) => khmerRegex.test(l)) // Must contain at least one Khmer char
+      .sort(sorterByL)
   }
 
   // Write the cleaned, unique version back to the individual file
