@@ -1,3 +1,4 @@
+import { assertNever } from "./asserts"
 import { TypedKhmerWord } from "./khmer-word"
 
 const nativeSegmenter = new Intl.Segmenter("km", { granularity: "word" })
@@ -17,13 +18,12 @@ const nativeSegmenter = new Intl.Segmenter("km", { granularity: "word" })
 export function khmerSentenceToWords_usingSegmenter(
   str: TypedKhmerWord,
 ): TypedKhmerWord[] {
-  const o: string[] = Array.from(nativeSegmenter.segment(str)).map(
-    (s) => s.segment,
+  return Array.from(nativeSegmenter.segment(str)).map(
+    (s) => s.segment as TypedKhmerWord,
   )
-  return o as TypedKhmerWord[]
 }
 
-// --- 2. Dictionary Approach ---
+// --- Dictionary Approach ---
 
 /**
 khmerSentenceToWords_usingDictionary('ផ្លូវកខ្វេងកខ្វាក់', new Set(khmerSentenceToWords_usingSegmenter('ផ្លូវកខ្វេងកខ្វាក់')))
@@ -41,14 +41,12 @@ export function khmerSentenceToWords_usingDictionary(
   str: TypedKhmerWord,
   dict: Set<TypedKhmerWord>,
 ): TypedKhmerWord[] {
-  // Use Array.from to split by codepoints (chars) safely, rather than grapheme segmenter for this specific requirement
-  // to ensure alignment with the join function's character counting.
   const chars = Array.from(str)
   const result: TypedKhmerWord[] = []
 
   let i = 0
   while (i < chars.length) {
-    let longestMatchString: string | null = null
+    let longestMatchString: string | undefined
     let longestMatchLen = 0 // Length in Chars, not string.length
 
     let currentString = ""
@@ -75,116 +73,89 @@ export function khmerSentenceToWords_usingDictionary(
   return result
 }
 
-// --- 3. Joined Approach (Union of Boundaries) ---
+// --- Joined Approach ---
 
-// --- Type Definitions ---
-
-export enum Space {
+export enum Color {
   Segmenter,
   Dictionary,
   Both,
 }
 
-export type WordsOrSpaces = TypedKhmerWord | Space
-
-export type InterspersedArray = WordsOrSpaces[]
-
-// --- The Join Function ---
+export type WordWithColor = {
+  w: TypedKhmerWord
+  color: Color
+}
 
 /**
- * Merges two token streams by calculating the Union of all Split Boundaries and
- * interspersing Enum Markers indicating which algorithm authorized the split.
- *
- * @param usingSegmenter - Output from the segmenter function.
- * @param usingDictionary - Output from the dictionary function.
- * @returns An array containing text segments interspersed with Space Enum markers.
- *
- * @description
- * This function calculates every index where *either* algorithm made a cut.
- * It slices the text into the smallest common atomic pieces.
- * Between these pieces, it inserts a marker denoting the type of boundary.
- *
- * **Marker Logic:**
- * - If the cut index exists in BOTH algorithms' boundaries -> `Space.Both`
- * - If the cut index exists ONLY in Segmenter's boundaries -> `Space.Segmenter`
- * - If the cut index exists ONLY in Dictionary's boundaries -> `Space.Dictionary`
- *
- * @example
- * // Case: Overlap / Disagreement
- * // Input: "អៅ" (No space, length 2)
- * // Segmenter: ["អៅ"] (Cuts at: 2)
- * // Dictionary: ["អ", "ៅ"] (Cuts at: 1, 2)
- * // Union Cuts: 1, 2.
- * // Result: ["អ", Space.Dictionary, "ៅ"]
- *
- * @example
- * // Case: Whitespace / Agreement
- * // Input: "អ ៅ" (Qa + Space + Au, length 3)
- * // Segmenter: ["អ", " ", "ៅ"] (Cuts at: 1, 2, 3)
- * // Dictionary: ["អ", " ", "ៅ"] (Cuts at: 1, 2, 3)
- * // Union Cuts: 1, 2, 3.
- * // Result: ["អ", Space.Both, " ", Space.Both, "ៅ"]
+ * Merges two token streams by calculating the Union of all Split Boundaries.
+ * Returns an array of objects containing the atomic word segment and the
+ * 'Color' of the boundary that *follows* that word.
  */
 export function khmerSentenceToWords_usingBoth_join(
   usingSegmenter: TypedKhmerWord[],
   usingDictionary: TypedKhmerWord[],
-): InterspersedArray {
-  // 1. Flatten to character array for safe slicing and length calculation
-  const allChars = usingSegmenter.flatMap((s) => Array.from(s))
-  const totalLength = allChars.length
+): WordWithColor[] {
+  // 1. Validation: Proof that both arrays reconstruct the exact same string
+  const strSeg = usingSegmenter.join("")
+  const strDict = usingDictionary.join("")
 
-  // 2. Map Boundaries (Cut Indices)
-  const segCuts = new Set<number>()
-  const dictCuts = new Set<number>()
-
-  // Helper to populate cuts
-  const calculateCuts = (tokens: string[], targetSet: Set<number>) => {
-    let pos = 0
-    tokens.forEach((token) => {
-      pos += Array.from(token).length
-      targetSet.add(pos)
-    })
+  if (strSeg !== strDict) {
+    throw new Error(
+      `khmerSentenceToWords_usingBoth_join: Mismatching inputs. Segmenter: "${strSeg}", Dictionary: "${strDict}"`,
+    )
   }
 
-  calculateCuts(usingSegmenter, segCuts)
-  calculateCuts(usingDictionary, dictCuts)
+  // 2. Functional Helpers
+  const toCumulativeIndices = (tokens: TypedKhmerWord[]): Set<number> => {
+    let acc = 0
+    return new Set(
+      tokens.map((t) => {
+        acc += Array.from(t).length
+        return acc
+      }),
+    )
+  }
 
-  // 3. Create Sorted Union of Cuts
-  // We combine both sets into a unique sorted array of indices
+  // 3. Calculate Cuts
+  const segCuts = toCumulativeIndices(usingSegmenter)
+  const dictCuts = toCumulativeIndices(usingDictionary)
+
+  // 4. Create Union of Cuts (Sorted)
   const allCuts = Array.from(new Set([...segCuts, ...dictCuts])).sort(
     (a, b) => a - b,
   )
 
-  // 4. Build Interspersed Result
-  const result: InterspersedArray = []
+  // 5. Transform (Map over cuts to produce segments)
+  const allChars = Array.from(strSeg)
+
+  // Use a reducing scan logic wrapped in map by maintaining state in closure
+  // (Pure functional would use scan/reduce, but map with closure is cleaner TS for this specific array transform)
   let start = 0
 
-  for (const end of allCuts) {
-    // A. Slice the text segment
-    const textSegment = allChars.slice(start, end).join("")
+  return allCuts.map((end): WordWithColor => {
+    // 5a. Slice the atomic segment
+    const w = allChars.slice(start, end).join("") as TypedKhmerWord
 
-    // Safety check: ignore empty slices
-    if (textSegment.length > 0) {
-      result.push(textSegment as TypedKhmerWord)
-    }
+    // 5b. Determine Color of the cut at 'end'
+    const isSeg = segCuts.has(end)
+    const isDict = dictCuts.has(end)
 
-    // B. Determine Marker (Only if this is NOT the end of the string)
-    // We add separators *between* tokens, not after the final token.
-    if (end < totalLength) {
-      const isSegCut = segCuts.has(end)
-      const isDictCut = dictCuts.has(end)
-
-      if (isSegCut && isDictCut) {
-        result.push(Space.Both)
-      } else if (isSegCut) {
-        result.push(Space.Segmenter)
-      } else if (isDictCut) {
-        result.push(Space.Dictionary)
+    const color = ((): Color => {
+      switch (true) {
+        case isSeg && isDict:
+          return Color.Both
+        case isSeg:
+          return Color.Segmenter
+        case isDict:
+          return Color.Dictionary
+        default:
+          throw new Error("Impossible state: Cut exists in neither set")
       }
-    }
+    })()
 
+    // Update start for next iteration
     start = end
-  }
 
-  return result
+    return { w, color }
+  })
 }
