@@ -6,11 +6,12 @@
  */
 export function assertIsDefinedAndReturn<T>(
   value: T,
-  message: string | (() => string) = "Assertion Error: value is null or undefined",
+  message:
+    | string
+    | (() => string) = "Assertion Error: value is null or undefined",
 ): NonNullable<T> {
   if (value === undefined || value === null) {
-    const errorMessage =
-      typeof message === "function" ? message() : message
+    const errorMessage = typeof message === "function" ? message() : message
     throw new Error(errorMessage)
   }
 

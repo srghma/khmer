@@ -23,7 +23,8 @@ export function dom_runButtonToState(btn: HTMLElement): RunButtonState {
   const isRun = text.includes("run")
   if (isStop && isDisabled) return "stop_button__disabled_bc_maybe_running"
   if (isStop && !isDisabled) return "stop_button__ready"
-  if (isRun && isDisabled) return "run_button__disabled_bc_maybe_running_or_nothing_to_submit"
+  if (isRun && isDisabled)
+    return "run_button__disabled_bc_maybe_running_or_nothing_to_submit"
   if (isRun && !isDisabled) return "run_button__ready"
   return "unknown"
 }

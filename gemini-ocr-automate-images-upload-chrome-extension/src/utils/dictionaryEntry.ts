@@ -10,4 +10,4 @@ export interface DictionaryEntry<W> {
 const splitPageIntoEntries = (
   pageNumber: ValidNonNegativeInt,
   pageContent: NonEmptyString,
-): DictionaryEntry[] => { }
+): DictionaryEntry[] => {}

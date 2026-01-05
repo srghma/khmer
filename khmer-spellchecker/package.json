@@ -14,6 +14,24 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Khmer Spellchecker",
+      "properties": {
+        "khmer-spellchecker.colorizingMode": {
+          "type": "string",
+          "default": "Dictionary",
+          "description": "Determines the segmentation strategy for colorizing Khmer text.",
+          "enum": [
+            "Dictionary",
+            "Segmenter"
+          ],
+          "enumDescriptions": [
+            "Splits text based on the longest matching words in the dictionary. Good for spell-checking.",
+            "Splits text using an algorithmic word segmenter. Good for visualizing word breaks without a dictionary."
+          ]
+        }
+      }
+    },
     "commands": [
       {
         "command": "khmer-spellchecker.toggle",
@@ -24,12 +42,16 @@
         "title": "Khmer: Refresh Dictionary"
       },
       {
-        "command": "khmer-spellchecker.splitSelection",
-        "title": "Khmer: Split Selection (Add Spaces)"
+        "command": "khmer-spellchecker.splitSelectionUsingSegmenter",
+        "title": "Khmer: Split (Standard Segmenter)"
+      },
+      {
+        "command": "khmer-spellchecker.splitSelectionUsingDictionary",
+        "title": "Khmer: Split (Dictionary Match)"
       },
       {
         "command": "khmer-spellchecker.normalizeSelection",
-        "title": "Khmer: Normalize Selection (Fix Subscripts)"
+        "title": "Khmer: Normalize Selection"
       },
       {
         "command": "khmer-spellchecker.addToDictionary",
@@ -38,6 +60,10 @@
       {
         "command": "khmer-spellchecker.nextError",
         "title": "Khmer: Go to Next Error"
+      },
+      {
+        "command": "khmer-spellchecker.nextColorizingMode",
+        "title": "Khmer: Next Colorizing Mode"
       }
     ],
     "keybindings": [
@@ -47,28 +73,23 @@
         "when": "editorTextFocus"
       },
       {
-        "command": "khmer-spellchecker.refreshDictionary",
-        "key": "alt+shift+k alt+shift+r",
-        "when": "editorTextFocus"
-      },
-      {
-        "command": "khmer-spellchecker.splitSelection",
+        "command": "khmer-spellchecker.splitSelectionUsingSegmenter",
         "key": "alt+shift+k alt+shift+s",
         "when": "editorTextFocus"
       },
       {
-        "command": "khmer-spellchecker.normalizeSelection",
-        "key": "alt+shift+k alt+shift+n",
-        "when": "editorTextFocus"
-      },
-      {
-        "command": "khmer-spellchecker.addToDictionary",
-        "key": "alt+shift+k alt+shift+a",
+        "command": "khmer-spellchecker.splitSelectionUsingDictionary",
+        "key": "alt+shift+k alt+shift+d",
         "when": "editorTextFocus"
       },
       {
         "command": "khmer-spellchecker.nextError",
         "key": "alt+shift+k alt+shift+e",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "khmer-spellchecker.addToDictionary",
+        "key": "alt+shift+k alt+shift+a",
         "when": "editorTextFocus"
       }
     ]
@@ -86,7 +107,7 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
-    "link-utils": "vscode-test"
+    "link-utils": "ln -s ../../gemini-ocr-automate-images-upload-chrome-extension/src/utils/ src/utils"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

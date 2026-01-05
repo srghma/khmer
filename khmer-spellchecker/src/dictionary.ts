@@ -1,7 +1,8 @@
 import * as fs from "fs"
+import { strToKhmerWordOrThrow, TypedKhmerWord } from "./utils/khmer-word"
 
 export class DictionaryManager {
-  private knownWords = new Set<string>()
+  private knownWords = new Set<TypedKhmerWord>()
 
   constructor(private filePath: string) {}
 
@@ -13,6 +14,7 @@ export class DictionaryManager {
           .split(/\r?\n/)
           .map((w) => w.trim())
           .filter((w) => w.length > 0)
+          .map(strToKhmerWordOrThrow)
 
         this.knownWords.clear()
         words.forEach((w) => this.knownWords.add(w))
@@ -25,11 +27,11 @@ export class DictionaryManager {
     return this.knownWords.size
   }
 
-  public getWords(): Set<string> {
+  public getWords(): Set<TypedKhmerWord> {
     return this.knownWords
   }
 
-  public add(word: string): boolean {
+  public add(word: TypedKhmerWord): boolean {
     if (this.knownWords.has(word)) return false
 
     try {

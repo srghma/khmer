@@ -5,7 +5,7 @@ import {
 } from "../utils/dom"
 import { mkLogger } from "../utils/log"
 
-const log = mkLogger('aistudio' as const)
+const log = mkLogger("aistudio" as const)
 
 function isVisible(node: HTMLElement) {
   // 1. Check if it takes up space in the DOM (width/height > 0)
