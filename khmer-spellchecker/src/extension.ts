@@ -8,6 +8,11 @@ import { strToKhmerWordOrUndefined, TypedKhmerWord } from "./utils/khmer-word"
 import { reorderText } from "khmer-normalize"
 import { assertIsDefined, assertIsDefinedAndReturn } from "./utils/asserts"
 import { DictionaryManager } from "./dictionary"
+import {
+  strOrNumberToNonNegativeIntOrThrow_strict,
+  strToNonNegativeIntOrThrow_strict,
+  ValidNonNegativeInt,
+} from "./utils/toNumber"
 
 // --- Constants ---
 
@@ -15,6 +20,22 @@ const KHMER_BLOCK_REGEX = /[\p{Script=Khmer}]+/gu
 const KHMER_BLOCK_REGEX_SINGLE = /[\p{Script=Khmer}]+/u
 const DICTIONARY_FILE_NAME = "dictionary.txt"
 const CONFIG_SECTION = "khmer-spellchecker"
+
+const BASE_IMAGE_PATH =
+  "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь"
+
+/**
+ * Transforms an integer page number into a file URI.
+ * Logic: Input + 1, padded to 3 digits.
+ * Example: 1 -> page-002.png, 248 -> page-249.png
+ */
+function getPageImageUri(pageNumber: ValidNonNegativeInt): vscode.Uri {
+  const imageIndex = pageNumber - 1
+  const paddedIndex = String(imageIndex).padStart(3, "0")
+  const fileName = `page-${paddedIndex}.png`
+  const fullPath = path.join(BASE_IMAGE_PATH, fileName)
+  return vscode.Uri.file(fullPath)
+}
 
 const COLOR_PALETTE = [
   "#569cd6", // Blue
@@ -30,13 +51,97 @@ type ColorizingMode = "Dictionary" | "Segmenter"
 
 type ExtensionState = {
   isEnabled: boolean
-  colorizingMode: ColorizingMode // Local copy of the setting
+  colorizingMode: ColorizingMode
   decorations: {
     known: vscode.TextEditorDecorationType[]
     unknown: vscode.TextEditorDecorationType
   }
+  diagnosticCollection: vscode.DiagnosticCollection
   timeout: NodeJS.Timeout | undefined
   currentUnknownRanges: vscode.Range[]
+  lastOpenedImageNum: ValidNonNegativeInt | undefined // Tracks the last opened image to prevent duplicates
+}
+
+// --- Helper: Find Page Number ---
+
+function findPageNumberPrecedingLine(
+  document: vscode.TextDocument,
+  lineIndex: number,
+): ValidNonNegativeInt | undefined {
+  // Search backwards from current line to top of file
+  for (let i = lineIndex; i >= 0; i--) {
+    const lineText = document.lineAt(i).text
+    // Matches "### Страница 119"
+    const match = lineText.match(/^###\s+Страница\s+(\d+)/i)
+    if (match && match[1]) {
+      return strToNonNegativeIntOrThrow_strict(match[1])
+    }
+  }
+  return undefined
+}
+
+// --- Code Action Provider ---
+
+export class KhmerPageImageProvider implements vscode.CodeActionProvider {
+  public static readonly providedCodeActionKinds = [
+    vscode.CodeActionKind.QuickFix,
+  ]
+
+  provideCodeActions(
+    document: vscode.TextDocument,
+    range: vscode.Range | vscode.Selection,
+    context: vscode.CodeActionContext,
+    _token: vscode.CancellationToken,
+  ): vscode.CodeAction[] {
+    const khmerDiagnostics = context.diagnostics.filter(
+      (d) => d.source === "Khmer Spellchecker",
+    )
+    if (khmerDiagnostics.length === 0) {
+      return []
+    }
+
+    const pageNum = findPageNumberPrecedingLine(document, range.start.line)
+    if (!pageNum) {
+      return []
+    }
+
+    const actions: vscode.CodeAction[] = []
+
+    // 1. Action: Current Page
+    // We pass the raw pageNum. The command will handle the "+1 -> 002" logic.
+    const actionCurrent = new vscode.CodeAction(
+      `Open original image (Page ${pageNum})`,
+      vscode.CodeActionKind.QuickFix,
+    )
+    actionCurrent.isPreferred = true
+    actionCurrent.diagnostics = khmerDiagnostics
+    actionCurrent.command = {
+      command: "khmer-spellchecker.openPageImage",
+      title: "Open Image",
+      arguments: [pageNum],
+    }
+    actions.push(actionCurrent)
+
+    // 2. Action: Previous Page
+    // If we are on Page 119, the definition might have started on Page 118.
+    if (pageNum > 1) {
+      const prevPageNum = pageNum - 1
+      const actionPrev = new vscode.CodeAction(
+        `Open previous image (Page ${prevPageNum})`,
+        vscode.CodeActionKind.QuickFix,
+      )
+      actionPrev.isPreferred = false
+      actionPrev.diagnostics = khmerDiagnostics
+      actionPrev.command = {
+        command: "khmer-spellchecker.openPageImage",
+        title: "Open Previous Image",
+        arguments: [prevPageNum],
+      }
+      actions.push(actionPrev)
+    }
+
+    return actions
+  }
 }
 
 // --- Main Activation ---
@@ -49,7 +154,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const state: ExtensionState = {
     isEnabled: true,
-    colorizingMode: "Dictionary", // Default, will be overwritten by setting
+    colorizingMode: "Dictionary",
     decorations: {
       known: COLOR_PALETTE.map((color) =>
         vscode.window.createTextEditorDecorationType({
@@ -60,11 +165,13 @@ export function activate(context: vscode.ExtensionContext) {
       unknown: vscode.window.createTextEditorDecorationType({
         color: "#ff5555",
         overviewRulerColor: "#ff5555",
-        overviewRulerLane: vscode.OverviewRulerLane.Left,
       }),
     },
+    diagnosticCollection:
+      vscode.languages.createDiagnosticCollection("khmer-spellchecker"),
     timeout: undefined,
     currentUnknownRanges: [],
+    lastOpenedImageNum: undefined,
   }
 
   // --- UI & State Sync ---
@@ -102,15 +209,21 @@ export function activate(context: vscode.ExtensionContext) {
     state.currentUnknownRanges = []
     editor.setDecorations(state.decorations.unknown, [])
     state.decorations.known.forEach((d) => editor.setDecorations(d, []))
+    state.diagnosticCollection.clear()
   }
 
   const performDecorations = (editor: vscode.TextEditor) => {
-    if (!state.isEnabled) return
+    if (!state.isEnabled) {
+      state.diagnosticCollection.clear()
+      return
+    }
 
     const text = editor.document.getText()
     const knownWords = dictManager.getWords()
     const knownRanges: vscode.Range[][] = COLOR_PALETTE.map(() => [])
     const unknownRanges: vscode.Range[] = []
+    const diagnostics: vscode.Diagnostic[] = []
+
     let wordCounter = 0
     let match: RegExpExecArray | null
 
@@ -124,23 +237,58 @@ export function activate(context: vscode.ExtensionContext) {
           : khmerSentenceToWords_usingDictionary(blockText, knownWords)
 
       let currentOffset = 0
-      words.forEach((word) => {
-        const startPos = editor.document.positionAt(blockStart + currentOffset)
-        const endPos = editor.document.positionAt(
-          blockStart + currentOffset + word.length,
-        )
-        const range = new vscode.Range(startPos, endPos)
+      let unknownBufferText = ""
+      let unknownStartOffset = -1
 
+      const flushUnknownBuffer = () => {
+        if (unknownBufferText.length > 0) {
+          const startPos = editor.document.positionAt(
+            blockStart + unknownStartOffset,
+          )
+          const endPos = editor.document.positionAt(
+            blockStart + unknownStartOffset + unknownBufferText.length,
+          )
+          const range = new vscode.Range(startPos, endPos)
+
+          unknownRanges.push(range)
+
+          const diagnostic = new vscode.Diagnostic(
+            range,
+            `Unknown sequence: "${unknownBufferText}"`,
+            vscode.DiagnosticSeverity.Error,
+          )
+          diagnostic.source = "Khmer Spellchecker"
+          diagnostics.push(diagnostic)
+
+          unknownBufferText = ""
+          unknownStartOffset = -1
+        }
+      }
+
+      words.forEach((word) => {
         if (knownWords.has(word)) {
+          flushUnknownBuffer()
+          const startPos = editor.document.positionAt(
+            blockStart + currentOffset,
+          )
+          const endPos = editor.document.positionAt(
+            blockStart + currentOffset + word.length,
+          )
+          const range = new vscode.Range(startPos, endPos)
+
           const r = knownRanges[wordCounter % COLOR_PALETTE.length]
           assertIsDefined(r)
           r.push(range)
           wordCounter++
         } else {
-          unknownRanges.push(range)
+          if (unknownBufferText === "") {
+            unknownStartOffset = currentOffset
+          }
+          unknownBufferText += word
         }
         currentOffset += word.length
       })
+      flushUnknownBuffer()
     }
 
     state.currentUnknownRanges = unknownRanges
@@ -148,6 +296,7 @@ export function activate(context: vscode.ExtensionContext) {
     state.decorations.known.forEach((d, i) =>
       editor.setDecorations(d, assertIsDefinedAndReturn(knownRanges[i])),
     )
+    state.diagnosticCollection.set(editor.document.uri, diagnostics)
   }
 
   const refreshAndNotify = () => {
@@ -161,7 +310,6 @@ export function activate(context: vscode.ExtensionContext) {
   const applySegmentation = (
     strategy: (text: TypedKhmerWord) => TypedKhmerWord[],
   ) => {
-    // ... (This function remains unchanged)
     const editor = vscode.window.activeTextEditor
     if (!editor) return
 
@@ -183,7 +331,6 @@ export function activate(context: vscode.ExtensionContext) {
       targetRanges.forEach((range) => {
         const text = editor.document.getText(range) as TypedKhmerWord
         if (!text) return
-
         const segmented = strategy(text)
         editBuilder.replace(range, segmented.join(" "))
       })
@@ -192,7 +339,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   // --- Initialization & Event Listeners ---
 
-  // Function to sync state from VS Code settings
   const syncColorizingMode = () => {
     const config = vscode.workspace.getConfiguration(CONFIG_SECTION)
     state.colorizingMode =
@@ -201,19 +347,27 @@ export function activate(context: vscode.ExtensionContext) {
     triggerUpdate()
   }
 
-  // Initial load
   dictManager.load()
-  console.log(`Loaded ${dictManager.getWords().size} words`)
-  syncColorizingMode() // Sync on activation
+  syncColorizingMode()
 
-  // Listen for changes to the configuration
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(`${CONFIG_SECTION}.colorizingMode`)) {
-        console.log("Colorizing mode changed, updating...")
         syncColorizingMode()
       }
     }),
+  )
+
+  // --- Register Code Action Provider ---
+
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: "file" },
+      new KhmerPageImageProvider(),
+      {
+        providedCodeActionKinds: KhmerPageImageProvider.providedCodeActionKinds,
+      },
+    ),
   )
 
   // --- Commands ---
@@ -237,8 +391,6 @@ export function activate(context: vscode.ExtensionContext) {
       () => {
         const config = vscode.workspace.getConfiguration(CONFIG_SECTION)
         const currentMode = config.get<ColorizingMode>("colorizingMode")
-
-        // Determine the next mode and update the global setting
         const nextMode =
           currentMode === "Dictionary" ? "Segmenter" : "Dictionary"
         config.update(
@@ -246,7 +398,6 @@ export function activate(context: vscode.ExtensionContext) {
           nextMode,
           vscode.ConfigurationTarget.Global,
         )
-        // The onDidChangeConfiguration listener will handle the UI update and re-decoration
         vscode.window.showInformationMessage(
           `Switched to ${nextMode} segmentation`,
         )
@@ -256,6 +407,25 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       "khmer-spellchecker.refreshDictionary",
       refreshAndNotify,
+    ),
+
+    // --- Command: Open Page Image ---
+    vscode.commands.registerCommand(
+      "khmer-spellchecker.openPageImage",
+      async (pageNumber: number) => {
+        if (pageNumber === undefined) return
+        const pn = strOrNumberToNonNegativeIntOrThrow_strict(pageNumber)
+
+        // Update state to record this as the last opened page
+        state.lastOpenedImageNum = pn
+        const uri = getPageImageUri(pn)
+
+        try {
+          await vscode.env.openExternal(uri)
+        } catch (e) {
+          vscode.window.showErrorMessage(`Could not open image: ${e}`)
+        }
+      },
     ),
 
     vscode.commands.registerCommand(
@@ -276,7 +446,6 @@ export function activate(context: vscode.ExtensionContext) {
       () => {
         const editor = vscode.window.activeTextEditor
         if (!editor) return
-
         const ranges =
           editor.selections.length > 0 && !editor.selection.isEmpty
             ? editor.selections
@@ -346,36 +515,29 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         const currentPos = editor.selection.active
-
-        // Find the next error range relative to cursor
         const nextRange =
           state.currentUnknownRanges.find((r) => r.start.isAfter(currentPos)) ??
           state.currentUnknownRanges[0]
 
         if (!nextRange) return
 
-        // 1. Expand range: Select \p{Khmer}+ from left and right of the error
-        // We use the existing regex constant to find the whole block boundaries
         const fullBlockRange =
           editor.document.getWordRangeAtPosition(
             nextRange.start,
             KHMER_BLOCK_REGEX_SINGLE,
-          ) || nextRange // Fallback to error range if regex fails for some reason
+          ) || nextRange
 
-        // 2. Process the text: Segment it
         const originalText = editor.document.getText(
           fullBlockRange,
         ) as TypedKhmerWord
         const segmentedWords = khmerSentenceToWords_usingSegmenter(originalText)
         const newText = segmentedWords.join(" ")
 
-        // 3. Apply the Edit (This is automatically Ctrl+Z undoable as a single action)
         const success = await editor.edit((editBuilder) => {
           editBuilder.replace(fullBlockRange, newText)
         })
 
         if (success) {
-          // 4. Update Selection to cover the new segmented text
           const startOffset = editor.document.offsetAt(fullBlockRange.start)
           const newEndOffset = startOffset + newText.length
           const newEndPos = editor.document.positionAt(newEndOffset)
@@ -388,23 +550,25 @@ export function activate(context: vscode.ExtensionContext) {
           editor.revealRange(newSelection, vscode.TextEditorRevealType.InCenter)
         }
 
-        // 5. Existing Page Number Logic (Looking backwards from the edit line)
-        let pageNum: string | undefined
-        for (let i = fullBlockRange.start.line; i >= 0; i--) {
-          const lineText = editor.document.lineAt(i).text
-          const m = lineText.match(/^###\s+Страница\s+(\d+)/i)
-          if (m) {
-            pageNum = m[1]
-            break
-          }
-        }
+        let pageNum = findPageNumberPrecedingLine(
+          editor.document,
+          fullBlockRange.start.line,
+        )
 
         if (pageNum) {
-          await vscode.env.clipboard.writeText(pageNum)
+          await vscode.env.clipboard.writeText(String(pageNum))
           vscode.window.setStatusBarMessage(
             `Jumped & Segmented. Page ${pageNum} copied.`,
             4000,
           )
+
+          // Only open if different from last opened
+          if (state.lastOpenedImageNum !== pageNum) {
+            vscode.commands.executeCommand(
+              "khmer-spellchecker.openPageImage",
+              pageNum,
+            )
+          }
         } else {
           vscode.window.setStatusBarMessage("Jumped & Segmented.", 4000)
         }
