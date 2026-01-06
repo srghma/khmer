@@ -450,11 +450,11 @@ export function activate(context: vscode.ExtensionContext) {
           editor.selections.length > 0 && !editor.selection.isEmpty
             ? editor.selections
             : [
-                editor.document.getWordRangeAtPosition(
-                  editor.selection.active,
-                  KHMER_BLOCK_REGEX_SINGLE,
-                ),
-              ].filter((r): r is vscode.Range => !!r)
+              editor.document.getWordRangeAtPosition(
+                editor.selection.active,
+                KHMER_BLOCK_REGEX_SINGLE,
+              ),
+            ].filter((r): r is vscode.Range => !!r)
 
         if (ranges.length === 0) return
 
@@ -599,4 +599,4 @@ export function activate(context: vscode.ExtensionContext) {
   )
 }
 
-export function deactivate() {}
+export function deactivate() { }
