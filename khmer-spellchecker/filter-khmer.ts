@@ -5,10 +5,10 @@ import * as path from "path"
 import { reorderText } from "khmer-normalize"
 import { split } from "split-khmer"
 import {
-  isKhmerWord,
   strToKhmerWordOrThrow,
   strToKhmerWords,
 } from "./src/utils/khmer-word"
+import { descNumber, sortBy_immutable_cached } from "./src/utils/sort"
 
 // var cwd = process.cwd()
 const cwd: string = "/home/srghma/projects/khmer/khmer-spellchecker"
@@ -30,11 +30,6 @@ const files: string[] = Array.from(fs.readdirSync(cwd)).filter(
 
 // Master set to hold all unique words from all files
 const masterSet: Set<string> = new Set()
-
-const sorterByL = (a: string, b: string): number => {
-  // Sort by length descending, using Array.from to count Code Points
-  return Array.from(b).length - Array.from(a).length
-}
 
 files.forEach((file: string) => {
   const p: string = path.join(cwd, file)
@@ -98,9 +93,14 @@ files.forEach((file: string) => {
     cleanedWords = cleanedWords
       .filter((l: string) => l.length > 1)
       .filter((l: string) => khmerRegex.test(l)) // Must contain at least one Khmer char
-      .sort(sorterByL)
       .flatMap(strToKhmerWords)
       .filter((w: string) => w.length > 0)
+
+    cleanedWords = sortBy_immutable_cached(
+      cleanedWords,
+      (a) => Array.from(a).length,
+      descNumber,
+    )
   }
 
   // Write the cleaned, unique version back to the individual file
@@ -112,9 +112,11 @@ files.forEach((file: string) => {
 
 // === COMBINE AND SORT ===
 
-const sortedResult: string[] = Array.from(masterSet)
-  .sort(sorterByL)
-  .map(strToKhmerWordOrThrow)
+const sortedResult: string[] = sortBy_immutable_cached(
+  Array.from(masterSet).map(strToKhmerWordOrThrow),
+  (a) => Array.from(a).length,
+  descNumber,
+)
 
 // Write to the main dictionary.txt
 fs.writeFileSync(

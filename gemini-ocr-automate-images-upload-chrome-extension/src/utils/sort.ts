@@ -110,6 +110,17 @@ export const sortBy_immutable = <A, B>(
   sorter: (a: B, b: B) => number,
 ): A[] => sortBy_mutating(Array.from(xs), byF, sorter)
 
+export const sortBy_immutable_cached = <A, B>(
+  xs: A[],
+  byF: (a: A) => B,
+  sorter: (a: B, b: B) => number,
+): A[] => {
+  return xs
+    .map((value) => ({ value, key: byF(value) }))
+    .sort((a, b) => sorter(a.key, b.key))
+    .map((x) => x.value)
+}
+
 /////////
 
 export const ErrorMessageOneOf = (label: string, values: string[]) =>

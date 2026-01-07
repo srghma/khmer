@@ -47,4 +47,16 @@ describe("khmerSentenceToWords_usingDictionary", () => {
 
     expect(result).toEqual([wordA, wordB])
   })
+
+  it("correctly splits 'មិនចេះចប់' as one token when both 'មិន' and 'មិនចេះចប់' are in dict", () => {
+    const wordMin = K("មិន")
+    const wordMinChehJob = K("មិនចេះចប់")
+
+    const dict = new Set([wordMin, wordMinChehJob])
+    const input = K("មិនចេះចប់")
+
+    const result = khmerSentenceToWords_usingDictionary(input, dict)
+
+    expect(result).toEqual([wordMinChehJob])
+  })
 })
