@@ -1,4 +1,53 @@
-import { renderColoredText } from "./segmentation";
+const KHMER_BLOCK_REGEX = /[\p{Script=Khmer}]+/gu;
+
+export function isKhmer(text: string): boolean {
+  return /[\p{Script=Khmer}]/u.test(text);
+}
+
+export function renderColoredText(
+  fullText: string,
+  mode: "Dictionary" | "Segmenter",
+  knownWords: Set<string>,
+): string {
+  // We process line by line to keep UI responsive if we were doing async,
+  // but here we do a bulk replace for the blocks.
+
+  // 1. Identify Khmer blocks
+  return fullText.replace(KHMER_BLOCK_REGEX, (match) => {
+    const words = khmerSentenceToWords_usingSegmenter(match);
+
+    let html = "";
+    let wordCounter = 0;
+
+    words.forEach((w) => {
+      // Determine color class
+      let cls = "";
+
+      if (mode === "Segmenter") {
+        // Just cycle colors for every segment
+        cls = `color-${wordCounter % 5}`;
+        wordCounter++;
+      } else {
+        // Dictionary Mode
+        if (knownWords.has(w)) {
+          cls = `color-${wordCounter % 5} known`;
+          wordCounter++;
+        } else {
+          // Check if it's actually just space/punctuation
+          if (!isKhmer(w)) {
+            cls = "neutral";
+          } else {
+            cls = "unknown";
+          }
+        }
+      }
+
+      html += `<span class="${cls}">${w}</span>`;
+    });
+
+    return html;
+  });
+}
 
 // This will be injected by the build script via esbuild define or window object
 declare const RAW_DICTIONARY_LIST: string[];

@@ -3,124 +3,315 @@
 import * as fs from "fs"
 import * as path from "path"
 import {
-  TypedKhmerWord,
+  TypedKhmerWordDictionaryIndexElement,
+  strToKhmerWordDictionaryIndexOrUndefined,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word-dictionary-index"
+import {
+  colorizeKhmerHtml
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/colorize-html"
+import { ValidNonNegativeInt } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber"
+import {
+  const_EMPTY,
+  extractPageData,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page"
+import {
   strToKhmerWordOrThrow,
+  TypedKhmerWord,
 } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
 import {
-  TypedRussianWord,
-  strToRussianWordOrThrow,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/russian-word"
-import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts"
+  strToRussianWordDictionaryIndexOrUndefined,
+  TypedRussianWordDictionaryIndexElement,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/russian-word-dictionary-index"
 import {
-  NonEmptyString,
+  String_toNonEmptyString_orUndefined_afterTrim,
+  NonEmptyStringTrimmed,
   nonEmptyString_afterTrim,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string"
-import { extractPageData } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page"
-import { NonEmptyArray } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array"
-import { parseLine } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/parseLine"
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed"
+import {
+  Array_assertNonEmptyArray,
+  NonEmptyArray,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array"
+import { Array_filterMap_undefined } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/array"
+import { NonEmptySet } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set"
 
-// TEST: normal split -> dont join
-//
-// GIVEN
-//   ### Page 1
-//   *w1* content content content
-//
-//   ### Page 2
-//   *w2* content
-// OUTPUT
-//   *w1* content content content
-//
-//   *w2* content
-//
-// TEST: next page is continuation of prev -> join
-//
-// GIVEN
-//   ### Page 1
-//   *w1* content content content
-//
-//   ### Page 2
-//   content
-// OUTPUT
-//   *w1* content content content content
+// --- Configuration ---
 
-// TEST: next page is continuation of prev but in prev word is **content-** and in next its **content** -> join and words too
-//
-// GIVEN
-//   ### Page 1
-//   *w1* content content **content-**
-//
-//   ### Page 2
-//   **content**
-// OUTPUT
-//   *w1* content content **contentcontent**
+const SPELLCHECKER_DICT_PATH =
+  "/home/srghma/projects/khmer/khmer-spellchecker/dictionary.txt"
+const RU_KM_DICT_PATH =
+  "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt"
+const KM_RU_DICT_PATH =
+  "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt"
 
-const processFile = <W>(inputPath: string, strToW: (s: string) => W): void => {
-  const outputPath = inputPath.replace(".txt", "--continuous.txt")
-  console.log(`Processing: ${path.basename(inputPath)}...`)
+// --- Types ---
 
-  const rawFileContent = fs.readFileSync(inputPath, "utf-8")
-  const pages = extractPageData(rawFileContent)
+type ParsedPage<T extends NonEmptyStringTrimmed> = readonly [
+  ValidNonNegativeInt,
+  NonEmptyArray<{ index: NonEmptySet<T>; content: NonEmptyStringTrimmed }>,
+]
 
-  const processedEntries = pages.reduce<string[]>(
-    (acc, [_, pageContent], pageIdx) => {
-      const lines = pageContent
-        .split(/\n/)
-        .map((l) => l.trim())
-        .filter((l) => l.length > 0)
-        .map((l) => nonEmptyString_afterTrim(l))
-
-      lines.forEach((line, lineIdx) => {
-        const parsed = parseLine(line, strToW)
-
-        if (parsed.t === "new_word_line") {
-          // Reconstruct the line: **word** + remainder
-          // We use the word 'w' but wrap it back in markdown
-          acc.push(`**${parsed.w}** ${parsed.content}`)
-        } else {
-          if (acc.length === 0) {
-            acc.push(parsed.content)
-            return
-          }
-
-          const lastIdx = acc.length - 1
-          const lastEntry = assertIsDefinedAndReturn(acc[lastIdx])
-          const isFirstLineOfNewPage = lineIdx === 0 && pageIdx > 0
-
-          if (isFirstLineOfNewPage) {
-            // Cross-page merging (hard join)
-            if (lastEntry.endsWith("-**") && parsed.content.startsWith("**")) {
-              // Handle the specific case: **word-** (page break) **word**
-              acc[lastIdx] = lastEntry.slice(0, -3) + parsed.content.slice(2)
-            } else {
-              acc[lastIdx] = lastEntry + parsed.content
-            }
-          } else {
-            // Intra-page merging (soft join)
-            if (lastEntry.endsWith("-")) {
-              acc[lastIdx] = lastEntry.slice(0, -1) + parsed.content
-            } else {
-              acc[lastIdx] = lastEntry + " " + parsed.content
-            }
-          }
-        }
-      })
-
-      return acc
-    },
-    [],
-  )
-
-  fs.writeFileSync(outputPath, processedEntries.join("\n\n"), "utf-8")
-  console.log(`✓ Created: ${path.basename(outputPath)}`)
+interface GroupedEntry<T> {
+  readonly headword: T
+  readonly allContent: ReadonlyArray<NonEmptyStringTrimmed>
+  readonly pages: ReadonlySet<ValidNonNegativeInt>
 }
 
-// --- Execution ---
+// --- Helper Functions ---
 
-processFile(
-  "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt",
-  strToRussianWordOrThrow,
-)
-processFile(
-  "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt",
-  strToKhmerWordOrThrow,
-)
+const markdownToHtml = (markdown: string): string =>
+  markdown
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\*([^*]+)\*/g, "<i>$1</i>")
+    .replace(/\$\\diamond\$/g, "◊")
+    .replace(/<>/g, "◊")
+    .replace(/\n/g, "<br>")
+    .replace(/(<br>){3,}/g, "<br><br>")
+
+// --- 1. Extraction Logic ---
+
+function extractHeadwordAndContent<T extends NonEmptyStringTrimmed>(
+  line: NonEmptyStringTrimmed,
+  validator: (s: NonEmptyStringTrimmed) => NonEmptySet<T> | undefined,
+  contextInfo: string,
+): { index: NonEmptySet<T>; content: NonEmptyStringTrimmed } {
+  const match = line.match(/^\*\*([^*]+)\*\*(.*)$/)
+
+  if (!match) {
+    throw new Error(
+      `[${contextInfo}] Line does not start with **Headword**: "${line.substring(0, 20)}..."`,
+    )
+  }
+
+  const rawHeadword_ = match[1]?.trim()
+  const rawContent = match[2]?.trim()
+
+  if (!rawHeadword_)
+    throw new Error(`[${contextInfo}] Empty headword extracted.`)
+  if (!rawContent) throw new Error(`[${contextInfo}] Empty content extracted.`)
+
+  const rawHeadword = nonEmptyString_afterTrim(rawHeadword_)
+  const validatedHeadword = validator(rawHeadword)
+
+  if (!validatedHeadword)
+    throw new Error(
+      // console.error(
+      `[${contextInfo}] Headword "${rawHeadword}" failed validation.`,
+    )
+
+  const finalContent = String_toNonEmptyString_orUndefined_afterTrim(rawContent)
+
+  if (!finalContent)
+    throw new Error(`[${contextInfo}] Resulting content is empty.`)
+
+  return { index: validatedHeadword, content: finalContent }
+}
+
+// --- 2. File Parsing ---
+
+function parseDictionaryFile<T extends NonEmptyStringTrimmed>(
+  filePath: string,
+  validator: (s: NonEmptyStringTrimmed) => NonEmptySet<T> | undefined,
+): NonEmptyArray<ParsedPage<T>> {
+  const fileName = path.basename(filePath)
+  console.log(`\n--- Parsing: ${fileName} ---`)
+
+  if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`)
+
+  const content = fs.readFileSync(filePath, "utf-8")
+  const rawPages = extractPageData(content)
+  console.log(`    Found ${rawPages.length} raw pages.`)
+
+  const nonEmptyPages = rawPages.filter(
+    (p): p is [ValidNonNegativeInt, NonEmptyStringTrimmed] =>
+      p[1] !== const_EMPTY,
+  )
+
+  const parsedPages: ParsedPage<T>[] = nonEmptyPages.map(
+    ([pageNum, pageContent]) => {
+      const rawLines = Array_filterMap_undefined(
+        pageContent.split("\n").map((l) => l.trim()),
+        String_toNonEmptyString_orUndefined_afterTrim,
+      )
+
+      const entries = rawLines.map((line) =>
+        extractHeadwordAndContent(line, validator, `Page ${pageNum}`),
+      )
+
+      Array_assertNonEmptyArray(entries)
+      return [pageNum, entries] as const
+    },
+  )
+
+  if (parsedPages.length === 0) {
+    throw new Error("No valid pages found after parsing.")
+  }
+
+  Array_assertNonEmptyArray(parsedPages)
+  console.log(
+    `    Successfully parsed ${parsedPages.length} pages containing entries.`,
+  )
+
+  return parsedPages
+}
+
+// --- 3. Refactored Functional Steps ---
+
+function validateUniqueHeadwords<T extends NonEmptyStringTrimmed>(
+  parsedPages: NonEmptyArray<ParsedPage<T>>,
+): void {
+  console.log("    Validating headword uniqueness...")
+  const seen = new Set<T>()
+
+  parsedPages.forEach(([pageNum, entries]) => {
+    entries.forEach(({ index: headwordSet }) => {
+      headwordSet.forEach((singleHeadword) => {
+        if (seen.has(singleHeadword)) {
+          console.error(
+            // throw new Error(
+            `Duplicate headword found: "${singleHeadword}" on page ${pageNum}`,
+          )
+        }
+        seen.add(singleHeadword)
+      })
+    })
+  })
+  console.log("    ✅ All headwords are unique.")
+}
+
+/**
+ * 3a. Group entries by headword
+ * Transforms the Page structure into a unique list of Headwords with aggregated content.
+ */
+function mkGrouped<T extends NonEmptyStringTrimmed>(
+  parsedPages: NonEmptyArray<ParsedPage<T>>,
+): GroupedEntry<T>[] {
+  console.log("    Grouping entries...")
+
+  // We use a Map locally for efficient aggregation, but the function is pure from the outside.
+  const groupedMap = new Map<
+    T,
+    {
+      headword: T
+      allContent: NonEmptyStringTrimmed[]
+      pages: Set<ValidNonNegativeInt>
+    }
+  >()
+
+  validateUniqueHeadwords(parsedPages)
+
+  parsedPages.forEach(([pageNum, entries]) => {
+    entries.forEach(({ index: headwordList, content }) => {
+      headwordList.forEach((singleHeadword) => {
+        const existing = groupedMap.get(singleHeadword) ?? {
+          headword: singleHeadword,
+          allContent: [],
+          pages: new Set(),
+        }
+        existing.allContent.push(content)
+        existing.pages.add(pageNum)
+        groupedMap.set(singleHeadword, existing)
+      })
+    })
+  })
+
+  const result = Array.from(groupedMap.values())
+  console.log(`    Unique headwords: ${result.length}`)
+  return result
+}
+
+/**
+ * 3c. Format and Write
+ * Generates the Tabfile content and writes it to disk.
+ */
+function writeStarDictFile<T>(
+  grouped: GroupedEntry<T>[],
+  outputPath: string,
+  khmerDict: Set<TypedKhmerWord>,
+): void {
+  console.log(`    Generating content for: ${path.basename(outputPath)}`)
+
+  const tabLines = grouped.map((g) => {
+    // StarDict HTML Format
+    const defs = g.allContent.map((c, i) => {
+      let html = markdownToHtml(c)
+      html = colorizeKhmerHtml(html, khmerDict)
+      if (g.allContent.length > 1) {
+        return `<div style="margin-bottom:5px;"><b>[${i + 1}]</b> ${html}</div>`
+      }
+      return html
+    })
+
+    const finalHtml = defs.join("<hr>")
+    // Escape newlines in the single-line tab format
+    return `${g.headword}\t${finalHtml.replace(/\n/g, "<br>")}`
+  })
+
+  // Sort alphabetically by headword string
+  tabLines.sort((a, b) => a.localeCompare(b))
+
+  fs.writeFileSync(outputPath, tabLines.join("\n"), "utf-8")
+  console.log(`    Written to ${outputPath}`)
+}
+
+// --- Main Execution ---
+
+async function main() {
+  console.log("========================================")
+  console.log("STARTING DICTIONARY BUILD")
+  console.log("========================================")
+
+  // 1. Load Reference Dict
+  console.log(`Loading Spellchecker reference from: ${SPELLCHECKER_DICT_PATH}`)
+  if (!fs.existsSync(SPELLCHECKER_DICT_PATH))
+    throw new Error(`Dictionary file not found: ${SPELLCHECKER_DICT_PATH}`)
+
+  const dictContent = fs.readFileSync(SPELLCHECKER_DICT_PATH, "utf-8")
+  const validKhmerWords: Set<TypedKhmerWord> = new Set(
+    dictContent
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .map(strToKhmerWordOrThrow),
+  )
+  console.log(`Loaded ${validKhmerWords.size} valid Khmer words.`)
+
+  // ---------------------------------------------------------
+  // 2. Process Russian -> Khmer
+  // ---------------------------------------------------------
+  {
+    const pages = parseDictionaryFile<TypedRussianWordDictionaryIndexElement>(
+      RU_KM_DICT_PATH,
+      strToRussianWordDictionaryIndexOrUndefined,
+    )
+
+    const grouped = mkGrouped(pages)
+
+    // No validation for Russian -> Khmer headwords (Russian words) against Khmer dict
+    writeStarDictFile(grouped, RU_KM_DICT_PATH.replace(/\.txt$/, ".tab"), validKhmerWords)
+  }
+
+  // ---------------------------------------------------------
+  // 3. Process Khmer -> Russian
+  // ---------------------------------------------------------
+  {
+    const pages = parseDictionaryFile<TypedKhmerWordDictionaryIndexElement>(
+      KM_RU_DICT_PATH,
+      strToKhmerWordDictionaryIndexOrUndefined,
+    )
+
+    const grouped = mkGrouped(pages)
+
+    writeStarDictFile(grouped, KM_RU_DICT_PATH.replace(/\.txt$/, ".tab"), validKhmerWords)
+  }
+
+  console.log("\n========================================")
+  console.log("DONE")
+  console.log("========================================")
+}
+
+main().catch(console.error)
+
+// rm -f "/home/srghma/projects/khmer-dicts/Краткий русско-кхмерский словарь--content.slob"
+// rm -f "/home/srghma/projects/khmer-dicts/Кхмерско-русский словарь-Горгониев--content.slob"
+// pyglossary '/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.tab' '/home/srghma/projects/khmer-dicts/Краткий русско-кхмерский словарь--content.slob' --read-format=Tabfile --write-format=Aard2Slob
+// pyglossary '/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.tab' '/home/srghma/projects/khmer-dicts/Кхмерско-русский словарь-Горгониев--content.slob' --read-format=Tabfile --write-format=Aard2Slob

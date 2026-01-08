@@ -22,14 +22,14 @@ const KHMER_BLOCK_REGEX_SINGLE = /[\p{Script=Khmer}]+/u
 const DICTIONARY_FILE_NAME = "dictionary.txt"
 const CONFIG_SECTION = "khmer-spellchecker"
 
-const BASE_IMAGE_PATH =
-  "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев"
+const BASE_IMAGE_PATH = "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt"
+// "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев"
 
 /**
  * Transforms an integer page number into a file URI.
  */
 function getPageImageUri(pageNumber: ValidNonNegativeInt): vscode.Uri {
-  const imageIndex = pageNumber
+  const imageIndex = pageNumber - 1
   const paddedIndex = String(imageIndex).padStart(3, "0")
   const fileName = `page-${paddedIndex}.png`
   const fullPath = path.join(BASE_IMAGE_PATH, fileName)

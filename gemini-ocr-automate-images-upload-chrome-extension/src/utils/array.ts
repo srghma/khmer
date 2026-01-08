@@ -17,6 +17,18 @@ export function Array_filterMap<T, U>(
   return result
 }
 
+export function Array_filterMap_undefined<T, U>(
+  arr: readonly T[],
+  f: (item: T, index: number) => U | undefined,
+): U[] {
+  const result: U[] = []
+  arr.forEach((item, idx) => {
+    const opt = f(item, idx)
+    if (opt !== undefined) result.push(opt)
+  })
+  return result
+}
+
 export function Array_findExactlyOneOrNoneBy<T>(
   arr: readonly T[],
   predicate: (item: T) => boolean,
