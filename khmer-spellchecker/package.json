@@ -29,6 +29,11 @@
             "Splits text based on the longest matching words in the dictionary. Good for spell-checking.",
             "Splits text using an algorithmic word segmenter. Good for visualizing word breaks without a dictionary."
           ]
+        },
+        "khmer-spellchecker.checkOnlyFirstKhmerBlockInLine": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, only the first block of Khmer text on a line is checked/colored. Useful for dictionary files where definitions follow the headword."
         }
       }
     },

@@ -16,7 +16,7 @@ import {
 
 // --- Constants ---
 
-const CHECK_ONLY_FIRST_KHMER_BLOCK_IN_LINE = true
+// REMOVED: const CHECK_ONLY_FIRST_KHMER_BLOCK_IN_LINE = true
 const KHMER_BLOCK_REGEX = /[\p{Script=Khmer}]+/gu
 const KHMER_BLOCK_REGEX_SINGLE = /[\p{Script=Khmer}]+/u
 const DICTIONARY_FILE_NAME = "dictionary.txt"
@@ -24,16 +24,12 @@ const CONFIG_SECTION = "khmer-spellchecker"
 
 const BASE_IMAGE_PATH =
   "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев"
-// const BASE_IMAGE_PATH =
-//   "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь"
 
 /**
  * Transforms an integer page number into a file URI.
- * Logic: Input + 1, padded to 3 digits.
- * Example: 1 -> page-002.png, 248 -> page-249.png
  */
 function getPageImageUri(pageNumber: ValidNonNegativeInt): vscode.Uri {
-  const imageIndex = pageNumber// - 1
+  const imageIndex = pageNumber
   const paddedIndex = String(imageIndex).padStart(3, "0")
   const fileName = `page-${paddedIndex}.png`
   const fullPath = path.join(BASE_IMAGE_PATH, fileName)
@@ -55,6 +51,7 @@ type ColorizingMode = "Dictionary" | "Segmenter"
 type ExtensionState = {
   isEnabled: boolean
   colorizingMode: ColorizingMode
+  checkOnlyFirstBlock: boolean // <--- NEW STATE PROPERTY
   decorations: {
     known: vscode.TextEditorDecorationType[]
     unknown: vscode.TextEditorDecorationType
@@ -62,7 +59,7 @@ type ExtensionState = {
   diagnosticCollection: vscode.DiagnosticCollection
   timeout: NodeJS.Timeout | undefined
   currentUnknownRanges: vscode.Range[]
-  lastOpenedImageNum: ValidNonNegativeInt | undefined // Tracks the last opened image to prevent duplicates
+  lastOpenedImageNum: ValidNonNegativeInt | undefined
 }
 
 // --- Helper: Find Page Number ---
@@ -71,10 +68,8 @@ function findPageNumberPrecedingLine(
   document: vscode.TextDocument,
   lineIndex: number,
 ): ValidNonNegativeInt | undefined {
-  // Search backwards from current line to top of file
   for (let i = lineIndex; i >= 0; i--) {
     const lineText = document.lineAt(i).text
-    // Matches "### Страница 119"
     const match = lineText.match(/^###\s+Страница\s+(\d+)/i)
     if (match && match[1]) {
       return strToNonNegativeIntOrThrow_strict(match[1])
@@ -110,8 +105,6 @@ export class KhmerPageImageProvider implements vscode.CodeActionProvider {
 
     const actions: vscode.CodeAction[] = []
 
-    // 1. Action: Current Page
-    // We pass the raw pageNum. The command will handle the "+1 -> 002" logic.
     const actionCurrent = new vscode.CodeAction(
       `Open original image (Page ${pageNum})`,
       vscode.CodeActionKind.QuickFix,
@@ -125,8 +118,6 @@ export class KhmerPageImageProvider implements vscode.CodeActionProvider {
     }
     actions.push(actionCurrent)
 
-    // 2. Action: Previous Page
-    // If we are on Page 119, the definition might have started on Page 118.
     if (pageNum > 1) {
       const prevPageNum = pageNum - 1
       const actionPrev = new vscode.CodeAction(
@@ -158,6 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
   const state: ExtensionState = {
     isEnabled: true,
     colorizingMode: "Dictionary",
+    checkOnlyFirstBlock: true, // Default
     decorations: {
       known: COLOR_PALETTE.map((color) =>
         vscode.window.createTextEditorDecorationType({
@@ -235,7 +227,8 @@ export function activate(context: vscode.ExtensionContext) {
       const blockText = match[0] as TypedKhmerWord
       const blockStart = match.index
 
-      if (CHECK_ONLY_FIRST_KHMER_BLOCK_IN_LINE) {
+      // --- CONFIGURABLE LOGIC START ---
+      if (state.checkOnlyFirstBlock) {
         const startPos = editor.document.positionAt(blockStart)
         const lineNum = startPos.line
 
@@ -244,6 +237,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
         linesProcessed.add(lineNum)
       }
+      // --- CONFIGURABLE LOGIC END ---
 
       const words =
         state.colorizingMode === "Segmenter"
@@ -353,21 +347,31 @@ export function activate(context: vscode.ExtensionContext) {
 
   // --- Initialization & Event Listeners ---
 
-  const syncColorizingMode = () => {
+  // Renamed from syncColorizingMode to syncConfiguration
+  const syncConfiguration = () => {
     const config = vscode.workspace.getConfiguration(CONFIG_SECTION)
+
+    // 1. Colorizing Mode
     state.colorizingMode =
       config.get<ColorizingMode>("colorizingMode") ?? "Dictionary"
+
+    // 2. Check Only First Block
+    state.checkOnlyFirstBlock =
+      config.get<boolean>("checkOnlyFirstKhmerBlockInLine") ?? true
+
     updateUI()
     triggerUpdate()
   }
 
   dictManager.load()
-  syncColorizingMode()
+  syncConfiguration()
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration(`${CONFIG_SECTION}.colorizingMode`)) {
-        syncColorizingMode()
+      // Check for either config change
+      if (e.affectsConfiguration(`${CONFIG_SECTION}.colorizingMode`) ||
+        e.affectsConfiguration(`${CONFIG_SECTION}.checkOnlyFirstKhmerBlockInLine`)) {
+        syncConfiguration()
       }
     }),
   )
@@ -430,7 +434,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (pageNumber === undefined) return
         const pn = strOrNumberToNonNegativeIntOrThrow_strict(pageNumber)
 
-        // Update state to record this as the last opened page
         state.lastOpenedImageNum = pn
         const uri = getPageImageUri(pn)
 
