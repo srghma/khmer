@@ -16,13 +16,16 @@ import {
 
 // --- Constants ---
 
+const CHECK_ONLY_FIRST_KHMER_BLOCK_IN_LINE = true
 const KHMER_BLOCK_REGEX = /[\p{Script=Khmer}]+/gu
 const KHMER_BLOCK_REGEX_SINGLE = /[\p{Script=Khmer}]+/u
 const DICTIONARY_FILE_NAME = "dictionary.txt"
 const CONFIG_SECTION = "khmer-spellchecker"
 
 const BASE_IMAGE_PATH =
-  "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь"
+  "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев"
+// const BASE_IMAGE_PATH =
+//   "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь"
 
 /**
  * Transforms an integer page number into a file URI.
@@ -30,7 +33,7 @@ const BASE_IMAGE_PATH =
  * Example: 1 -> page-002.png, 248 -> page-249.png
  */
 function getPageImageUri(pageNumber: ValidNonNegativeInt): vscode.Uri {
-  const imageIndex = pageNumber - 1
+  const imageIndex = pageNumber// - 1
   const paddedIndex = String(imageIndex).padStart(3, "0")
   const fileName = `page-${paddedIndex}.png`
   const fullPath = path.join(BASE_IMAGE_PATH, fileName)
@@ -226,10 +229,21 @@ export function activate(context: vscode.ExtensionContext) {
 
     let wordCounter = 0
     let match: RegExpExecArray | null
+    const linesProcessed = new Set<number>()
 
     while ((match = KHMER_BLOCK_REGEX.exec(text)) !== null) {
       const blockText = match[0] as TypedKhmerWord
       const blockStart = match.index
+
+      if (CHECK_ONLY_FIRST_KHMER_BLOCK_IN_LINE) {
+        const startPos = editor.document.positionAt(blockStart)
+        const lineNum = startPos.line
+
+        if (linesProcessed.has(lineNum)) {
+          continue // Skip this block as we already found one on this line
+        }
+        linesProcessed.add(lineNum)
+      }
 
       const words =
         state.colorizingMode === "Segmenter"
