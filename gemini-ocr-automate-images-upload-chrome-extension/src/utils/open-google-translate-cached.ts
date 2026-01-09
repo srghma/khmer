@@ -55,6 +55,7 @@ export const openDB = (customPath?: NonEmptyStringTrimmed): DbConnection => {
 
   // Bun:sqlite is synchronous and faster
   const db = new Database(dbPath, { create: true, strict: true })
+  console.log('using dbPath', dbPath)
 
   // Enable WAL mode for better concurrency/performance
   db.run("PRAGMA journal_mode = WAL;")
@@ -203,6 +204,7 @@ export const translateSrt = async (
     fromLanguage: languageFrom,
     toLanguage: languageTo,
   })
+  console.log('apiResultRaw', apiResultRaw)
 
   // Validate API response
   const apiResultTranslations = Map_mkOrThrowIfDuplicateKeys(

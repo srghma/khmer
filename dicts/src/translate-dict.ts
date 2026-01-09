@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 
 import * as fs from "fs"
 import * as path from "path"
@@ -11,7 +11,7 @@ import {
   type NonEmptyStringTrimmed,
   String_toNonEmptyString_orUndefined_afterTrim,
 } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed"
-import { type NonEmptySet } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set"
+import { Set_toNonEmptySet_orThrow } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set"
 
 // --- Configuration ---
 
@@ -97,7 +97,7 @@ async function main() {
   if (segmentsToTranslate.size > 0) {
     // translateSrt handles chunking, rate limiting, and caching internally
     translationsMap = await translateSrt(db, {
-      strs: segmentsToTranslate as NonEmptySet<NonEmptyStringTrimmed>,
+      strs: Set_toNonEmptySet_orThrow(segmentsToTranslate),
       languageFrom: CONFIG.sourceLang,
       languageTo: CONFIG.targetLang,
     })

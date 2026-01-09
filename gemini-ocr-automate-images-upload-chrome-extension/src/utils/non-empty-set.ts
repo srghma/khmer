@@ -18,6 +18,13 @@ export function Set_toNonEmptySet_orUndefined<T>(
   return set as NonEmptySet<T>
 }
 
+export function Set_toNonEmptySet_orThrow<T>(
+  set: ReadonlySet<T>,
+): NonEmptySet<T> {
+  Set_assertNonEmptySet(set)
+  return set
+}
+
 export function Set_isNonEmptySet<T>(
   set: ReadonlySet<T>,
 ): set is NonEmptySet<T> {
