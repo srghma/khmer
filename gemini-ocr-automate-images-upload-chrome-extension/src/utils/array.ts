@@ -240,12 +240,10 @@ export function splitOnGroupsOf<T>(
   groupLength: number,
   ts: readonly T[],
 ): T[][] {
-  return ts.reduce((acc: T[][], _, index) => {
-    if (index % groupLength === 0) {
-      acc.push(ts.slice(index, index + groupLength))
-    }
-    return acc
-  }, [])
+  if (groupLength <= 0) throw new Error("groupLength must be > 0")
+  return Array.from({ length: Math.ceil(ts.length / groupLength) }, (_, i) =>
+    ts.slice(i * groupLength, i * groupLength + groupLength),
+  )
 }
 
 /**

@@ -1,3 +1,8 @@
+import { type NonEmptySet, Set_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptySet_orUndefined } from "./non-empty-set"
+import { type NonEmptyStringTrimmed } from "./non-empty-string-trimmed"
+
+// text that contains only khmer letters and no other letters (not even space)
+
 // Matches Cyrillic, vertical bars (stems), hyphens, and combining accents (u0300-u036f)
 // **май**
 const RussianWordDictionaryIndexElement_REGEX_simple =
@@ -10,15 +15,6 @@ const RussianWordDictionaryIndexElement_REGEX_dephis =
 // **в футбол**, **не совсем хорошо** (Allow spaces between Cyrillic words)
 const RussianWordDictionaryIndexElement_REGEX_phrase =
   /^\p{Script=Cyrillic}+(?:[ -]\p{Script=Cyrillic}+)+$/u
-
-import {
-  Array_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptyArray_orUndefined,
-  NonEmptyArray,
-} from "./non-empty-array"
-import { NonEmptySet, Set_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptySet_orUndefined } from "./non-empty-set"
-import { NonEmptyStringTrimmed } from "./non-empty-string-trimmed"
-
-// text that contains only khmer letters and no other letters (not even space)
 
 export type TypedRussianWordDictionaryIndexElement = NonEmptyStringTrimmed & {
   readonly __uuidbrand: "TypedRussianWordDictionaryIndexElement"

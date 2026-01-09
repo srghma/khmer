@@ -285,7 +285,7 @@ export function Map_mkSemigroupArray<K, V>(
 }
 
 export function Map_mkOrThrowIfDuplicateKeys<K, V>(
-  entries: readonly [K, V][],
+  entries: readonly (readonly [K, V])[],
 ): Map<K, V> {
   const map = new Map<K, V>()
   const duplicates = new Set<K>()

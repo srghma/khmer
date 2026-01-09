@@ -2,13 +2,13 @@
 
 import {
   Array_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptyArray_orUndefined,
-  NonEmptyArray,
+  type NonEmptyArray,
 } from "./non-empty-array"
 import {
-  NonEmptySet,
+  type NonEmptySet,
   Set_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptySet_orUndefined,
 } from "./non-empty-set"
-import { NonEmptyStringTrimmed } from "./non-empty-string-trimmed"
+import { type NonEmptyStringTrimmed } from "./non-empty-string-trimmed"
 
 // allow ending with [ៗ]
 // allow ending with \sៗ

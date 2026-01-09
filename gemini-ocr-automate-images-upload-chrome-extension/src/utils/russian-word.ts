@@ -1,4 +1,4 @@
-import { NonEmptyString } from "./non-empty-string"
+import { type NonEmptyString } from "./non-empty-string"
 
 ///////////
 
