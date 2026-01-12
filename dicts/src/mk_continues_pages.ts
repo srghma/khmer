@@ -223,7 +223,7 @@ function mkGrouped<T extends NonEmptyStringTrimmed>(
  * 3c. Format and Write
  * Generates the Tabfile content and writes it to disk.
  */
-function writeStarDictFile<T>(
+function writeStarDictFile<T extends NonEmptyStringTrimmed>(
   grouped: GroupedEntry<T>[],
   outputPath: string,
   khmerDict: Set<TypedKhmerWord>,
@@ -231,7 +231,12 @@ function writeStarDictFile<T>(
   console.log(`    Generating content for: ${path.basename(outputPath)}`)
 
   const tabLines = grouped.map((g) => {
-    // StarDict HTML Format
+    // 1. Prepare Header (Headword + Duplicate indicator)
+    const colorizedHeadword = colorizeKhmerHtml(g.headword, khmerDict)
+    const duplicateLabel = g.allContent.length > 1 ? " (duplicate)" : ""
+    const headerHtml = `<div style="font-size:1.5em; margin-bottom: 0.5em;">${colorizedHeadword}${duplicateLabel}</div>`
+
+    // 2. StarDict HTML Format for Definitions
     const defs = g.allContent.map((c, i) => {
       let html = markdownToHtml(c)
       html = colorizeKhmerHtml(html, khmerDict)
@@ -241,7 +246,9 @@ function writeStarDictFile<T>(
       return html
     })
 
-    const finalHtml = defs.join("<hr>")
+    const bodyHtml = defs.join("<hr>")
+    const finalHtml = `${headerHtml}${bodyHtml}`
+
     // Escape newlines in the single-line tab format
     return `${g.headword}\t${finalHtml.replace(/\n/g, "<br>")}`
   })

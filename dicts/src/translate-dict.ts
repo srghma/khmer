@@ -16,6 +16,13 @@ import {
 import { Set_toNonEmptySet_orThrow } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set"
 import { translateWithRetryForever } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/retry"
 import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts"
+import {
+  colorizeKhmerHtml,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/colorize-html"
+import {
+  strToKhmerWordOrThrow,
+  TypedKhmerWord,
+} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
 
 // --- Configuration ---
 
@@ -23,14 +30,17 @@ const CONFIG = {
   inputFile:
     "/home/srghma/projects/khmer-dicts-1/ChuonNathKmKm.dict" as NonEmptyStringTrimmed,
   outputFile:
-    "/home/srghma/projects/khmer-dicts/ChuonNathKmKm-colorized.dict" as NonEmptyStringTrimmed,
+    "/home/srghma/projects/khmer-dicts/ChuonNathKmKm-colorized.tab" as NonEmptyStringTrimmed,
+  spellcheckerDictFile:
+    "/home/srghma/projects/khmer/khmer-spellchecker/dictionary.txt" as NonEmptyStringTrimmed,
   sourceLang: "km" as const,
   targetLang: "en" as const,
 } as const
 
 // --- Helpers ---
 
-const DEFINITION_SPLIT_REGEX = /([។\n]+)/
+// Include \r to handle Windows line endings safely during split
+const DEFINITION_SPLIT_REGEX = /([។\r\n]+)/
 
 const stripTags = (html: string): string =>
   html
@@ -106,6 +116,25 @@ const prepareTextForTranslation = (
   return String_toNonEmptyString_orUndefined_afterTrim(stripped)
 }
 
+const loadSpellcheckerDict = (
+  filePath: string,
+): Set<TypedKhmerWord> => {
+  console.log(`Loading Spellchecker reference from: ${filePath}`)
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Dictionary file not found: ${filePath}`)
+  }
+
+  const dictContent = fs.readFileSync(filePath, "utf-8")
+  const words = dictContent
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map(strToKhmerWordOrThrow)
+
+  console.log(`Loaded ${words.length} valid Khmer words.`)
+  return new Set(words)
+}
+
 // --- Core Logic ---
 
 async function main() {
@@ -116,15 +145,18 @@ async function main() {
 
   const rawContent = fs.readFileSync(inputPath, "utf-8")
 
-  // 1. Extract Abbreviations from the raw string
+  // 1. Load Spellchecker Dict
+  const validKhmerWords = loadSpellcheckerDict(CONFIG.spellcheckerDictFile)
+
+  // 2. Extract Abbreviations from the raw string
   const abbrMap = extractAbbreviationMap(rawContent)
   console.log(`Extracted ${abbrMap.size} abbreviations from legend.`)
 
-  // 2. Parse into entries
+  // 3. Parse into entries
   const entries = parseDictionaryFile(rawContent)
   console.log(`Parsed ${entries.length} entries.`)
 
-  // 3. Process segments
+  // 4. Process segments
   // Note: We skip entries[0] because in your file, it's the header/legend itself
   const dataEntries = entries.slice(1)
 
@@ -142,13 +174,12 @@ async function main() {
       }
     }
   }
-  // console.log('segmentsToTranslate', segmentsToTranslate)
 
   console.log(
     `Identified ${segmentsToTranslate.size} unique segments to translate.`,
   )
 
-  // 4. Perform Batch Translation
+  // 5. Perform Batch Translation
   const db = openDB()
   let translationsMap = new Map<NonEmptyStringTrimmed, NonEmptyStringTrimmed>()
 
@@ -162,37 +193,40 @@ async function main() {
     )
   }
 
-  // 5. Reconstruct Content
-  const outputLines = []
-
-  // Add the legend back exactly as it was (First entry)
+  // 6. Reconstruct Content
+  // Add the legend back exactly as it was (First entry).
+  // CRITICAL: Replace all possible newline variants with <br> to ensure Tabfile format validity.
   const legendEntry = assertIsDefinedAndReturn(entries[0])
-  outputLines.push(
-    `<k>${legendEntry.headword}</k>\n<dtrn>${legendEntry.definition}</dtrn>`,
-  )
+  const legendLine = `${legendEntry.headword}\t${legendEntry.definition.replace(/[\r\n]+/g, "<br>")}`
 
   // Add translated data entries
-  for (const { entry, segments } of structuredEntries) {
+  const dataLines = structuredEntries.map(({ entry, segments }) => {
     const translatedDefinition = segments
       .map((seg) => {
+        // Colorize the segment using the spellchecker dictionary
+        const colorizedSeg = colorizeKhmerHtml(seg, validKhmerWords)
+
         const cleanKey = prepareTextForTranslation(seg, abbrMap)
-        if (cleanKey) {
-          const trans = translationsMap.get(cleanKey)
-          if (trans) {
-            return `${seg} <span style="color: #666; font-style: italic;"> [${trans}]</span>`
-          }
+        const trans = cleanKey ? translationsMap.get(cleanKey) : undefined
+
+        if (trans) {
+          return `${colorizedSeg} <span style="color: #666; font-style: italic;"> [${trans}]</span>`
         }
-        return seg
+
+        return colorizedSeg
       })
       .join("")
 
-    outputLines.push(
-      `<k>${entry.headword}</k>\n<dtrn>${translatedDefinition}</dtrn>`,
-    )
-  }
+    // Ensure absolutely no newlines remain in the final definition string
+    const cleanDefinition = translatedDefinition.replace(/[\r\n]+/g, "<br>")
+    const cleanHeadword = entry.headword.replace(/[\r\n]+/g, " ")
 
-  // 6. Write Output
-  fs.writeFileSync(CONFIG.outputFile, outputLines.join("\n"), "utf-8")
+    return `${cleanHeadword}\t${cleanDefinition}`
+  })
+
+  // 7. Write Output
+  const outputContent = [legendLine, ...dataLines].join("\n")
+  fs.writeFileSync(CONFIG.outputFile, outputContent, "utf-8")
   console.log(`Done! Saved to ${CONFIG.outputFile}`)
   process.exit(0)
 }
@@ -201,3 +235,7 @@ main().catch((e) => {
   console.error("Fatal Error:", e)
   process.exit(1)
 })
+
+// rm -f '/home/srghma/projects/khmer-dicts/ChuonNathKmKm-colorized.slob'
+// pyglossary "/home/srghma/projects/khmer-dicts/ChuonNathKmKm-colorized.tab" '/home/srghma/projects/khmer-dicts/ChuonNathKmKm-colorized.slob' --read-format=Tabfile --write-format=Aard2Slob
+// rm -f "/home/srghma/projects/khmer-dicts/ChuonNathKmKm-colorized.tab"

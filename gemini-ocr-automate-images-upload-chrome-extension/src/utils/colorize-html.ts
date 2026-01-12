@@ -1,4 +1,4 @@
-import { TypedKhmerWord } from "./khmer-word"
+import { type TypedKhmerWord } from "./khmer-word"
 import { khmerSentenceToWords_usingDictionary } from "./segmentation"
 
 export const COLOR_PALETTE = [

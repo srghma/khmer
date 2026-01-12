@@ -29,6 +29,7 @@
     "p-wait-for": "^6.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "sax": "^1.4.4",
     "translate-google": "^1.5.0",
     "zod": "^4.2.1"
   }

@@ -57,6 +57,7 @@ export const strToKhmerWordDictionaryIndexOrUndefined = (
 ): TypedKhmerWordDictionaryIndex | undefined => {
   if (!value) return undefined
 
+  // TODO: handle **уже** *и* **уж**
   const elements = value
     .split(",") // split variants
     .map((s) => s.trim()) // remove leading/trailing whitespace
