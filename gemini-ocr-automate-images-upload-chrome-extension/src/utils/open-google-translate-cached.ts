@@ -1,4 +1,4 @@
-import * as translator from "open-google-translator"
+// import * as translator from "open-google-translator"
 // import { Database, open } from "sqlite"
 // import * as sqlite3 from "sqlite3"
 // "@types/sqlite3": "^3.1.11",
@@ -21,7 +21,8 @@ import {
   type NonEmptyMap,
 } from "./non-empty-map"
 import { forEachChunked } from "./async"
-
+// import { translateBulk, type LanguageCode } from "./google-translate"
+import { translateBulk, type LanguageCode } from "./google-translate-puppeteer"
 // --- Utils ---
 
 // Prior to SQLite version 3.32.0 (May 2020): The default limit was 999 variables.
@@ -55,7 +56,7 @@ export const openDB = (customPath?: NonEmptyStringTrimmed): DbConnection => {
 
   // Bun:sqlite is synchronous and faster
   const db = new Database(dbPath, { create: true, strict: true })
-  console.log('using dbPath', dbPath)
+  console.log("using dbPath", dbPath)
 
   // Enable WAL mode for better concurrency/performance
   db.run("PRAGMA journal_mode = WAL;")
@@ -81,8 +82,8 @@ export const db__getArrayOfTranslations = (
     languageTo,
     strs,
   }: {
-    readonly languageFrom: translator.LanguageCode
-    readonly languageTo: translator.LanguageCode
+    readonly languageFrom: LanguageCode
+    readonly languageTo: LanguageCode
     readonly strs: NonEmptySet<NonEmptyStringTrimmed>
   },
 ): Map<NonEmptyStringTrimmed, NonEmptyStringTrimmed> => {
@@ -134,8 +135,8 @@ export const db__upsertArrayOfTranslations = (
     languageTo,
     translations,
   }: {
-    readonly languageFrom: translator.LanguageCode
-    readonly languageTo: translator.LanguageCode
+    readonly languageFrom: LanguageCode
+    readonly languageTo: LanguageCode
     readonly translations: NonEmptyMap<
       NonEmptyStringTrimmed,
       NonEmptyStringTrimmed
@@ -168,6 +169,29 @@ export const db__upsertArrayOfTranslations = (
   insertMany(translations)
 }
 
+export const db__upsertTranslation = (
+  db: DbConnection,
+  {
+    languageFrom,
+    languageTo,
+    original,
+    translation,
+  }: {
+    readonly languageFrom: LanguageCode
+    readonly languageTo: LanguageCode
+    readonly original: NonEmptyStringTrimmed
+    readonly translation: NonEmptyStringTrimmed
+  },
+): void => {
+  db.run(
+    `
+    INSERT OR REPLACE INTO translations (language_from, language_to, original, translation)
+    VALUES (?, ?, ?, ?)
+  `,
+    [languageFrom, languageTo, original, translation],
+  )
+}
+
 // --- Main Translation Logic ---
 
 export const translateSrt = async (
@@ -178,8 +202,8 @@ export const translateSrt = async (
     languageTo,
   }: {
     readonly strs: NonEmptySet<NonEmptyStringTrimmed>
-    readonly languageFrom: translator.LanguageCode
-    readonly languageTo: translator.LanguageCode
+    readonly languageFrom: LanguageCode
+    readonly languageTo: LanguageCode
   },
 ): Promise<NonEmptyMap<NonEmptyStringTrimmed, NonEmptyStringTrimmed>> => {
   // 2. Fetch Cached Translations
@@ -199,12 +223,22 @@ export const translateSrt = async (
   if (missingOriginals.size <= 0)
     return Map_toNonEmptyMap_orThrow(cachedTranslations)
 
-  const apiResultRaw = await translator.TranslateLanguageData({
+  // 4. Translate Missing (and update DB incrementally)
+  const apiResultRaw = await translateBulk({
     listOfWordsToTranslate: Array.from(missingOriginals),
     fromLanguage: languageFrom,
     toLanguage: languageTo,
+    onSuccess: (original, translation) => {
+      // Upsert immediately after each successful translation
+      db__upsertTranslation(db, {
+        languageFrom,
+        languageTo,
+        original,
+        translation,
+      })
+    },
   })
-  console.log('apiResultRaw', apiResultRaw)
+  console.log("apiResultRaw", apiResultRaw)
 
   // Validate API response
   const apiResultTranslations = Map_mkOrThrowIfDuplicateKeys(
@@ -218,20 +252,27 @@ export const translateSrt = async (
 
   // Sanity Check
   if (apiResultTranslations.size !== missingOriginals.size)
-    console.warn(
+    throw new Error(
       `[Warning] apiResultTranslations.size ${apiResultTranslations.size} !== missingOriginals.size ${missingOriginals.size}`,
     )
 
-  Map_assertNonEmptyMap(apiResultTranslations)
+  // Note: We no longer perform a bulk upsert here because we upserted incrementally.
 
-  // 5. Cache new results
-  db__upsertArrayOfTranslations(db, {
-    languageFrom,
-    languageTo,
-    translations: apiResultTranslations,
-  })
-
-  return Map_toNonEmptyMap_orThrow(
-    Map_union_onCollisionThrow(cachedTranslations, apiResultTranslations),
+  // 5. Return Merged Map
+  // Even if partial results occurred (due to abort), apiResultTranslations contains what finished.
+  // We return whatever we have.
+  const allTranslations = Map_union_onCollisionThrow(
+    cachedTranslations,
+    apiResultTranslations,
   )
+
+  // If we had missing items but got empty results (e.g. immediate abort), we might
+  // fail Map_assertNonEmptyMap if cached was also empty. But the return type demands NonEmptyMap.
+  // If the input 'strs' was non-empty, and we found everything in cache, we returned early.
+  // If we had missing, and got nothing back, and cache was empty, we can't return a NonEmptyMap of results covering 'strs'.
+  // However, the function signature assumes we succeed or throw.
+  // For the purpose of this refactor, we attempt to cast or throw.
+  Map_assertNonEmptyMap(allTranslations)
+
+  return Map_toNonEmptyMap_orThrow(allTranslations)
 }

@@ -2,7 +2,7 @@ import {
   buildLexer,
   expectEOF,
   expectSingleResult,
-  Parser,
+  type Parser,
   seq,
   alt,
   opt,

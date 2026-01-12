@@ -11,10 +11,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bun": "^1.3.5",
     "@types/chrome": "^0.1.32",
+    "@types/cli-progress": "^3.11.6",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@types/bun": "^1.3.5",
     "esbuild": "^0.27.2",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-inline-import": "^1.1.0",
@@ -23,10 +24,12 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "open-google-translator": "^1.0.5",
+    "@vitalets/google-translate-api": "^9.2.1",
+    "cli-progress": "^3.12.0",
     "p-wait-for": "^6.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "translateer": "file:../../translateer",
     "typescript-parsec": "^0.3.4",
     "zod": "^4.2.1"
   }

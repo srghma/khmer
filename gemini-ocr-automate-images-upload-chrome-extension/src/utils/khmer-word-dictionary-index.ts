@@ -1,10 +1,6 @@
 // Copyright 2023 srghma
 
 import {
-  Array_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptyArray_orUndefined,
-  type NonEmptyArray,
-} from "./non-empty-array"
-import {
   type NonEmptySet,
   Set_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptySet_orUndefined,
 } from "./non-empty-set"

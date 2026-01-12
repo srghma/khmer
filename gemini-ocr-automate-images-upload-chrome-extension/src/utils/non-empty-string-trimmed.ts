@@ -1,5 +1,5 @@
-import { NonEmptyArray } from "./non-empty-array"
-import { NonEmptyString } from "./non-empty-string"
+import { type NonEmptyArray } from "./non-empty-array"
+import { type NonEmptyString } from "./non-empty-string"
 import { type Option, Option_some, Option_none } from "./types"
 
 export type NonEmptyStringTrimmed = NonEmptyString & {

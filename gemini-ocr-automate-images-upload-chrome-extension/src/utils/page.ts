@@ -1,10 +1,10 @@
 import {
   strToNonNegativeIntOrThrow_strict,
-  ValidNonNegativeInt,
+  type ValidNonNegativeInt,
 } from "./toNumber"
 import { assertIsDefinedAndReturn } from "./asserts"
 import {
-  NonEmptyStringTrimmed,
+  type NonEmptyStringTrimmed,
   String_toNonEmptyString_orUndefined_afterTrim,
 } from "./non-empty-string-trimmed"
 
