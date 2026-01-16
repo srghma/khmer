@@ -2,37 +2,37 @@ import * as splitKhmer from 'split-khmer'
 import {
   nonEmptyArrayOfString_afterTrim,
   nonEmptyString_afterTrim,
-  type NonEmptyString,
-} from './utils/non-empty-string.js'
-import { assertIsDefinedAndReturn } from './utils/asserts.js'
-import type { NonEmptyArray } from './utils/non-empty-array.js'
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed.js'
+import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts.js'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array.js'
 import { isKhmer } from 'is-khmer'
 
 // Types
 export interface AnkiCard {
-  id: NonEmptyString
-  // notetype: NonEmptyString;
-  // deck: NonEmptyString;
-  word: NonEmptyString
-  words: NonEmptyArray<NonEmptyString>
-  // wordrom: NonEmptyString;
-  // worden: NonEmptyString;
-  // sent: NonEmptyString;
-  // sentrom: NonEmptyString;
-  // senten: NonEmptyString;
-  // pos: NonEmptyString;
-  // ety: NonEmptyString;
-  // pronunciation: NonEmptyString;
-  // senses: NonEmptyString;
-  // derivedTerms: NonEmptyString;
-  // wordaudio: NonEmptyString;
-  // sentaudio: NonEmptyString;
-  // tags: NonEmptyString;
+  id: NonEmptyStringTrimmed
+  // notetype: NonEmptyStringTrimmed;
+  // deck: NonEmptyStringTrimmed;
+  word: NonEmptyStringTrimmed
+  words: NonEmptyArray<NonEmptyStringTrimmed>
+  // wordrom: NonEmptyStringTrimmed;
+  // worden: NonEmptyStringTrimmed;
+  // sent: NonEmptyStringTrimmed;
+  // sentrom: NonEmptyStringTrimmed;
+  // senten: NonEmptyStringTrimmed;
+  // pos: NonEmptyStringTrimmed;
+  // ety: NonEmptyStringTrimmed;
+  // pronunciation: NonEmptyStringTrimmed;
+  // senses: NonEmptyStringTrimmed;
+  // derivedTerms: NonEmptyStringTrimmed;
+  // wordaudio: NonEmptyStringTrimmed;
+  // sentaudio: NonEmptyStringTrimmed;
+  // tags: NonEmptyStringTrimmed;
 }
 
 // ក្មេង ស្រី
 // ឡ,(ឡ,ដុត,នំ)
-const splitOnWords = (word: NonEmptyString): NonEmptyArray<NonEmptyString> => {
+const splitOnWords = (word: NonEmptyStringTrimmed): NonEmptyArray<NonEmptyStringTrimmed> => {
   // Regex explanation:
   // \s   -> matches spaces, tabs, newlines
   // ,    -> matches comma
@@ -55,7 +55,7 @@ const splitOnWords = (word: NonEmptyString): NonEmptyArray<NonEmptyString> => {
 }
 
 // Parse TSV line to AnkiCard
-export const parseLine = (line: NonEmptyString): AnkiCard => {
+export const parseLine = (line: NonEmptyStringTrimmed): AnkiCard => {
   const cols = line.split('\t')
   if (cols.length < 17) throw new Error('invalid')
 

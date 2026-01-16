@@ -1,19 +1,24 @@
-import { nonEmptyString_afterTrim, type NonEmptyString } from './utils/non-empty-string.js'
-import { type Except, Except_error, Except_isOk, Except_ok } from './utils/types.js'
-import { JSDOM } from 'jsdom'
-import type { WiktionaryCache } from './wiktionary-cache.js'
-import PQueue from 'p-queue'
+import {
+  nonEmptyString_afterTrim,
+  type NonEmptyStringTrimmed,
+} from "./non-empty-string-trimmed"
+import { type Except, Except_error, Except_isOk, Except_ok } from "./types.js"
+import { JSDOM } from "jsdom"
+import type { WiktionaryCache } from "./wiktionary-cache.js"
+import PQueue from "p-queue"
 
 // Define return type to explicitly handle 404 as a value, not just an error string
-type FetchResult = { t: 'ok'; html: NonEmptyString } | { t: '404' }
+type FetchResult = { t: "ok"; html: NonEmptyStringTrimmed } | { t: "404" }
 
-const fetchWiktionaryHtml = async (word: NonEmptyString): Promise<Except<string, FetchResult>> => {
+const fetchWiktionaryHtml = async (
+  word: NonEmptyStringTrimmed,
+): Promise<Except<string, FetchResult>> => {
   try {
     const url = `https://en.wiktionary.org/wiki/${encodeURIComponent(word)}`
     const response = await fetch(url)
 
     if (response.status === 404) {
-      return Except_ok({ t: '404' })
+      return Except_ok({ t: "404" })
     }
 
     if (!response.ok) {
@@ -22,20 +27,24 @@ const fetchWiktionaryHtml = async (word: NonEmptyString): Promise<Except<string,
 
     const html = await response.text()
     const dom = new JSDOM(html)
-    const bodyContent = dom.window.document.getElementById('bodyContent')
+    const bodyContent = dom.window.document.getElementById("bodyContent")
 
-    if (!bodyContent) return Except_error('No #bodyContent element found in HTML')
+    if (!bodyContent)
+      return Except_error("No #bodyContent element found in HTML")
 
     const innerHTML = nonEmptyString_afterTrim(bodyContent.innerHTML)
-    if (!innerHTML) return Except_error('innerHTML not non-empty-string')
+    if (!innerHTML) return Except_error("innerHTML not non-empty-string")
 
-    return Except_ok({ t: 'ok', html: innerHTML })
+    return Except_ok({ t: "ok", html: innerHTML })
   } catch (e) {
     return Except_error(`Network/Parse Error: ${String(e)}`)
   }
 }
 
-export const processQueue = async (words: Set<NonEmptyString>, cache: WiktionaryCache): Promise<void> => {
+export const processQueue = async (
+  words: Set<NonEmptyStringTrimmed>,
+  cache: WiktionaryCache,
+): Promise<void> => {
   const queue = new PQueue({ concurrency: 5 })
 
   let fetchedCount = 0
@@ -43,7 +52,7 @@ export const processQueue = async (words: Set<NonEmptyString>, cache: Wiktionary
   let skippedCount = 0
 
   // Map<ErrorMessage, ListOfWords>
-  const errorGroups = new Map<string, NonEmptyString[]>()
+  const errorGroups = new Map<string, NonEmptyStringTrimmed[]>()
 
   for (const word of words) {
     if (cache.has(word)) {
@@ -53,14 +62,14 @@ export const processQueue = async (words: Set<NonEmptyString>, cache: Wiktionary
 
     queue.add(async () => {
       try {
-        await new Promise(r => setTimeout(r, Math.random() * 500 + 200))
+        await new Promise((r) => setTimeout(r, Math.random() * 500 + 200))
 
         console.log(`[Fetch] ${word}`)
         const result = await fetchWiktionaryHtml(word)
 
         if (Except_isOk(result)) {
           const val = result.v
-          if (val.t === 'ok') {
+          if (val.t === "ok") {
             await cache.addSuccess(word, val.html)
             fetchedCount++
           } else {
@@ -91,11 +100,15 @@ export const processQueue = async (words: Set<NonEmptyString>, cache: Wiktionary
 
   await queue.onIdle()
 
-  const failedCount = Array.from(errorGroups.values()).reduce((acc, list) => acc + list.length, 0)
+  const failedCount = Array.from(errorGroups.values()).reduce(
+    (acc, list) => acc + list.length,
+    0,
+  )
   const total = words.size
-  const computedTotal = fetchedCount + fetched404Count + skippedCount + failedCount
+  const computedTotal =
+    fetchedCount + fetched404Count + skippedCount + failedCount
 
-  console.log('------------------------------------------------')
+  console.log("------------------------------------------------")
   console.log(`Queue finished.`)
   console.log(`Total Input: ${total}`)
   console.log(`----------------`)
@@ -106,17 +119,20 @@ export const processQueue = async (words: Set<NonEmptyString>, cache: Wiktionary
   console.log(`----------------`)
 
   if (failedCount > 0) {
-    console.log('Error Breakdown:')
+    console.log("Error Breakdown:")
     for (const [errorMsg, affectedWords] of errorGroups) {
       console.log(`  [${errorMsg}]: ${affectedWords.length}`)
       // Print first 5 words as examples
-      const preview = affectedWords.slice(0, 5).join(', ')
-      const remaining = affectedWords.length > 5 ? `, ...and ${affectedWords.length - 5} more` : ''
+      const preview = affectedWords.slice(0, 5).join(", ")
+      const remaining =
+        affectedWords.length > 5
+          ? `, ...and ${affectedWords.length - 5} more`
+          : ""
       console.log(`    -> ${preview}${remaining}`)
     }
     console.log(`----------------`)
   }
 
   console.log(`Processed:   ${computedTotal} / ${total}`)
-  console.log('------------------------------------------------')
+  console.log("------------------------------------------------")
 }

@@ -1,4 +1,4 @@
-import type { NonEmptyString } from './utils/non-empty-string.js'
+import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed.js'
 
 export const toCSVRow = ({
   id,
@@ -9,13 +9,13 @@ export const toCSVRow = ({
   html5,
   html6,
 }: {
-  id: NonEmptyString
-  html1: NonEmptyString | undefined
-  html2: NonEmptyString | undefined
-  html3: NonEmptyString | undefined
-  html4: NonEmptyString | undefined
-  html5: NonEmptyString | undefined
-  html6: NonEmptyString | undefined
+  id: NonEmptyStringTrimmed
+  html1: NonEmptyStringTrimmed | undefined
+  html2: NonEmptyStringTrimmed | undefined
+  html3: NonEmptyStringTrimmed | undefined
+  html4: NonEmptyStringTrimmed | undefined
+  html5: NonEmptyStringTrimmed | undefined
+  html6: NonEmptyStringTrimmed | undefined
 }): string => {
   const fields = [id, html1, html2, html3, html4, html5, html6]
 
@@ -61,13 +61,13 @@ export const toTXTRow = ({
   html5,
   html6,
 }: {
-  word: NonEmptyString
-  html1: NonEmptyString | undefined
-  html2: NonEmptyString | undefined
-  html3: NonEmptyString | undefined
-  html4: NonEmptyString | undefined
-  html5: NonEmptyString | undefined
-  html6: NonEmptyString | undefined
+  word: NonEmptyStringTrimmed
+  html1: NonEmptyStringTrimmed | undefined
+  html2: NonEmptyStringTrimmed | undefined
+  html3: NonEmptyStringTrimmed | undefined
+  html4: NonEmptyStringTrimmed | undefined
+  html5: NonEmptyStringTrimmed | undefined
+  html6: NonEmptyStringTrimmed | undefined
 }): string => {
   const fields = [word, html1, html2, html3, html4, html5, html6]
 

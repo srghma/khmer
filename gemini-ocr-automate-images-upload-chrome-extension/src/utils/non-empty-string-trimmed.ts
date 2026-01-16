@@ -34,6 +34,23 @@ export function nonEmptyString_afterTrim(str: string): NonEmptyStringTrimmed {
   return trimmed as NonEmptyStringTrimmed
 }
 
+export function unknown_isNonEmptyStringTrimmed(
+  v: unknown,
+): v is NonEmptyStringTrimmed {
+  if (typeof v !== "string") return false
+  const v_ = v.trim()
+  return v_.length > 0
+}
+
+export function unknown_assertNonEmptyStringTrimmed(
+  v: unknown,
+): asserts v is NonEmptyStringTrimmed {
+  if (!unknown_isNonEmptyStringTrimmed(v))
+    throw new TypeError(
+      `Invalid NonEmptyStringTrimmed. Received: ${JSON.stringify(v)}`,
+    )
+}
+
 export const nonEmptyArrayOfString_afterTrim = (
   arr: readonly string[],
 ): NonEmptyArray<NonEmptyStringTrimmed> => {

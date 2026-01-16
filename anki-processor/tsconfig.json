@@ -1,6 +1,12 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
+    "paths": {
+      "@gemini-ocr-automate-images-upload-chrome-extension/*": [
+        "../gemini-ocr-automate-images-upload-chrome-extension/src/*"
+      ]
+    },
+
     // "typeRoots": [
     //   "./types"
     // ],
@@ -14,12 +20,8 @@
     "esModuleInterop": true,
     "moduleResolution": "nodenext",
     // For nodejs:
-    "lib": [
-      "esnext"
-    ],
-    "types": [
-      "node"
-    ],
+    "lib": ["esnext"],
+    // "types": ["node", "bun"],
     // and npm install -D @types/node
     // Other Outputs
     "sourceMap": true,

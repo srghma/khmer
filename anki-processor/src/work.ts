@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 
 import * as fs from 'fs/promises'
-import { nonEmptyArrayOfString_afterTrim, type NonEmptyString } from './utils/non-empty-string.js'
-import { Array_partition, Array_unique_usingSet } from './utils/array.js'
+import {
+  nonEmptyArrayOfString_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed.js'
+import {
+  Array_partition,
+  Array_unique_usingSet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/array.js'
 import { parseLine, type AnkiCard } from './parse-anki-file.js'
-import { Set_mkOrLogIfArrayIsNotUnique } from './utils/sets.js'
-import { WiktionaryCache_create } from './wiktionary-cache.js'
-import { processQueue } from './wiktionary-fetch.js'
-import { cleanWiktionaryHtml } from './wiktionary-extractor2.js'
+import { Set_mkOrLogIfArrayIsNotUnique } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/sets.js'
+import { WiktionaryCache_create } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/wiktionary-cache.js'
+import { processQueue } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/wiktionary-fetch.js'
+import { cleanWiktionaryHtml } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/wiktionary-extractor2.js'
 import { toTXTRow } from './output-csv-file.js'
-import { assertIsDefinedAndReturn } from './utils/asserts.js'
+import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts.js'
 
 // Main processing function
 const main = async () => {
@@ -21,14 +27,14 @@ const main = async () => {
   }
 
   const content = await fs.readFile(inputFile, 'utf8')
-  const lines: readonly NonEmptyString[] = nonEmptyArrayOfString_afterTrim(content.trim().split('\n'))
+  const lines: readonly NonEmptyStringTrimmed[] = nonEmptyArrayOfString_afterTrim(content.trim().split('\n'))
 
   // Separate header and data lines
   const [, dataLines] = Array_partition(lines, line => line.startsWith('#') || line === '')
 
   const cards: readonly AnkiCard[] = dataLines.map(parseLine)
   console.log(cards)
-  const uniqueWords: Set<NonEmptyString> = Set_mkOrLogIfArrayIsNotUnique(cards.flatMap(x => x.words))
+  const uniqueWords: Set<NonEmptyStringTrimmed> = Set_mkOrLogIfArrayIsNotUnique(cards.flatMap(x => x.words))
 
   console.log(`Total Valid Cards: ${cards.length}`)
   console.log(`Unique Words to process: ${uniqueWords.size}`)
@@ -36,7 +42,7 @@ const main = async () => {
 
   // 6. Initialize Cache (IO)
   // We assume cache file is valid or empty
-  const CACHE_FILE = './wiktionary.jsonl' as NonEmptyString
+  const CACHE_FILE = './wiktionary.jsonl' as NonEmptyStringTrimmed
   const cache = await WiktionaryCache_create(CACHE_FILE)
 
   // 7. Run Fetch Pipeline (IO)
@@ -52,7 +58,7 @@ const main = async () => {
   const outputRows: string[] = cards
     .map(card => {
       // 1. Map words to cleaned HTML
-      const cleanedHtmls: (NonEmptyString | undefined)[] = card.words.map(word => {
+      const cleanedHtmls: (NonEmptyStringTrimmed | undefined)[] = card.words.map(word => {
         const entry = assertIsDefinedAndReturn(cache.get(word))
         // Handle 404 or Missing
         if (entry.t === '404') return

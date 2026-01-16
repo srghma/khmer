@@ -24,8 +24,13 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
+    "@types/jsdom": "^27.0.0",
+    "@types/jsonlines": "^0.1.5",
     "@vitalets/google-translate-api": "^9.2.1",
     "cli-progress": "^3.12.0",
+    "jsdom": "^27.4.0",
+    "jsonlines": "^0.1.1",
+    "p-queue": "^9.1.0",
     "p-wait-for": "^6.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

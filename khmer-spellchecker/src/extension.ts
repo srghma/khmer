@@ -7,7 +7,7 @@ import {
 import { strToKhmerWordOrUndefined, TypedKhmerWord } from "./utils/khmer-word"
 import { reorderText } from "khmer-normalize"
 import { assertIsDefined, assertIsDefinedAndReturn } from "./utils/asserts"
-import { DictionaryManager } from "./dictionary"
+import { DictionaryManager } from "./utils/dictionary"
 import {
   strOrNumberToNonNegativeIntOrThrow_strict,
   strToNonNegativeIntOrThrow_strict,

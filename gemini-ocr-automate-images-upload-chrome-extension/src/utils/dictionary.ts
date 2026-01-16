@@ -1,6 +1,6 @@
 import * as fs from "fs"
-import { strToKhmerWordOrThrow, TypedKhmerWord } from "./utils/khmer-word"
-import { descNumber, sortBy_immutable_cached } from "./utils/sort"
+import { strToKhmerWordOrThrow, type TypedKhmerWord } from "./khmer-word"
+import { descNumber, sortBy_immutable_cached } from "./sort"
 
 export class DictionaryManager {
   private knownWords = new Set<TypedKhmerWord>()
@@ -39,19 +39,8 @@ export class DictionaryManager {
 
   public add(word: TypedKhmerWord): boolean {
     if (this.knownWords.has(word)) return false
-
-    try {
-      let currentContent = ""
-      if (fs.existsSync(this.filePath)) {
-        currentContent = fs.readFileSync(this.filePath, "utf-8")
-      }
-      const newContent = word + "\n" + currentContent
-      fs.writeFileSync(this.filePath, newContent, "utf-8")
-
-      this.knownWords.add(word)
-      return true
-    } catch (e) {
-      throw e
-    }
+    fs.appendFileSync(this.filePath, word + "\n", "utf-8")
+    this.knownWords.add(word)
+    return true
   }
 }
