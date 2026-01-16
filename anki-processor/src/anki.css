@@ -1,0 +1,459 @@
+.hidden-but-appears-on-click * {
+  color: transparent;
+  text-shadow: 0 0 44px white;
+}
+
+/* ==================== */
+/* BASE CARD STYLES */
+/* ==================== */
+
+.card {
+  font-family: arial;
+  font-size: 20px;
+  text-align: center;
+  color: black;
+  background-color: white;
+}
+
+table,
+th,
+td {
+  border: 1px solid white;
+  border-collapse: collapse;
+  padding: 15px;
+}
+
+.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.b {
+  font-size: 5px;
+}
+
+/* ==================== */
+/* NIGHT MODE */
+/* ==================== */
+
+body {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+}
+
+/* ==================== */
+/* ITEM CONTAINERS */
+/* ==================== */
+
+.Item {
+  border: 1px solid #333333;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #2a2a2a;
+  border-radius: 5px;
+}
+
+.Subitem {
+  border: 1px solid #444444;
+  padding: 5px 5px 10px;
+  margin-top: 10px;
+  background-color: #3a3a3a;
+  border-radius: 3px;
+}
+
+/* ==================== */
+/* HEADINGS */
+/* ==================== */
+
+h5,
+h6 {
+  color: #cfcfc4;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+/* ==================== */
+/* LINKS */
+/* ==================== */
+
+a {
+  color: #cfcfc4;
+  text-decoration: none;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ==================== */
+/* UTILITY CLASSES */
+/* ==================== */
+
+.multi-column {
+  column-count: 3;
+  column-gap: 10px;
+  text-align: left;
+  font-size: 15px;
+}
+
+.highlight {
+  background-color: #cfcfc4;
+  color: #000;
+}
+
+/* ==================== */
+/* KHMER ANALYSIS SECTIONS */
+/* ==================== */
+
+#word {
+  font-size: 48px;
+  margin: 20px 0;
+  font-family: 'Khmer OS Battambang', 'Khmer OS Muol', 'Noto Sans Khmer', sans-serif;
+}
+
+#word-graphemes {
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: #888;
+  margin: 10px 0;
+  font-family: 'Khmer OS Battambang', 'Khmer OS Muol', 'Noto Sans Khmer', sans-serif;
+}
+
+#word-split {
+  font-size: 28px;
+  letter-spacing: 2px;
+  line-height: 1.6;
+  margin: 10px 0;
+  font-family: 'Khmer OS Battambang', 'Khmer OS Muol', 'Noto Sans Khmer', sans-serif;
+}
+
+#word-split-ru {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 15px 0;
+  justify-content: center;
+}
+
+/* ==================== */
+/* TOKEN BOXES (Transliteration) */
+/* ==================== */
+
+.token-box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  min-width: 50px;
+  border: 1px solid #333;
+}
+
+.token-char {
+  font-size: 36px;
+  margin-bottom: 4px;
+  font-family: 'Khmer OS Battambang', 'Khmer OS Muol', 'Noto Sans Khmer', sans-serif;
+}
+
+.token-trans {
+  font-size: 20px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  line-height: 1.3;
+  color: #ccc;
+}
+
+.token-ipa {
+  font-size: 20px;
+  font-family: 'Charis SIL', 'Doulos SIL', 'Gentium Plus', 'Arial Unicode MS', sans-serif;
+  color: #88ccff;
+  /* Light blue to distinguish from Russian/Translit */
+  margin-top: 2px;
+  font-weight: normal;
+}
+
+.front.token-trans {
+  display: none;
+}
+
+.token-space {
+  border: none;
+  min-width: 20px;
+  padding: 6px 4px;
+  color: #fff;
+}
+
+.token-space .token-char {
+  color: #fff;
+  font-size: 21px;
+}
+
+/* ==================== */
+/* CONSONANT COLORS */
+/* ==================== */
+
+.cons-a {
+  color: #ff4444;
+}
+
+.cons-o {
+  color: #4444ff;
+}
+
+.cons-extra {
+  color: #44ff44;
+  font-style: italic;
+}
+
+/* ==================== */
+/* VOWEL STYLING */
+/* ==================== */
+
+.vowel {
+  color: #ffaa44;
+}
+
+/* ==================== */
+/* TRANSLITERATION OPTIONS */
+/* ==================== */
+
+.trans-option {
+  display: inline-block;
+  margin: 0 1px;
+}
+
+.trans-active {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #fff;
+}
+
+.trans-inactive {
+  color: #666;
+}
+
+.trans-separator {
+  color: #888;
+  margin: 0 2px;
+}
+
+/* ==================== */
+/* UNKNOWN CHARACTERS */
+/* ==================== */
+
+.unknown {
+  color: #888;
+  opacity: 0.7;
+}
+
+/* ==================== */
+/* RESPONSIVE ADJUSTMENTS */
+/* ==================== */
+
+@media (max-width: 600px) {
+  #word {
+    font-size: 36px;
+  }
+
+  #word-split {
+    font-size: 24px;
+  }
+
+  .token-box {
+    min-width: 40px;
+    padding: 5px 6px;
+  }
+
+  .token-char {
+    font-size: 20px;
+  }
+
+  .token-trans {
+    font-size: 11px;
+  }
+}
+
+/* ==================== */
+/* ACCESSIBILITY */
+/* ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================== */
+/* PRINT STYLES */
+/* ==================== */
+
+@media print {
+  body {
+    background-color: white;
+    color: black;
+  }
+
+  .Item,
+  .Subitem,
+  .token-box {
+    border: 1px solid #333;
+    background-color: white;
+  }
+
+  .cons-a {
+    color: #cc0000;
+  }
+
+  .cons-o {
+    color: #0000cc;
+  }
+
+  .cons-extra {
+    color: #006600;
+  }
+
+  .vowel {
+    color: #cc6600;
+  }
+}
+
+.wiktionary-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.wiktionary-link:hover {
+  text-decoration: underline;
+}
+
+/*************************************/
+
+/* Accordion Container */
+.wikt-accordion {
+  width: 100%;
+  margin-bottom: 10px;
+  /* Space between accordions */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* The Clickable Header */
+.wikt-accordion summary {
+  padding: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Remove default triangle marker in some browsers */
+.wikt-accordion summary {
+  list-style: none;
+}
+
+.wikt-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Add custom +/- indicator */
+.wikt-accordion summary::after {
+  content: '+';
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Change indicator when open */
+.wikt-accordion[open] summary::after {
+  content: '-';
+}
+
+/* Hover effect */
+.wikt-accordion summary:hover {
+  background-color: #ddd;
+}
+
+/* The Content inside */
+.wikt-content {
+  width: 100%;
+  padding: 15px;
+  text-align: left;
+  /* Dictionary entries usually read better left-aligned */
+  box-sizing: border-box;
+  border-top: 1px solid #ddd;
+  overflow-x: auto;
+  /* Handle wide tables/images safely */
+}
+
+/* ==================== */
+/* CUSTOM TOOLTIPS      */
+/* ==================== */
+
+/* Ensure the parent box is the reference point for positioning */
+.token-box {
+  position: relative;
+}
+
+/* The actual tooltip text, hidden by default */
+.custom-tooltip {
+  visibility: hidden;
+  width: 200px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px;
+
+  /* Position formatting */
+  position: absolute;
+  z-index: 100;
+  bottom: 125%;
+  /* Show above the letter */
+  left: 50%;
+  transform: translateX(-50%);
+  /* Center it */
+
+  /* Visuals */
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  /* Prevent tooltip from blocking clicks */
+}
+
+/* Little arrow pointing down */
+.custom-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+/* SHOW on Desktop Hover */
+.token-box:hover .custom-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* SHOW on Mobile Tap (via JS class) */
+.token-box.tooltip-active .custom-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
