@@ -1,0 +1,19 @@
+name = "lib"
+version = "0.1.0"
+defaultTargets = ["lib"]
+
+[[lean_exe]]
+name = "lib"
+root = "Main"
+
+[[require]]
+name = "Regex"
+git = "https://github.com/pandaman64/lean-regex"
+rev = "main"
+subDir = "regex"
+
+[[require]]
+name = "Pipes"
+path = "/home/srghma/projects/lean-nonempty"
+# scope = "srhhma"
+# git = "https://github.com/srhhma/lean-pipes"

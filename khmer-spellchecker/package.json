@@ -1,0 +1,132 @@
+{
+  "name": "khmer-spellchecker",
+  "displayName": "khmer-spellchecker",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Khmer Spellchecker",
+      "properties": {
+        "khmer-spellchecker.colorizingMode": {
+          "type": "string",
+          "default": "Dictionary",
+          "description": "Determines the segmentation strategy for colorizing Khmer text.",
+          "enum": [
+            "Dictionary",
+            "Segmenter"
+          ],
+          "enumDescriptions": [
+            "Splits text based on the longest matching words in the dictionary. Good for spell-checking.",
+            "Splits text using an algorithmic word segmenter. Good for visualizing word breaks without a dictionary."
+          ]
+        },
+        "khmer-spellchecker.checkOnlyFirstKhmerBlockInLine": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, only the first block of Khmer text on a line is checked/colored. Useful for dictionary files where definitions follow the headword."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "khmer-spellchecker.toggle",
+        "title": "Khmer: Toggle Coloring"
+      },
+      {
+        "command": "khmer-spellchecker.refreshDictionary",
+        "title": "Khmer: Refresh Dictionary"
+      },
+      {
+        "command": "khmer-spellchecker.splitSelectionUsingSegmenter",
+        "title": "Khmer: Split (Standard Segmenter)"
+      },
+      {
+        "command": "khmer-spellchecker.splitSelectionUsingDictionary",
+        "title": "Khmer: Split (Dictionary Match)"
+      },
+      {
+        "command": "khmer-spellchecker.normalizeSelection",
+        "title": "Khmer: Normalize Selection"
+      },
+      {
+        "command": "khmer-spellchecker.addToDictionary",
+        "title": "Khmer: Add Selection to Dictionary"
+      },
+      {
+        "command": "khmer-spellchecker.nextError",
+        "title": "Khmer: Go to Next Error"
+      },
+      {
+        "command": "khmer-spellchecker.nextColorizingMode",
+        "title": "Khmer: Next Colorizing Mode"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "khmer-spellchecker.toggle",
+        "key": "alt+shift+k alt+shift+t",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "khmer-spellchecker.splitSelectionUsingSegmenter",
+        "key": "alt+shift+k alt+shift+s",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "khmer-spellchecker.splitSelectionUsingDictionary",
+        "key": "alt+shift+k alt+shift+d",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "khmer-spellchecker.nextError",
+        "key": "alt+shift+k alt+shift+e",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "khmer-spellchecker.addToDictionary",
+        "key": "alt+shift+k alt+shift+a",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "link-utils": "ln -s ../../gemini-ocr-automate-images-upload-chrome-extension/src/utils/ src/utils"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.107.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.1",
+    "eslint": "^9.39.1",
+    "khmer-normalize": "^0.0.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "3.7.4",
+    "split-khmer": "^1.0.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1"
+  }
+}

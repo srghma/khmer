@@ -1,0 +1,34 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+km_dict_tauri/target/rust-analyzer
+target/rust-analyzer
+km_dict_tauri/src-tauri/gen/android/app/src/main/assets/
+dict.db.gz
+dict.dbgz
+*.db-shm
+*.db-wal
+
+dict.db
+/public/en_Dict_en_km_com_assets_images_png

@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    // "skipLibCheck": true, // This ignores conflicts originating in node_modules
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "alwaysStrict": true, // Enforces 'use strict' mode for JavaScript
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true, // Prevents implicit 'any' type
+    "noImplicitOverride": true,
+    "noImplicitThis": true, // Ensures 'this' is typed explicitly
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "outDir": "dist",
+    "strict": true,
+    "strictNullChecks": true, // Ensures null and undefined are checked
+    "target": "ESNext",
+    "verbatimModuleSyntax": true
+    // "types": ["node", "esbuild-plugin-inline-import"]
+  },
+  "include": ["src/**/*"]
+  // "exclude": ["node_modules", "node_modules/.pnpm"]
+}

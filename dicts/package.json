@@ -1,0 +1,36 @@
+{
+  "name": "gemini-ocr-automate-images-upload-chrome-extension",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "node ./build.js",
+    "build:watch": "node ./build.js --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/bun": "^1.3.5",
+    "@types/chrome": "^0.1.32",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.27.2",
+    "esbuild-plugin-clean": "^1.0.1",
+    "esbuild-plugin-inline-import": "^1.1.0",
+    "gemini-ocr-automate-images-upload-chrome-extension": "file:../gemini-ocr-automate-images-upload-chrome-extension/",
+    "js-utils": "file:../js-utils/",
+    "prettier": "3.7.4",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/node": "^25.0.3",
+    "jsonl": "^1.1.2",
+    "p-wait-for": "^6.0.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "sax": "^1.4.4",
+    "translate-google": "^1.5.0",
+    "zod": "^4.2.1"
+  }
+}

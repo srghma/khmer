@@ -1,0 +1,44 @@
+@import 'tailwindcss';
+@plugin './hero.ts';
+
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /*
+     Update the default sans-serif stack to include:
+     1. Inter (Your preferred UI font)
+     2. Khmer fonts (Noto Serif Khmer, Battambang)
+     3. IPA/Unicode fallback fonts (Segoe UI, Arial Unicode MS, Lucida Sans Unicode, Gentium)
+  */
+  --font-sans:
+    'Inter', 'Noto Serif Khmer', 'Battambang', 'Segoe UI', 'Arial Unicode MS', 'Lucida Sans Unicode', 'Gentium',
+    'DejaVu Sans', sans-serif;
+
+  /* Optional: Define a specific utility 'font-ipa' if you want to force it in specific places */
+  /* --font-ipa: 'Segoe UI', 'Arial Unicode MS', 'Lucida Sans Unicode', 'Gentium', 'Charis SIL', 'Doulos SIL', sans-serif; */
+
+  /*
+     Mono Stack:
+     Standard monospaced stack extended with IPA-capable fonts at the end
+     to prevent 'tofu' squares for phonetic symbols in code blocks/IPA tags.
+  */
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'Noto Sans Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+/* .font-ipa { */
+/*   font-family: var(--font-ipa); */
+/* } */
+
+:root {
+  /* Apply the robust font stack globally */
+  font-family: var(--font-sans);
+
+  /* Keep your other base styles */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}

@@ -1,0 +1,88 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  background-color: #252526;
+  border-bottom: 1px solid #3e3e42;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+button {
+  background-color: #0e639c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 2px;
+}
+
+button:hover {
+  background-color: #1177bb;
+}
+
+#text-container {
+  padding: 20px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 16px;
+  font-family: "Consolas", "Courier New", monospace;
+}
+
+/* VS Code Palette */
+.color-0 {
+  color: #569cd6;
+  font-weight: bold;
+}
+
+/* Blue */
+.color-1 {
+  color: #4ec9b0;
+  font-weight: bold;
+}
+
+/* Green */
+.color-2 {
+  color: #c586c0;
+  font-weight: bold;
+}
+
+/* Purple */
+.color-3 {
+  color: #dcdcaa;
+  font-weight: bold;
+}
+
+/* Yellow */
+.color-4 {
+  color: #ce9178;
+  font-weight: bold;
+}
+
+/* Orange */
+
+.unknown {
+  color: #ff5555;
+  text-decoration: underline wavy #ff5555;
+}
+
+.neutral {
+  color: #d4d4d4;
+}
+
+/* Hide the raw source data */
+.raw-data {
+  display: none;
+}

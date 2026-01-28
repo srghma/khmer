@@ -1,0 +1,13 @@
+[package]
+name = "decrypt_tool"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rusqlite = { version = "0.38", features = ["bundled"] }
+aes = "0.8"
+base64 = "0.22"
+hex = "0.4"
+block-padding = "0.4"
+anyhow = "1.0"
+indicatif = "0.18"

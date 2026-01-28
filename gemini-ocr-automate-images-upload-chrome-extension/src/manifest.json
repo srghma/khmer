@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "AI Studio Automator",
+  "version": "3.0",
+  "description": "Automate file uploads to Google AI Studio - Ultra Simple Edition",
+  "permissions": ["storage"],
+  "host_permissions": ["https://aistudio.google.com/*", "https://docs.google.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://aistudio.google.com/*"],
+      "js": ["aistudio-index.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://docs.google.com/picker/*"],
+      "js": ["drive-index.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ]
+}

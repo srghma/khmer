@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "jsx": "react-jsx",
+    "paths": {
+      "@gemini-ocr-automate-images-upload-chrome-extension/*": [
+        "../gemini-ocr-automate-images-upload-chrome-extension/src/*"
+      ],
+      "@js-utils/*": [
+        "../js-utils/src/*"
+      ]
+    },
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    // Additional safety options
+    "noImplicitAny": true, // Prevents implicit 'any' type
+    "strictNullChecks": true, // Ensures null and undefined are checked
+    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
+    "noImplicitThis": true, // Ensures 'this' is typed explicitly
+    "alwaysStrict": true // Enforces 'use strict' mode for JavaScript
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

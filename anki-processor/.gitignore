@@ -1,0 +1,7 @@
+node_modules/
+src/*.js
+anki-bundle.js
+*.txt
+*.jsonl
+dist/
+tmp/
