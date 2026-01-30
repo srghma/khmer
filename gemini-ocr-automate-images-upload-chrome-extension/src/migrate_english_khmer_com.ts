@@ -22,8 +22,8 @@ const CONFIG = {
   CHUNK_SIZE: 400,
 }
 
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
-const ASSETS_DIR = '/home/srghma/projects/khmer/km_dict_tauri/src/assets/en_Dict_en_km_com_assets_images'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
+const ASSETS_DIR = '/home/srghma/projects/khmer/srghmakhmerdict/src/assets/en_Dict_en_km_com_assets_images'
 const REPORT_FILE_PATH = `migrate_ek_report_${CONFIG.MODE}.html`
 
 const TARGET_CONFIG = {

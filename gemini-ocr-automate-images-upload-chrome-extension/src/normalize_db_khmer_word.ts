@@ -322,7 +322,7 @@ import chalk from 'chalk'
 // --- 1. CONFIGURATION ---
 
 const PORT = 3000
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
 const DATA_KEYS = [
   'Desc',

@@ -34,7 +34,6 @@ export const runFetchCycle = async <T extends NonEmptyStringTrimmed, C extends C
     db.close()
     return wordsFromDb
   })()
-
   console.log(chalk.gray(`   [${name}] Initial DB check: ${wordsFromDb.size} words.`))
 
   let iteration = 1
@@ -60,7 +59,6 @@ export const runFetchCycle = async <T extends NonEmptyStringTrimmed, C extends C
     })
 
     // 3. Create the lazy iterator
-    // const wordStream = iterateNewWordsToFetch<T>(wordsFromDb, cacheSnapshot, strToIterator, harvestSources)
     const wordStream = iterateNewWordsToFetch<T>(wordsFromDb, cacheSnapshot, strToIterator, harvestSources)
 
     let wordsFoundInThisCycle = 0

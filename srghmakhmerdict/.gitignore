@@ -30,5 +30,5 @@ dict.dbgz
 *.db-shm
 *.db-wal
 
-dict.db
+# dict.db
 /public/en_Dict_en_km_com_assets_images_png

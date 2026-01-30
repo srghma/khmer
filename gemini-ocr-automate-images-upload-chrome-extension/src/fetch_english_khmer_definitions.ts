@@ -6,7 +6,7 @@ import { processEKQueue } from './utils/english-khmer-en-kh-fetch.js'
 import { iterateLowercaseLatinWords } from './utils/string-lowercase-latin.js'
 import { runFetchCycle } from './utils/run-fetch-cycle.js'
 
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
 export const run_fetch_english_khmer_definitions = async (
   ekCache: EnglishKhmerCache,

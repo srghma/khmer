@@ -1,16 +1,26 @@
-import { memo } from 'react'
+import { memo, Suspense } from 'react'
 import { Spinner } from '@heroui/spinner'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { type AppTab, type DictionaryLanguage } from '../types'
-import { WordListGeneral } from './WordListGeneral'
-import { WordListKhmer } from './WordListKhmer'
-import { HistoryList } from './HistoryList'
-import { SettingsView } from './SettingsView'
 import type { ProcessedDataState } from '../hooks/useDictionarySearch'
+import { WordListGeneral } from './WordListGeneral'
+import { usePreloadOnIdle } from '../utils/lazyWithPreload'
+import lazyWithPreload from 'react-lazy-with-preload'
 
-// Define exact props to ensure memoization works
+// --- LAZY IMPORTS ---
+const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
+const HistoryList = lazyWithPreload(() => import('./HistoryList').then(m => ({ default: m.HistoryList })))
+const SettingsView = lazyWithPreload(() => import('./SettingsView').then(m => ({ default: m.SettingsView })))
+
+// --- FALLBACK COMPONENT ---
+const ContentFallback = (
+  <div className="flex-1 flex items-center justify-center">
+    <Spinner color="default" size="sm" />
+  </div>
+)
+
 interface SidebarContentProps {
   loading: boolean
   activeTab: AppTab
@@ -18,10 +28,9 @@ interface SidebarContentProps {
   resultData: ProcessedDataState | undefined
   contentMatches: NonEmptyStringTrimmed[]
   highlightInList: boolean
-  searchQuery?: NonEmptyStringTrimmed // The safe, debounced query
+  searchQuery?: NonEmptyStringTrimmed
   refreshHistoryTrigger: number
 
-  // Handlers
   onWordClickKm: (w: NonEmptyStringTrimmed) => void
   onWordClickEn: (w: NonEmptyStringTrimmed) => void
   onWordClickRu: (w: NonEmptyStringTrimmed) => void
@@ -30,6 +39,8 @@ interface SidebarContentProps {
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
   const { activeTab, loading, isSearching, resultData } = props
+
+  usePreloadOnIdle([WordListKhmer, HistoryList, SettingsView])
 
   if (loading) {
     return (
@@ -41,12 +52,18 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   }
 
   if (activeTab === 'settings') {
-    return <SettingsView />
+    return (
+      <Suspense fallback={ContentFallback}>
+        <SettingsView />
+      </Suspense>
+    )
   }
 
   if (activeTab === 'history' || activeTab === 'favorites') {
     return (
-      <HistoryList refreshTrigger={props.refreshHistoryTrigger} type={activeTab} onSelect={props.onHistorySelect} />
+      <Suspense fallback={ContentFallback}>
+        <HistoryList refreshTrigger={props.refreshHistoryTrigger} type={activeTab} onSelect={props.onHistorySelect} />
+      </Suspense>
     )
   }
 
@@ -60,40 +77,46 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   }
 
   if (resultData) {
-    switch (resultData.mode) {
-      case 'km':
-        return (
-          <WordListKhmer
-            contentMatches={props.contentMatches}
-            data={resultData.data}
-            highlightMatch={props.highlightInList}
-            searchQuery={props.searchQuery}
-            onWordClick={props.onWordClickKm}
-          />
-        )
-      case 'en':
-        return (
-          <WordListGeneral
-            contentMatches={props.contentMatches}
-            data={resultData.data}
-            highlightMatch={props.highlightInList}
-            searchQuery={props.searchQuery}
-            onWordClick={props.onWordClickEn}
-          />
-        )
-      case 'ru':
-        return (
-          <WordListGeneral
-            contentMatches={props.contentMatches}
-            data={resultData.data}
-            highlightMatch={props.highlightInList}
-            searchQuery={props.searchQuery}
-            onWordClick={props.onWordClickRu}
-          />
-        )
-      default:
-        assertNever(resultData)
-    }
+    return (
+      <Suspense fallback={ContentFallback}>
+        {(() => {
+          switch (resultData.mode) {
+            case 'km':
+              return (
+                <WordListKhmer
+                  contentMatches={props.contentMatches}
+                  data={resultData.data}
+                  highlightMatch={props.highlightInList}
+                  searchQuery={props.searchQuery}
+                  onWordClick={props.onWordClickKm}
+                />
+              )
+            case 'en':
+              return (
+                <WordListGeneral
+                  contentMatches={props.contentMatches}
+                  data={resultData.data}
+                  highlightMatch={props.highlightInList}
+                  searchQuery={props.searchQuery}
+                  onWordClick={props.onWordClickEn}
+                />
+              )
+            case 'ru':
+              return (
+                <WordListGeneral
+                  contentMatches={props.contentMatches}
+                  data={resultData.data}
+                  highlightMatch={props.highlightInList}
+                  searchQuery={props.searchQuery}
+                  onWordClick={props.onWordClickRu}
+                />
+              )
+            default:
+              assertNever(resultData)
+          }
+        })()}
+      </Suspense>
+    )
   }
 
   return (

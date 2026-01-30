@@ -1,5 +1,3 @@
-import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
-
 import type {
   CharKhmerConsonant,
   CharKhmerDiacritic,
@@ -47,13 +45,13 @@ export const processDataOutputKhmerCursor_mkDefaultFor_orUndefined = (
   return undefined
 }
 
-export const processDataOutputKhmerCursor_mkDefaultFor_orThrow = (
-  p: ProcessDataOutputKhmer,
-): ProcessDataOutputKhmerCursor_OnlyFirstLevel =>
-  assertIsDefinedAndReturn(
-    processDataOutputKhmerCursor_mkDefaultFor_orUndefined(p),
-    'In our db we expect at least one entry',
-  )
+// export const processDataOutputKhmerCursor_mkDefaultFor_orThrow = (
+//   p: ProcessDataOutputKhmer,
+// ): ProcessDataOutputKhmerCursor_OnlyFirstLevel =>
+//   assertIsDefinedAndReturn(
+//     processDataOutputKhmerCursor_mkDefaultFor_orUndefined(p),
+//     'In our db we expect at least one entry',
+//   )
 
 export const ProcessDataOutputKhmerCursor_OnlyFirstLevel_eq = (
   a: ProcessDataOutputKhmerCursor_OnlyFirstLevel,

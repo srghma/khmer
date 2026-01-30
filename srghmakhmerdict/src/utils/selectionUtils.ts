@@ -25,7 +25,13 @@ export function calculateMenuPosition(
   viewport: Viewport,
   menuHeight: number = 160,
   menuWidth: number = 200,
+  useFullWidth: boolean = false,
 ): Position {
+  const padding = 10
+
+  // If useFullWidth is true, make menu span full width with padding
+  const effectiveMenuWidth = useFullWidth ? viewport.innerWidth - padding * 2 : menuWidth
+
   // 1. Calculate Space
   const spaceBelow = viewport.innerHeight - rect.bottom
 
@@ -37,15 +43,22 @@ export function calculateMenuPosition(
     y = rect.top - menuHeight - 10
   }
 
-  // 3. Determine X (Horizontal) - Center alignment
-  let x = rect.left + rect.width / 2 - menuWidth / 2
+  // 3. Determine X (Horizontal)
+  let x: number
 
-  // 4. Boundary Checks (Keep it on screen)
-  const padding = 10
-  const maxRight = viewport.innerWidth - menuWidth - padding
+  if (useFullWidth) {
+    // Full width mode: align to screen edges with padding
+    x = padding
+  } else {
+    // Normal mode: Center on selection
+    x = rect.left + rect.width / 2 - effectiveMenuWidth / 2
 
-  if (x < padding) x = padding
-  if (x > maxRight) x = maxRight
+    // Boundary Checks (Keep it on screen)
+    const maxRight = viewport.innerWidth - effectiveMenuWidth - padding
+
+    if (x < padding) x = padding
+    if (x > maxRight) x = maxRight
+  }
 
   return { x, y }
 }

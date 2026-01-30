@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -11,7 +11,7 @@ import { useNavigation } from './providers/NavigationProvider'
 import { useSettings } from './providers/SettingsProvider'
 
 import { isAppTabNonLanguage, stringToAppTabOrThrow, type AppTab, type DictionaryLanguage } from './types'
-import { KhmerComplexTableModal } from './components/KhmerComplexTableModal'
+
 import { useDictionarySearch } from './hooks/useDictionarySearch'
 // import { useDictionaryData } from './hooks/useDictionaryData'
 
@@ -21,6 +21,13 @@ import { RightPanel } from './components/RightPanel'
 
 import './App.css'
 import { useDictionary } from './providers/DictionaryProvider'
+import { usePreloadOnIdle } from './utils/lazyWithPreload'
+import lazyWithPreload from 'react-lazy-with-preload'
+
+// Replaced static import with Lazy load to reduce initial bundle size
+const KhmerComplexTableModal = lazyWithPreload(() =>
+  import('./components/KhmerComplexTableModal').then(module => ({ default: module.KhmerComplexTableModal })),
+)
 
 function App() {
   const { theme } = useTheme()
@@ -28,6 +35,8 @@ function App() {
   const toast = useToast()
 
   const { currentWord, resetNavigation, clearSelection } = useNavigation()
+
+  usePreloadOnIdle([KhmerComplexTableModal])
 
   const {
     isRegex,
@@ -119,6 +128,7 @@ function App() {
   )
 
   const safeSearchQuery = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(searchQuery), [searchQuery])
+  const uiFontSize_ = useMemo(() => ({ fontSize: `${uiFontSize}px`, lineHeight: 1.5 }), [uiFontSize])
 
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
@@ -136,10 +146,7 @@ function App() {
           onTabChange={handleTabChange}
         />
 
-        <div
-          className="flex-1 flex overflow-hidden relative bg-content1"
-          style={{ fontSize: `${uiFontSize}px`, lineHeight: 1.5 }}
-        >
+        <div className="flex-1 flex overflow-hidden relative bg-content1" style={uiFontSize_}>
           <SidebarContent
             activeTab={activeTab}
             contentMatches={contentMatches}
@@ -168,7 +175,9 @@ function App() {
       />
 
       {dictData.km_map && (
-        <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />
+        <Suspense fallback={null}>
+          <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />
+        </Suspense>
       )}
     </div>
   )

@@ -18,7 +18,7 @@ const CONFIG = {
   CHUNK_SIZE: 500, // for en better 200
 }
 
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 const CACHE_DB_PATH = getDbPath(CONFIG.MODE)
 const REPORT_FILE_PATH = `wiktionary_report_${CONFIG.MODE}.html`
 const TARGET_COLUMN = CONFIG.MODE === 'en' ? 'Wiktionary' : 'from_russian_wiki'

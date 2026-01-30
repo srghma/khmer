@@ -8,7 +8,7 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { processDataKhmer } from './toGroupKhmer'
 
-const DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
 describe('extractKeysKhmer (Real DB)', () => {
   it('processes all words from km_Dict table without error', () => {

@@ -1,11 +1,13 @@
 use crate::AppState;
 use serde::Serialize;
+use std::collections::HashMap;
 use tauri::{State, command};
 
 const TBL_EN: &str = "en_Dict";
 const TBL_KM: &str = "km_Dict";
 const TBL_RU: &str = "ru_Dict";
 const TBL_EN_EXT: &str = "en_Extension";
+const TBL_OCR: &str = "en_km_com_ocr";
 
 // --- Structs ---
 
@@ -133,7 +135,10 @@ pub async fn is_db_ready(state: State<'_, AppState>) -> Result<bool, String> {
 #[command]
 pub async fn get_en_words(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT Word FROM {} ORDER BY Word ASC", TBL_EN);
+    let sql = format!(
+        "SELECT Word FROM {} WHERE Desc IS NOT NULL OR en_km_com IS NOT NULL ORDER BY Word ASC",
+        TBL_EN
+    );
     let rows = sqlx::query_as::<_, WordRow>(&sql)
         .fetch_all(&pool)
         .await
@@ -316,4 +321,44 @@ pub async fn search_km_content(
         .await
         .map_err(|e| e.to_string())?;
     Ok(rows.into_iter().map(|r| r.word).collect())
+}
+
+#[derive(Serialize, sqlx::FromRow)]
+pub struct EnKmComOcrRow {
+    id: i64,
+    text: String,
+}
+
+#[command]
+pub async fn get_en_km_com_images_ocr(
+    state: State<'_, AppState>,
+    ids: Vec<i64>,
+) -> Result<HashMap<i64, String>, String> {
+    if ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    let pool = state.get_pool().await?;
+
+    // Dynamically build "id IN (?, ?, ?)"
+    // Note: SQLite has a limit on variables, but typically it's high (999 or 32766).
+    // For a dictionary entry rendering a few images, this is safe.
+    let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
+    let sql = format!(
+        "SELECT id, text FROM {} WHERE id IN ({})",
+        TBL_OCR,
+        placeholders.join(",")
+    );
+
+    let mut query = sqlx::query_as::<_, EnKmComOcrRow>(&sql);
+
+    for id in ids {
+        query = query.bind(id);
+    }
+
+    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    let result: HashMap<i64, String> = rows.into_iter().map(|r| (r.id, r.text)).collect();
+
+    Ok(result)
 }

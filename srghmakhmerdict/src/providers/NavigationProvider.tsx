@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, type ReactNode, useMemo } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../types'
 
@@ -75,20 +75,19 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
 
   const canGoBack = history.length > 0
 
-  return (
-    <NavigationContext.Provider
-      value={{
-        currentWord,
-        canGoBack,
-        navigateTo,
-        resetNavigation,
-        goBack,
-        clearSelection,
-      }}
-    >
-      {children}
-    </NavigationContext.Provider>
+  const value = useMemo(
+    () => ({
+      currentWord,
+      canGoBack,
+      navigateTo,
+      resetNavigation,
+      goBack,
+      clearSelection,
+    }),
+    [currentWord, canGoBack, navigateTo],
   )
+
+  return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>
 }
 
 export const useNavigation = () => {

@@ -19,6 +19,12 @@
   /* --font-ipa: 'Segoe UI', 'Arial Unicode MS', 'Lucida Sans Unicode', 'Gentium', 'Charis SIL', 'Doulos SIL', sans-serif; */
 
   /*
+     Define a specific utility class 'font-khmer' used in React components.
+     Usage: className="font-khmer"
+  */
+  /* --font-khmer: 'Noto Serif Khmer', 'Battambang', 'Siemreap', 'Moul', 'Kantumruy Pro', 'Fasthand', serif; */
+
+  /*
      Mono Stack:
      Standard monospaced stack extended with IPA-capable fonts at the end
      to prevent 'tofu' squares for phonetic symbols in code blocks/IPA tags.

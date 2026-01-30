@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle, memo } from 'react'
+import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle, memo, useMemo } from 'react'
 import { useVirtualizer, defaultRangeExtractor, type Range, type VirtualItem } from '@tanstack/react-virtual'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
@@ -126,16 +126,21 @@ export const VirtualizedList = forwardRef<VirtualizedListHandle, Props>(function
     return () => el.removeEventListener('scroll', handleScroll)
   }, [onActiveHeaderChange])
 
-  // Pre-calculate expensive lookups if possible, but Set lookup is O(1)
-  // Converting stickyIndexes array to Set inside render is fast for small arrays,
-  // but if stickyIndexes is huge, memoize it. Assuming < 100 headers, array includes is fine.
+  // Extract values needed for rendering to dependencies
+  const virtualItems = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
 
-  return (
-    <div ref={parentRef} className="flex-1 overflow-y-auto contain-strict bg-content1 relative">
-      <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-        {rowVirtualizer.getVirtualItems().map(vRow => {
+  // Convert stickyIndexes array to Set for O(1) lookup in the render loop
+  const stickySet = useMemo(() => new Set(stickyIndexes), [stickyIndexes])
+
+  const listContent = useMemo(() => {
+    return (
+      <div style={{ height: `${totalSize}px`, width: '100%', position: 'relative' }}>
+        {virtualItems.map(vRow => {
           const item = items[vRow.index]!
-          const isSticky = stickyIndexes.includes(vRow.index)
+          const isSticky = stickySet.has(vRow.index)
+          // Accessing the ref here works because virtualizer changes state (and triggers render)
+          // when the rangeExtractor logic updates the active index.
           const isActiveSticky = isSticky && activeStickyIndexRef.current === vRow.index
 
           return (
@@ -151,6 +156,12 @@ export const VirtualizedList = forwardRef<VirtualizedListHandle, Props>(function
           )
         })}
       </div>
+    )
+  }, [virtualItems, totalSize, items, stickySet, renderWord, onWordClick])
+
+  return (
+    <div ref={parentRef} className="flex-1 overflow-y-auto contain-strict bg-content1 relative">
+      {listContent}
     </div>
   )
 })

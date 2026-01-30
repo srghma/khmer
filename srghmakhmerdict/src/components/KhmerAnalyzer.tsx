@@ -27,7 +27,6 @@ import { executeNativeTts } from '../utils/tts'
 
 interface KhmerAnalyzerProps {
   text: string
-  className?: string
 }
 
 // --- Helper Components ---
@@ -200,7 +199,7 @@ const TokenRenderer = ({ token }: { token: Token }) => {
       return (
         <Tooltip
           content={
-            <div className="px-1 py-2 max-w-[200px]">
+            <div className="px-1 py-2 max-w-[100px]">
               <div className="font-bold text-small mb-1">{def.name}</div>
               <div className="text-xs text-default-400">{def.desc_en}</div>
             </div>
@@ -208,7 +207,7 @@ const TokenRenderer = ({ token }: { token: Token }) => {
         >
           <div className={clsx(boxClass, 'border-dashed border-default-400 bg-default-50')}>
             <div className="text-xl font-khmer leading-none mb-1 text-default-500">◌{text}</div>
-            <div className="text-[9px] max-w-[200px] leading-tight text-center text-default-500 line-clamp-2 w-full px-0.5">
+            <div className="text-[9px] max-w-[50px] leading-tight text-center text-default-500 line-clamp-2 w-full px-0.5">
               {def.desc_en}
             </div>
           </div>
@@ -242,7 +241,7 @@ const KhmerSegmentBlock = ({ text }: { text: string }) => {
 
 // --- Main Component ---
 
-const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ text, className }) => {
+const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ text }) => {
   // Split text into [Non-Khmer, Khmer, Non-Khmer, Khmer...]
   // Using Regex capturing group to keep the delimiters (the Khmer parts)
   const segments = useMemo(() => {
@@ -252,24 +251,22 @@ const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ text, className }) =>
   }, [text])
 
   return (
-    <div className={clsx('w-full', className)}>
-      <div className="leading-8 text-foreground">
-        {segments.map((segment, index) => {
-          if (!segment) return null
+    <div className="h-full">
+      {segments.map((segment, index) => {
+        if (!segment) return null
 
-          // Check if this segment is Khmer
-          if (/\p{Script=Khmer}/u.test(segment)) {
-            return <KhmerSegmentBlock key={index} text={segment} />
-          }
+        // Check if this segment is Khmer
+        if (/\p{Script=Khmer}/u.test(segment)) {
+          return <KhmerSegmentBlock key={index} text={segment} />
+        }
 
-          // Render Non-Khmer text normally
-          return (
-            <span key={index} className="text-base text-default-700 px-1">
-              {segment}
-            </span>
-          )
-        })}
-      </div>
+        // Render Non-Khmer text normally
+        return (
+          <span key={index} className="text-base text-default-700 px-1">
+            {segment}
+          </span>
+        )
+      })}
     </div>
   )
 }

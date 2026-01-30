@@ -1,9 +1,13 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, Suspense } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { DetailView } from './DetailView'
+import { Spinner } from '@heroui/spinner'
 import { type DictionaryLanguage } from '../types'
 import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'
+import lazyWithPreload from 'react-lazy-with-preload'
+
+// --- LAZY IMPORT ---
+const DetailView = lazyWithPreload(() => import('./DetailView').then(m => ({ default: m.DetailView })))
 
 interface RightPanelProps {
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | null
@@ -49,16 +53,24 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
-      <DetailView
-        canGoBack={canGoBack}
-        fontSize={detailsFontSize}
-        highlightMatch={highlightInDetails ? searchQuery : undefined}
-        km_map={km_map}
-        mode={selectedWord.mode}
-        word={selectedWord.word}
-        onBack={handleBack}
-        onNavigate={navigateTo}
-      />
+      <Suspense
+        fallback={
+          <div className="flex-1 flex items-center justify-center h-full">
+            <Spinner color="primary" size="lg" />
+          </div>
+        }
+      >
+        <DetailView
+          canGoBack={canGoBack}
+          fontSize={detailsFontSize}
+          highlightMatch={highlightInDetails ? searchQuery : undefined}
+          km_map={km_map}
+          mode={selectedWord.mode}
+          word={selectedWord.word}
+          onBack={handleBack}
+          onNavigate={navigateTo}
+        />
+      </Suspense>
     </div>
   )
 }

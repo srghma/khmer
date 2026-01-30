@@ -55,3 +55,23 @@ export function stringToAppTabOrUndefined(value: string): AppTab | undefined {
 export function stringToAppTabOrThrow(value: string): AppTab {
   return stringToEnumOrThrow(value, APP_TABS, 'AppTab')
 }
+
+// ==========================================
+// EnglishKhmerCom_Images_Mode
+// ==========================================
+
+export const ENGLISH_KHMER_COM_IMAGES_MODES = ['online', 'offline'] as const
+
+export type EnglishKhmerCom_Images_Mode = (typeof ENGLISH_KHMER_COM_IMAGES_MODES)[number]
+
+export function isEnglishKhmerComImagesMode(value: string): value is EnglishKhmerCom_Images_Mode {
+  return isEnumValue(value, ENGLISH_KHMER_COM_IMAGES_MODES)
+}
+
+export function stringToEnglishKhmerComImagesModeOrUndefined(value: string): EnglishKhmerCom_Images_Mode | undefined {
+  return stringToEnumOrUndefined(value, ENGLISH_KHMER_COM_IMAGES_MODES)
+}
+
+export function stringToEnglishKhmerComImagesModeOrThrow(value: string): EnglishKhmerCom_Images_Mode {
+  return stringToEnumOrThrow(value, ENGLISH_KHMER_COM_IMAGES_MODES, 'EnglishKhmerCom_Images_Mode')
+}

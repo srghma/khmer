@@ -8,7 +8,7 @@ import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chr
 import { renderWordMatch } from './WordList.utils'
 import { makeShortInfoAboutLengths } from '../utils/toGroupKhmer_lengths'
 import {
-  processDataOutputKhmerCursor_mkDefaultFor_orThrow,
+  processDataOutputKhmerCursor_mkDefaultFor_orUndefined,
   type ProcessDataOutputKhmerCursor_OnlyFirstLevel,
 } from '../utils/toGroupKhmer_cursor_onlyFirstLevel'
 import type {
@@ -37,8 +37,8 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   const lengthsData = useMemo(() => makeShortInfoAboutLengths(data), [data])
 
   // Initialize cursor
-  const [activeL1, setActiveL1] = useState<ProcessDataOutputKhmerCursor_OnlyFirstLevel>(() =>
-    processDataOutputKhmerCursor_mkDefaultFor_orThrow(data),
+  const [activeL1, setActiveL1] = useState<ProcessDataOutputKhmerCursor_OnlyFirstLevel | undefined>(() =>
+    processDataOutputKhmerCursor_mkDefaultFor_orUndefined(data),
   )
 
   const { flatList, stickyIndexes, l1IndexMap, l2IndexMap, indexToL1Cursor } = useMemo(
@@ -197,12 +197,16 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
 
   return (
     <div className="flex h-full w-full relative">
-      <L12SidebarKhmer
-        activeL1={activeL1}
-        data={lengthsData}
-        scrollToLetter={handleScrollToLetter}
-        scrollToSubGroup={handleScrollToSubGroup}
-      />
+      {activeL1 ? (
+        <L12SidebarKhmer
+          activeL1={activeL1}
+          data={lengthsData}
+          scrollToLetter={handleScrollToLetter}
+          scrollToSubGroup={handleScrollToSubGroup}
+        />
+      ) : (
+        <p>Nothing</p>
+      )}
       <VirtualizedList
         ref={listRef}
         items={flatList}

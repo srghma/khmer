@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { toHex } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toHex'
 
 // DB & Utils
 import * as DictDb from '../db/dict'
@@ -29,11 +28,11 @@ const makeFilterQueryWithCache = mkMakeFilterQuery_memoized()
 function* mapKhmerInput(words: Iterable<NonEmptyStringTrimmed>) {
   // console.log('words', words)
   for (const w of words) {
-    try {
-      yield [w, extractKeysKhmer(w)] as const
-    } catch (e: any) {
-      console.error('extractKeysKhmer error', JSON.stringify(w), toHex(w), e)
-    }
+    // try {
+    yield [w, extractKeysKhmer(w)] as const
+    // } catch (e: any) {
+    //   console.error('extractKeysKhmer error', JSON.stringify(w), toHex(w), e)
+    // }
   }
 }
 

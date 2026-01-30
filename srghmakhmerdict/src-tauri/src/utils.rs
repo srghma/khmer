@@ -65,8 +65,7 @@ pub fn investigate_paths(app: &mut tauri::App) {
 
     // 1. Check standard Tauri paths
     println!("📍 TAURI PATH RESOLVER:");
-    if let Ok(resource_path) =
-        resolver.resolve("dict.db.gz", tauri::path::BaseDirectory::Resource)
+    if let Ok(resource_path) = resolver.resolve("dict.db.gz", tauri::path::BaseDirectory::Resource)
     {
         println!("  Resource (dict.db.gz): {:?}", resource_path);
     }
@@ -89,9 +88,13 @@ pub fn investigate_paths(app: &mut tauri::App) {
     for key in potential_keys {
         match app.asset_resolver().get(key.to_string()) {
             Some(data) => {
-                println!("  ✅ Found key: '{}' (Size: {} bytes)", key, data.bytes().len());
+                println!(
+                    "  ✅ Found key: '{}' (Size: {} bytes)",
+                    key,
+                    data.bytes().len()
+                );
                 found = true;
-            },
+            }
             None => println!("  ❌ Key failed: '{}'", key),
         }
     }
@@ -105,9 +108,7 @@ pub fn investigate_paths(app: &mut tauri::App) {
     #[cfg(target_os = "android")]
     {
         println!("🗂️  FILESYSTEM EXPLORATION:");
-        let search_roots = vec![
-            "/data/user/0/com.srghma.km_dict_tauri",
-        ];
+        let search_roots = vec!["/data/user/0/com.srghma.srghmakhmerdict"];
 
         for root in search_roots {
             let root_path = Path::new(root);

@@ -15,7 +15,7 @@ const CONFIG = {
   STOP_ON_CLASH: true,
 }
 
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 const REPORT_FILE = 'report_fix_qaq_combined.html'
 
 // The specific columns we care about

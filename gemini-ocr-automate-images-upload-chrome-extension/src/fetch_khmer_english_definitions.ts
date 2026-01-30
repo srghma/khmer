@@ -6,7 +6,7 @@ import { processEKKhEnQueue } from './utils/english-khmer-kh-en-fetch.js'
 import { iterateKhmerWords } from './utils/khmer-word.js'
 import { runFetchCycle } from './utils/run-fetch-cycle.js'
 
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
 export const run_fetch_khmer_english_definitions = async (
   ekKhEnCache: EnglishKhmerKhEnCache,

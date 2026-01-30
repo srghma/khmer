@@ -5,6 +5,7 @@ import { Select, SelectItem } from '@heroui/select'
 import { ThemeSwitch } from './theme-switch'
 import { GoDash, GoPlus, GoTable } from 'react-icons/go'
 import { useSettings, type DictFilterSettings, type DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
+import { SettingsEnKmOfflineImagesControl } from './SettingsEnKmOfflineImagesControl'
 
 const DictFilterSettings_Km_ModeOptions = [
   { key: 'all', label: 'Show All' },
@@ -198,6 +199,8 @@ export const SettingsView: React.FC = memo(() => {
             />
           </div>
         </div>
+
+        <SettingsEnKmOfflineImagesControl />
       </div>
     </div>
   )

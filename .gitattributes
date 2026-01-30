@@ -1,2 +1,1 @@
-khmer_dictionary/assets/dict.db filter=lfs diff=lfs merge=lfs -text
-km_dict_tauri/src-tauri/dict.db filter=lfs diff=lfs merge=lfs -text
+srghmakhmerdict/src-tauri/dict.db filter=lfs diff=lfs merge=lfs -text

@@ -1,18 +1,24 @@
 import { useState, useEffect, useCallback } from 'react'
 import { calculateMenuPosition, getSafeRange, isSelectionInsideRef, type Position } from '../utils/selectionUtils'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 interface UseTextSelectionReturn {
   visible: boolean
   setVisible: (v: boolean) => void
   position: Position
-  selectedText: string
+  selectedText?: NonEmptyStringTrimmed
   clearSelection: () => void
+  useFullWidth: boolean
 }
 
 export function useTextSelection(containerRef?: React.RefObject<HTMLElement | null>): UseTextSelectionReturn {
   const [visible, setVisible] = useState(false)
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 })
-  const [selectedText, setSelectedText] = useState('')
+  const [selectedText, setSelectedText] = useState<NonEmptyStringTrimmed>()
+  const [useFullWidth, setUseFullWidth] = useState(false)
 
   const clearSelection = useCallback(() => {
     window.getSelection()?.removeAllRanges()
@@ -23,14 +29,12 @@ export function useTextSelection(containerRef?: React.RefObject<HTMLElement | nu
     let timeoutId: NodeJS.Timeout
 
     const handleSelectionChange = () => {
-      // Debounce
       clearTimeout(timeoutId)
 
       timeoutId = setTimeout(() => {
         const selection = window.getSelection()
         const range = getSafeRange(selection)
 
-        // 1. Basic Validation (Range must exist and text must be non-empty)
         if (!selection || !range) {
           setVisible(false)
 
@@ -45,7 +49,6 @@ export function useTextSelection(containerRef?: React.RefObject<HTMLElement | nu
           return
         }
 
-        // 2. Scope Validation (If ref provided, must be inside)
         if (containerRef?.current) {
           const isInside = isSelectionInsideRef(selection, containerRef.current)
 
@@ -56,46 +59,64 @@ export function useTextSelection(containerRef?: React.RefObject<HTMLElement | nu
           }
         }
 
-        // 3. Position Calculation
         const rect = range.getBoundingClientRect()
 
-        // Handle invisible/detached elements
         if (rect.width === 0 && rect.height === 0) {
           setVisible(false)
 
           return
         }
 
-        const viewport = {
-          innerWidth: window.innerWidth,
-          innerHeight: window.innerHeight,
-        }
+        const isMobile = window.innerWidth < 640
+        const shouldUseFullWidth = isMobile
+        const newPos = calculateMenuPosition(rect, window, undefined, undefined, shouldUseFullWidth)
 
-        // Pure calculation
-        const newPos = calculateMenuPosition(rect, viewport)
-
-        setSelectedText(text)
+        setSelectedText(String_toNonEmptyString_orUndefined_afterTrim(text))
         setPosition(newPos)
+        setUseFullWidth(shouldUseFullWidth)
         setVisible(true)
       }, 300)
     }
 
-    // Optional: Hide immediately on interaction to prevent floating menu in wrong place
+    // --- INTERACTION HANDLERS ---
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement
+
+      // IGNORE clicks inside our popup
+      if (target.closest('[data-selection-popup="true"]')) return
+      setVisible(false)
+    }
+
+    const handlePointerUp = (e: PointerEvent) => {
+      const target = e.target as HTMLElement
+
+      // IGNORE release events from our popup (e.g. finishing a drag)
+      // This prevents the hook from overwriting the popup's state on drag release
+      if (target.closest('[data-selection-popup="true"]')) return
+
+      handleSelectionChange()
+    }
+
     const handleInteract = () => {
-      // setVisible(false)
+      // Optional: hide on scroll
     }
 
     document.addEventListener('selectionchange', handleSelectionChange)
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('pointerup', handlePointerUp)
     window.addEventListener('resize', handleInteract)
     window.addEventListener('scroll', handleInteract, true)
 
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange)
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('pointerup', handlePointerUp)
       window.removeEventListener('resize', handleInteract)
       window.removeEventListener('scroll', handleInteract, true)
       clearTimeout(timeoutId)
     }
   }, [containerRef])
 
-  return { visible, setVisible, position, selectedText, clearSelection }
+  return { visible, setVisible, position, selectedText, clearSelection, useFullWidth }
 }

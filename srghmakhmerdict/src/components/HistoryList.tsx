@@ -18,32 +18,28 @@ const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   ru: <img alt="RU" className="w-5 h-5" src="/free_russia_flag_wavy.svg" />,
 }
 
-interface HistoryItem {
-  word: NonEmptyStringTrimmed
-  language: DictionaryLanguage
-  timestamp?: number
-}
-
 // Sub-component for individual rows to prevent list-wide re-renders if one item changes (rare here but good practice)
 const HistoryItemRow = React.memo(
   ({
-    item,
+    word,
+    language,
     onSelect,
   }: {
-    item: HistoryItem
+    word: NonEmptyStringTrimmed
+    language: DictionaryLanguage
     onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   }) => (
     <button
       className="group flex items-center px-4 py-3 border-b border-divider hover:bg-default-100 cursor-pointer transition-all w-full text-left bg-transparent border-none"
       type="button"
-      onClick={() => onSelect(item.word, item.language)}
+      onClick={() => onSelect(word, language)}
     >
       <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm group-hover:bg-white group-hover:scale-110 transition-all">
-        {MODES_ICON[item.language] ?? '?'}
+        {MODES_ICON[language]}
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-khmer text-foreground text-medium leading-snug truncate group-hover:text-primary transition-colors">
-          {item.word}
+          {word}
         </div>
       </div>
       <div className="text-default-300 group-hover:translate-x-1 transition-transform">
@@ -56,6 +52,12 @@ const HistoryItemRow = React.memo(
 )
 
 HistoryItemRow.displayName = 'HistoryItemRow'
+
+interface HistoryItem {
+  word: NonEmptyStringTrimmed
+  language: DictionaryLanguage
+  timestamp?: number
+}
 
 export const HistoryList: React.FC<HistoryListProps> = React.memo(({ type, onSelect, refreshTrigger }) => {
   const toast = useToast()
@@ -104,7 +106,7 @@ export const HistoryList: React.FC<HistoryListProps> = React.memo(({ type, onSel
   return (
     <div className="flex-1 overflow-y-auto bg-content1">
       {items.map((item, idx) => (
-        <HistoryItemRow key={`${item.word}-${idx}`} item={item} onSelect={onSelect} />
+        <HistoryItemRow key={`${item.word}-${idx}`} language={item.language} word={item.word} onSelect={onSelect} />
       ))}
     </div>
   )
