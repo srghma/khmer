@@ -35,14 +35,14 @@ function L12SidebarGeneralImpl<UC extends CharUppercaseLatin | CharUppercaseCyri
 
   return (
     <>
-      <div className={`${sidebarClass} border-r`}>
+      <div className={`${sidebarClass} border-l pb-[calc(1rem+env(safe-area-inset-bottom))]`}>
         <SidebarHeader>1st</SidebarHeader>
         {l1NavItems.map(l => (
           <NavButton key={l} active={l === activeL1} label={l} onClick={() => scrollToLetter(l)} />
         ))}
       </div>
 
-      <div className={`${sidebarClass} border-l`}>
+      <div className={`${sidebarClass} border-l pb-[calc(1rem+env(safe-area-inset-bottom))]`}>
         <SidebarHeader>2nd</SidebarHeader>
         {l2NavItems.map(l => (
           <NavButton key={l} active={false} label={l} onClick={() => scrollToSubGroup(l)} />

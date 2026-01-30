@@ -22,8 +22,9 @@ export function useWordData(word: NonEmptyStringTrimmed, mode: DictionaryLanguag
         const [fav, res] = await Promise.all([
           FavDb.isFavorite(word, mode),
           DictDb.getWordDetailByMode(mode, word, false),
-          HistoryDb.addToHistory(word, mode),
         ])
+
+        if (res) HistoryDb.addToHistory(word, mode)
 
         if (active) {
           setData(res)

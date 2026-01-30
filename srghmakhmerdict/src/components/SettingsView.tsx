@@ -5,6 +5,7 @@ import { Select, SelectItem } from '@heroui/select'
 import { ThemeSwitch } from './theme-switch'
 import { GoDash, GoPlus, GoTable } from 'react-icons/go'
 import { useSettings, type DictFilterSettings, type DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
+import { SettingsEnKmOfflineImagesControl } from './SettingsEnKmOfflineImagesControl'
 
 const DictFilterSettings_Km_ModeOptions = [
   { key: 'all', label: 'Show All' },
@@ -86,7 +87,7 @@ export const SettingsView: React.FC = memo(() => {
         <p className="text-xs text-default-500">Customize your dictionary experience.</p>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         {/* Tools Group */}
         <div className="flex flex-col gap-3 p-3 rounded-medium bg-primary-50/50 border border-primary-100 dark:bg-primary-900/10 dark:border-primary-900/30">
           <span className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Tools</span>
@@ -198,6 +199,8 @@ export const SettingsView: React.FC = memo(() => {
             />
           </div>
         </div>
+
+        <SettingsEnKmOfflineImagesControl />
       </div>
     </div>
   )

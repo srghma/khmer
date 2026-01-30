@@ -5,7 +5,7 @@ import { iterateLowercaseLatinWords } from './utils/string-lowercase-latin.js'
 import { runFetchCycle } from './utils/run-fetch-cycle.js'
 
 // The path requested
-const DICT_DB_PATH = '/home/srghma/projects/khmer/km_dict_tauri/src-tauri/dict.db'
+const DICT_DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
 export const run_fetch_en_km_com_recursive = async (
   ekCache: EnglishKhmerCache,

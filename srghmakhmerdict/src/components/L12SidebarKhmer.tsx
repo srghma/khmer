@@ -9,7 +9,7 @@ import type {
   ProcessDataOutputKhmerCursor_FirstAndSecondLevel,
   ProcessDataOutputKhmerCursorSub_FirstAndSecondLevel,
 } from '../utils/toGroupKhmer_cursor_full'
-import { KhmerInfoModal } from './KhmerInfoModal'
+import { KhmerInfoModal } from './L12SidebarKhmerCharModal/KhmerInfoModal'
 
 interface L12SidebarKhmerProps {
   data: ProcessDataOutputKhmer_Lengths
@@ -133,7 +133,7 @@ const L12SidebarKhmerImpl: React.FC<L12SidebarKhmerProps> = ({ data, activeL1, s
 
   return (
     <>
-      <div className={`${sidebarClass} border-r`}>
+      <div className={`${sidebarClass} border-l pb-[calc(1rem+env(safe-area-inset-bottom))]`}>
         <SidebarHeader>ក-អ</SidebarHeader>
         {l1NavItems.map(item => (
           <NavButton
@@ -147,7 +147,7 @@ const L12SidebarKhmerImpl: React.FC<L12SidebarKhmerProps> = ({ data, activeL1, s
         ))}
       </div>
 
-      <div className={`${sidebarClass} border-l`}>
+      <div className={`${sidebarClass} border-l pb-[calc(1rem+env(safe-area-inset-bottom))]`}>
         <SidebarHeader>ជើង</SidebarHeader>
         {l2NavItems.map(item => (
           <NavButton

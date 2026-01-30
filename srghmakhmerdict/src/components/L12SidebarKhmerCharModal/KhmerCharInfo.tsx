@@ -1,6 +1,6 @@
 import React from 'react'
 import { Chip } from '@heroui/chip'
-import type { KhmerCharDefinition } from '../utils/khmer-lookup'
+import type { KhmerCharDefinition } from '../../utils/khmer-lookup'
 
 const Row = React.memo(({ label, value, code }: { label: string; value: React.ReactNode; code?: boolean }) => (
   <div className="flex justify-between items-center py-2 border-b border-divider last:border-none">

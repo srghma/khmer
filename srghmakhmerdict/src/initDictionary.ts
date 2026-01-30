@@ -71,7 +71,7 @@ async function waitForDatabase(): Promise<void> {
           cleanup()
           resolve()
         }
-      } catch (e) {
+      } catch (_e: any) {
         // console.warn('⚠️ Could not check DB status:', e)
         // Continue waiting for event
       }

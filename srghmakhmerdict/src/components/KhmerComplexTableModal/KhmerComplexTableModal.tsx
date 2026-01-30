@@ -5,8 +5,8 @@ import { Spinner } from '@heroui/spinner'
 import { Tooltip } from '@heroui/tooltip'
 import { HiSpeakerWave, HiArrowTopRightOnSquare } from 'react-icons/hi2'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { executeGoogleTts } from '../utils/tts'
-import { type KhmerWordsMap, yieldOnlyVerifiedKhmerWords } from '../db/dict'
+import { executeGoogleTts } from '../../utils/tts'
+import { type KhmerWordsMap, yieldOnlyVerifiedKhmerWords } from '../../db/dict'
 
 // TanStack Virtual
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -131,7 +131,14 @@ const WordCard = memo(({ word, highlight }: { word: string; highlight: string })
 
 WordCard.displayName = 'WordCard'
 
-const WordDeckModal = memo(({ isOpen, onClose, data }: { isOpen: boolean; onClose: () => void; data: DeckData }) => {
+const modalClassNames = {
+  base: 'h-[85vh] flex flex-col',
+  body: 'p-0 overflow-hidden flex-1',
+}
+
+const modalBodyDivStyle = { contain: 'strict' }
+
+const WordDeckModal = memo(({ onClose, data }: { onClose: () => void; data: DeckData }) => {
   const parentRef = useRef<HTMLDivElement>(null)
 
   // Calculate rows for a 2-column layout
@@ -145,16 +152,7 @@ const WordDeckModal = memo(({ isOpen, onClose, data }: { isOpen: boolean; onClos
   })
 
   return (
-    <Modal
-      backdrop="blur"
-      classNames={{
-        base: 'h-[85vh] flex flex-col',
-        body: 'p-0 overflow-hidden flex-1',
-      }}
-      isOpen={isOpen}
-      size="2xl"
-      onClose={onClose}
-    >
+    <Modal backdrop="blur" classNames={modalClassNames} isOpen={true} size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1 border-b border-divider shrink-0">
           <div className="flex items-baseline gap-3">
@@ -163,7 +161,7 @@ const WordDeckModal = memo(({ isOpen, onClose, data }: { isOpen: boolean; onClos
           </div>
         </ModalHeader>
         <ModalBody>
-          <div ref={parentRef} className="w-full h-full overflow-y-auto px-4 py-4" style={{ contain: 'strict' }}>
+          <div ref={parentRef} className="w-full h-full overflow-y-auto px-4 py-4" style={modalBodyDivStyle}>
             <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
               {rowVirtualizer.getVirtualItems().map(virtualRow => {
                 const idx1 = virtualRow.index * 2
@@ -446,7 +444,7 @@ export const KhmerComplexTableModal: React.FC<KhmerComplexTableModalProps> = ({ 
           </ModalBody>
         </ModalContent>
       </Modal>
-      {selectedDeck && <WordDeckModal data={selectedDeck} isOpen={!!selectedDeck} onClose={handleCloseDeck} />}
+      {selectedDeck && <WordDeckModal data={selectedDeck} onClose={handleCloseDeck} />}
     </>
   )
 }

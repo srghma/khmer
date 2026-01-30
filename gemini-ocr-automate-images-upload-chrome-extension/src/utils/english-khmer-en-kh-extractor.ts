@@ -7,7 +7,7 @@ import path from 'node:path'
 const BASE_URL = 'https://www.english-khmer.com'
 
 // Configuration for local asset saving
-const LOCAL_ASSETS_DIR = '/home/srghma/projects/khmer/km_dict_tauri/public/en_Dict_en_km_com_assets_images'
+const LOCAL_ASSETS_DIR = '/home/srghma/projects/khmer/srghmakhmerdict/public/en_Dict_en_km_com_assets_images'
 const PUBLIC_URL_PREFIX = '/en_Dict_en_km_com_assets_images'
 
 /**
@@ -109,7 +109,7 @@ export async function cleanEnglishKhmerHtml(html: string): Promise<NonEmptyStrin
   cleanElementAttributes(container)
 
   // 6. Download Images Locally (Async)
-  await downloadImagesAndLinkLocal(container)
+  // await downloadImagesAndLinkLocal(container)
 
   // 7. Final Validation
   const finalHtml = container.innerHTML
@@ -127,69 +127,69 @@ export async function cleanEnglishKhmerHtml(html: string): Promise<NonEmptyStrin
 
 // --- Helpers ---
 
-async function downloadImagesAndLinkLocal(root: Element) {
-  const images = Array.from(root.querySelectorAll('img'))
-
-  if (images.length === 0) return
-
-  // Ensure directory exists
-  if (!fs.existsSync(LOCAL_ASSETS_DIR)) {
-    fs.mkdirSync(LOCAL_ASSETS_DIR, { recursive: true })
-  }
-
-  await Promise.all(
-    images.map(async img => {
-      const src = img.getAttribute('src')
-      if (!src || src.startsWith('data:')) return
-
-      try {
-        // cleanElementAttributes has already ensured absolute URLs,
-        // but let's double check
-        const absUrl = src.startsWith('http') ? src : new URL(src, BASE_URL).href
-
-        // Parse URL to get original filename
-        // e.g. https://site.com/images/cat.png?v=1 -> cat.png
-        const urlObj = new URL(absUrl)
-        const originalFilename = path.basename(urlObj.pathname)
-
-        // Decode URI component in case of encoded characters, fall back to default if empty
-        const safeFilename = decodeURIComponent(originalFilename) || `image-${Date.now()}.png`
-
-        const localFilePath = path.join(LOCAL_ASSETS_DIR, safeFilename)
-        const publicWebPath = `${PUBLIC_URL_PREFIX}/${safeFilename}`
-
-        // Optimization: If file already exists, just link it and skip download
-        // (Remove this check if you always want to overwrite)
-        if (fs.existsSync(localFilePath)) {
-          img.setAttribute('src', publicWebPath)
-        } else {
-          console.log(chalk.yellow(`   Downloading image:`), absUrl)
-          const response = await fetch(absUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Compatible; Bot/1.0)', Referer: 'https://www.english-khmer.com/' },
-          })
-
-          if (!response.ok) {
-            console.warn(`Failed to fetch image: ${absUrl} (${response.status})`)
-            return
-          }
-
-          const arrayBuffer = await response.arrayBuffer()
-          const buffer = Buffer.from(arrayBuffer)
-
-          fs.writeFileSync(localFilePath, buffer)
-          img.setAttribute('src', publicWebPath)
-        }
-
-        // Allow CSS to control size, clean up fixed dimensions
-        img.removeAttribute('width')
-        img.removeAttribute('height')
-        img.style.maxWidth = '100%'
-      } catch (e) {
-        console.warn(`Error downloading image ${src}:`, e)
-      }
-    }),
-  )
-}
+// async function downloadImagesAndLinkLocal(root: Element) {
+//   const images = Array.from(root.querySelectorAll('img'))
+//
+//   if (images.length === 0) return
+//
+//   // Ensure directory exists
+//   if (!fs.existsSync(LOCAL_ASSETS_DIR)) {
+//     fs.mkdirSync(LOCAL_ASSETS_DIR, { recursive: true })
+//   }
+//
+//   await Promise.all(
+//     images.map(async img => {
+//       const src = img.getAttribute('src')
+//       if (!src || src.startsWith('data:')) return
+//
+//       try {
+//         // cleanElementAttributes has already ensured absolute URLs,
+//         // but let's double check
+//         const absUrl = src.startsWith('http') ? src : new URL(src, BASE_URL).href
+//
+//         // Parse URL to get original filename
+//         // e.g. https://site.com/images/cat.png?v=1 -> cat.png
+//         const urlObj = new URL(absUrl)
+//         const originalFilename = path.basename(urlObj.pathname)
+//
+//         // Decode URI component in case of encoded characters, fall back to default if empty
+//         const safeFilename = decodeURIComponent(originalFilename) || `image-${Date.now()}.png`
+//
+//         const localFilePath = path.join(LOCAL_ASSETS_DIR, safeFilename)
+//         const publicWebPath = `${PUBLIC_URL_PREFIX}/${safeFilename}`
+//
+//         // Optimization: If file already exists, just link it and skip download
+//         // (Remove this check if you always want to overwrite)
+//         if (fs.existsSync(localFilePath)) {
+//           img.setAttribute('src', publicWebPath)
+//         } else {
+//           console.log(chalk.yellow(`   Downloading image:`), absUrl)
+//           const response = await fetch(absUrl, {
+//             headers: { 'User-Agent': 'Mozilla/5.0 (Compatible; Bot/1.0)', Referer: 'https://www.english-khmer.com/' },
+//           })
+//
+//           if (!response.ok) {
+//             console.warn(`Failed to fetch image: ${absUrl} (${response.status})`)
+//             return
+//           }
+//
+//           const arrayBuffer = await response.arrayBuffer()
+//           const buffer = Buffer.from(arrayBuffer)
+//
+//           fs.writeFileSync(localFilePath, buffer)
+//           img.setAttribute('src', publicWebPath)
+//         }
+//
+//         // Allow CSS to control size, clean up fixed dimensions
+//         img.removeAttribute('width')
+//         img.removeAttribute('height')
+//         img.style.maxWidth = '100%'
+//       } catch (e) {
+//         console.warn(`Error downloading image ${src}:`, e)
+//       }
+//     }),
+//   )
+// }
 
 // /**
 //  * Finds inline scripts creating `new Audio()`, fetches the MP3,

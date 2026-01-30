@@ -1,0 +1,87 @@
+import React, { useMemo } from 'react'
+import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
+import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { type ColorizationMode, COLOR_PALETTE } from '../../utils/text-processing/utils'
+
+// --- Sub-Component: KhmerWordUnit ---
+
+interface KhmerWordUnitProps {
+  word: NonEmptyStringTrimmed
+  definitionHtml: NonEmptyStringTrimmed | undefined
+  colorIndex: number
+  isKnown: boolean
+  colorMode: ColorizationMode
+}
+
+export const KhmerWordUnit = React.memo(
+  ({ word, definitionHtml, colorIndex, isKnown, colorMode }: KhmerWordUnitProps) => {
+    // Determine styles based on props
+    const dangerouslySetInnerHTML = useMemo(
+      () => (definitionHtml ? { __html: definitionHtml } : undefined),
+      [definitionHtml],
+    )
+
+    const wordStyle = useMemo(() => {
+      if (colorMode === 'segmenter') {
+        return {
+          color: COLOR_PALETTE[colorIndex % COLOR_PALETTE.length]!,
+          fontWeight: 'normal',
+        }
+      }
+
+      if (colorMode === 'dictionary') {
+        return isKnown
+          ? {
+              color: COLOR_PALETTE[colorIndex % COLOR_PALETTE.length]!,
+              fontWeight: '500',
+            }
+          : {
+              color: '#ff5555',
+              textDecoration: 'underline dotted',
+              fontWeight: 'normal',
+            }
+      }
+
+      return { color: undefined, fontWeight: 'normal' }
+    }, [colorMode, colorIndex, isKnown])
+
+    return (
+      <div className="inline-flex flex-col items-center mx-[2px] align-top vertical-align-top relative group">
+        {/* 1. The Khmer Word */}
+        <span className="font-khmer text-lg leading-normal cursor-text select-text" style={wordStyle}>
+          {word}
+        </span>
+
+        {/* 2. The Definition Slot (Popover) */}
+        {dangerouslySetInnerHTML && (
+          <div className="relative w-full flex justify-center mt-1">
+            <Popover backdrop="transparent" offset={10} placement="bottom" showArrow={true}>
+              <PopoverTrigger>
+                <button
+                  className="w-full min-w-[60px] max-w-[80px] h-[2.6em] px-1 rounded-sm bg-default-200/60 hover:bg-default-300/60 cursor-pointer select-none overflow-hidden outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2"
+                  title="Click to expand definition"
+                  type="button"
+                >
+                  {/* Collapsed Content: Plain HTML, Clamped to 2 lines */}
+                  <div
+                    dangerouslySetInnerHTML={dangerouslySetInnerHTML}
+                    className="text-[10px] leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary"
+                  />
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent className="p-0 max-w-[300px] w-max">
+                <div
+                  dangerouslySetInnerHTML={dangerouslySetInnerHTML}
+                  className="max-h-[250px] overflow-y-auto p-3 text-xs text-foreground prose prose-sm max-w-none dark:prose-invert [&_i]:text-primary [&_i]:not-italic [&_i]:font-medium select-text"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+    )
+  },
+)
+
+KhmerWordUnit.displayName = 'KhmerWordUnit'

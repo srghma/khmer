@@ -1,115 +1,124 @@
-import React, { useRef, useCallback } from 'react'
-import { Card, CardBody } from '@heroui/card'
-import { Listbox, ListboxItem } from '@heroui/listbox'
-import { HiMagnifyingGlass } from 'react-icons/hi2'
-import { createPortal } from 'react-dom'
+import React, { useCallback, useState, Suspense } from 'react'
 
 import { executeNativeTts, executeGoogleTts, mapModeToNativeLang } from '../utils/tts'
 import { type DictionaryLanguage } from '../types'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { NativeSpeakerIcon } from './NativeSpeakerIcon'
 import { useTextSelection } from '../hooks/useTextSelection'
-import { KhmerAnalyzer } from './KhmerAnalyzer'
-import { SiGoogletranslate } from 'react-icons/si'
+import { detectModeFromText } from '../utils/rendererUtils'
+import { usePreloadOnIdle } from '../utils/lazyWithPreload'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import lazyWithPreload from 'react-lazy-with-preload'
+import type { KhmerWordsMap } from '../db/dict'
+import type { ColorizationMode } from '../utils/text-processing/utils'
+import { SelectionPopup } from './SelectionContextMenu/SelectionPopup'
 
-// --- 1. Helper moved outside component (Pure Function) ---
-const detectMode = (text: string, currentMode: DictionaryLanguage): DictionaryLanguage => {
-  const t = text.trim()
+// --- 1. Define Lazy Components with Named Export Adapters ---
 
-  if (!t) return currentMode
-  const firstChar = t.charAt(0)
+const KhmerAnalyzerModal = lazyWithPreload(() =>
+  import('./SelectionContextMenu/KhmerAnalyzerModal').then(module => ({
+    default: module.KhmerAnalyzerModal,
+  })),
+)
 
-  if (/\p{Script=Khmer}/u.test(firstChar)) return 'km'
-  if (/\p{Script=Cyrillic}/u.test(firstChar)) return 'ru'
-  if (/[a-zA-Z]/.test(firstChar)) return 'en'
-
-  return currentMode
-}
+// --- 2. Main Component ---
 
 interface SelectionContextMenuProps {
   currentMode: DictionaryLanguage
-  onSearch: (text: string) => void
+  onSearch: (text: NonEmptyStringTrimmed) => void
   containerRef?: React.RefObject<HTMLElement | null>
+  colorMode: ColorizationMode
+  km_map: KhmerWordsMap | undefined
 }
 
-// --- 2. Main Component ---
-export const SelectionContextMenu: React.FC<SelectionContextMenuProps> = ({ currentMode, onSearch, containerRef }) => {
-  // Use extracted hook for logic
-  const { visible, position, selectedText, clearSelection, setVisible } = useTextSelection(containerRef)
-  const menuRef = useRef<HTMLDivElement>(null)
+export const SelectionContextMenu: React.FC<SelectionContextMenuProps> = ({
+  currentMode,
+  onSearch,
+  containerRef,
+  colorMode,
+  km_map,
+}) => {
+  const { visible, position, selectedText, clearSelection, setVisible, useFullWidth } = useTextSelection(containerRef)
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalText, setModalText] = useState<NonEmptyStringTrimmed | undefined>()
+
+  usePreloadOnIdle([KhmerAnalyzerModal])
 
   const handleAction = useCallback(
-    async (key: React.Key) => {
-      const action = key as 'search' | 'native' | 'google'
-
+    async (action: 'search' | 'native' | 'google' | 'khmer_analyzer') => {
       if (!selectedText) return
 
-      // Logic now relies on external pure function, so no dependency on unstable internal function
-      const detectedMode = detectMode(selectedText, currentMode)
-      const textToUse = selectedText as NonEmptyStringTrimmed
+      const detectedMode = detectModeFromText(selectedText, currentMode)
 
       switch (action) {
         case 'search':
           onSearch(selectedText)
+          setVisible(false)
+          clearSelection()
           break
+
         case 'native':
-          executeNativeTts(textToUse, mapModeToNativeLang(detectedMode))
+          executeNativeTts(selectedText, mapModeToNativeLang(detectedMode))
+          setVisible(false)
+          clearSelection()
           break
+
         case 'google':
-          await executeGoogleTts(textToUse, detectedMode)
+          await executeGoogleTts(selectedText, detectedMode)
+          setVisible(false)
+          clearSelection()
+          break
+
+        case 'khmer_analyzer':
+          setModalText(selectedText)
+          setIsModalOpen(true)
+          setVisible(false)
+          clearSelection()
           break
       }
-
-      setVisible(false)
-      clearSelection()
     },
     [selectedText, onSearch, currentMode, setVisible, clearSelection],
   )
 
-  if (!visible) return null
+  const handleModalClose = useCallback(() => {
+    setIsModalOpen(false)
+    setModalText(undefined)
+  }, [])
 
-  // Use Portal to ensure it floats above everything (z-index battles)
-  return createPortal(
-    <div
-      ref={menuRef}
-      className="fixed z-[9999] min-w-[200px] animate-in fade-in zoom-in-95 duration-200"
-      style={{ top: position.y, left: position.x }}
-    >
-      <Card className="shadow-lg border border-default-200 dark:border-default-100 bg-content1/90 backdrop-blur-md">
-        <CardBody className="p-1">
-          <Listbox aria-label="Context Menu Actions" variant="light" onAction={handleAction}>
-            <ListboxItem
-              key="search"
-              className="group"
-              startContent={<HiMagnifyingGlass className="text-xl text-primary" />}
-              textValue="Search"
-            >
-              <span className="font-medium group-hover:text-primary transition-colors">
-                Search &quot;{selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText}&quot;
-              </span>
-            </ListboxItem>
-            <ListboxItem
-              key="native"
-              startContent={<NativeSpeakerIcon className="text-xl text-default-500" />}
-              textValue="Native"
-            >
-              Speak Native
-            </ListboxItem>
-            <ListboxItem
-              key="google"
-              startContent={<SiGoogletranslate className="text-xl text-default-500" />}
-              textValue="Google"
-            >
-              Speak Google
-            </ListboxItem>
-          </Listbox>
+  // Calculate actual visibility boolean to pass down
+  const isPopupVisible = visible && !!selectedText
 
-          <div className="max-h-[300px] overflow-y-auto p-2 bg-background">
-            <KhmerAnalyzer text={selectedText} />
-          </div>
-        </CardBody>
-      </Card>
-    </div>,
-    document.body,
+  return (
+    <>
+      {/*
+        Selection Popup
+        CRITICAL: Always render this component to prevent mounting/unmounting cycles
+        during text selection dragging, which causes Android WebView crashes.
+        We control visibility via props/CSS instead.
+      */}
+      <SelectionPopup
+        currentMode={currentMode}
+        km_map={km_map}
+        position={position}
+        selectedText={selectedText}
+        useFullWidth={useFullWidth}
+        visible={isPopupVisible}
+        onAction={handleAction}
+      />
+
+      {/* Khmer Analyzer Modal */}
+      {isModalOpen && modalText && (
+        <Suspense fallback={null}>
+          <KhmerAnalyzerModal
+            colorMode={colorMode}
+            currentMode={currentMode}
+            isOpen={isModalOpen}
+            km_map={km_map}
+            text={modalText}
+            onClose={handleModalClose}
+          />
+        </Suspense>
+      )}
+    </>
   )
 }

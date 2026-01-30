@@ -22,13 +22,8 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-consonants-vovels'
 
 import { executeNativeTts } from '../utils/tts'
-
-// --- Types ---
-
-interface KhmerAnalyzerProps {
-  text: string
-  className?: string
-}
+import type { TextSegment } from '../utils/text-processing/text'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 // --- Helper Components ---
 
@@ -63,7 +58,7 @@ const SeriesDualDisplay = ({
 /**
  * Renders a single parsed token (The Box)
  */
-const TokenRenderer = ({ token }: { token: Token }) => {
+const TokenRenderer = React.memo(({ token }: { token: Token }) => {
   const handleSpeak = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent parent sentence TTS
     const text =
@@ -200,7 +195,7 @@ const TokenRenderer = ({ token }: { token: Token }) => {
       return (
         <Tooltip
           content={
-            <div className="px-1 py-2 max-w-[200px]">
+            <div className="px-1 py-2 max-w-[100px]">
               <div className="font-bold text-small mb-1">{def.name}</div>
               <div className="text-xs text-default-400">{def.desc_en}</div>
             </div>
@@ -208,7 +203,7 @@ const TokenRenderer = ({ token }: { token: Token }) => {
         >
           <div className={clsx(boxClass, 'border-dashed border-default-400 bg-default-50')}>
             <div className="text-xl font-khmer leading-none mb-1 text-default-500">◌{text}</div>
-            <div className="text-[9px] max-w-[200px] leading-tight text-center text-default-500 line-clamp-2 w-full px-0.5">
+            <div className="text-[9px] max-w-[50px] leading-tight text-center text-default-500 line-clamp-2 w-full px-0.5">
               {def.desc_en}
             </div>
           </div>
@@ -219,57 +214,52 @@ const TokenRenderer = ({ token }: { token: Token }) => {
     default:
       assertNever(token)
   }
-}
+})
 
-// --- Sub-Component: Khmer Segment Block ---
+TokenRenderer.displayName = 'TokenRenderer'
 
-const KhmerSegmentBlock = ({ text }: { text: string }) => {
+// --- Sub-Component: Khmer Word Block ---
+
+const KhmerWordBlock = React.memo(({ word }: { word: string }) => {
   const enrichedTokens = useMemo(() => {
-    const chars = CharArray_mkFromString(text)
+    const chars = CharArray_mkFromString(word)
     const tokens = tokenize(chars)
 
     return enrichWithSeries(tokens)
-  }, [text])
+  }, [word])
 
   return (
-    <div className="flex flex-wrap gap-1.5 items-stretch">
+    <div className="flex flex-wrap gap-1.5 items-stretch bg-default-50/50 rounded-lg p-1 border border-transparent hover:border-default-200 transition-colors">
       {enrichedTokens.map((token, idx) => (
         <TokenRenderer key={idx} token={token} />
       ))}
     </div>
   )
-}
+})
+
+KhmerWordBlock.displayName = 'KhmerWordBlock'
 
 // --- Main Component ---
 
-const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ text, className }) => {
-  // Split text into [Non-Khmer, Khmer, Non-Khmer, Khmer...]
-  // Using Regex capturing group to keep the delimiters (the Khmer parts)
-  const segments = useMemo(() => {
-    if (!text) return []
+interface KhmerAnalyzerProps {
+  segments: NonEmptyArray<TextSegment>
+}
 
-    return text.split(/(\p{Script=Khmer}+)/u)
-  }, [text])
-
+const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
   return (
-    <div className={clsx('w-full', className)}>
-      <div className="leading-8 text-foreground">
-        {segments.map((segment, index) => {
-          if (!segment) return null
-
-          // Check if this segment is Khmer
-          if (/\p{Script=Khmer}/u.test(segment)) {
-            return <KhmerSegmentBlock key={index} text={segment} />
-          }
-
-          // Render Non-Khmer text normally
+    <div className="h-full flex flex-wrap gap-x-4 gap-y-4 items-start content-start">
+      {segments.map((segment, segIdx) => {
+        if (segment.t === 'notKhmer') {
           return (
-            <span key={index} className="text-base text-default-700 px-1">
-              {segment}
+            <span key={segIdx} className="text-base text-default-700 self-center px-1">
+              {segment.v}
             </span>
           )
-        })}
-      </div>
+        }
+
+        // For Khmer segments, iterate over words
+        return segment.words.map((word, wordIdx) => <KhmerWordBlock key={`${segIdx}-${wordIdx}`} word={word} />)
+      })}
     </div>
   )
 }

@@ -39,3 +39,15 @@ export const getHistory = async (): Promise<HistoryItem[]> => {
 
   return await db.select<HistoryItem[]>('SELECT word, language FROM history ORDER BY timestamp DESC')
 }
+
+export const removeHistoryItem = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
+  const db = await getUserDb()
+
+  await db.execute('DELETE FROM history WHERE word = $1 AND language = $2', [word, language])
+}
+
+export const deleteAllHistory = async (): Promise<void> => {
+  const db = await getUserDb()
+
+  await db.execute('DELETE FROM history')
+}

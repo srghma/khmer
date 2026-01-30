@@ -37,7 +37,7 @@ export interface EnglishKhmerCache {
 
 const getDbPath = (): string => {
   const baseDir = process.env.XDG_CACHE_HOME || `${process.env.HOME}/.cache`
-  return path.join(baseDir, 'english-khmer-com-cache2.sqlite')
+  return path.join(baseDir, 'english-khmer-com-cache3.sqlite')
 }
 
 type EnKmComDbConnection = Database & { readonly __brandEnKmComDbConnection: 'EnKmComDbConnection' }

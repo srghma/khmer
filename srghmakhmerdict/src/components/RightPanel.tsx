@@ -1,9 +1,16 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, Suspense, useRef, useState } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { DetailView } from './DetailView'
+import { Spinner } from '@heroui/spinner'
 import { type DictionaryLanguage } from '../types'
 import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'
+import lazyWithPreload from 'react-lazy-with-preload'
+import { SelectionContextMenu } from './SelectionContextMenu'
+import { detectModeFromText } from '../utils/rendererUtils'
+import type { ColorizationMode } from '../utils/text-processing/utils'
+
+// --- LAZY IMPORT ---
+const DetailView = lazyWithPreload(() => import('./DetailView').then(m => ({ default: m.DetailView })))
 
 interface RightPanelProps {
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | null
@@ -14,6 +21,21 @@ interface RightPanelProps {
   searchQuery: string
   km_map: KhmerWordsMap | undefined
 }
+
+const SuspenseFallback = (
+  <div className="flex-1 flex items-center justify-center h-full">
+    <Spinner color="primary" size="lg" />
+  </div>
+)
+
+const NoSelectedWord = (
+  <div className="hidden md:flex flex-1 bg-background items-center justify-center text-default-400 p-8 text-center">
+    <div>
+      <p className="mb-2 text-lg font-semibold">Welcome to Khmer Dictionary</p>
+      <p className="text-sm">Select a word from the list to view details</p>
+    </div>
+  </div>
+)
 
 export const RightPanel: React.FC<RightPanelProps> = ({
   selectedWord,
@@ -36,29 +58,50 @@ export const RightPanel: React.FC<RightPanelProps> = ({
     }
   }, [canGoBack, goBack, clearSelection])
 
-  if (!selectedWord) {
-    return (
-      <div className="hidden md:flex flex-1 bg-background items-center justify-center text-default-400 p-8 text-center">
-        <div>
-          <p className="mb-2 text-lg font-semibold">Welcome to Khmer Dictionary</p>
-          <p className="text-sm">Select a word from the list to view details</p>
-        </div>
-      </div>
-    )
-  }
+  const handleSelectionSearch = useCallback(
+    (text: string) => {
+      if (!selectedWord) return
+      const trimmed = text.trim()
+
+      if (!trimmed) return
+      const targetMode = detectModeFromText(trimmed, selectedWord.mode)
+
+      navigateTo(trimmed as NonEmptyStringTrimmed, targetMode)
+    },
+    [navigateTo, selectedWord],
+  )
+
+  const [colorMode, setColorMode] = useState<ColorizationMode>('segmenter')
+
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  if (!selectedWord) return NoSelectedWord
 
   return (
     <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
-      <DetailView
-        canGoBack={canGoBack}
-        fontSize={detailsFontSize}
-        highlightMatch={highlightInDetails ? searchQuery : undefined}
-        km_map={km_map}
-        mode={selectedWord.mode}
-        word={selectedWord.word}
-        onBack={handleBack}
-        onNavigate={navigateTo}
-      />
+      <Suspense fallback={SuspenseFallback}>
+        <SelectionContextMenu
+          colorMode={colorMode}
+          containerRef={contentRef}
+          currentMode={selectedWord.mode}
+          km_map={km_map}
+          onSearch={handleSelectionSearch}
+        />
+
+        <DetailView
+          ref={contentRef}
+          canGoBack={canGoBack}
+          colorMode={colorMode}
+          fontSize={detailsFontSize}
+          highlightMatch={highlightInDetails ? searchQuery : undefined}
+          km_map={km_map}
+          mode={selectedWord.mode}
+          setColorMode={setColorMode}
+          word={selectedWord.word}
+          onBack={handleBack}
+          onNavigate={navigateTo}
+        />
+      </Suspense>
     </div>
   )
 }

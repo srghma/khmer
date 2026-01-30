@@ -1,8 +1,9 @@
-import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle, memo } from 'react'
+import React, { useRef, useCallback, useEffect, forwardRef, useImperativeHandle, memo, useMemo } from 'react'
 import { useVirtualizer, defaultRangeExtractor, type Range, type VirtualItem } from '@tanstack/react-virtual'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
+import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 export type FlatListItem =
   | {
@@ -50,6 +51,8 @@ const RowItem = memo<RowItemProps>(({ item, virtualRow, isSticky, isActiveSticky
     ...(isActiveSticky ? { position: 'sticky', transform: 'none', top: 0 } : {}),
   }
 
+  const onClick = useCallback(() => (item.type === 'header' ? undefined : onWordClick(item.word)), [item, onWordClick])
+
   return (
     <div className="absolute top-0 left-0 w-full" style={style}>
       {item.type === 'header' ? (
@@ -61,8 +64,7 @@ const RowItem = memo<RowItemProps>(({ item, virtualRow, isSticky, isActiveSticky
       ) : (
         <button
           className={`h-full flex items-center px-6 border-b border-divider hover:brightness-95 dark:hover:brightness-110 w-full text-left transition-all ${item.bgClass}`}
-          // Use inline here because it's cheap, but parent onWordClick is stable
-          onClick={() => onWordClick(item.word)}
+          onClick={onClick}
         >
           <span className="text-foreground-900 font-khmer text-base leading-snug">{renderWord(item.word)}</span>
         </button>
@@ -90,7 +92,6 @@ export const VirtualizedList = forwardRef<VirtualizedListHandle, Props>(function
     overscan: 10,
     rangeExtractor: useCallback(
       (range: Range) => {
-        // Find the closest sticky header above the current start index
         const activeIdx = [...stickyIndexes].reverse().find(i => range.startIndex >= i) ?? 0
 
         activeStickyIndexRef.current = activeIdx
@@ -126,16 +127,21 @@ export const VirtualizedList = forwardRef<VirtualizedListHandle, Props>(function
     return () => el.removeEventListener('scroll', handleScroll)
   }, [onActiveHeaderChange])
 
-  // Pre-calculate expensive lookups if possible, but Set lookup is O(1)
-  // Converting stickyIndexes array to Set inside render is fast for small arrays,
-  // but if stickyIndexes is huge, memoize it. Assuming < 100 headers, array includes is fine.
+  // Extract values needed for rendering to dependencies
+  const virtualItems = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
 
-  return (
-    <div ref={parentRef} className="flex-1 overflow-y-auto contain-strict bg-content1 relative">
-      <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-        {rowVirtualizer.getVirtualItems().map(vRow => {
-          const item = items[vRow.index]!
-          const isSticky = stickyIndexes.includes(vRow.index)
+  // Convert stickyIndexes array to Set for O(1) lookup in the render loop
+  const stickySet = useMemo(() => new Set(stickyIndexes), [stickyIndexes])
+
+  const listContent = useMemo(() => {
+    return (
+      <div style={{ height: `${totalSize}px`, width: '100%', position: 'relative' }}>
+        {virtualItems.map(vRow => {
+          const item = assertIsDefinedAndReturn(items[vRow.index])
+          const isSticky = stickySet.has(vRow.index)
+          // Accessing the ref here works because virtualizer changes state (and triggers render)
+          // when the rangeExtractor logic updates the active index.
           const isActiveSticky = isSticky && activeStickyIndexRef.current === vRow.index
 
           return (
@@ -151,6 +157,15 @@ export const VirtualizedList = forwardRef<VirtualizedListHandle, Props>(function
           )
         })}
       </div>
+    )
+  }, [virtualItems, totalSize, items, stickySet, renderWord, onWordClick])
+
+  return (
+    <div
+      ref={parentRef}
+      className="flex-1 overflow-y-auto contain-strict bg-content1 relative pb-[calc(1rem+env(safe-area-inset-bottom))]"
+    >
+      {listContent}
     </div>
   )
 })

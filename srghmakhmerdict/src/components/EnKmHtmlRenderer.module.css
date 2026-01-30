@@ -1,0 +1,57 @@
+.enKmScope {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: hsl(var(--heroui-foreground) / 0.9);
+}
+
+/* --- Global Overrides for dangerouslySetInnerHTML content --- */
+
+/* The Wrapper Div */
+.enKmScope :global(.img_and_ocr) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Left align image and text */
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 4px;
+  border-radius: 8px;
+  background-color: hsl(var(--heroui-content1) / 0.3);
+  /* Subtle background for the group */
+  border: 1px solid hsl(var(--heroui-divider) / 0.5);
+}
+
+/* Image styling */
+.enKmScope :global(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--heroui-divider));
+  display: block;
+  /* Removes bottom space in standard flow */
+}
+
+/* OCR Text styling */
+.enKmScope :global(.img-ocr) {
+  display: inline-block;
+  margin-top: 4px;
+  margin-left: 2px;
+  font-size: 0.9rem;
+  color: hsl(var(--heroui-foreground) / 0.7);
+  font-style: italic;
+  font-family: 'Hanuman', serif;
+  /* Ensure Khmer font is applied */
+  user-select: text;
+  /* Allow user to copy the OCR text */
+}
+
+/* Link styling */
+.enKmScope :global(a) {
+  color: hsl(var(--heroui-primary));
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.enKmScope :global(a:hover) {
+  text-decoration: underline;
+}

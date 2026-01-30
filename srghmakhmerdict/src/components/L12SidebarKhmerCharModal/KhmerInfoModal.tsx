@@ -2,9 +2,9 @@ import React from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal'
 import { Button } from '@heroui/button'
 import { KhmerCharInfo } from './KhmerCharInfo'
-import { getDefinitionFromL1, getDefinitionFromL2, type KhmerCharDefinition } from '../utils/khmer-lookup'
-import type { ProcessDataOutputKhmerCursor_OnlyFirstLevel } from '../utils/toGroupKhmer_cursor_onlyFirstLevel'
-import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../utils/toGroupKhmer_cursor_full'
+import { getDefinitionFromL1, getDefinitionFromL2, type KhmerCharDefinition } from '../../utils/khmer-lookup'
+import type { ProcessDataOutputKhmerCursor_OnlyFirstLevel } from '../../utils/toGroupKhmer_cursor_onlyFirstLevel'
+import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../../utils/toGroupKhmer_cursor_full'
 
 interface KhmerInfoModalProps {
   isOpen: boolean

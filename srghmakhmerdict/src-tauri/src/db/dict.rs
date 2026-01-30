@@ -1,11 +1,7 @@
 use crate::AppState;
 use serde::Serialize;
+use std::collections::HashMap;
 use tauri::{State, command};
-
-const TBL_EN: &str = "en_Dict";
-const TBL_KM: &str = "km_Dict";
-const TBL_RU: &str = "ru_Dict";
-const TBL_EN_EXT: &str = "en_Extension";
 
 // --- Structs ---
 
@@ -133,7 +129,7 @@ pub async fn is_db_ready(state: State<'_, AppState>) -> Result<bool, String> {
 #[command]
 pub async fn get_en_words(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT Word FROM {} ORDER BY Word ASC", TBL_EN);
+    let sql = "SELECT Word FROM en_Dict WHERE Desc IS NOT NULL OR en_km_com IS NOT NULL ORDER BY Word ASC";
     let rows = sqlx::query_as::<_, WordRow>(&sql)
         .fetch_all(&pool)
         .await
@@ -144,7 +140,7 @@ pub async fn get_en_words(state: State<'_, AppState>) -> Result<Vec<String>, Str
 #[command]
 pub async fn get_ru_words(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT Word FROM {} ORDER BY Word ASC", TBL_RU);
+    let sql = "SELECT Word FROM ru_Dict ORDER BY Word ASC";
     let rows = sqlx::query_as::<_, WordRow>(&sql)
         .fetch_all(&pool)
         .await
@@ -164,8 +160,7 @@ pub struct KmWord {
 pub async fn get_km_words(state: State<'_, AppState>) -> Result<Vec<KmWord>, String> {
     let pool = state.get_pool().await?;
 
-    let sql = format!(
-        "SELECT
+    let sql = "SELECT
             Word,
             (
                 Wiktionary IS NOT NULL
@@ -178,10 +173,8 @@ pub async fn get_km_words(state: State<'_, AppState>) -> Result<Vec<KmWord>, Str
                 OR from_russian_wiki IS NOT NULL
                 OR en_km_com IS NOT NULL
             ) AS is_verified
-         FROM {}
-         ORDER BY Word ASC",
-        TBL_KM
-    );
+         FROM km_Dict
+         ORDER BY Word ASC";
 
     // Directly fetch into KmWord structs
     let rows = sqlx::query_as::<_, KmWord>(&sql)
@@ -198,7 +191,7 @@ pub async fn get_word_detail_km(
     word: String,
 ) -> Result<Option<WordDetailKm>, String> {
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT * FROM {} WHERE Word = ?", TBL_KM);
+    let sql = "SELECT * FROM km_Dict WHERE Word = ?";
     let row = sqlx::query_as::<_, WordDetailKmRaw>(&sql)
         .bind(word)
         .fetch_optional(&pool)
@@ -216,12 +209,9 @@ pub async fn get_word_detail_en(
 ) -> Result<Option<WordDetailEn>, String> {
     let pool = state.get_pool().await?;
     let sql = if use_extension_db {
-        format!(
-            "SELECT DISTINCT d.* FROM {} d JOIN {} e ON d.Word = e.Extension WHERE e.Word = ?",
-            TBL_EN, TBL_EN_EXT
-        )
+        "SELECT DISTINCT d.* FROM en_Dict d JOIN en_Extension e ON d.Word = e.Extension WHERE e.Word = ?"
     } else {
-        format!("SELECT * FROM {} WHERE Word = ?", TBL_EN)
+        "SELECT * FROM en_Dict WHERE Word = ?"
     };
     let row = sqlx::query_as::<_, WordDetailEn>(&sql)
         .bind(word)
@@ -238,7 +228,7 @@ pub async fn get_word_detail_ru(
     word: String,
 ) -> Result<Option<WordDetailRu>, String> {
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT * FROM {} WHERE Word = ?", TBL_RU);
+    let sql = "SELECT * FROM ru_Dict WHERE Word = ?";
     let row = sqlx::query_as::<_, WordDetailRu>(&sql)
         .bind(word)
         .fetch_optional(&pool)
@@ -256,10 +246,7 @@ pub async fn search_en_content(
 ) -> Result<Vec<String>, String> {
     let pool = state.get_pool().await?;
     let pattern = format!("%{}%", query);
-    let sql = format!(
-        "SELECT Word FROM {} WHERE Desc LIKE ? ORDER BY LENGTH(Word) ASC LIMIT 50",
-        TBL_EN
-    );
+    let sql = "SELECT Word FROM en_Dict WHERE Desc LIKE ? ORDER BY LENGTH(Word) ASC LIMIT 50";
     let rows = sqlx::query_as::<_, WordRow>(&sql)
         .bind(pattern)
         .fetch_all(&pool)
@@ -275,10 +262,7 @@ pub async fn search_ru_content(
 ) -> Result<Vec<String>, String> {
     let pool = state.get_pool().await?;
     let pattern = format!("%{}%", query);
-    let sql = format!(
-        "SELECT Word FROM {} WHERE Desc LIKE ? ORDER BY LENGTH(Word) ASC LIMIT 50",
-        TBL_RU
-    );
+    let sql = "SELECT Word FROM ru_Dict WHERE Desc LIKE ? ORDER BY LENGTH(Word) ASC LIMIT 50";
     let rows = sqlx::query_as::<_, WordRow>(&sql)
         .bind(pattern)
         .fetch_all(&pool)
@@ -294,17 +278,14 @@ pub async fn search_km_content(
 ) -> Result<Vec<String>, String> {
     let pool = state.get_pool().await?;
     let pattern = format!("%{}%", query);
-    let sql = format!(
-        "SELECT Word FROM {}
+    let sql = "SELECT Word FROM km_Dict
          WHERE Desc LIKE ?
             OR Wiktionary LIKE ?
             OR from_chuon_nath LIKE ?
             OR from_russian_wiki LIKE ?
             OR from_csv_rawHtml LIKE ?
             OR en_km_com LIKE ?
-         ORDER BY LENGTH(Word) ASC LIMIT 50",
-        TBL_KM
-    );
+         ORDER BY LENGTH(Word) ASC LIMIT 50";
     let rows = sqlx::query_as::<_, WordRow>(&sql)
         .bind(&pattern)
         .bind(&pattern)
@@ -316,4 +297,89 @@ pub async fn search_km_content(
         .await
         .map_err(|e| e.to_string())?;
     Ok(rows.into_iter().map(|r| r.word).collect())
+}
+
+#[derive(Serialize, sqlx::FromRow)]
+pub struct EnKmComOcrRow {
+    id: i64,
+    text: String,
+}
+
+#[command]
+pub async fn get_en_km_com_images_ocr(
+    state: State<'_, AppState>,
+    ids: Vec<i64>,
+) -> Result<HashMap<i64, String>, String> {
+    if ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    let pool = state.get_pool().await?;
+
+    // Dynamically build "id IN (?, ?, ?)"
+    // Note: SQLite has a limit on variables, but typically it's high (999 or 32766).
+    // For a dictionary entry rendering a few images, this is safe.
+    let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
+    let sql = format!(
+        "SELECT id, text FROM en_km_com_ocr WHERE id IN ({})",
+        placeholders.join(",")
+    );
+
+    let mut query = sqlx::query_as::<_, EnKmComOcrRow>(&sql);
+
+    for id in ids {
+        query = query.bind(id);
+    }
+
+    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    let result: HashMap<i64, String> = rows.into_iter().map(|r| (r.id, r.text)).collect();
+
+    Ok(result)
+}
+
+// Add this struct for the result
+#[derive(Serialize, sqlx::FromRow)]
+pub struct WordDefinitionRow {
+    #[sqlx(rename = "Word")]
+    word: String,
+    definition: Option<String>,
+}
+
+#[command]
+pub async fn get_km_word_definitions(
+    state: State<'_, AppState>,
+    words: Vec<String>,
+) -> Result<HashMap<String, String>, String> {
+    if words.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    let pool = state.get_pool().await?;
+
+    // Create a dynamic IN clause: "Word IN (?, ?, ?)"
+    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
+    let sql = format!(
+        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_russian_wiki) as definition
+         FROM km_Dict
+         WHERE Word IN ({})",
+        placeholders.join(",")
+    );
+
+    let mut query = sqlx::query_as::<_, WordDefinitionRow>(&sql);
+
+    for word in words {
+        query = query.bind(word);
+    }
+
+    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    let mut result = HashMap::new();
+    for row in rows {
+        if let Some(def) = row.definition {
+            result.insert(row.word, def);
+        }
+    }
+
+    Ok(result)
 }

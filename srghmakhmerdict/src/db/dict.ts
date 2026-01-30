@@ -9,6 +9,7 @@ import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-c
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { isKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import type { ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
 
 // --- Lists ---
 
@@ -156,4 +157,10 @@ export const searchContentByMode = async (
     default:
       assertNever(mode)
   }
+}
+
+export const get_en_km_com_images_ocr = async (ids: ValidNonNegativeInt[]) => {
+  return await invoke<Record<ValidNonNegativeInt, NonEmptyStringTrimmed>>('get_en_km_com_images_ocr', {
+    ids,
+  })
 }

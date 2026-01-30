@@ -24,14 +24,13 @@ const COLOR_PALETTE = [
  * Safely handles HTML tags by parsing the DOM and only modifying text nodes.
  */
 export const colorizeHtml = (
-  html: NonEmptyStringTrimmed | undefined,
+  html: NonEmptyStringTrimmed,
   mode: ColorizationMode,
   km_map: KhmerWordsMap | undefined,
-): NonEmptyStringTrimmed | undefined => {
-  if (!html) return undefined
-  if (mode === 'none') return html as NonEmptyStringTrimmed
+): NonEmptyStringTrimmed => {
+  if (mode === 'none') return html
   // If we need dictionary mode but don't have the dictionary yet, return original
-  if (mode === 'dictionary' && !km_map) return html as NonEmptyStringTrimmed
+  if (mode === 'dictionary' && !km_map) return html
 
   // 1. Create a temporary container to parse the HTML
   // Note: In a Node.js/SSR environment, this would require JSDOM.
@@ -126,4 +125,112 @@ export const colorizeHtml = (
 
   // 5. Return the serialized HTML
   return nonEmptyString_afterTrim(tempDiv.innerHTML)
+}
+
+export const colorizeHtml_allowUndefined = (
+  html: NonEmptyStringTrimmed | undefined,
+  mode: ColorizationMode,
+  km_map: KhmerWordsMap | undefined,
+): NonEmptyStringTrimmed | undefined => {
+  return html ? colorizeHtml(html, mode, km_map) : undefined
+}
+
+////////////////////////////////////////////////////////////////////////
+
+const HTML_DETECTION_REGEX = /<[a-z][\s\S]*>/i
+
+/**
+ * Escapes unsafe HTML characters to ensure the text renders literally
+ * before we inject our own <span> tags.
+ */
+const escapeHtml = (unsafe: string): string => {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+export const colorizeText = (
+  text: NonEmptyStringTrimmed,
+  mode: ColorizationMode,
+  km_map: KhmerWordsMap | undefined,
+): NonEmptyStringTrimmed => {
+  // 1. Validation: Ensure no HTML exists in the input
+  if (HTML_DETECTION_REGEX.test(text)) {
+    throw new Error(
+      `Invalid input for colorizeText: HTML tags detected. Use colorizeHtml instead. Input snippet: ${text.substring(0, 50)}...`,
+    )
+  }
+
+  // 2. Escape the raw text to prevent XSS or rendering glitches (e.g. "1 < 2")
+  // We must do this BEFORE replacing Khmer words, so we don't escape our own spans later.
+  // Note: Khmer characters usually don't overlap with HTML entities, so this is safe.
+  const safeText = escapeHtml(text)
+
+  if (mode === 'none') return nonEmptyString_afterTrim(safeText)
+  if (mode === 'dictionary' && !km_map) return nonEmptyString_afterTrim(safeText)
+
+  // 3. Global state for color cycling
+  let wordCounter = 0
+
+  // 4. Process the string via Regex replacement
+  const newHtml = safeText.replace(/[\p{Script=Khmer}]+/gu, match_ => {
+    const match = match_ as TypedKhmerWord
+    let words: TypedKhmerWord[] = []
+
+    if (mode === 'segmenter') {
+      words = khmerSentenceToWords_usingSegmenter(match)
+    } else if (mode === 'dictionary' && km_map) {
+      words = khmerSentenceToWords_usingDictionary(match, km_map)
+    }
+
+    console.log('mode', mode, 'km_map', km_map, 'match', match, 'words', words)
+
+    if (words.length === 0) throw new Error('unexpected empty words, could generate empty html')
+
+    return words
+      .map(w => {
+        const trimmed = w.trim()
+
+        if (!trimmed) return w // Preserve spaces
+
+        if (mode === 'segmenter') {
+          const color = COLOR_PALETTE[wordCounter % COLOR_PALETTE.length]
+
+          wordCounter++
+
+          return `<span style="color:${color};">${w}</span>`
+        }
+
+        if (mode === 'dictionary' && km_map) {
+          if (km_map.has(w)) {
+            const color = COLOR_PALETTE[wordCounter % COLOR_PALETTE.length]
+
+            wordCounter++
+
+            return `<span style="color:${color};font-weight:500;">${w}</span>`
+          }
+
+          // Unknown word
+          return `<span style="color:#ff5555; text-decoration: underline decoration-dotted;">${w}</span>`
+        }
+
+        return w
+      })
+      .join('')
+  })
+
+  // 5. Return the resulting string (which is now HTML)
+  // We use the validation function to ensure the result is valid
+  return nonEmptyString_afterTrim(newHtml)
+}
+
+export const colorizeText_allowUndefined = (
+  text: NonEmptyStringTrimmed | undefined,
+  mode: ColorizationMode,
+  km_map: KhmerWordsMap | undefined,
+): NonEmptyStringTrimmed | undefined => {
+  return text ? colorizeText(text, mode, km_map) : undefined
 }

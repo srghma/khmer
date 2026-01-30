@@ -1,4 +1,5 @@
 import { type TypedKhmerWord } from './khmer-word'
+import { Array_toNonEmptyArray_orThrow, type NonEmptyArray } from './non-empty-array'
 import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 
 const nativeSegmenter = new Intl.Segmenter('km', { granularity: 'word' })
@@ -15,8 +16,8 @@ const nativeSegmenter = new Intl.Segmenter('km', { granularity: 'word' })
 'ផ្លូវ  tstកខ្វេងកខ្វាក់' (impossible)
 =>['ផ្លូវ', '  ', 'tstកខ្វេងក', 'ខ្វាក់']
 */
-export function khmerSentenceToWords_usingSegmenter(str: TypedKhmerWord): TypedKhmerWord[] {
-  return Array.from(nativeSegmenter.segment(str)).map(s => s.segment as TypedKhmerWord)
+export function khmerSentenceToWords_usingSegmenter(str: TypedKhmerWord): NonEmptyArray<TypedKhmerWord> {
+  return Array_toNonEmptyArray_orThrow(Array.from(nativeSegmenter.segment(str)).map(s => s.segment as TypedKhmerWord))
 }
 
 // --- Dictionary Approach ---
@@ -36,7 +37,7 @@ khmerSentenceToWords_usingDictionary('ផ្លូវ  tstកខ្វេងក�
 export const khmerSentenceToWords_usingDictionary = (
   str: TypedKhmerWord,
   dict: { has: (s: NonEmptyStringTrimmed) => boolean },
-): TypedKhmerWord[] => {
+): NonEmptyArray<TypedKhmerWord> => {
   const chars = Array.from(str) as TypedKhmerWord[]
   const result: TypedKhmerWord[] = []
 
@@ -57,7 +58,7 @@ export const khmerSentenceToWords_usingDictionary = (
     }
   }
 
-  return result
+  return Array_toNonEmptyArray_orThrow(result)
 }
 
 // Helper: Find longest prefix in dictionary starting at index

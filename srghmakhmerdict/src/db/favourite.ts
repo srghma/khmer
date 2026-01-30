@@ -8,13 +8,13 @@ export interface FavouriteItem {
 }
 
 // TODO: add removeFavorite many
-export const removeFavorite = async (word: string, language: DictionaryLanguage): Promise<void> => {
+export const removeFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
   const db = await getUserDb()
 
   await db.execute('DELETE FROM favorites WHERE word = $1 AND language = $2', [word, language])
 }
 
-export const addFavorite = async (word: string, language: DictionaryLanguage): Promise<void> => {
+export const addFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
   const db = await getUserDb()
   const timestamp = Date.now()
 
@@ -41,7 +41,7 @@ COMMIT;
   )
 }
 
-export const isFavorite = async (word: string, language: DictionaryLanguage): Promise<boolean> => {
+export const isFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
   const db = await getUserDb()
   const rows = await db.select<{ c: number }[]>('SELECT 1 as c FROM favorites WHERE word = $1 AND language = $2', [
     word,
@@ -55,4 +55,10 @@ export const getFavorites = async (): Promise<FavouriteItem[]> => {
   const db = await getUserDb()
 
   return await db.select<FavouriteItem[]>('SELECT word, language FROM favorites ORDER BY timestamp DESC')
+}
+
+export const deleteAllFavourites = async (): Promise<void> => {
+  const db = await getUserDb()
+
+  await db.execute('DELETE FROM favourites')
 }
