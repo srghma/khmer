@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { Button } from '@heroui/button' // Optional: Use HeroUI button or standard html button
+import { Button } from '@heroui/react' // Optional: Use HeroUI button or standard html button
 
 interface Props {
   children: ReactNode

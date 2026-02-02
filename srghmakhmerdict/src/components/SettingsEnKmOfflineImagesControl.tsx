@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Switch } from '@heroui/switch'
-import { Button } from '@heroui/button'
+import { Switch } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { Progress } from '@heroui/progress'
 import { MdOutlineCloudDownload, MdCheckCircle } from 'react-icons/md'
 import { invoke } from '@tauri-apps/api/core'

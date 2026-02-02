@@ -2,7 +2,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardBody } from '@heroui/card'
+import { Card, CardBody } from '@heroui/react'
 import type { TypedWithoutKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-without-khmer'
 
 const maskKhmerTextInHtml = (html: NonEmptyStringTrimmed): TypedWithoutKhmer => {

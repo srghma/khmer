@@ -1,5 +1,5 @@
 import { memo, Suspense } from 'react'
-import { Spinner } from '@heroui/spinner'
+import { Spinner } from '@heroui/react'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 

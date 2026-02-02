@@ -6,7 +6,7 @@ import React, { useMemo } from 'react'
 import type { WordDetailKm } from '../../db/dict'
 import { getBestDefinitionHtml } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 import { State, type Card as FSRSCard } from '@squeakyrobot/fsrs'
-import { Chip } from '@heroui/chip'
+import { Chip } from '@heroui/react'
 
 export const AnkiList = React.memo(
   ({

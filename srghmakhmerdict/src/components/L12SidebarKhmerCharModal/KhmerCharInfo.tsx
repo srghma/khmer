@@ -1,5 +1,5 @@
 import React from 'react'
-import { Chip } from '@heroui/chip'
+import { Chip } from '@heroui/react'
 import type { KhmerCharDefinition } from '../../utils/khmer-lookup'
 
 const Row = React.memo(({ label, value, code }: { label: string; value: React.ReactNode; code?: boolean }) => (

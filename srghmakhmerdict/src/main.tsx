@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { HeroUIProvider } from '@heroui/system'
-import { GlobalToastProvider } from './providers/ToastProvider'
+import { Toast } from '@heroui/react';
 import { NavigationProvider } from './providers/NavigationProvider'
 import { SettingsProvider } from './providers/SettingsProvider'
 
@@ -14,16 +13,14 @@ const initPromise = initializeDictionaryData()
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <HeroUIProvider>
-      <GlobalToastProvider />
-      {/* Pass the promise that resolves when DB is ready */}
-      <DictionaryProvider initPromise={initPromise}>
-        <NavigationProvider>
-          <SettingsProvider>
-            <App />
-          </SettingsProvider>
-        </NavigationProvider>
-      </DictionaryProvider>
-    </HeroUIProvider>
+    <Toast.Container />
+    {/* Pass the promise that resolves when DB is ready */}
+    <DictionaryProvider initPromise={initPromise}>
+      <NavigationProvider>
+        <SettingsProvider>
+          <App />
+        </SettingsProvider>
+      </NavigationProvider>
+    </DictionaryProvider>
   </React.StrictMode>,
 )

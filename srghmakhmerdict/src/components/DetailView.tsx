@@ -4,11 +4,11 @@ import {
   Array_toNonEmptyArray_orThrow,
   type NonEmptyArray,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
-import { Button } from '@heroui/button'
-import { Card, CardBody } from '@heroui/card'
+import { Button } from '@heroui/react'
+import { Card, CardBody } from '@heroui/react'
 import { ScrollShadow } from '@heroui/scroll-shadow'
-import { Spinner } from '@heroui/spinner'
-import type { SharedSelection } from '@heroui/system'
+import { Spinner } from '@heroui/react'
+import type { SharedSelection } from '@heroui/react'
 
 import { type DictionaryLanguage } from '../types'
 import { WiktionaryRenderer } from './WiktionaryRenderer'

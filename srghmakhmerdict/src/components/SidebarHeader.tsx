@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { Tabs, Tab } from '@heroui/tabs'
+import { Tabs, Tab } from '@heroui/react'
 import { GoHistory, GoStar, GoGear } from 'react-icons/go'
 import { SearchBar } from './SearchBar'
 import type { AppTab } from '../types'

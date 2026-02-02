@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { Card, CardBody } from '@heroui/card'
-import { Listbox, ListboxItem } from '@heroui/listbox'
+import { Card, Label } from '@heroui/react'
+import { ListBox } from '@heroui/react'
 import { HiMagnifyingGlass } from 'react-icons/hi2'
 import { createPortal } from 'react-dom'
 import { SiGoogletranslate } from 'react-icons/si'
@@ -178,9 +178,10 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
           <RxDragHandleDots2 className="text-default-400 rotate-90" />
         </div>
 
-        <CardBody className="p-1 pt-0">
-          <Listbox aria-label="Context Menu Actions" variant="light" onAction={handleAction}>
-            <ListboxItem key="search" className="group" startContent={HiMagnifyingGlass_} textValue="Search">
+        <Card.Content className="p-1 pt-0">
+          <ListBox aria-label="Context Menu Actions" onAction={handleAction}>
+            <ListBox.Item key="search" className="group" textValue="Search">
+              {HiMagnifyingGlass_}
               {selectedText ? (
                 <FirstNonEmptyShortDetailView
                   fallback={searchFallback}
@@ -189,24 +190,31 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
                   word={selectedText}
                 />
               ) : null}
-            </ListboxItem>
-            <ListboxItem key="native" startContent={NativeSpeakerIcon_} textValue="Native">
-              Speak Native
-            </ListboxItem>
-            <ListboxItem key="google" startContent={SiGoogletranslate_} textValue="Google">
-              Speak Google
-            </ListboxItem>
-            <ListboxItem key="khmer_analyzer" startContent={KhmerKaIcon} textValue="Khmer Analyzer">
-              Open Khmer Analyzer
-            </ListboxItem>
-          </Listbox>
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+            <ListBox.Item key="native" textValue="Native">
+              {NativeSpeakerIcon_}
+              <Label>Speak Native</Label>
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+            <ListBox.Item key="google" textValue="Google">
+              {SiGoogletranslate_}
+              <Label>Speak Google</Label>
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+            <ListBox.Item key="khmer_analyzer" textValue="Khmer Analyzer">
+              {KhmerKaIcon}
+              <Label>Open Khmer Analyzer</Label>
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          </ListBox>
 
           {segments && (
             <div className="max-h-[300px] overflow-y-auto p-2 bg-background border-t border-default-100">
               <KhmerAnalyzer segments={segments} />
             </div>
           )}
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>,
     document.body,

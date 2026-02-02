@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
+import { Popover, PopoverTrigger, PopoverContent } from '@heroui/react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { getKhmerWordCssClass } from '../../utils/text-processing/word-renderer'
 

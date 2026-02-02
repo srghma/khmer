@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
+import { Popover, PopoverTrigger, PopoverContent } from '@heroui/react'
 
 interface DefinitionPopupProps {
   definitionHtml: string

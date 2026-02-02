@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
-import { Textarea } from '@heroui/input'
+import { Modal } from '@heroui/react'
+import { TextArea } from '@heroui/react'
 import { ErrorMessage } from '@heroui/react'
 
 import { KhmerAnalyzer } from '../KhmerAnalyzer'
@@ -27,7 +27,7 @@ import {
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { enhanceSegments } from '../../utils/text-processing/text-enhanced'
-import { Spinner } from '@heroui/spinner'
+import { Spinner } from '@heroui/react'
 
 interface KhmerAnalyzerModalProps {
   isOpen: boolean
@@ -35,12 +35,7 @@ interface KhmerAnalyzerModalProps {
   currentMode: DictionaryLanguage
   colorMode: ColorizationMode
   km_map: KhmerWordsMap | undefined
-  onClose: () => void
-}
-
-const modalClassNames = {
-  base: 'max-h-screen',
-  wrapper: 'items-start',
+  onOpenChange: (isOpen: boolean) => void
 }
 
 const DictionaryLanguage_to_DictionaryLanguage: Record<DictionaryLanguage, DictionaryLanguage> = {
@@ -49,15 +44,10 @@ const DictionaryLanguage_to_DictionaryLanguage: Record<DictionaryLanguage, Dicti
   ru: 'km',
 }
 
-const textAreaClassNames = {
-  input: 'text-medium font-khmer leading-relaxed',
-  inputWrapper: 'bg-default-100 hover:bg-default-200',
-}
-
 const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
   isOpen,
   text: initialText,
-  onClose,
+  onOpenChange,
   currentMode,
   colorMode,
   km_map,
@@ -121,24 +111,20 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
   const segmentsIntl_ = segmentsIntl ?? segmentsIntlEnhanced
 
   return (
-    <Modal classNames={modalClassNames} isOpen={isOpen} scrollBehavior="inside" size="full" onClose={onClose}>
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-3 pb-4">
+    <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Container size="full">
+        <Modal.Dialog>
+        <Modal.Header className="flex flex-col gap-3 pb-4">
           <h2 className="text-xl font-semibold">Khmer Analyzer</h2>
-          <Textarea
-            classNames={textAreaClassNames}
-            labelPlacement="outside"
-            maxRows={6}
-            minRows={1}
+          <TextArea
             placeholder="Enter text to analyze..."
             value={analyzedText}
-            variant="faded"
-            onValueChange={setAnalyzedText}
+            onChange={(event) => setAnalyzedText(event.target.value)}
           />
-        </ModalHeader>
+        </Modal.Header>
 
-        <ModalBody className="py-6 gap-6">
-          {defsResult.t === 'loading' && <Spinner color="default" size="sm" />}
+        <Modal.Body className="py-6 gap-6">
+          {defsResult.t === 'loading' && <Spinner size="sm" />}
           {defsResult.t === 'request_error' && <ErrorMessage>{defsResult.e.message}</ErrorMessage>}
 
           {analyzedText_ && km_map && segmentsDict_ && (
@@ -153,9 +139,10 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
           <GoogleTranslate colorMode={colorMode} defaultTarget={defaultTarget} km_map={km_map} text={analyzedText} />
 
           {segmentsIntl_ && <KhmerAnalyzer segments={segmentsIntl_} />}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        </Modal.Body>
+      </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   )
 }
 

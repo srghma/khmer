@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button } from '@heroui/button'
-import { ModalFooter } from '@heroui/modal'
+import { Button } from '@heroui/react'
+import { ModalFooter } from '@heroui/react'
 import { formatDistanceToNow } from 'date-fns'
 
 // --- FSRS Imports ---

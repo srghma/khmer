@@ -1,4 +1,4 @@
-import { addToast, ToastProvider as HeroToastProvider } from '@heroui/toast'
+import { addToast, ToastProvider as HeroToastProvider } from '@heroui/react'
 import { useCallback } from 'react'
 
 /**

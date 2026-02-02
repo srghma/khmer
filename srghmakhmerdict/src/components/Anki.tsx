@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Modal, ModalContent, ModalHeader } from '@heroui/modal'
+import { Modal, ModalContent, ModalHeader } from '@heroui/react'
 
 // --- FSRS Imports ---
 

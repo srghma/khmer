@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Tooltip } from '@heroui/tooltip'
+import { Tooltip } from '@heroui/react'
 import { clsx } from 'clsx'
 
 // Utils & Logic

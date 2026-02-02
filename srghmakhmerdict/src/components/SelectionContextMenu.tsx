@@ -80,9 +80,9 @@ export const SelectionContextMenu: React.FC<SelectionContextMenuProps> = ({
     [selectedText, onSearch, currentMode, setVisible, clearSelection],
   )
 
-  const handleModalClose = useCallback(() => {
-    setIsModalOpen(false)
-    setModalText(undefined)
+  const handleModalClose = useCallback((isOpen: boolean) => {
+    setIsModalOpen(isOpen)
+    if (!isOpen) setModalText(undefined)
   }, [])
 
   // Calculate actual visibility boolean to pass down
@@ -115,7 +115,7 @@ export const SelectionContextMenu: React.FC<SelectionContextMenuProps> = ({
             isOpen={isModalOpen}
             km_map={km_map}
             text={modalText}
-            onClose={handleModalClose}
+            onOpenChange={handleModalClose}
           />
         </Suspense>
       )}

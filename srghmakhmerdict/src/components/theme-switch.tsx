@@ -1,6 +1,6 @@
 import { type FC } from 'react'
 import { VisuallyHidden } from '@react-aria/visually-hidden'
-import { type SwitchProps, useSwitch } from '@heroui/switch'
+import { type SwitchProps, useSwitch } from '@heroui/react'
 import clsx from 'clsx'
 import { useTheme } from '@heroui/use-theme'
 

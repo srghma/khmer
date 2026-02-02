@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Spinner } from '@heroui/spinner'
+import { Spinner } from '@heroui/react'
 import type { DictionaryLanguage } from '../../types'
 import { useWordData } from '../../hooks/useDetailViewLogic'
 import { colorizeHtml } from '../../utils/text-processing/html'

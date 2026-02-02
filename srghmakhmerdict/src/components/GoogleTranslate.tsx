@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo, type ChangeEvent } from 'react'
-import { Card, CardBody, CardHeader } from '@heroui/card'
-import { Select, SelectItem } from '@heroui/select'
-import { Button } from '@heroui/button'
+import { Card, CardBody, CardHeader } from '@heroui/react'
+import { Select, SelectItem } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { SiGoogletranslate } from 'react-icons/si'
 import { HiTranslate } from 'react-icons/hi'
 import {

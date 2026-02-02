@@ -1,4 +1,4 @@
-import { Input } from '@heroui/input'
+import { Input } from '@heroui/react'
 import { memo, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { CiSearch } from 'react-icons/ci'
 import { useDebounce } from 'use-debounce'

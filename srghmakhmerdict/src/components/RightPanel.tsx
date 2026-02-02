@@ -1,6 +1,6 @@
 import React, { useCallback, Suspense, useRef, useState } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { Spinner } from '@heroui/spinner'
+import { Spinner } from '@heroui/react'
 import { type DictionaryLanguage } from '../types'
 import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'

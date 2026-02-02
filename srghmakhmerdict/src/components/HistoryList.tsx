@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { AnimatePresence, motion, useAnimation, type PanInfo } from 'framer-motion'
 import { FaRegTrashAlt, FaGraduationCap } from 'react-icons/fa'
-import { Button } from '@heroui/button'
+import { Button } from '@heroui/react'
 
 // Types & Utils
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
