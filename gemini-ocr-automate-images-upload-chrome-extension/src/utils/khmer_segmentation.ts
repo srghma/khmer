@@ -1,6 +1,5 @@
 import { type TypedKhmerWord } from './khmer-word'
 import { Array_toNonEmptyArray_orThrow, type NonEmptyArray } from './non-empty-array'
-import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 
 const nativeSegmenter = new Intl.Segmenter('km', { granularity: 'word' })
 
@@ -36,7 +35,7 @@ khmerSentenceToWords_usingDictionary('ផ្លូវ  tstកខ្វេងក�
  */
 export const khmerSentenceToWords_usingDictionary = (
   str: TypedKhmerWord,
-  dict: { has: (s: NonEmptyStringTrimmed) => boolean },
+  dict: { has: (s: TypedKhmerWord) => boolean },
 ): NonEmptyArray<TypedKhmerWord> => {
   const chars = Array.from(str) as TypedKhmerWord[]
   const result: TypedKhmerWord[] = []
@@ -65,7 +64,7 @@ export const khmerSentenceToWords_usingDictionary = (
 const findLongestDictionaryMatch = (
   chars: TypedKhmerWord[],
   startIndex: number,
-  dict: { has: (s: NonEmptyStringTrimmed) => boolean },
+  dict: { has: (s: TypedKhmerWord) => boolean },
 ): { word: string; length: number } | undefined => {
   let currentString = ''
   let bestMatch: { word: string; length: number } | undefined = undefined

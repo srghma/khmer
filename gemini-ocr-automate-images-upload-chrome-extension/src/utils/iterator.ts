@@ -1,6 +1,4 @@
-export function* Iterator_yieldUnique_usingSet<T extends string | number | symbol>(
-  iterable: Iterable<T>,
-): Generator<T> {
+export function* Iterator_yieldUnique_usingSet<T extends PropertyKey>(iterable: Iterable<T>): Generator<T> {
   const seen = new Set<T>()
 
   for (const item of iterable) {
@@ -14,7 +12,7 @@ export function* Iterator_yieldUnique_usingSet<T extends string | number | symbo
 // will not make unique 100%
 
 // export function* Iterator_yieldUnique_usingSet_lru<
-//   T extends string | number | symbol
+//   T extends PropertyKey
 // >(
 //   iterable: Iterable<T>,
 //   maxSetSize = 100_000

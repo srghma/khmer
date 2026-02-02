@@ -15,7 +15,7 @@ import type { DictionaryLanguage } from '../../types'
 import { FirstNonEmptyShortDetailView } from './FirstNonEmptyShortDetailView'
 import type { KhmerWordsMap } from '../../db/dict'
 import { generateTextSegments } from '../../utils/text-processing/text'
-import { strToContainsKhmerOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 interface SelectionPopupProps {
   position: Position
@@ -148,8 +148,11 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
     if (!selectedText) return undefined
     if (selectedText.length < 20) return undefined
     if (!km_map) return undefined
+    const k = strToContainsKhmerOrUndefined(selectedText)
 
-    return generateTextSegments(strToContainsKhmerOrThrow(selectedText), 'segmenter', km_map)
+    if (!k) return undefined
+
+    return generateTextSegments(k, 'segmenter', km_map)
   }, [selectedText, km_map])
 
   return createPortal(

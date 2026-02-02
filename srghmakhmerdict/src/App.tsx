@@ -25,7 +25,9 @@ import lazyWithPreload from 'react-lazy-with-preload'
 
 // Replaced static import with Lazy load to reduce initial bundle size
 const KhmerComplexTableModal = lazyWithPreload(() =>
-  import('./components/KhmerComplexTableModal/KhmerComplexTableModal').then(module => ({ default: module.KhmerComplexTableModal })),
+  import('./components/KhmerComplexTableModal/KhmerComplexTableModal').then(module => ({
+    default: module.KhmerComplexTableModal,
+  })),
 )
 
 function App() {

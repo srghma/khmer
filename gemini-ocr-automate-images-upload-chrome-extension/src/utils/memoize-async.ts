@@ -41,7 +41,7 @@ export function memoizeAsync0_cachePromise<R>(fn: () => Promise<R>): () => Promi
 }
 
 // TODO: cache should not exceed N size
-export function memoizeAsync1_simpleKey_throwIfInFly<T extends string | number | symbol, R>(
+export function memoizeAsync1_simpleKey_throwIfInFly<T extends PropertyKey, R>(
   fn: (arg: T) => Promise<R>,
 ): (arg: T) => Promise<R> {
   const cache = new Map<T, R>()

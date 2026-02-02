@@ -1,8 +1,5 @@
 @import 'tailwindcss';
-@plugin './hero.ts';
-
-@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
-@custom-variant dark (&:is(.dark *));
+@import '@heroui/styles';
 
 @theme {
   /*
@@ -47,4 +44,99 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  /* --- Khmer Dictionary Color Palette (Light Mode) --- */
+  /* Darker, higher contrast colors for white backgrounds */
+  /* Blue */
+  --kw-0: #005cc5;
+  /* Teal */
+  --kw-1: #008080;
+  /* Purple */
+  --kw-2: #6f42c1;
+  /* Dark Yellow/Olive */
+  --kw-3: #795e26;
+  /* Red/Orange */
+  --kw-4: #d73a49;
+
+  --kw-unknown: #d32f2f;
+  --kw-legacy-blue: #2563eb;
+}
+
+/* --- Dark Mode Overrides --- */
+:root:is(.dark *) {
+  /* Original VS Code style pastel colors */
+  /* Blue */
+  --kw-0: #569cd6;
+  /* Soft Green */
+  --kw-1: #4ec9b0;
+  /* Pink/Purple */
+  --kw-2: #c586c0;
+  /* Soft Yellow */
+  --kw-3: #dcdcaa;
+  /* Orange */
+  --kw-4: #ce9178;
+
+  --kw-unknown: #ff5555;
+  --kw-legacy-blue: #3b82f6;
+}
+
+/* --- Utility Classes for Text Processing --- */
+
+/* 1. Dictionary Mode: Known Word (Colors + Semi-Bold) */
+.khmer--is-in-dictionary-color-0 {
+  color: var(--kw-0);
+  font-weight: 500;
+}
+
+.khmer--is-in-dictionary-color-1 {
+  color: var(--kw-1);
+  font-weight: 500;
+}
+
+.khmer--is-in-dictionary-color-2 {
+  color: var(--kw-2);
+  font-weight: 500;
+}
+
+.khmer--is-in-dictionary-color-3 {
+  color: var(--kw-3);
+  font-weight: 500;
+}
+
+.khmer--is-in-dictionary-color-4 {
+  color: var(--kw-4);
+  font-weight: 500;
+}
+
+/* 2. Segmenter Mode: Just Colors (Normal Weight) */
+.khmer--without-dictionary-color-0 {
+  color: var(--kw-0);
+}
+
+.khmer--without-dictionary-color-1 {
+  color: var(--kw-1);
+}
+
+.khmer--without-dictionary-color-2 {
+  color: var(--kw-2);
+}
+
+.khmer--without-dictionary-color-3 {
+  color: var(--kw-3);
+}
+
+.khmer--without-dictionary-color-4 {
+  color: var(--kw-4);
+}
+
+/* 3. Unknown Word */
+.khmer--is-not-in-dictionary {
+  color: var(--kw-unknown);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+}
+
+/* 4. Legacy Blue Replacement */
+.khmer--blue-lbl {
+  color: var(--kw-legacy-blue);
 }

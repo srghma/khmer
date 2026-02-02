@@ -14,17 +14,18 @@ import type { SharedSelection } from '@heroui/system'
 import { type DictionaryLanguage } from '../types'
 import { GoogleSpeakerIcon } from './GoogleSpeakerIcon'
 import { NativeSpeakerIcon } from './NativeSpeakerIcon'
-import { type ColorizationMode } from '../utils/text-processing/utils'
+import { type ColorizationMode, type MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { KhmerWordsMap } from '../db/dict'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // --- NEW CONSTANTS ---
-export const KHMER_FONTS = [
-  { name: 'Default', value: '' }, // Uses system/CSS default
-  { name: 'Moul', value: '"Moul", serif' }, // Headings (Thick)
-  { name: 'Siemreap', value: '"Siemreap", serif' }, // Elegant, traditional
-  { name: 'Battambang', value: '"Battambang", cursive' }, // Standard readable
-  { name: 'Kantumruy', value: '"Kantumruy Pro", sans-serif' }, // Modern Sans
-  { name: 'Fasthand', value: '"Fasthand", cursive' }, // Handwritten style
+export const KHMER_FONTS: { name: NonEmptyStringTrimmed; value: string }[] = [
+  { name: 'Default' as NonEmptyStringTrimmed, value: '' }, // Uses system/CSS default
+  { name: 'Moul' as NonEmptyStringTrimmed, value: '"Moul", serif' }, // Headings (Thick)
+  { name: 'Siemreap' as NonEmptyStringTrimmed, value: '"Siemreap", serif' }, // Elegant, traditional
+  { name: 'Battambang' as NonEmptyStringTrimmed, value: '"Battambang", cursive' }, // Standard readable
+  { name: 'Kantumruy' as NonEmptyStringTrimmed, value: '"Kantumruy Pro", sans-serif' }, // Modern Sans
+  { name: 'Fasthand' as NonEmptyStringTrimmed, value: '"Fasthand", cursive' }, // Handwritten style
 ]
 
 interface HeaderProps {
@@ -38,7 +39,7 @@ interface HeaderProps {
   km_map?: KhmerWordsMap
 
   // Color Props
-  colorMode: ColorizationMode
+  colorMode: MaybeColorizationMode
   handleColorChange: (keys: SharedSelection) => void
   colorSelection: Set<ColorizationMode>
 
@@ -86,7 +87,7 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
     return {
       fontSize: '2em',
       lineHeight: 1.2,
-      fontFamily: khmerFont || undefined, // undefined falls back to CSS class
+      fontFamily: khmerFont, // undefined falls back to CSS class
     }
   }, [khmerFont])
 
@@ -142,7 +143,7 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
             onSelectionChange={handleFontChange}
           >
             {KHMER_FONTS.map(font => (
-              <DropdownItem key={font.value} className="font-khmer" style={{ fontFamily: font.value || undefined }}>
+              <DropdownItem key={font.value} className="font-khmer" style={{ fontFamily: font.value }}>
                 {font.name}
               </DropdownItem>
             ))}

@@ -202,6 +202,93 @@ pub async fn get_word_detail_km(
 }
 
 #[command]
+pub async fn get_km_words_detail_full(
+    state: State<'_, AppState>,
+    words: Vec<String>,
+) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
+    if words.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    let pool = state.get_pool().await?;
+
+    // Create dynamic placeholders for "IN (?, ?, ?)"
+    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
+    let sql = format!(
+        "SELECT * FROM km_Dict WHERE Word IN ({})",
+        placeholders.join(",")
+    );
+
+    let mut query = sqlx::query_as::<_, WordDetailKmRaw>(&sql);
+
+    for word in &words {
+        query = query.bind(word);
+    }
+
+    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    let mut result = HashMap::new();
+
+    // Populate the map
+    for row in rows {
+        result.insert(row.word.clone(), Some(WordDetailKm::from(row)));
+    }
+
+    // Fill in None for words that weren't found (optional, but good for completeness based on return type)
+    for word in words {
+        result.entry(word).or_insert(None);
+    }
+
+    Ok(result)
+}
+
+// Add this struct for the result
+#[derive(Serialize, sqlx::FromRow)]
+pub struct WordKmWordsDetailShortRow {
+    #[sqlx(rename = "Word")]
+    word: String,
+    definition: Option<String>,
+}
+
+#[command]
+pub async fn get_km_words_detail_short(
+    state: State<'_, AppState>,
+    words: Vec<String>,
+) -> Result<HashMap<String, String>, String> {
+    if words.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    let pool = state.get_pool().await?;
+
+    // Create a dynamic IN clause: "Word IN (?, ?, ?)"
+    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
+    let sql = format!(
+        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_russian_wiki) as definition
+         FROM km_Dict
+         WHERE Word IN ({})",
+        placeholders.join(",")
+    );
+
+    let mut query = sqlx::query_as::<_, WordKmWordsDetailShortRow>(&sql);
+
+    for word in words {
+        query = query.bind(word);
+    }
+
+    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    let mut result = HashMap::new();
+    for row in rows {
+        if let Some(def) = row.definition {
+            result.insert(row.word, def);
+        }
+    }
+
+    Ok(result)
+}
+
+#[command]
 pub async fn get_word_detail_en(
     state: State<'_, AppState>,
     word: String,
@@ -334,52 +421,6 @@ pub async fn get_en_km_com_images_ocr(
     let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
 
     let result: HashMap<i64, String> = rows.into_iter().map(|r| (r.id, r.text)).collect();
-
-    Ok(result)
-}
-
-// Add this struct for the result
-#[derive(Serialize, sqlx::FromRow)]
-pub struct WordDefinitionRow {
-    #[sqlx(rename = "Word")]
-    word: String,
-    definition: Option<String>,
-}
-
-#[command]
-pub async fn get_km_word_definitions(
-    state: State<'_, AppState>,
-    words: Vec<String>,
-) -> Result<HashMap<String, String>, String> {
-    if words.is_empty() {
-        return Ok(HashMap::new());
-    }
-
-    let pool = state.get_pool().await?;
-
-    // Create a dynamic IN clause: "Word IN (?, ?, ?)"
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
-    let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_russian_wiki) as definition
-         FROM km_Dict
-         WHERE Word IN ({})",
-        placeholders.join(",")
-    );
-
-    let mut query = sqlx::query_as::<_, WordDefinitionRow>(&sql);
-
-    for word in words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    let mut result = HashMap::new();
-    for row in rows {
-        if let Some(def) = row.definition {
-            result.insert(row.word, def);
-        }
-    }
 
     Ok(result)
 }

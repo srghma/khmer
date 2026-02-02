@@ -1,6 +1,7 @@
+import { Set_union_onCollisionIgnore } from './sets'
 import { Option_none, Option_some, type Option } from './types'
 
-export type NonEmptySet<T> = Set<T> & {
+export type NonEmptySet<T> = ReadonlySet<T> & {
   readonly _nonEmptySetBrand: 'NonEmptySet'
 }
 
@@ -43,4 +44,23 @@ export function Set_elementsMaybeUndefined_ifAllNonUndefined_assertNonEmptySet<T
   const set_ = Set_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptySet_orUndefined(set)
 
   if (set_ === undefined) throw new Error('set should be non-empty and all elements should not undefined or null')
+}
+
+type NonEmptySet_union_onCollisionIgnoreFn = <T extends PropertyKey>(
+  first: NonEmptySet<T>,
+  second: NonEmptySet<T>,
+  ...rest: readonly NonEmptySet<T>[]
+) => NonEmptySet<T>
+
+export const NonEmptySet_union_onCollisionIgnore =
+  Set_union_onCollisionIgnore as unknown as NonEmptySet_union_onCollisionIgnoreFn
+
+export function NonEmptySet_union_maybeUndefined_onCollisionIgnore<T extends PropertyKey>(
+  ...sets: readonly (NonEmptySet<T> | undefined)[]
+): NonEmptySet<T> | undefined {
+  const filtered = sets.filter(Boolean) as NonEmptySet<T>[]
+  const [first, second, ...rest] = filtered
+  if (!first) return undefined
+  if (!second) return first
+  return NonEmptySet_union_onCollisionIgnore(first, second, ...rest)
 }

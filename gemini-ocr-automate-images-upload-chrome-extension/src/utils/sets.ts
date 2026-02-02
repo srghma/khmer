@@ -114,15 +114,21 @@ export function Set_union_onCollisionThrow<T>(...sets: readonly Set<T>[]): Set<T
   return result
 }
 
-export function Set_union_onCollisionPreferLast<T>(...sets: readonly Set<T>[]): Set<T> {
-  const result = new Set<T>()
-  for (const set of sets) {
-    for (const item of set) result.add(item)
-  }
+export function Set_union_onCollisionIgnore<T>(
+  first: ReadonlySet<T>,
+  second: ReadonlySet<T>,
+  ...rest: readonly ReadonlySet<T>[]
+): Set<T> {
+  const result = new Set(first)
+  for (const item of second) result.add(item)
+  for (const set of rest) for (const item of set) result.add(item)
   return result
 }
 
-export function Set_union_onCollisionMerge<T>(mergeCollision: (a: T, b: T) => T, ...sets: readonly Set<T>[]): Set<T> {
+export function Set_union_onCollisionMerge<T extends PropertyKey>(
+  mergeCollision: (a: T, b: T) => T,
+  ...sets: readonly Set<T>[]
+): Set<T> {
   const result = new Set<T>()
   for (const set of sets) {
     for (const item of set) {
@@ -150,7 +156,9 @@ export function Set_union_onCollisionMerge<T>(mergeCollision: (a: T, b: T) => T,
   return result
 }
 
-function Set_mkOrCollectIfArrayIsNotUnique<T>(entries: readonly T[]): {
+function Set_mkOrCollectIfArrayIsNotUnique<T extends PropertyKey>(
+  entries: readonly T[],
+): {
   seen: Set<T>
   duplicates: Set<T>
 } {
@@ -165,13 +173,13 @@ function Set_mkOrCollectIfArrayIsNotUnique<T>(entries: readonly T[]): {
   return { seen, duplicates }
 }
 
-export function Set_mkOrThrowIfArrayIsNotUnique<T>(entries: readonly T[]): Set<T> {
+export function Set_mkOrThrowIfArrayIsNotUnique<T extends PropertyKey>(entries: readonly T[]): Set<T> {
   const { seen, duplicates } = Set_mkOrCollectIfArrayIsNotUnique(entries)
   if (duplicates.size > 0) throw new Error(`Array contains duplicate entries: ${[...duplicates].join(', ')}`)
   return seen
 }
 
-export function Set_mkOrLogIfArrayIsNotUnique<T>(entries: readonly T[]): Set<T> {
+export function Set_mkOrLogIfArrayIsNotUnique<T extends PropertyKey>(entries: readonly T[]): Set<T> {
   const { seen, duplicates } = Set_mkOrCollectIfArrayIsNotUnique(entries)
   if (duplicates.size > 0) console.error(`Array contains duplicate entries: ${[...duplicates].join(', ')}`)
   return seen

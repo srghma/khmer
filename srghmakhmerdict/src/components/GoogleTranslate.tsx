@@ -19,14 +19,14 @@ import {
 import { executeNativeTts } from '../utils/tts'
 import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../db/dict'
-import { type ColorizationMode } from '../utils/text-processing/utils'
+import { type MaybeColorizationMode } from '../utils/text-processing/utils'
 import { colorizeHtml } from '../utils/text-processing/html'
 
 interface GoogleTranslateProps {
   text: string
   defaultTarget?: ToTranslateLanguage
   className?: string
-  colorMode: ColorizationMode
+  colorMode: MaybeColorizationMode
   km_map: KhmerWordsMap | undefined
 }
 
@@ -93,7 +93,7 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
   // Calculate Colorized HTML for the RESULT if target is Khmer
   const resultHtml = useMemo(() => {
     if (!result?.text) return null
-    if (targetLang !== 'km' || colorMode === 'none') return null
+    if (targetLang !== 'km' || colorMode === 'none' || !km_map) return { __html: result.text }
 
     return { __html: colorizeHtml(result.text, colorMode, km_map) }
   }, [result?.text, targetLang, colorMode, km_map])

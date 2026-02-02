@@ -13,7 +13,9 @@ import type { ColorizationMode } from '../utils/text-processing/utils'
 
 // --- LAZY IMPORTS ---
 const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
-const HistoryList = lazyWithPreload(() => import('./HistoryList').then(m => ({ default: m.HistoryList })))
+const HistoryOrFavouritesList = lazyWithPreload(() =>
+  import('./HistoryList').then(m => ({ default: m.HistoryOrFavouritesList })),
+)
 const SettingsView = lazyWithPreload(() => import('./SettingsView').then(m => ({ default: m.SettingsView })))
 
 // --- FALLBACK COMPONENT ---
@@ -44,7 +46,7 @@ interface SidebarContentProps {
 export const SidebarContent = memo<SidebarContentProps>(props => {
   const { activeTab, loading, isSearching, resultData, km_map, colorMode } = props
 
-  usePreloadOnIdle([WordListKhmer, HistoryList, SettingsView])
+  usePreloadOnIdle([WordListKhmer, HistoryOrFavouritesList, SettingsView])
 
   if (loading) {
     return (
@@ -66,7 +68,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   if (activeTab === 'history' || activeTab === 'favorites') {
     return (
       <Suspense fallback={ContentFallback}>
-        <HistoryList
+        <HistoryOrFavouritesList
           colorMode={colorMode}
           km_map={km_map}
           refreshTrigger={props.refreshHistoryTrigger}

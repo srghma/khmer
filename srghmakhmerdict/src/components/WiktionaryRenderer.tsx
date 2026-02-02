@@ -9,7 +9,7 @@ import { useToast } from '../providers/ToastProvider'
 import { extractWikiTerm, detectModeFromText } from '../utils/rendererUtils'
 import type { KhmerWordsMap } from '../db/dict'
 import { colorizeHtml } from '../utils/text-processing/html'
-import type { ColorizationMode } from '../utils/text-processing/utils'
+import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 
 /**
  * Intercepts Wiki links to navigate within the app.
@@ -106,7 +106,7 @@ export const WiktionaryRenderer = ({
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
   currentMode: DictionaryLanguage
   km_map: KhmerWordsMap | undefined
-  colorMode: ColorizationMode
+  colorMode: MaybeColorizationMode
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -115,6 +115,8 @@ export const WiktionaryRenderer = ({
 
   // Utility: Process HTML string
   const __html = useMemo(() => {
+    if (colorMode === 'none' || !km_map) return { __html: html }
+
     return { __html: colorizeHtml(html, colorMode, km_map) }
   }, [html, colorMode, km_map])
 

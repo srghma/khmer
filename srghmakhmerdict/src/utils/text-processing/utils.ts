@@ -4,7 +4,7 @@ import {
   stringToEnumOrThrow,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/enum'
 
-export const COLORIZATION_MODE = ['none', 'segmenter', 'dictionary'] as const
+export const COLORIZATION_MODE = ['segmenter', 'dictionary'] as const
 
 export type ColorizationMode = (typeof COLORIZATION_MODE)[number]
 
@@ -22,10 +22,18 @@ export function stringToColorizationModeOrThrow(value: string): ColorizationMode
 
 ///////////////////////////
 
-export const COLOR_PALETTE = [
-  '#569cd6', // Blue
-  '#4ec9b0', // Soft Green
-  '#c586c0', // Pink/Purple
-  '#dcdcaa', // Soft Yellow
-  '#ce9178', // Orange
-] as const
+export const MAYBE_COLORIZATION_MODE = ['none', 'segmenter', 'dictionary'] as const
+
+export type MaybeColorizationMode = (typeof MAYBE_COLORIZATION_MODE)[number]
+
+export function isMaybeColorizationMode(value: string): value is MaybeColorizationMode {
+  return isEnumValue(value, MAYBE_COLORIZATION_MODE)
+}
+
+export function stringToMaybeColorizationModeOrUndefined(value: string): MaybeColorizationMode | undefined {
+  return stringToEnumOrUndefined(value, MAYBE_COLORIZATION_MODE)
+}
+
+export function stringToMaybeColorizationModeOrThrow(value: string): MaybeColorizationMode {
+  return stringToEnumOrThrow(value, MAYBE_COLORIZATION_MODE, 'MaybeColorizationMode')
+}

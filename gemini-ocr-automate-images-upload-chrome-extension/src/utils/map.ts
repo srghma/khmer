@@ -17,7 +17,7 @@ export function Map_entriesToArray<K, V, R>(map: Map<K, V>, fn: (key: K, value: 
   return Array.from(map.entries()).map(([k, v], i) => fn(k, v, i))
 }
 
-export function Map_entriesToRecord<K extends string | number | symbol, V, R>(
+export function Map_entriesToRecord<K extends PropertyKey, V, R>(
   map: Map<K, V>,
   fn: (key: K, value: V) => R,
 ): Record<K, R> {

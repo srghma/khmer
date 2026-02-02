@@ -128,7 +128,7 @@ export function assertArrayElementsAreSame<T>(items: readonly T[]): void {
   }
 }
 
-export function zipArrayBy_toMaps<A, B, K extends string | number | symbol>(
+export function zipArrayBy_toMaps<A, B, K extends PropertyKey>(
   a: readonly A[],
   b: readonly B[],
   keyA: (x: A) => K,
@@ -158,7 +158,7 @@ export function zipArrayBy_toMaps<A, B, K extends string | number | symbol>(
   return [zipped, leftoversA, leftoversB]
 }
 
-export function zipArrayBy_toMaps_strict<A, B, K extends string | number | symbol>(
+export function zipArrayBy_toMaps_strict<A, B, K extends PropertyKey>(
   a: readonly A[],
   b: readonly B[],
   keyA: (x: A) => K,

@@ -16,8 +16,12 @@ import {
   nonEmptyString_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { type ColorizationMode } from '../utils/text-processing/utils'
+import { type MaybeColorizationMode } from '../utils/text-processing/utils'
 import { colorizeHtml } from '../utils/text-processing/html'
+import {
+  Set_toNonEmptySet_orUndefined,
+  type NonEmptySet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -49,7 +53,7 @@ export const processHtmlImages = (
   ) as NonEmptyStringTrimmed
 }
 
-const extractImageIds = (html: string): ValidNonNegativeInt[] => {
+const extractImageIds = (html: NonEmptyStringTrimmed): NonEmptySet<ValidNonNegativeInt> | undefined => {
   const ids = new Set<ValidNonNegativeInt>()
   let match
 
@@ -60,11 +64,7 @@ const extractImageIds = (html: string): ValidNonNegativeInt[] => {
     if (id) ids.add(id)
   }
 
-  const ids_ = Array.from(ids)
-
-  // console.log('ids_', ids_)
-
-  return ids_
+  return Set_toNonEmptySet_orUndefined(ids)
 }
 
 const injectOcrIntoHtml = (
@@ -130,7 +130,7 @@ const injectOcrIntoHtml = (
 
 // --- Hooks ---
 
-const useOcrData = (html: string) => {
+const useOcrData = (html: NonEmptyStringTrimmed) => {
   const [ocrMap, setOcrMap] = useState<Record<ValidNonNegativeInt, NonEmptyStringTrimmed> | undefined>(undefined)
   const toast = useToast()
 
@@ -139,7 +139,7 @@ const useOcrData = (html: string) => {
 
     // console.log('effect called', ids, html)
 
-    if (ids.length === 0) {
+    if (!ids) {
       setOcrMap(undefined)
 
       return
@@ -207,8 +207,8 @@ const useImageInteraction = (ref: React.RefObject<HTMLDivElement | null>) => {
 
 export interface EnKmHtmlRendererProps {
   html: NonEmptyStringTrimmed
-  km_map?: KhmerWordsMap
-  colorMode: ColorizationMode
+  km_map: KhmerWordsMap | undefined
+  colorMode: MaybeColorizationMode
 }
 
 export const EnKmHtmlRenderer = ({ html, km_map, colorMode }: EnKmHtmlRendererProps) => {
@@ -217,7 +217,7 @@ export const EnKmHtmlRenderer = ({ html, km_map, colorMode }: EnKmHtmlRendererPr
   const ocrMap = useOcrData(html)
 
   const finalHtml = useMemo(() => {
-    // If we have no ocrMap yet, just render original processed HTML
+    if (colorMode === 'none' || !km_map) return { __html: processHtmlImages(html, imageMode) }
     if (!ocrMap) return { __html: colorizeHtml(processHtmlImages(html, imageMode), colorMode, km_map) }
 
     const htmlWithOcr = injectOcrIntoHtml(

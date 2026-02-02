@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 import { Textarea } from '@heroui/input'
+import { ErrorMessage } from '@heroui/react'
 
 import { KhmerAnalyzer } from '../KhmerAnalyzer'
 import { GoogleTranslate } from '../GoogleTranslate'
@@ -13,10 +14,20 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { SegmentationPreview } from './SegmentationPreview'
 import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-import { useEnhancedSegments } from '../../hooks/useEnhancedSegments'
-import { Array_toNonEmptyArray_orThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
-import type { TextSegment } from '../../utils/text-processing/text'
 import type { ColorizationMode } from '../../utils/text-processing/utils'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+
+// New Hooks and Types
+import { useMaybeGenerateTextSegments } from '../../hooks/useMaybeGenerateTextSegments'
+import { useKhmerDefinitions } from '../../hooks/useKhmerDefinitions'
+import { segmentsToUniqueKhmerWords, type TextSegment } from '../../utils/text-processing/text'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import {
+  NonEmptySet_union_maybeUndefined_onCollisionIgnore,
+  type NonEmptySet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import { enhanceSegments } from '../../utils/text-processing/text-enhanced'
+import { Spinner } from '@heroui/spinner'
 
 interface KhmerAnalyzerModalProps {
   isOpen: boolean
@@ -64,31 +75,50 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
     return strToContainsKhmerOrUndefined(x)
   }, [analyzedText])
 
-  // Use Hook for Segmenter Mode
-  const { segments: segmentsIntl, loading: loadingIntl } = useEnhancedSegments(analyzedText_, 'segmenter', km_map)
+  // 1. Get basic segments for both modes
+  const segmentsIntl: NonEmptyArray<TextSegment> | undefined = useMaybeGenerateTextSegments(
+    analyzedText_,
+    'segmenter',
+    km_map,
+  )
+  const segmentsDict: NonEmptyArray<TextSegment> | undefined = useMaybeGenerateTextSegments(
+    analyzedText_,
+    'dictionary',
+    km_map,
+  )
 
-  // Use Hook for Dictionary Mode
-  const { segments: segmentsDict, loading: loadingDict } = useEnhancedSegments(analyzedText_, 'dictionary', km_map)
+  const segmentsDictRawKhmerWords: NonEmptySet<TypedKhmerWord> | undefined = useMemo(
+    () => (segmentsIntl ? segmentsToUniqueKhmerWords(segmentsIntl) : undefined),
+    [segmentsIntl],
+  )
+  const segmentsIntlRawKhmerWords: NonEmptySet<TypedKhmerWord> | undefined = useMemo(
+    () => (segmentsDict ? segmentsToUniqueKhmerWords(segmentsDict) : undefined),
+    [segmentsDict],
+  )
 
-  // Derive plain segments for the Analyzer (Character Tokenizer)
-  // We can use either result, dictionary mode is usually more meaningful for analysis if available
-  const segmentsForAnalyzer = useMemo(() => {
-    const src = segmentsDict || segmentsIntl
+  // 2. Extract unique Khmer words to fetch definitions
+  const uniqueWords: NonEmptySet<TypedKhmerWord> | undefined = useMemo(
+    () => NonEmptySet_union_maybeUndefined_onCollisionIgnore(segmentsIntlRawKhmerWords, segmentsDictRawKhmerWords),
+    [segmentsIntlRawKhmerWords, segmentsDictRawKhmerWords],
+  )
 
-    if (!src) return undefined
+  // 3. Fetch definitions
+  const defsResult = useKhmerDefinitions(uniqueWords)
 
-    // Map back to simple TextSegment structure for KhmerAnalyzer
-    return Array_toNonEmptyArray_orThrow(
-      src.map(seg => {
-        if (seg.t === 'notKhmer') return seg
+  const segmentsIntlEnhanced = useMemo(
+    () =>
+      defsResult.t === 'success' && segmentsIntl ? enhanceSegments(segmentsIntl, defsResult.definitions) : undefined,
+    [segmentsIntl, defsResult],
+  )
 
-        return {
-          t: 'khmer',
-          words: Array_toNonEmptyArray_orThrow(seg.words.map(w => w.w)),
-        } as TextSegment
-      }),
-    )
-  }, [segmentsDict, segmentsIntl])
+  const segmentsDictEnhanced = useMemo(
+    () =>
+      defsResult.t === 'success' && segmentsDict ? enhanceSegments(segmentsDict, defsResult.definitions) : undefined,
+    [segmentsDict, defsResult],
+  )
+
+  const segmentsDict_ = segmentsDict ?? segmentsDictEnhanced
+  const segmentsIntl_ = segmentsIntl ?? segmentsIntlEnhanced
 
   return (
     <Modal classNames={modalClassNames} isOpen={isOpen} scrollBehavior="inside" size="full" onClose={onClose}>
@@ -108,33 +138,21 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
         </ModalHeader>
 
         <ModalBody className="py-6 gap-6">
-          {analyzedText_ && km_map && (
-            <>
-              {segmentsIntl && (
-                <SegmentationPreview
-                  colorMode="segmenter"
-                  km_map={km_map}
-                  label="Segmentation (International Segmenter)"
-                  loading={loadingIntl}
-                  segments={segmentsIntl}
-                />
-              )}
+          {defsResult.t === 'loading' && <Spinner color="default" size="sm" />}
+          {defsResult.t === 'request_error' && <ErrorMessage>{defsResult.e.message}</ErrorMessage>}
 
-              {segmentsDict && (
-                <SegmentationPreview
-                  colorMode="dictionary"
-                  km_map={km_map}
-                  label="Segmentation (Dictionary Lookup)"
-                  loading={loadingDict}
-                  segments={segmentsDict}
-                />
-              )}
-            </>
+          {analyzedText_ && km_map && segmentsDict_ && (
+            <SegmentationPreview
+              colorMode="dictionary"
+              km_map={km_map}
+              label="Segmentation (Dictionary Lookup)"
+              segments={segmentsDict_} // Cast to any because it handles both Segment types
+            />
           )}
 
           <GoogleTranslate colorMode={colorMode} defaultTarget={defaultTarget} km_map={km_map} text={analyzedText} />
 
-          {segmentsForAnalyzer && <KhmerAnalyzer segments={segmentsForAnalyzer} />}
+          {segmentsIntl_ && <KhmerAnalyzer segments={segmentsIntl_} />}
         </ModalBody>
       </ModalContent>
     </Modal>

@@ -3,13 +3,20 @@ import type { DictionaryLanguage } from '../types'
 
 import * as z from 'zod/mini'
 import { invoke } from '@tauri-apps/api/core'
+import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { NonEmptyArraySchema } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array-zod'
 import { NonEmptyStringTrimmedSchema } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed-zod'
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
-import { isKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { isKhmerWord, type TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import {
+  Map_toNonEmptyMap_orThrow,
+  type NonEmptyMap,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 
 // --- Lists ---
 
@@ -19,17 +26,18 @@ export const getRuWords = memoizeAsync0_throwIfInFly(() => invoke<NonEmptyArray<
 type KhmerWordRow_Raw = { word: NonEmptyStringTrimmed; is_verified: boolean }
 
 export type KhmerWordsMapValue = { isKhmer: boolean; is_verified: boolean }
-export type KhmerWordsMap = Map<NonEmptyStringTrimmed, KhmerWordsMapValue>
+export type KhmerWordsMap = NonEmptyMap<NonEmptyStringTrimmed, KhmerWordsMapValue>
+
 export const getKmWords = memoizeAsync0_throwIfInFly(async (): Promise<KhmerWordsMap> => {
   const words = await invoke<KhmerWordRow_Raw[]>('get_km_words')
   // console.log('words', words)
-  const map: KhmerWordsMap = new Map()
+  const map: Map<NonEmptyStringTrimmed, KhmerWordsMapValue> = new Map()
 
   words.forEach(({ word, is_verified }) => {
     map.set(word, { isKhmer: isKhmerWord(word), is_verified })
   })
 
-  return map
+  return Map_toNonEmptyMap_orThrow(map)
 })
 
 export function* yieldOnlyVerifiedKhmerWords(map: KhmerWordsMap): Generator<NonEmptyStringTrimmed> {
@@ -85,6 +93,7 @@ export const getWordDetailKm = async (word: NonEmptyStringTrimmed): Promise<Word
 
   return WordDetailKmSchema.parse(res)
 }
+
 export const getWordDetailEn = async (
   word: NonEmptyStringTrimmed,
   useExtensionDb: boolean,
@@ -137,15 +146,18 @@ export const getWordDetailByMode = async (
 
 // --- Content Search ---
 
-export const searchEnContent = (query: string) => invoke<NonEmptyStringTrimmed[]>('search_en_content', { query })
+export const searchEnContent = (query: NonEmptyStringTrimmed) =>
+  invoke<NonEmptyStringTrimmed[]>('search_en_content', { query })
 
-export const searchKmContent = (query: string) => invoke<NonEmptyStringTrimmed[]>('search_km_content', { query })
+export const searchKmContent = (query: NonEmptyStringTrimmed) =>
+  invoke<NonEmptyStringTrimmed[]>('search_km_content', { query })
 
-export const searchRuContent = (query: string) => invoke<NonEmptyStringTrimmed[]>('search_ru_content', { query })
+export const searchRuContent = (query: NonEmptyStringTrimmed) =>
+  invoke<NonEmptyStringTrimmed[]>('search_ru_content', { query })
 
 export const searchContentByMode = async (
   mode: DictionaryLanguage,
-  query: string,
+  query: NonEmptyStringTrimmed,
 ): Promise<NonEmptyStringTrimmed[]> => {
   switch (mode) {
     case 'en':
@@ -159,8 +171,20 @@ export const searchContentByMode = async (
   }
 }
 
-export const get_en_km_com_images_ocr = async (ids: ValidNonNegativeInt[]) => {
+export const get_en_km_com_images_ocr = async (ids: NonEmptySet<ValidNonNegativeInt>) => {
   return await invoke<Record<ValidNonNegativeInt, NonEmptyStringTrimmed>>('get_en_km_com_images_ocr', {
-    ids,
+    ids: Array.from(ids),
   })
+}
+
+export const getKmWordsDetailShort = async (
+  words: NonEmptySet<TypedKhmerWord>, // TypedKhmerWord
+): Promise<NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed>> => {
+  return invoke('get_km_words_detail_short', { words: Array.from(words) })
+}
+
+export const getKmWordsDetailFull = async (
+  words: NonEmptySet<TypedContainsKhmer>,
+): Promise<NonEmptyRecord<TypedContainsKhmer, WordDetailKm | null>> => {
+  return invoke('get_km_words_detail_full', { words: Array.from(words) })
 }

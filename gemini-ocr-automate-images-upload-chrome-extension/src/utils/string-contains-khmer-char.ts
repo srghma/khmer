@@ -3,7 +3,7 @@
 import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 
 // Khmer Unicode range: U+1780 to U+17FF
-const ContainsKhmer_REGEX = /\p{Script=Khmer}/u
+export const ContainsKhmer_REGEX = /\p{Script=Khmer}/u
 
 // text that contains only khmer letters and no other letters (not even space)
 

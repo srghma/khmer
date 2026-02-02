@@ -17,7 +17,12 @@ import {
   nonEmptyString,
   type NonEmptyString,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
-import { COLOR_PALETTE, type ColorizationMode } from './utils'
+import { type ColorizationMode } from './utils'
+import { renderKhmerWordSpan } from './word-renderer'
+import {
+  Set_toNonEmptySet_orUndefined,
+  type NonEmptySet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -40,13 +45,27 @@ const escapeHtml = (unsafe: string): string => {
 
 export type TextSegment = { t: 'khmer'; words: NonEmptyArray<TypedKhmerWord> } | { t: 'notKhmer'; v: NonEmptyString }
 
+export const segmentsToUniqueKhmerWords = (
+  segments: NonEmptyArray<TextSegment>,
+): NonEmptySet<TypedKhmerWord> | undefined => {
+  const uniqueWords = new Set<TypedKhmerWord>()
+
+  segments.forEach(seg => {
+    if (seg.t === 'khmer') {
+      seg.words.forEach(w => uniqueWords.add(w))
+    }
+  })
+
+  return Set_toNonEmptySet_orUndefined(uniqueWords)
+}
+
 /**
  * Function 1: Parsing / Generation
  * Splits text into segments and performs Khmer segmentation/lookup where applicable.
  */
 export const generateTextSegments = (
   text: NonEmptyStringTrimmed,
-  mode: 'segmenter' | 'dictionary',
+  mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyArray<TextSegment> => {
   // 1. Validation
@@ -92,7 +111,6 @@ export const generateTextSegments = (
  */
 export const colorizeSegments = (
   segments: NonEmptyArray<TextSegment>,
-  mode: 'segmenter' | 'dictionary',
   km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed => {
   let wordCounter = 0
@@ -107,34 +125,11 @@ export const colorizeSegments = (
       // 2. Handle Khmer text (apply colors to words)
       return segment.words
         .map(w => {
-          if (!w.trim()) return w // Preserve spaces without spans
+          const htmlSegment = renderKhmerWordSpan(w, wordCounter, km_map.has(w))
 
-          // A. Segmenter Mode
-          if (mode === 'segmenter') {
-            const color = COLOR_PALETTE[wordCounter % COLOR_PALETTE.length]
+          wordCounter++
 
-            wordCounter++
-
-            return `<span style="color:${color};">${w}</span>`
-          }
-
-          // B. Dictionary Mode
-          if (mode === 'dictionary' && km_map) {
-            if (km_map.has(w)) {
-              // Known word
-              const color = COLOR_PALETTE[wordCounter % COLOR_PALETTE.length]
-
-              wordCounter++
-
-              return `<span style="color:${color};font-weight:500;">${w}</span>`
-            } else {
-              // Unknown word
-              return `<span style="color:#ff5555; text-decoration: underline decoration-dotted;">${w}</span>`
-            }
-          }
-
-          // Fallback (e.g. if mode switched to 'none' unexpectedly, though filtered earlier)
-          return w
+          return htmlSegment
         })
         .join('')
     })
@@ -148,18 +143,17 @@ export const colorizeSegments = (
 export const colorizeText = (
   text: NonEmptyStringTrimmed,
   mode: ColorizationMode,
-  km_map: KhmerWordsMap | undefined,
+  km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed => {
-  if (mode === 'none' || !km_map) return text
   const segments = generateTextSegments(text, mode, km_map)
 
-  return colorizeSegments(segments, mode, km_map)
+  return colorizeSegments(segments, km_map)
 }
 
 export const colorizeText_allowUndefined = (
   text: NonEmptyStringTrimmed | undefined,
   mode: ColorizationMode,
-  km_map: KhmerWordsMap | undefined,
+  km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed | undefined => {
   return text ? colorizeText(text, mode, km_map) : undefined
 }

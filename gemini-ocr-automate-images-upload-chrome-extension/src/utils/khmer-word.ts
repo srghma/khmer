@@ -6,7 +6,7 @@ import { khnormal as khnormalImpl } from 'khmer-normalizer'
 import { Iterator_yieldUnique_usingSet } from './iterator'
 
 // Khmer Unicode range: U+1780 to U+17FF
-const KhmerWord_REGEX = /^[\p{Script=Khmer}]+$/u
+const KhmerWord_REGEX = /^\p{Script=Khmer}+$/u
 
 // text that contains only khmer letters and no other letters (not even space)
 
@@ -21,7 +21,7 @@ export const strToKhmerWordOrThrow = (value: string): TypedKhmerWord => {
 }
 
 export function* iterateKhmerWords(value: string): IterableIterator<TypedKhmerWord> {
-  for (const match of value.matchAll(/[\p{Script=Khmer}]+/gu)) yield strToKhmerWordOrThrow(match[0])
+  for (const match of value.matchAll(/\p{Script=Khmer}+/gu)) yield strToKhmerWordOrThrow(match[0])
 }
 
 export const strToUniqueKhmerWords = (value: string): Set<TypedKhmerWord> => {

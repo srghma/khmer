@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // DB & Utils
 import * as DictDb from '../db/dict'
@@ -120,7 +123,7 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
   // 1. Handle Deep Content Search (Async)
   useEffect(() => {
     let active = true
-    const q = debouncedQuery.trim()
+    const q = String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery)
 
     // Reset regex error here as well if query changes?
     // Usually main effect handles it, but deep search doesn't use regex currently.

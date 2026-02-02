@@ -1,16 +1,18 @@
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import {
-  khmerSentenceToWords_usingSegmenter,
   khmerSentenceToWords_usingDictionary,
+  khmerSentenceToWords_usingSegmenter,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer_segmentation'
-import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import { type NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import { replaceHtmlTextNodesWithMaybeOtherHtml } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/replaceHtmlTextNodesWithMaybeOtherHtml'
 import {
-  type NonEmptyStringTrimmed,
   nonEmptyString_afterTrim,
+  type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../../db/dict'
-import { type ColorizationMode, COLOR_PALETTE } from './utils'
+import { type ColorizationMode } from './utils'
+import { renderKhmerWordSpan } from './word-renderer'
 
 /**
  * Pure function to colorize Khmer text within HTML strings.
@@ -19,106 +21,57 @@ import { type ColorizationMode, COLOR_PALETTE } from './utils'
 export const colorizeHtml = (
   html: NonEmptyStringTrimmed,
   mode: ColorizationMode,
-  km_map: KhmerWordsMap | undefined,
+  km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed => {
-  if (mode === 'none') return html
-  // If we need dictionary mode but don't have the dictionary yet, return original
-  if (mode === 'dictionary' && !km_map) return html
-
-  // 1. Create a temporary container to parse the HTML
-  // Note: In a Node.js/SSR environment, this would require JSDOM.
-  // In Tauri/Browser, `document` is available.
-  const tempDiv = document.createElement('div')
-
-  tempDiv.innerHTML = html
-
-  // 2. Global state for color cycling across different text nodes
+  // Global state for color cycling across different text nodes
   let wordCounter = 0
 
-  // 3. Recursive function to traverse and process Text Nodes only
-  const processNode = (node: Node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const textContent = node.nodeValue
-
+  // 1. Process Text Nodes using the extracted helper
+  let serializedHtml: NonEmptyStringTrimmed = replaceHtmlTextNodesWithMaybeOtherHtml(
+    document.createElement('div'),
+    html,
+    (textContent: NonEmptyStringTrimmed): NonEmptyStringTrimmed => {
       // Only process if the text actually contains Khmer characters
-      if (textContent && /[\p{Script=Khmer}]/u.test(textContent)) {
-        // Use the replace logic on the text content
-        const newHtml = textContent.replace(/[\p{Script=Khmer}]+/gu, match_ => {
-          const match = match_ as TypedKhmerWord
-          const words: NonEmptyArray<TypedKhmerWord> =
-            mode === 'segmenter'
-              ? khmerSentenceToWords_usingSegmenter(match)
-              : khmerSentenceToWords_usingDictionary(match, assertIsDefinedAndReturn(km_map))
+      if (/\p{Script=Khmer}/u.test(textContent)) {
+        return nonEmptyString_afterTrim(
+          textContent.replace(/\p{Script=Khmer}+/gu, match_ => {
+            const match = match_ as TypedKhmerWord
+            const words: NonEmptyArray<TypedKhmerWord> =
+              mode === 'segmenter'
+                ? khmerSentenceToWords_usingSegmenter(match)
+                : khmerSentenceToWords_usingDictionary(match, assertIsDefinedAndReturn(km_map))
 
-          return words
-            .map(w => {
-              if (!w.trim()) return w // Preserve spaces
-
-              if (mode === 'segmenter') {
-                const color = COLOR_PALETTE[wordCounter % COLOR_PALETTE.length]
+            return words
+              .map(w => {
+                const htmlSegment = renderKhmerWordSpan(w, wordCounter, km_map.has(w))
 
                 wordCounter++
 
-                return `<span style="color:${color};">${w}</span>`
-              }
-
-              if (mode === 'dictionary' && km_map) {
-                if (km_map.has(w)) {
-                  const color = COLOR_PALETTE[wordCounter % COLOR_PALETTE.length]
-
-                  wordCounter++
-
-                  return `<span style="color:${color};font-weight:500;">${w}</span>`
-                }
-
-                // Unknown word
-                return `<span style="color:#ff5555; text-decoration: underline decoration-dotted;">${w}</span>`
-              }
-
-              return w
-            })
-            .join('')
-        })
-
-        // If changes were made, replace the text node with HTML elements
-        if (newHtml !== textContent) {
-          const wrapper = document.createElement('span')
-
-          wrapper.innerHTML = newHtml
-
-          // Replace the single text node with the new nodes (unwrapping the temporary span)
-          // We use replaceWith with the spread operator on childNodes to avoid adding extra spans
-          if (node.parentNode) {
-            // Convert NodeList to Array to avoid live collection issues during insertion
-            const newNodes = Array.from(wrapper.childNodes)
-
-            // @ts-expect-error - replaceWith is standard on CharacterData (TextNode)
-            node.replaceWith(...newNodes)
-          }
-        }
+                return htmlSegment
+              })
+              .join('')
+          }),
+        )
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      // Don't traverse inside <script> or <style> tags
-      const tagName = (node as Element).tagName.toLowerCase()
 
-      if (tagName !== 'script' && tagName !== 'style') {
-        // Convert childNodes to array to safely iterate even if DOM changes
-        Array.from(node.childNodes).forEach(processNode)
-      }
-    }
-  }
+      return textContent
+    },
+  )
 
-  // 4. Start processing
-  Array.from(tempDiv.childNodes).forEach(processNode)
+  // 2. Post-processing: Replace legacy blue colors
+  // (<font color="blue"> or #000099) with Tailwind class
+  serializedHtml = serializedHtml.replace(
+    /<font\s+color=["']?(?:blue|#000099)["']?>(.*?)<\/font>/gi,
+    '<span class="khmer--blue-lbl">$1</span>',
+  ) as NonEmptyStringTrimmed
 
-  // 5. Return the serialized HTML
-  return nonEmptyString_afterTrim(tempDiv.innerHTML)
+  return serializedHtml
 }
 
 export const colorizeHtml_allowUndefined = (
   html: NonEmptyStringTrimmed | undefined,
   mode: ColorizationMode,
-  km_map: KhmerWordsMap | undefined,
+  km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed | undefined => {
   return html ? colorizeHtml(html, mode, km_map) : undefined
 }

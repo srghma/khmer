@@ -56,6 +56,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
       const truncated = String_toNonEmptyString_orUndefined_afterTrim(truncateHtmlSafe(rawContent, 1000))
 
       if (!truncated) return null
+      if (!km_map) return { __html: truncated }
 
       // Colorize (inject spans for click handlers etc if needed, though usually just color)
       const displayHtml = colorizeHtml(truncated, 'segmenter', km_map)

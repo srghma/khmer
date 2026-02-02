@@ -24,6 +24,10 @@ import {
 import { executeNativeTts } from '../utils/tts'
 import type { TextSegment } from '../utils/text-processing/text'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import type { TextSegmentEnhanced } from '../utils/text-processing/text-enhanced'
+import { DefinitionPopup } from './DefinitionPopup'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // --- Helper Components ---
 
@@ -220,29 +224,34 @@ TokenRenderer.displayName = 'TokenRenderer'
 
 // --- Sub-Component: Khmer Word Block ---
 
-const KhmerWordBlock = React.memo(({ word }: { word: string }) => {
-  const enrichedTokens = useMemo(() => {
-    const chars = CharArray_mkFromString(word)
-    const tokens = tokenize(chars)
+const KhmerWordBlock = React.memo(
+  ({ word, definition }: { word: TypedKhmerWord; definition?: NonEmptyStringTrimmed }) => {
+    const enrichedTokens = useMemo(() => {
+      const chars = CharArray_mkFromString(word)
+      const tokens = tokenize(chars)
 
-    return enrichWithSeries(tokens)
-  }, [word])
+      return enrichWithSeries(tokens)
+    }, [word])
 
-  return (
-    <div className="flex flex-wrap gap-1.5 items-stretch bg-default-50/50 rounded-lg p-1 border border-transparent hover:border-default-200 transition-colors">
-      {enrichedTokens.map((token, idx) => (
-        <TokenRenderer key={idx} token={token} />
-      ))}
-    </div>
-  )
-})
+    return (
+      <div className={`flex flex-col items-center ${enrichedTokens.length < 2 ? 'max-w-[80px]' : ''}`}>
+        <div className="flex flex-wrap gap-1.5 items-stretch bg-default-50/50 rounded-lg p-1 border border-transparent hover:border-default-200 transition-colors">
+          {enrichedTokens.map((token, idx) => (
+            <TokenRenderer key={idx} token={token} />
+          ))}
+        </div>
+        {definition && <DefinitionPopup definitionHtml={definition} />}
+      </div>
+    )
+  },
+)
 
 KhmerWordBlock.displayName = 'KhmerWordBlock'
 
 // --- Main Component ---
 
 interface KhmerAnalyzerProps {
-  segments: NonEmptyArray<TextSegment>
+  segments: NonEmptyArray<TextSegment | TextSegmentEnhanced>
 }
 
 const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
@@ -258,7 +267,12 @@ const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
         }
 
         // For Khmer segments, iterate over words
-        return segment.words.map((word, wordIdx) => <KhmerWordBlock key={`${segIdx}-${wordIdx}`} word={word} />)
+        return segment.words.map((word, wordIdx) => {
+          const w: TypedKhmerWord = typeof word === 'string' ? word : word.w
+          const def: NonEmptyStringTrimmed | undefined = typeof word === 'string' ? undefined : word.def
+
+          return <KhmerWordBlock key={`${segIdx}-${wordIdx}`} definition={def} word={w} />
+        })
       })}
     </div>
   )
