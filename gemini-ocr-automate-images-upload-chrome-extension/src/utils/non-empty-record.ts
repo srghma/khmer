@@ -1,3 +1,7 @@
+import { assertIsDefinedAndReturn } from './asserts'
+import type { NonEmptyArray } from './non-empty-array'
+import type { NonEmptyMap } from './non-empty-map'
+import type { NonEmptySet } from './non-empty-set'
 import { Option_none, Option_some, type Option } from './types'
 
 export type NonEmptyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>> & {
@@ -75,4 +79,21 @@ export function Record_valuesMaybeUndefined_ifAllNonUndefined_assertNonEmptyReco
   if (record_ === undefined) {
     throw new Error('record should be non-empty and all values should not be undefined or null')
   }
+}
+
+export function NonEmptyRecord_keys<K extends PropertyKey, V>(r: NonEmptyRecord<K, V>): NonEmptyArray<K> {
+  return Object.keys(r) as unknown as NonEmptyArray<K>
+}
+
+export function NonEmptyRecord_keysSet<K extends PropertyKey, V>(r: NonEmptyRecord<K, V>): NonEmptySet<K> {
+  return new Set(Object.keys(r)) as unknown as NonEmptySet<K>
+}
+
+export function NonEmptyRecord_toMap_fromSetToGetOrderFromSet<K extends PropertyKey, V>(
+  set: NonEmptySet<K> | NonEmptyArray<K>,
+  r: NonEmptyRecord<K, V>,
+): NonEmptyMap<K, V> {
+  const m = new Map<K, V>()
+  for (const key of set) m.set(key, assertIsDefinedAndReturn(r[key]))
+  return m as any
 }

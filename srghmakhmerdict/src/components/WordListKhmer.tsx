@@ -10,7 +10,7 @@ import {
 } from '../utils/toGroupKhmer_cursor_onlyFirstLevel'
 import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../utils/toGroupKhmer_cursor_full'
 import { useWordListCommon } from '../hooks/useWordListCommon'
-import { useFlattenKhmer } from '../hooks/useFlattenKhmer'
+import { flattenKhmerData } from '../utils/flattenKhmerData'
 
 interface WordListKhmerProps {
   readonly data: ProcessDataOutputKhmer
@@ -36,10 +36,9 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   )
 
   // 1. Flatten Data
-  const { flatList, stickyIndexes, l1IndexMap, l2IndexMap, indexToL1Cursor, exactMatchIndex } = useFlattenKhmer(
-    data,
-    searchQuery,
-    contentMatches,
+  const { flatList, stickyIndexes, l1IndexMap, l2IndexMap, indexToL1Cursor, exactMatchIndex } = useMemo(
+    () => flattenKhmerData(data, searchQuery, contentMatches),
+    [data, contentMatches, searchQuery],
   )
 
   // 2. Common List Logic

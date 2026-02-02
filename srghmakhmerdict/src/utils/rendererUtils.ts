@@ -7,7 +7,10 @@ import {
 /**
  * Determines dictionary mode based on the script of the text.
  */
-export const detectModeFromText = (text: string, currentMode: DictionaryLanguage): DictionaryLanguage => {
+export const detectModeFromText = (
+  text: NonEmptyStringTrimmed,
+  currentMode: DictionaryLanguage,
+): DictionaryLanguage => {
   if (/\p{Script=Khmer}/u.test(text)) return 'km'
   if (/\p{Script=Cyrillic}/u.test(text)) return 'ru'
   if (/[a-zA-Z]/.test(text)) return 'en'

@@ -21,6 +21,10 @@ import * as FavDb from '../db/favourite'
 
 // Components
 import { KhmerAnkiModal } from './Anki'
+import {
+  Set_toNonEmptySet_orUndefined,
+  type NonEmptySet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
 // --- Types ---
 
@@ -341,7 +345,7 @@ const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, re
 
   // Anki State
   const [isAnkiOpen, setIsAnkiOpen] = useState(false)
-  const [ankiDeck, setAnkiDeck] = useState<TypedContainsKhmer[]>([])
+  const [ankiDeck, setAnkiDeck] = useState<NonEmptySet<TypedContainsKhmer> | undefined>()
 
   const handleOpenAnki = useCallback(() => {
     if (!km_map) {
@@ -351,11 +355,11 @@ const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, re
     }
 
     // Filter: only Khmer words that exist in dictionary
-    const khmerFavorites: TypedContainsKhmer[] = items
-      .filter(i => i.language === 'km' && km_map.has(i.word))
-      .map(i => strToContainsKhmerOrThrow(i.word))
+    const khmerFavorites: NonEmptySet<TypedContainsKhmer> | undefined = Set_toNonEmptySet_orUndefined(
+      new Set(items.filter(i => i.language === 'km' && km_map.has(i.word)).map(i => strToContainsKhmerOrThrow(i.word))),
+    )
 
-    if (khmerFavorites.length === 0) {
+    if (!khmerFavorites) {
       toast.error('No Khmer words in favorites to review')
 
       return
@@ -417,7 +421,7 @@ const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, re
       </div>
 
       {/* Modal */}
-      {km_map && (
+      {km_map && ankiDeck && (
         <KhmerAnkiModal
           isOpen={isAnkiOpen}
           items={ankiDeck}

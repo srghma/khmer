@@ -207,7 +207,7 @@ pub async fn get_km_words_detail_full(
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
     if words.is_empty() {
-        return Ok(HashMap::new());
+        return Err("List of words should not be empty");
     }
 
     let pool = state.get_pool().await?;
@@ -254,9 +254,9 @@ pub struct WordKmWordsDetailShortRow {
 pub async fn get_km_words_detail_short(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, String>, String> {
+) -> Result<HashMap<String, Option<String>>, String> {
     if words.is_empty() {
-        return Ok(HashMap::new());
+        return Err("List of words should not be empty");
     }
 
     let pool = state.get_pool().await?;
@@ -272,17 +272,25 @@ pub async fn get_km_words_detail_short(
 
     let mut query = sqlx::query_as::<_, WordKmWordsDetailShortRow>(&sql);
 
-    for word in words {
+    // Bind by reference so we can use 'words' again later
+    for word in &words {
         query = query.bind(word);
     }
 
     let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
 
-    let mut result = HashMap::new();
+    // Initialize map with capacity equal to input size
+    let mut result: HashMap<String, Option<String>> = HashMap::with_capacity(words.len());
+
+    // 1. Insert words found in the database
     for row in rows {
-        if let Some(def) = row.definition {
-            result.insert(row.word, def);
-        }
+        // row.definition is already Option<String>
+        result.insert(row.word, row.definition);
+    }
+
+    // 2. Ensure every requested word is in the result (fill missing with None)
+    for word in words {
+        result.entry(word).or_insert(None);
     }
 
     Ok(result)
@@ -398,7 +406,7 @@ pub async fn get_en_km_com_images_ocr(
     ids: Vec<i64>,
 ) -> Result<HashMap<i64, String>, String> {
     if ids.is_empty() {
-        return Ok(HashMap::new());
+        return Err("List of words should not be empty");
     }
 
     let pool = state.get_pool().await?;

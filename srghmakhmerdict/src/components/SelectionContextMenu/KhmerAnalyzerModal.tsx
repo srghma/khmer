@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 import { Textarea } from '@heroui/input'
-import { ErrorMessage } from '@heroui/react'
+import { Alert } from '@heroui/alert'
 
 import { KhmerAnalyzer } from '../KhmerAnalyzer'
 import { GoogleTranslate } from '../GoogleTranslate'
@@ -64,16 +64,22 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
 }) => {
   const [analyzedText, setAnalyzedText] = useState<string>(initialText)
 
-  const detectedMode = useMemo(() => detectModeFromText(analyzedText, currentMode), [analyzedText, currentMode])
+  const analyzedText_nonEmptyTrimmed = useMemo(
+    () => String_toNonEmptyString_orUndefined_afterTrim(analyzedText),
+    [analyzedText],
+  )
+
+  const detectedMode = useMemo(
+    () => (analyzedText_nonEmptyTrimmed ? detectModeFromText(analyzedText_nonEmptyTrimmed, currentMode) : 'en'),
+    [analyzedText_nonEmptyTrimmed, currentMode],
+  )
+
   const defaultTarget = useMemo(() => DictionaryLanguage_to_DictionaryLanguage[detectedMode], [detectedMode])
 
-  const analyzedText_ = useMemo(() => {
-    const x = String_toNonEmptyString_orUndefined_afterTrim(analyzedText)
-
-    if (!x) return undefined
-
-    return strToContainsKhmerOrUndefined(x)
-  }, [analyzedText])
+  const analyzedText_ = useMemo(
+    () => (analyzedText_nonEmptyTrimmed ? strToContainsKhmerOrUndefined(analyzedText_nonEmptyTrimmed) : undefined),
+    [analyzedText_nonEmptyTrimmed],
+  )
 
   // 1. Get basic segments for both modes
   const segmentsIntl: NonEmptyArray<TextSegment> | undefined = useMaybeGenerateTextSegments(
@@ -139,7 +145,9 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
 
         <ModalBody className="py-6 gap-6">
           {defsResult.t === 'loading' && <Spinner color="default" size="sm" />}
-          {defsResult.t === 'request_error' && <ErrorMessage>{defsResult.e.message}</ErrorMessage>}
+          {defsResult.t === 'request_error' && (
+            <Alert color="danger" description={defsResult.e.message} title="Request error" />
+          )}
 
           {analyzedText_ && km_map && segmentsDict_ && (
             <SegmentationPreview

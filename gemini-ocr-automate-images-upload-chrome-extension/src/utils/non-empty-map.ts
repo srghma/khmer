@@ -1,6 +1,8 @@
+import type { NonEmptyArray } from './non-empty-array'
+import type { NonEmptySet } from './non-empty-set'
 import { Option_none, Option_some, type Option } from './types'
 
-export type NonEmptyMap<K, V> = Map<K, V> & {
+export type NonEmptyMap<K, V> = ReadonlyMap<K, V> & {
   readonly _nonEmptyMapBrand: 'NonEmptyMap'
 }
 
@@ -43,4 +45,12 @@ export function Map_valuesMaybeUndefined_ifAllNonUndefined_assertNonEmptyMap<K, 
   const map_ = Map_valuesMaybeUndefined_ifAllNonUndefined_toNonEmptyMap_orUndefined(map)
 
   if (map_ === undefined) throw new Error('map should be non-empty and all values should not be undefined or null')
+}
+
+export function NonEmptyMap_keys<K extends PropertyKey, V>(r: NonEmptyMap<K, V>): NonEmptyArray<K> {
+  return Object.keys(r) as unknown as NonEmptyArray<K>
+}
+
+export function NonEmptyMap_keysSet<K extends PropertyKey, V>(r: NonEmptyMap<K, V>): NonEmptySet<K> {
+  return new Set(Object.keys(r)) as unknown as NonEmptySet<K>
 }

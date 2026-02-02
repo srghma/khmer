@@ -1,3 +1,5 @@
+import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+
 export const GROUP_COLORS = [
   'bg-slate-50 dark:bg-slate-900',
   'bg-red-50 dark:bg-red-950/30',
@@ -19,11 +21,11 @@ export const GROUP_COLORS = [
   'bg-rose-50 dark:bg-rose-950/30',
 ] as const
 
-export function useColorRotator() {
-  let index = 0
+export function mkColorRotator() {
+  let index = -1
 
   return {
-    next: () => GROUP_COLORS[index++ % GROUP_COLORS.length],
+    nextAndIncrement: () => assertIsDefinedAndReturn(GROUP_COLORS[index++ % GROUP_COLORS.length]),
     reset: () => {
       index = 0
     },

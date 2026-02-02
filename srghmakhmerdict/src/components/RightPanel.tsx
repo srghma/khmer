@@ -1,5 +1,8 @@
-import React, { useCallback, Suspense, useRef, useState } from 'react'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import React, { useCallback, Suspense, useRef, useState, useMemo } from 'react'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { Spinner } from '@heroui/spinner'
 import { type DictionaryLanguage } from '../types'
 import { useNavigation } from '../providers/NavigationProvider'
@@ -61,17 +64,21 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   const handleSelectionSearch = useCallback(
     (text: string) => {
       if (!selectedWord) return
-      const trimmed = text.trim()
+      const trimmed = String_toNonEmptyString_orUndefined_afterTrim(text)
 
       if (!trimmed) return
       const targetMode = detectModeFromText(trimmed, selectedWord.mode)
 
-      navigateTo(trimmed as NonEmptyStringTrimmed, targetMode)
+      navigateTo(trimmed, targetMode)
     },
     [navigateTo, selectedWord],
   )
 
   const [colorMode, setColorMode] = useState<ColorizationMode>('segmenter')
+  const highlightMatch = useMemo(
+    () => (highlightInDetails ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
+    [searchQuery, highlightInDetails],
+  )
 
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -93,7 +100,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           canGoBack={canGoBack}
           colorMode={colorMode}
           fontSize={detailsFontSize}
-          highlightMatch={highlightInDetails ? searchQuery : undefined}
+          highlightMatch={highlightMatch}
           km_map={km_map}
           mode={selectedWord.mode}
           setColorMode={setColorMode}

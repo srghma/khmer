@@ -179,7 +179,7 @@ export const get_en_km_com_images_ocr = async (ids: NonEmptySet<ValidNonNegative
 
 export const getKmWordsDetailShort = async (
   words: NonEmptySet<TypedKhmerWord>, // TypedKhmerWord
-): Promise<NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed>> => {
+): Promise<NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null>> => {
   return invoke('get_km_words_detail_short', { words: Array.from(words) })
 }
 

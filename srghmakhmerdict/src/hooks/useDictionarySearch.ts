@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useReducer, useMemo } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -17,6 +17,9 @@ import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-c
 import { useToast } from '../providers/ToastProvider'
 import type { DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
+import { useDebounce } from 'use-debounce'
+import type { DictData } from '../initDictionary'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 export type ProcessedDataState =
   | { mode: 'en'; data: ProcessDataOutput<CharUppercaseLatin> }
@@ -88,7 +91,7 @@ function* filterDictionaryWords(
  * Generator to iterate Khmer map based on verification mode.
  */
 function* getKhmerSourceIterator(
-  map: Map<NonEmptyStringTrimmed, { is_verified: boolean }>,
+  map: ReadonlyMap<NonEmptyStringTrimmed, { is_verified: boolean }>,
   mode: DictFilterSettings_Km_Mode,
 ): Generator<NonEmptyStringTrimmed> {
   if (mode === 'only_verified') {
@@ -109,44 +112,134 @@ interface UseDictionarySearchProps {
   searchInContent: boolean
 }
 
+/**
+ * Extracted Logic: Determines source iterable based on tab and settings.
+ */
+function getSourceIterator(
+  lang: DictionaryLanguage,
+  dictData: DictData,
+  mode: DictFilterSettings_Km_Mode,
+): Iterable<NonEmptyStringTrimmed> | null {
+  switch (lang) {
+    case 'en':
+      return dictData.en
+    case 'ru':
+      return dictData.ru
+    case 'km':
+      return dictData.km_map ? getKhmerSourceIterator(dictData.km_map, mode) : null
+    default:
+      return assertNever(lang)
+  }
+}
+
+// --- Reducer Logic ---
+
+interface SearchState {
+  contentMatches: NonEmptyStringTrimmed[]
+  resultData: ProcessedDataState | undefined
+  dictMatchCount: number
+  isSearching: boolean
+  regexError: string | null
+}
+
+const INITIAL_STATE: SearchState = {
+  contentMatches: [],
+  resultData: undefined,
+  dictMatchCount: 0,
+  isSearching: false,
+  regexError: null,
+}
+
+type SearchAction =
+  | { type: 'RESET' }
+  | { type: 'SET_REGEX_ERROR'; error: string }
+  | { type: 'START_SEARCH' }
+  | { type: 'SEARCH_SUCCESS'; data: ProcessedDataState; count: number }
+  | { type: 'SET_CONTENT_MATCHES'; matches: NonEmptyStringTrimmed[] }
+
+function searchReducer(state: SearchState, action: SearchAction): SearchState {
+  switch (action.type) {
+    case 'RESET':
+      return INITIAL_STATE
+    case 'SET_REGEX_ERROR':
+      return {
+        ...state,
+        regexError: action.error,
+        resultData: undefined,
+        dictMatchCount: 0,
+        isSearching: false,
+      }
+    case 'START_SEARCH':
+      return {
+        ...state,
+        isSearching: true,
+        regexError: null,
+      }
+    case 'SEARCH_SUCCESS':
+      return {
+        ...state,
+        isSearching: false,
+        resultData: action.data,
+        dictMatchCount: action.count,
+      }
+    case 'SET_CONTENT_MATCHES':
+      return {
+        ...state,
+        contentMatches: action.matches,
+      }
+    default:
+      return state
+  }
+}
+
+// --- Hook ---
+
+interface UseDictionarySearchProps {
+  activeTab: AppTab
+  mode: DictFilterSettings_Km_Mode
+  isRegex: boolean
+  searchInContent: boolean
+}
+
 export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent }: UseDictionarySearchProps) {
   const toast = useToast()
   const dictData = useDictionary()
-  const [debouncedQuery, setDebouncedQuery] = useState('')
 
-  const [contentMatches, setContentMatches] = useState<NonEmptyStringTrimmed[]>([])
-  const [resultData, setResultData] = useState<ProcessedDataState | undefined>(undefined)
-  const [resultCount, setResultCount] = useState(0)
-  const [isSearching, setIsSearching] = useState(false)
-  const [regexError, setRegexError] = useState<string | null>(null)
+  // Controlled input state
+  const [query, setQuery] = useState('')
+  const [debouncedQuery] = useDebounce(query, 300)
+  const debouncedQueryNonEmpty = useMemo(
+    () => String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery),
+    [debouncedQuery],
+  )
+
+  // Reducer for complex search state
+  const [state, dispatch] = useReducer(searchReducer, INITIAL_STATE)
 
   // 1. Handle Deep Content Search (Async)
   useEffect(() => {
     let active = true
-    const q = String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery)
 
-    // Reset regex error here as well if query changes?
-    // Usually main effect handles it, but deep search doesn't use regex currently.
-
-    if (!searchInContent || !q || !isDictionaryLanguage(activeTab)) {
-      setContentMatches([])
+    if (!searchInContent || !debouncedQueryNonEmpty || !isDictionaryLanguage(activeTab)) {
+      dispatch({ type: 'SET_CONTENT_MATCHES', matches: [] })
 
       return
     }
 
     const fetchContent = async () => {
       const l = stringToDictionaryLanguageOrThrow(activeTab)
-
       let results
 
       try {
-        results = await DictDb.searchContentByMode(l, q)
+        results = await DictDb.searchContentByMode(l, debouncedQueryNonEmpty)
       } catch (e: any) {
         toast.error('Search content by mode failed', e.message)
 
         return
       }
-      if (active) setContentMatches(results)
+      if (active) {
+        dispatch({ type: 'SET_CONTENT_MATCHES', matches: results })
+      }
     }
 
     fetchContent()
@@ -154,58 +247,33 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
     return () => {
       active = false
     }
-  }, [debouncedQuery, searchInContent, activeTab])
+  }, [debouncedQueryNonEmpty, searchInContent, activeTab, toast])
 
   // 2. Main Filtering
   useEffect(() => {
-    // console.log('something updated', debouncedQuery, activeTab, mode, isRegex, contentMatches)
     const abortController = new AbortController()
     const signal = abortController.signal
 
-    // Reset Error State
-    setRegexError(null)
-
+    // Step A: Validate prerequisites
     if (!isDictionaryLanguage(activeTab)) {
-      // console.log('!isDictionaryLanguage(activeTab)')
-      setResultData(undefined)
-      setResultCount(0)
+      dispatch({ type: 'RESET' })
 
       return
     }
 
-    // Determine source iterable
-    let sourceIter: Iterable<NonEmptyStringTrimmed> | null = null
-
-    if (activeTab === 'en') sourceIter = dictData.en
-    else if (activeTab === 'ru') sourceIter = dictData.ru
-    else if (activeTab === 'km') {
-      // console.log('dictData.km_map', dictData.km_map)
-      if (dictData.km_map) {
-        sourceIter = getKhmerSourceIterator(dictData.km_map, mode)
-      }
-    }
+    const sourceIter = getSourceIterator(activeTab, dictData, mode)
 
     if (!sourceIter) {
-      // console.log('!sourceIter')
-      setResultData(undefined)
-      setResultCount(0)
+      dispatch({ type: 'RESET' })
 
       return
     }
 
-    // ---------------------------------------------------------
-    // Validate Regex / Prepare Query Object BEFORE async/yield
-    // ---------------------------------------------------------
-    // Use the memoized function to generate the query object
+    // Step B: Validate Query
     const queryResult = makeFilterQueryWithCache(debouncedQuery, isRegex)
 
-    // console.log('queryResult', queryResult)
-
     if (queryResult.t === 'error') {
-      // If regex is invalid, show error and do not search
-      setRegexError(queryResult.v)
-      setResultData(undefined)
-      setResultCount(0)
+      dispatch({ type: 'SET_REGEX_ERROR', error: queryResult.v })
 
       return
     }
@@ -214,20 +282,18 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
 
     if (queryResult.t === 'ok') filterQuery = queryResult.v
 
-    // If 'empty', filterQuery remains null (and filterDictionaryWords yields all)
-
-    setIsSearching(true)
+    // Step C: Execute Search
+    dispatch({ type: 'START_SEARCH' })
 
     const runSearch = async () => {
-      // console.log('runSearch')
-      // Yield to main thread
+      // Yield to main thread to avoid blocking UI immediately
       await new Promise(resolve => setTimeout(resolve, 0))
       if (signal.aborted) return
 
-      // 1. Create Filter Generator using the pre-validated query object
+      // 1. Filter
       const filteredIter = filterDictionaryWords(sourceIter, filterQuery)
 
-      // 2. Create a "Tap" generator to count items
+      // 2. Count
       let count = 0
       const countingIter = (function* () {
         for (const item of filteredIter) {
@@ -236,34 +302,33 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
         }
       })()
 
-      // 3. Process Data
-      // console.log('activeTab', activeTab)
+      // 3. Process
       const processed = performProcessing(countingIter, activeTab)
-
-      // console.log('processed', processed)
 
       if (signal.aborted) return
 
-      setResultData(processed)
-      setResultCount(count + contentMatches.length)
-      if (!signal.aborted) setIsSearching(false)
+      dispatch({ type: 'SEARCH_SUCCESS', data: processed, count })
     }
 
     runSearch()
 
     return () => {
       abortController.abort()
-      setIsSearching(false)
+      // Note: We don't explicitly dispatch 'RESET' or 'STOP' here to prevent flashing,
+      // subsequent effects will handle state transitions.
     }
-  }, [debouncedQuery, activeTab, dictData, mode, isRegex, contentMatches])
+  }, [debouncedQuery, activeTab, dictData, mode, isRegex])
+
+  // Derived result count
+  const totalResultCount = state.dictMatchCount + state.contentMatches.length
 
   return {
-    onSearch: setDebouncedQuery,
-    searchQuery: debouncedQuery,
-    contentMatches,
-    resultData,
-    resultCount,
-    isSearching,
-    regexError, // expose error to UI
+    onSearch: setQuery,
+    searchQuery: query,
+    contentMatches: state.contentMatches,
+    resultData: state.resultData,
+    resultCount: totalResultCount,
+    isSearching: state.isSearching,
+    regexError: state.regexError,
   }
 }

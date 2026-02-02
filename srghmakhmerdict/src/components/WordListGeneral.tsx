@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import type { ProcessDataOutput } from '../utils/toGroup'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { VirtualizedList } from './VirtualizedList'
@@ -8,7 +8,7 @@ import { Char_mkOrThrow, type Char } from '@gemini-ocr-automate-images-upload-ch
 import { isCharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import { isCharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import { useWordListCommon } from '../hooks/useWordListCommon'
-import { useFlattenGeneral, type GeneralChar } from '../hooks/useFlattenGeneral'
+import { flattenGeneralData, type GeneralChar } from '../utils/flattenGeneralData'
 
 type L12SidebarGeneral_activeL1 = GeneralChar | '*'
 
@@ -39,7 +39,10 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
   const [activeL1, setActiveL1] = useState<GeneralChar | '*'>(assertIsDefinedAndReturn(data.groups[0]?.letter ?? '*'))
 
   // 1. Flatten Data
-  const { flatList, stickyIndexes, l1Map, exactMatchIndex } = useFlattenGeneral(data, searchQuery, contentMatches)
+  const { flatList, stickyIndexes, l1Map, exactMatchIndex } = useMemo(
+    () => flattenGeneralData(data, searchQuery, contentMatches),
+    [data, contentMatches, searchQuery],
+  )
 
   // 2. Common List Logic (Refs, Scrolling, Rendering)
   const { listRef, renderWordItem, scrollToIndex } = useWordListCommon({

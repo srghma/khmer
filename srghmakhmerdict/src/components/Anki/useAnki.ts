@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useEffect, useMemo, useCallback, useReducer } from 'react'
 
 // --- FSRS Imports ---
 import type { Rating, Card as FSRSCard } from '@squeakyrobot/fsrs'
@@ -8,128 +8,224 @@ import { getKmWordsDetailFull, type WordDetailKm } from '../../db/dict'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { Record_stripNullValuesOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/record'
 import { useToast } from '../../providers/ToastProvider'
-import { AnkiStateManager } from './AnkiStateManager'
-import { Array_isNonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
-import { Record_toNonEmptyRecord_orThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import { Set_toNonEmptySet_orUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import {
+  findNextDue,
+  getNextIntervals,
+  transition_reviewCard,
+  localStorage_loadOrInitCards,
+  localStorage_saveCardsMap,
+} from './AnkiStateManager'
+import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
-export const useAnki = (items: TypedContainsKhmer[], isOpen: boolean) => {
-  const manager = useMemo(() => new AnkiStateManager(), [])
+import { type NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import {
+  NonEmptyMap_keysSet,
+  type NonEmptyMap,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
+
+// --- State Shape ---
+
+export type AnkiState =
+  | { t: 'idle' }
+  | { t: 'loading' }
+  | {
+      t: 'ready'
+      cards: NonEmptyMap<TypedContainsKhmer, FSRSCard>
+      definitions: NonEmptyRecord<TypedContainsKhmer, WordDetailKm> | undefined
+      selectedWord: TypedContainsKhmer
+      isRevealed: boolean
+    }
+
+export const AnkiState_idle: AnkiState = { t: 'idle' }
+export const AnkiState_loading: AnkiState = { t: 'loading' }
+
+// --- Actions ---
+
+export type AnkiAction =
+  | { type: 'RESET' }
+  | { type: 'INIT_START' }
+  | {
+      type: 'INIT_SUCCESS'
+      cards: NonEmptyMap<TypedContainsKhmer, FSRSCard>
+      selectedWord: TypedContainsKhmer
+    }
+  | { type: 'SET_DEFINITIONS'; definitions: NonEmptyRecord<TypedContainsKhmer, WordDetailKm> }
+  | { type: 'SELECT_WORD'; word: TypedContainsKhmer }
+  | { type: 'REVEAL' }
+  | {
+      type: 'REVIEW_SUCCESS'
+      newCards: NonEmptyMap<TypedContainsKhmer, FSRSCard>
+      nextWord: TypedContainsKhmer
+    }
+
+// --- Reducer ---
+
+export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => {
+  switch (action.type) {
+    case 'RESET':
+      return AnkiState_idle
+
+    case 'INIT_START':
+      return AnkiState_loading
+
+    case 'INIT_SUCCESS':
+      return {
+        t: 'ready',
+        cards: action.cards,
+        selectedWord: action.selectedWord,
+        definitions: undefined,
+        isRevealed: false,
+      }
+
+    case 'SET_DEFINITIONS':
+      if (state.t !== 'ready') return state
+
+      return {
+        ...state,
+        definitions: action.definitions,
+      }
+
+    case 'SELECT_WORD':
+      if (state.t !== 'ready') return state
+
+      return {
+        ...state,
+        selectedWord: action.word,
+        isRevealed: false,
+      }
+
+    case 'REVEAL':
+      if (state.t !== 'ready') return state
+
+      return {
+        ...state,
+        isRevealed: true,
+      }
+
+    case 'REVIEW_SUCCESS':
+      if (state.t !== 'ready') return state
+
+      return {
+        ...state,
+        cards: action.newCards,
+        selectedWord: action.nextWord,
+        isRevealed: false,
+      }
+
+    default:
+      assertNever(action)
+  }
+}
+
+export const useAnki = (items: NonEmptySet<TypedContainsKhmer>) => {
   const toast = useToast()
+  const [state, dispatch] = useReducer(ankiReducer, AnkiState_idle)
 
-  const [cards, setCards] = useState<Record<TypedContainsKhmer, FSRSCard>>({})
-  const [definitions, setDefinitions] = useState<Record<TypedContainsKhmer, WordDetailKm>>({})
-  const [selectedWord, setSelectedWord] = useState<TypedContainsKhmer | undefined>(undefined)
-  const [isRevealed, setIsRevealed] = useState(false)
-
-  // Use a ref to track if we have performed the initial sync for this "open session"
-  // This prevents the "setState in useEffect" infinite loop/cascade warning.
-  const isSyncedRef = useRef(false)
-
-  // 1. Reset sync flag when modal closes
+  // 1. Lifecycle: Initialize when opening
+  //    This is the ONLY place 'items' prop is strictly necessary
   useEffect(() => {
-    if (!isOpen) {
-      isSyncedRef.current = false
-      setIsRevealed(false)
-      setSelectedWord(undefined)
+    // Don't re-init if already ready (unless forced elsewhere)
+    if (state.t === 'ready' || state.t === 'loading') return
+
+    dispatch({ type: 'INIT_START' })
+
+    try {
+      const nextCards = localStorage_loadOrInitCards(items)
+
+      // Initial Selection Strategy (Earliest Due Date)
+      const [nextDueWord] = findNextDue(nextCards)
+
+      dispatch({
+        type: 'INIT_SUCCESS',
+        cards: nextCards,
+        selectedWord: nextDueWord,
+      })
+    } catch (error: any) {
+      toast.error('Failed to initialize cards', error.message)
+      dispatch({ type: 'RESET' })
     }
-  }, [isOpen])
+  }, [items, state.t])
 
-  // 2. Sync Logic (Run once when opened)
+  // 2. Lifecycle: Fetch Definitions (Side Effect)
+  //    Refactored to derive words from state.cards instead of unstable props
   useEffect(() => {
-    if (!isOpen || !Array_isNonEmptyArray(items) || isSyncedRef.current) return
-
-    // A. Load & Sync Cards
-    const fromStorage = manager.loadCards()
-    const { cards: nextCards, hasChanges } = manager.syncCards(items, fromStorage)
-
-    if (hasChanges) {
-      manager.saveCards(nextCards)
-    }
-
-    setCards(nextCards)
-
-    // B. Initial Selection
-    const nextDue: TypedContainsKhmer = manager.findNextDue(items, nextCards)
-
-    setSelectedWord(nextDue)
-
-    // Mark as synced so we don't re-run this block during this open session
-    isSyncedRef.current = true
-  }, [isOpen, items, manager])
-
-  // 3. Fetch Definitions (Async)
-  useEffect(() => {
-    if (!isOpen) return
-    const items_ = Set_toNonEmptySet_orUndefined(new Set(items))
-
-    if (!items_) return
+    if (state.t !== 'ready') return
+    if (!state.definitions) return
 
     let active = true
 
-    getKmWordsDetailFull(items_)
+    getKmWordsDetailFull(NonEmptyMap_keysSet(state.cards))
       .then(res => {
-        const res_: Record<TypedContainsKhmer, WordDetailKm> = Record_stripNullValuesOrThrow(res)
+        const cleanRes = Record_stripNullValuesOrThrow(res) // all words should be found
 
-        if (active) setDefinitions(res_)
+        if (active) {
+          dispatch({ type: 'SET_DEFINITIONS', definitions: cleanRes })
+        }
       })
-      .catch((err: any) => toast.error('Failed to fetch anki definitions', err.message))
+      .catch((err: any) => {
+        if (active) toast.error('Failed to fetch definitions', err.message)
+      })
 
     return () => {
       active = false
     }
-  }, [isOpen, items, toast])
+  }, [state.t, state.t === 'ready' ? state.cards : undefined])
 
-  // Actions
+  // 3. Handlers
   const handleRate = useCallback(
     (rating: Rating) => {
-      if (!selectedWord) return
+      if (state.t !== 'ready') return
 
-      const card = cards[selectedWord]
+      // 1. Calculate new state via pure function (No dependency on 'items')
+      const { newCards, nextWord } = transition_reviewCard(state.cards, state.selectedWord, rating)
 
-      if (!card) return
+      // 2. Persist (Side Effect)
+      localStorage_saveCardsMap(newCards)
 
-      // Logic
-      const newCard = manager.reviewCard(card, rating)
-      const updatedCards = { ...cards, [selectedWord]: newCard }
-
-      // Update State & Storage
-      setCards(updatedCards)
-      manager.saveCards(Record_toNonEmptyRecord_orThrow(updatedCards))
-
-      // UI Transition
-      setIsRevealed(false)
-
-      // Find next word (Simple sequential approach relative to current list order)
-      // Note: We don't re-sort by due date immediately to avoid UI jumping,
-      // but you could use manager.findNextDue(items, updatedCards) if you prefer.
-      const currentIndex = items.indexOf(selectedWord)
-      const nextWord = items[(currentIndex + 1) % items.length]
-
-      setSelectedWord(nextWord)
+      // 3. Update State
+      dispatch({
+        type: 'REVIEW_SUCCESS',
+        newCards,
+        nextWord,
+      })
     },
-    [cards, selectedWord, items, manager],
+    [state],
   )
 
-  const handleSelect = useCallback((word: TypedContainsKhmer) => {
-    setSelectedWord(word)
-    setIsRevealed(false)
-  }, [])
+  const handleSelect = useCallback(
+    (word: TypedContainsKhmer) => {
+      if (state.t === 'ready') {
+        dispatch({ type: 'SELECT_WORD', word })
+      }
+    },
+    [state.t],
+  )
 
+  const setIsRevealed = useCallback(
+    (_: boolean) => {
+      if (state.t === 'ready') {
+        dispatch({ type: 'REVEAL' })
+      }
+    },
+    [state.t],
+  )
+
+  // 4. Derived Data (Next Intervals)
   const nextIntervals = useMemo(() => {
-    if (!selectedWord || !cards[selectedWord]) return undefined
+    if (state.t !== 'ready') return undefined
+    const card = state.cards.get(state.selectedWord)
 
-    return manager.getNextIntervals(cards[selectedWord])
-  }, [selectedWord, cards, manager])
+    if (!card) return undefined
+
+    return getNextIntervals(card)
+  }, [state])
 
   return {
-    cards,
-    definitions,
-    selectedWord,
-    isRevealed,
-    setIsRevealed,
+    state,
     handleRate,
     handleSelect,
+    setIsRevealed,
     nextIntervals,
   }
 }

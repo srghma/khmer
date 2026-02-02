@@ -375,3 +375,47 @@ export function Map_getFirstKey<K, V>(map: Map<K, V>): K | undefined {
   if (iterator.done) return undefined
   return iterator.value
 }
+
+export function Map_mergeWithRecord<K extends PropertyKey, V1, V2, V3>(
+  primary: ReadonlyMap<K, V1>,
+  secondary: Readonly<Record<K, V2>>,
+  merge: (v1: V1, v2: V2 | undefined) => V3,
+): Map<K, V3> {
+  const result = new Map()
+
+  for (const key in primary) result.set(key, merge(primary.get(key as K)!, (secondary as any)[key]))
+
+  return result
+}
+
+export function Map_sortBy<K, V, B>(primary: ReadonlyMap<K, V>, by: (k: K, v: V) => B): Map<K, V> {
+  const size = primary.size
+  if (size === 0) return new Map()
+
+  // 1. Decorate: Pre-calculate the sort criteria (O(N))
+  // We use a pre-allocated array for better performance in V8
+  const decorated = new Array<{ k: K; v: V; criteria: B }>(size)
+
+  let i = 0
+  for (const [k, v] of primary) {
+    decorated[i++] = { k, v, criteria: by(k, v) }
+  }
+
+  // 2. Sort: Compare the pre-calculated criteria (O(N log N))
+  decorated.sort((a, b) => {
+    const valA = a.criteria
+    const valB = b.criteria
+    if (valA < valB) return -1
+    if (valA > valB) return 1
+    return 0
+  })
+
+  // 3. Undecorate: Build the resulting Map (O(N))
+  const result = new Map<K, V>()
+  for (let j = 0; j < size; j++) {
+    const item = decorated[j]!
+    result.set(item.k, item.v)
+  }
+
+  return result
+}

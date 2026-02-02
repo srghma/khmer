@@ -1,4 +1,6 @@
-export type Char = string & { __brandChar: 'Char' }
+import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
+
+export type Char = (NonEmptyStringTrimmed | ' ') & { __brandChar: 'Char' }
 
 export function Char_isChar(s: string): s is Char {
   return Array.from(s).length === 1

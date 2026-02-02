@@ -22,6 +22,7 @@ import './App.css'
 import { useDictionary } from './providers/DictionaryProvider'
 import { usePreloadOnIdle } from './utils/lazyWithPreload'
 import lazyWithPreload from 'react-lazy-with-preload'
+import { detectModeFromText } from './utils/rendererUtils'
 
 // Replaced static import with Lazy load to reduce initial bundle size
 const KhmerComplexTableModal = lazyWithPreload(() =>
@@ -78,11 +79,7 @@ function App() {
           const word = String_toNonEmptyString_orUndefined_afterTrim(wordR)
 
           if (word) {
-            const firstChar = word.charAt(0)
-            let targetMode: DictionaryLanguage = 'en'
-
-            if (/\p{Script=Khmer}/u.test(firstChar)) targetMode = 'km'
-            else if (/\p{Script=Cyrillic}/u.test(firstChar)) targetMode = 'ru'
+            const targetMode: DictionaryLanguage = detectModeFromText(word, 'en')
 
             setActiveTab(targetMode)
             resetNavigation(word, targetMode)

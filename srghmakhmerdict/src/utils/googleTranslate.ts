@@ -108,7 +108,7 @@ export async function translate(
 
   const data = (await response.json()) as GoogleTranslateResponse
 
-  console.log('translated', data)
+  // console.log('translated', data)
 
   // Parse the dj=1 format
   let translatedText = ''
