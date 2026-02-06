@@ -35,7 +35,7 @@ khmerSentenceToWords_usingDictionary('ផ្លូវ  tstកខ្វេងក�
  */
 export const khmerSentenceToWords_usingDictionary = (
   str: TypedKhmerWord,
-  dict: { has: (s: TypedKhmerWord) => boolean },
+  dict_has: (s: TypedKhmerWord) => boolean,
 ): NonEmptyArray<TypedKhmerWord> => {
   const chars = Array.from(str) as TypedKhmerWord[]
   const result: TypedKhmerWord[] = []
@@ -45,7 +45,7 @@ export const khmerSentenceToWords_usingDictionary = (
   while (i < chars.length) {
     // Functional approach to finding the longest match at current position
     // We create a window from current position forward
-    const match = findLongestDictionaryMatch(chars, i, dict)
+    const match = findLongestDictionaryMatch(chars, i, dict_has)
 
     if (match) {
       result.push(match.word as TypedKhmerWord)
@@ -64,7 +64,7 @@ export const khmerSentenceToWords_usingDictionary = (
 const findLongestDictionaryMatch = (
   chars: TypedKhmerWord[],
   startIndex: number,
-  dict: { has: (s: TypedKhmerWord) => boolean },
+  dict_has: (s: TypedKhmerWord) => boolean,
 ): { word: string; length: number } | undefined => {
   let currentString = ''
   let bestMatch: { word: string; length: number } | undefined = undefined
@@ -72,7 +72,7 @@ const findLongestDictionaryMatch = (
   // Scan forward
   for (let j = startIndex; j < chars.length; j++) {
     currentString += chars[j]
-    if (dict.has(currentString as TypedKhmerWord)) {
+    if (dict_has(currentString as TypedKhmerWord)) {
       bestMatch = { word: currentString, length: j - startIndex + 1 }
     }
   }

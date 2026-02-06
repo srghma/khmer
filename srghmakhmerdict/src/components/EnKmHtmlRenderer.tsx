@@ -14,7 +14,6 @@ import { memoizeAsync1Lru } from '@gemini-ocr-automate-images-upload-chrome-exte
 import { get_en_km_com_images_ocr, type KhmerWordsMap } from '../db/dict'
 import {
   nonEmptyString_afterTrim,
-  String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type MaybeColorizationMode } from '../utils/text-processing/utils'
@@ -24,6 +23,7 @@ import {
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
+import { tryHandleKhmerWordClick } from '../hooks/useKhmerLinks'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -172,25 +172,13 @@ const useImageOrTextInteraction = (
     if (!container) return
 
     const handleImageClick = async (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-
       // 1. Handle Text Navigation (Higher Priority if enabled)
-      if (isKhmerLinksEnabled) {
-        const navigateSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
+      const handled = tryHandleKhmerWordClick(e, isKhmerLinksEnabled, onNavigate)
 
-        if (navigateSpan) {
-          const rawWord = navigateSpan.getAttribute('data-navigate-khmer-word')
-          const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
+      if (handled) return
 
-          if (word) {
-            e.preventDefault()
-            e.stopPropagation()
-            onNavigate(word, 'km')
-
-            return
-          }
-        }
-      }
+      // 2. Handle Image Click
+      const target = e.target as HTMLElement
 
       // Only handle clicks on the Image itself
       if (target.tagName !== 'IMG') return

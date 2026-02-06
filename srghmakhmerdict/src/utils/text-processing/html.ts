@@ -1,4 +1,3 @@
-import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import {
   khmerSentenceToWords_usingDictionary,
@@ -39,7 +38,7 @@ export const colorizeHtml = (
             const words: NonEmptyArray<TypedKhmerWord> =
               mode === 'segmenter'
                 ? khmerSentenceToWords_usingSegmenter(match)
-                : khmerSentenceToWords_usingDictionary(match, assertIsDefinedAndReturn(km_map))
+                : khmerSentenceToWords_usingDictionary(match, (s: TypedKhmerWord) => s !== match && km_map.has(s))
 
             return words
               .map(w => {

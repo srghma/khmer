@@ -7,7 +7,7 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { processArrayColorized } from './utils'
 import styles from './hide-broken-images.module.css'
 import type { DictionaryLanguage } from '../../types'
-import { useKhmerLinkInterception } from '../../hooks/useKhmerLinks'
+import { useKhmerClickListener, useKhmerContentStyles } from '../../hooks/useKhmerLinks'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
   <div className="text-[0.7em] uppercase tracking-wider font-bold text-default-400 mb-[0.75em] border-b border-divider pb-1">
@@ -61,12 +61,14 @@ export const RenderHtmlColorized = React.memo(
     )
 
     const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
-    const interactiveClass = useKhmerLinkInterception(containerRef, onNavigate)
+    const { isKhmerLinksEnabled, khmerContentClass } = useKhmerContentStyles()
+
+    useKhmerClickListener(containerRef, isKhmerLinksEnabled, onNavigate)
 
     if (!processedHtml) return null
 
     return (
-      <RenderHtml ref={containerRef} className={`${hideBrokenImagesClass} ${interactiveClass}`} html={processedHtml} />
+      <RenderHtml ref={containerRef} className={`${hideBrokenImagesClass} ${khmerContentClass}`} html={processedHtml} />
     )
   },
 )
@@ -115,11 +117,13 @@ export const CsvListRendererColorized = React.memo(
       [items, maybeColorMode, km_map],
     )
 
-    const interactiveClass = useKhmerLinkInterception(listRef, onNavigate)
+    const { isKhmerLinksEnabled, khmerContentClass } = useKhmerContentStyles()
+
+    useKhmerClickListener(listRef, isKhmerLinksEnabled, onNavigate)
 
     if (!processedItems) return null
 
-    return <CsvListRendererHtml ref={listRef} items={processedItems} ulClassName={interactiveClass} />
+    return <CsvListRendererHtml ref={listRef} items={processedItems} ulClassName={khmerContentClass} />
   },
 )
 

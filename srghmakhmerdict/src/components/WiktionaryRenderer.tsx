@@ -1,7 +1,4 @@
-import {
-  String_toNonEmptyString_orUndefined_afterTrim,
-  type NonEmptyStringTrimmed,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { type DictionaryLanguage } from '../types'
 import styles from './WiktionaryRenderer.module.css'
@@ -14,6 +11,7 @@ import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useSettings } from '../providers/SettingsProvider'
 import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
+import { tryHandleKhmerWordClick } from '../hooks/useKhmerLinks'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
@@ -42,28 +40,13 @@ export const useWikiLinkInterception = (
     if (!container) return
 
     const handleLinkClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
+      // 1. Custom "Data Attribute" Links (Khmer Words) - Priority
+      const handled = tryHandleKhmerWordClick(e, isKhmerLinksEnabled, onNavigate)
 
-      if (isKhmerLinksEnabled) {
-        // 1. Custom "Data Attribute" Links (Khmer Words)
-        // Check for attribute on target or closest parent
-        const navigateSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
-
-        if (navigateSpan && isKhmerLinksEnabled) {
-          const rawWord = navigateSpan.getAttribute('data-navigate-khmer-word')
-          const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
-
-          if (word) {
-            e.preventDefault()
-            e.stopPropagation() // Vital to prevent triggering parent <a> tags
-            onNavigate(word, 'km')
-
-            return
-          }
-        }
-      }
+      if (handled) return
 
       // 2. Standard Wiki Links (only process if we didn't hit a khmer word above)
+      const target = e.target as HTMLElement
       const targetAnchor = target.closest('a')
 
       if (!targetAnchor) return
@@ -99,7 +82,7 @@ export const useWikiLinkInterception = (
     container.addEventListener('click', handleLinkClick)
 
     return () => container.removeEventListener('click', handleLinkClick)
-  }, [htmlContent, onNavigate, currentMode, toast])
+  }, [htmlContent, onNavigate, currentMode, toast, isKhmerLinksEnabled])
 }
 
 interface WiktionaryRendererProps {

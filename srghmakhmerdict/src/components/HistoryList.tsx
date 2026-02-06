@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { AnimatePresence, motion, useAnimation, type PanInfo } from 'framer-motion'
 import { FaRegTrashAlt, FaGraduationCap } from 'react-icons/fa'
 import { Button } from '@heroui/button'
+import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 
 // Types & Utils
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -152,7 +153,7 @@ const HistoryItemRow = React.memo<HistoryItemRowProps>(
           <div className="flex-1 min-w-0 pointer-events-none select-none">
             <div
               dangerouslySetInnerHTML={wordColorized}
-              className="font-khmer text-foreground text-medium leading-snug truncate"
+              className={`text-foreground text-medium leading-snug truncate ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
             />
           </div>
           <ChevronIcon />

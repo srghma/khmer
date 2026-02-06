@@ -93,7 +93,7 @@ export const generateTextSegments = (
       const words: NonEmptyArray<TypedKhmerWord> =
         mode === 'segmenter'
           ? khmerSentenceToWords_usingSegmenter(match)
-          : khmerSentenceToWords_usingDictionary(match, km_map)
+          : khmerSentenceToWords_usingDictionary(match, (s: TypedKhmerWord) => s !== match && km_map.has(s))
 
       segments.push({ t: 'khmer', words })
     } else {
