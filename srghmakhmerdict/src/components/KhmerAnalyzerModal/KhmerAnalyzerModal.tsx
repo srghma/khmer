@@ -54,7 +54,7 @@ interface KhmerAnalyzerModalProps {
   textAndOpen: NonEmptyStringTrimmed | undefined
   currentMode: DictionaryLanguage
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   onClose: () => void
   onNavigate: (word: NonEmptyStringTrimmed) => void
 }

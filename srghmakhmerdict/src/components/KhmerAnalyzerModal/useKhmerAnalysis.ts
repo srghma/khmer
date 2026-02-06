@@ -37,7 +37,7 @@ export const useKhmerAnalysis = (
   )
 
   const detectedMode = useMemo(
-    () => (analyzedText_nonEmptyTrimmed ? detectModeFromText(analyzedText_nonEmptyTrimmed, currentMode) : 'en'),
+    () => (analyzedText_nonEmptyTrimmed ? (detectModeFromText(analyzedText_nonEmptyTrimmed) ?? currentMode) : 'en'),
     [analyzedText_nonEmptyTrimmed, currentMode],
   )
 

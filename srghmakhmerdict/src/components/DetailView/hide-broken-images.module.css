@@ -1,0 +1,35 @@
+/*
+  This relies on the fact that pseudo-elements (::before/::after)
+  are not rendered on valid "replaced elements" (loaded images) in most browsers,
+  but ARE rendered when the image fails to load.
+*/
+
+.hideBroken img {
+  /* 1. Hide the Alt Text & Color */
+  color: transparent;
+  text-indent: -9999px;
+
+  /* 2. Hide the browser's default broken image border/icon */
+  border: none !important;
+  outline: none !important;
+
+  /* 3. Prepare for masking */
+  position: relative;
+
+  /* Optional: Force it to have no size if it collapses naturally,
+     though standard CSS cannot force 'display: none' based on error. */
+  display: block;
+}
+
+/* The mask that covers any remaining browser-specific broken image icons */
+.hideBroken img::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  /* Makes it invisible */
+}

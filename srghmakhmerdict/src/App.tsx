@@ -35,14 +35,12 @@ function App() {
     isRegex,
     searchInContent,
     highlightInList,
-    highlightInDetails,
     uiFontSize,
     detailsFontSize,
     filters,
     isKhmerTableOpen,
     onCloseKhmerTable,
     maybeColorMode,
-    setMaybeColorMode,
   } = useSettings()
 
   useEffect(() => {
@@ -72,7 +70,7 @@ function App() {
           const word = String_toNonEmptyString_orUndefined_afterTrim(wordR)
 
           if (word) {
-            const targetMode: DictionaryLanguage = detectModeFromText(word, 'en')
+            const targetMode: DictionaryLanguage = detectModeFromText(word) ?? 'en'
 
             setActiveTab(targetMode)
             resetNavigation(word, targetMode)
@@ -196,13 +194,11 @@ function App() {
 
       <RightPanel
         detailsFontSize={detailsFontSize}
-        highlightInDetails={highlightInDetails}
         km_map={dictData.km_map}
         maybeColorMode={maybeColorMode}
         searchQuery={searchQuery}
         selectedWord={currentHistoryItem}
         setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
-        setMaybeColorMode={setMaybeColorMode}
         onBack={clearSelection}
         onNavigate={handleSidebarSelect}
       />

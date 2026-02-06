@@ -6,6 +6,7 @@ import { Alert } from '@heroui/alert'
 import { HiSpeakerWave } from 'react-icons/hi2'
 import { SiGoogletranslate } from 'react-icons/si'
 import { RxCaretDown } from 'react-icons/rx'
+import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 import { TO_LANGUAGES, type ToTranslateLanguage, type TranslateResult } from '../../utils/googleTranslate'
 import { colorizeHtml } from '../../utils/text-processing/html'
@@ -81,7 +82,7 @@ interface ResultDisplayProps {
   result: TranslateResult
   targetLang: ToTranslateLanguage
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   onSpeakNative: () => void
   onSpeakGoogle: () => void
 }
@@ -100,7 +101,7 @@ export const ResultDisplay = memo(
         {resultHtml ? (
           <div
             dangerouslySetInnerHTML={resultHtml}
-            className="font-medium text-medium font-khmer leading-relaxed select-text"
+            className={`font-medium text-medium font-khmer leading-relaxed select-text ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
           />
         ) : (
           <div className="font-medium text-medium select-text">{result.text}</div>

@@ -15,7 +15,7 @@ interface KhmerAnalyzerContentProps {
   text: NonEmptyStringTrimmed
   currentMode: DictionaryLanguage
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   onNavigate: (word: NonEmptyStringTrimmed) => void
 }
 

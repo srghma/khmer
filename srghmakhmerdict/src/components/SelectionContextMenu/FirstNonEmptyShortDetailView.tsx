@@ -9,6 +9,7 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../../db/dict'
 import { truncateHtmlSafe } from './truncateHtmlSafe'
+import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 interface FirstNonEmptyShortDetailViewProps {
   word: NonEmptyStringTrimmed
@@ -81,11 +82,13 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
         {/* HTML Content */}
         {/* We adds max-h and overflow-hidden as a second layer of defense for visual neatness */}
-        <div className="text-sm text-foreground-700 font-khmer prose prose-sm dark:prose-invert max-w-none leading-snug line-clamp-4 max-h-[100px] overflow-hidden relative">
-          <div dangerouslySetInnerHTML={displayHtml} />
-
-          {/* Fade out effect at bottom */}
-          <div className="absolute bottom-0 left-0 w-full h-4 bg-gradient-to-t from-content1 to-transparent pointer-events-none" />
+        <div
+          className={`text-sm text-foreground-700 prose prose-sm dark:prose-invert max-w-none leading-snug line-clamp-4 max-h-[100px] overflow-hidden relative`}
+        >
+          <div
+            dangerouslySetInnerHTML={displayHtml}
+            className={srghma_khmer_dict_content_styles.srghma_khmer_dict_content}
+          />
         </div>
       </div>
     )

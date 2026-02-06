@@ -8,6 +8,7 @@ import {
   memoizeAsync3_LRU_cachePromise,
   memoizeAsync3_LRU_cachePromise__default_keyMaker,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
+import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 import {
   stringToToTranslateLanguageOrThrow,
@@ -143,7 +144,7 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
               {resultHtml ? (
                 <div
                   dangerouslySetInnerHTML={resultHtml}
-                  className="font-medium text-medium font-khmer leading-relaxed"
+                  className={`font-medium text-medium font-khmer leading-relaxed ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
                 />
               ) : (
                 <div className="font-medium text-medium">{result.text}</div>

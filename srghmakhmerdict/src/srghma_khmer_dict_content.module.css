@@ -1,0 +1,130 @@
+.srghma_khmer_dict_content {
+  /* --- Palette (Light Mode) --- */
+  --kw-0: #005cc5;
+  /* Blue */
+  --kw-1: #008080;
+  /* Teal */
+  --kw-2: #6f42c1;
+  /* Purple */
+  --kw-3: #795e26;
+  /* Dark Yellow/Olive */
+  --kw-4: #1b5e20;
+  /* Forest Green (Replaced Red) */
+
+  --kw-unknown: #d32f2f;
+  /* Red reserved for unknown */
+  --kw-legacy-blue: #2563eb;
+}
+
+/* --- Dark Mode Overrides --- */
+:global(.dark) .srghma_khmer_dict_content {
+  --kw-0: #569cd6;
+  /* Blue */
+  --kw-1: #4ec9b0;
+  /* Soft Green/Teal */
+  --kw-2: #c586c0;
+  /* Pink/Purple */
+  --kw-3: #dcdcaa;
+  /* Soft Yellow */
+  --kw-4: #b5cea8;
+  /* Sage Green (Replaced Orange/Red) */
+
+  --kw-unknown: #ff5555;
+  /* Bright Red */
+  --kw-legacy-blue: #3b82f6;
+}
+
+/* --- Base Utility Classes --- */
+
+/* Known Words (Semi-Bold) */
+.srghma_khmer_dict_content :global(.khmer--is-in-dictionary-color-0) {
+  color: var(--kw-0);
+  font-weight: 500;
+}
+
+.srghma_khmer_dict_content :global(.khmer--is-in-dictionary-color-1) {
+  color: var(--kw-1);
+  font-weight: 500;
+}
+
+.srghma_khmer_dict_content :global(.khmer--is-in-dictionary-color-2) {
+  color: var(--kw-2);
+  font-weight: 500;
+}
+
+.srghma_khmer_dict_content :global(.khmer--is-in-dictionary-color-3) {
+  color: var(--kw-3);
+  font-weight: 500;
+}
+
+.srghma_khmer_dict_content :global(.khmer--is-in-dictionary-color-4) {
+  color: var(--kw-4);
+  font-weight: 500;
+}
+
+/* Segmented Words (Normal Weight) */
+.srghma_khmer_dict_content :global(.khmer--without-dictionary-color-0) {
+  color: var(--kw-0);
+}
+
+.srghma_khmer_dict_content :global(.khmer--without-dictionary-color-1) {
+  color: var(--kw-1);
+}
+
+.srghma_khmer_dict_content :global(.khmer--without-dictionary-color-2) {
+  color: var(--kw-2);
+}
+
+.srghma_khmer_dict_content :global(.khmer--without-dictionary-color-3) {
+  color: var(--kw-3);
+}
+
+.srghma_khmer_dict_content :global(.khmer--without-dictionary-color-4) {
+  color: var(--kw-4);
+}
+
+/* Unknown Words */
+.srghma_khmer_dict_content :global(.khmer--is-not-in-dictionary) {
+  color: var(--kw-unknown);
+  text-decoration: underline dotted;
+}
+
+/* Legacy Blue */
+.srghma_khmer_dict_content :global(.khmer--blue-lbl) {
+  color: var(--kw-legacy-blue);
+}
+
+/* --- Interactivity --- */
+
+/*
+   NEW: Target spans with data-navigate-khmer-word ONLY when
+   container has .interactive class
+*/
+.interactive :global([data-navigate-khmer-word]) {
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.1s ease-in-out;
+  position: relative;
+  z-index: 10;
+  /* Ensure it sits above parent links if nested */
+}
+
+/* Hover Effects */
+.interactive :global([data-navigate-khmer-word]:hover) {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: currentColor;
+  opacity: 0.8;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+:global(.dark) .interactive :global([data-navigate-khmer-word]:hover) {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Specific Override: Unknown words usually have dotted underline.
+   On hover in interactive mode, make it solid to indicate clickability. */
+.interactive :global(.khmer--is-not-in-dictionary:hover) {
+  text-decoration-style: solid;
+  background-color: rgba(211, 47, 47, 0.1);
+}

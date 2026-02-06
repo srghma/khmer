@@ -90,7 +90,7 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
 
     return (
       <div className={clsx(boxClass, 'opacity-50')}>
-        <div className="text-lg font-khmer mb-1">{text}</div>
+        <div className="text-lg mb-1">{text}</div>
         <div className="text-[10px]">—</div>
       </div>
     )
@@ -108,9 +108,7 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
 
       return (
         <button className={boxClass} onClick={handleSpeak}>
-          <div
-            className={clsx('text-xl font-khmer leading-none mb-1', isSeriesA ? 'text-danger-600' : 'text-primary-600')}
-          >
+          <div className={clsx('text-xl leading-none mb-1', isSeriesA ? 'text-danger-600' : 'text-primary-600')}>
             {text}
           </div>
           <div className="text-[10px] font-bold text-default-600">{def.trans}</div>

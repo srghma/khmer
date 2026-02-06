@@ -1,24 +1,38 @@
 import {
-  type NonEmptyStringTrimmed,
   String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { type DictionaryLanguage } from '../types'
 import styles from './WiktionaryRenderer.module.css'
 import { useToast } from '../providers/ToastProvider'
-import { extractWikiTerm, detectModeFromText } from '../utils/rendererUtils'
+import { detectModeFromText } from '../utils/rendererUtils'
 import type { KhmerWordsMap } from '../db/dict'
 import { colorizeHtml } from '../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
+import { parseWikiHref } from '../utils/wikiLinkParser'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import { useSettings } from '../providers/SettingsProvider'
+import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 
-/**
- * Intercepts Wiki links to navigate within the app.
- */
+export const useWiktionaryContent = (
+  html: NonEmptyStringTrimmed,
+  maybeColorMode: MaybeColorizationMode,
+  km_map: KhmerWordsMap,
+) => {
+  return useMemo(() => {
+    if (maybeColorMode === 'none' || !km_map) return { __html: html }
+
+    return { __html: colorizeHtml(html, maybeColorMode, km_map) }
+  }, [html, maybeColorMode, km_map])
+}
+
 export const useWikiLinkInterception = (
   containerRef: RefObject<HTMLDivElement | null>,
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
   currentMode: DictionaryLanguage,
-  htmlContent: string, // Re-attach listener if HTML changes
+  htmlContent: NonEmptyStringTrimmed,
+  isKhmerLinksEnabled: boolean,
 ) => {
   const toast = useToast()
 
@@ -28,65 +42,58 @@ export const useWikiLinkInterception = (
     if (!container) return
 
     const handleLinkClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest('a')
+      const target = e.target as HTMLElement
 
-      if (!target) return
+      if (isKhmerLinksEnabled) {
+        // 1. Custom "Data Attribute" Links (Khmer Words)
+        // Check for attribute on target or closest parent
+        const navigateSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
 
-      const href = target.getAttribute('href')
+        if (navigateSpan && isKhmerLinksEnabled) {
+          const rawWord = navigateSpan.getAttribute('data-navigate-khmer-word')
+          const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
 
-      if (!href) return
+          if (word) {
+            e.preventDefault()
+            e.stopPropagation() // Vital to prevent triggering parent <a> tags
+            onNavigate(word, 'km')
 
-      // 1. Standard Wiki Links: /wiki/Word
-      if (href.startsWith('/wiki/')) {
-        e.preventDefault()
-        const term = extractWikiTerm(href)
-
-        // extractWikiTerm usually returns a string, but let's be safe and trim/validate
-        const cleanTerm = term ? String_toNonEmptyString_orUndefined_afterTrim(term) : undefined
-
-        if (cleanTerm) {
-          const nextMode = detectModeFromText(cleanTerm, currentMode)
-
-          onNavigate(cleanTerm, nextMode)
-        } else {
-          toast.error('Invalid Link', 'Could not parse wiki link')
+            return
+          }
         }
-
-        return
       }
 
-      // 2. Query Style Links (Redlinks, Edit): /w/index.php?title=Word...
-      if (href.startsWith('/w/index.php')) {
-        e.preventDefault()
-        let term: string | null = null
+      // 2. Standard Wiki Links (only process if we didn't hit a khmer word above)
+      const targetAnchor = target.closest('a')
 
-        try {
-          // Use a dummy base to allow parsing relative URLs
-          const url = new URL(href, 'http://dummy.base')
+      if (!targetAnchor) return
 
-          term = url.searchParams.get('title')
-        } catch (err: any) {
-          toast.warn('Failed to parse wiki query link', err.message)
+      const href = targetAnchor.getAttribute('href')
+      const result = parseWikiHref(href)
+
+      switch (result.kind) {
+        case 'internal': {
+          e.preventDefault()
+          const nextMode = detectModeFromText(result.term) ?? currentMode
+
+          onNavigate(result.term, nextMode)
+          break
         }
-
-        const cleanTerm = term ? String_toNonEmptyString_orUndefined_afterTrim(term) : undefined
-
-        if (cleanTerm) {
-          const nextMode = detectModeFromText(cleanTerm, currentMode)
-
-          onNavigate(cleanTerm, nextMode)
-        } else {
-          // If we can't extract a title, it might be a special page or history link.
-          // In a dictionary viewer, these are usually dead ends.
-          toast.error('Invalid Link', 'Could not resolve word from link')
+        case 'external': {
+          targetAnchor.setAttribute('target', '_blank')
+          targetAnchor.setAttribute('rel', 'noopener noreferrer')
+          break
         }
-
-        return
+        case 'invalid': {
+          e.preventDefault()
+          toast.error('Invalid Link', result.reason)
+          break
+        }
+        case 'ignore':
+          break
+        default:
+          assertNever(result)
       }
-
-      // 3. External / Other Links
-      target.setAttribute('target', '_blank')
-      target.setAttribute('rel', 'noopener noreferrer')
     }
 
     container.addEventListener('click', handleLinkClick)
@@ -95,34 +102,33 @@ export const useWikiLinkInterception = (
   }, [htmlContent, onNavigate, currentMode, toast])
 }
 
+interface WiktionaryRendererProps {
+  html: NonEmptyStringTrimmed
+  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
+  currentMode: DictionaryLanguage
+  km_map: KhmerWordsMap
+  maybeColorMode: MaybeColorizationMode
+}
+
 export const WiktionaryRenderer = ({
   html,
   onNavigate,
   currentMode,
   km_map,
   maybeColorMode,
-}: {
-  html: NonEmptyStringTrimmed
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
-  currentMode: DictionaryLanguage
-  km_map: KhmerWordsMap | undefined
-  maybeColorMode: MaybeColorizationMode
-}) => {
+}: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { isKhmerLinksEnabled } = useSettings()
 
-  // Custom Hook: Handle link clicks
-  useWikiLinkInterception(containerRef, onNavigate, currentMode, html)
+  // 1. Process HTML (Colorization)
+  const content = useWiktionaryContent(html, maybeColorMode, km_map)
 
-  // Utility: Process HTML string
-  const __html = useMemo(() => {
-    if (maybeColorMode === 'none' || !km_map) return { __html: html }
+  // 2. Attach Event Listeners (Navigation)
+  useWikiLinkInterception(containerRef, onNavigate, currentMode, html, isKhmerLinksEnabled)
 
-    return { __html: colorizeHtml(html, maybeColorMode, km_map) }
-  }, [html, maybeColorMode, km_map])
+  // 3. Dynamic Class for Interaction
+  // contentStyles.interactive determines if hover effects are shown
+  const className = `${styles.wikiScope} ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${isKhmerLinksEnabled ? srghma_khmer_dict_content_styles.interactive : ''}`
 
-  return (
-    <>
-      <div dangerouslySetInnerHTML={__html} ref={containerRef} className={styles.wikiScope} />
-    </>
-  )
+  return <div dangerouslySetInnerHTML={content} ref={containerRef} className={className} />
 }

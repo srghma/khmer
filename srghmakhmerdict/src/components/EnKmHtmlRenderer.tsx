@@ -2,7 +2,7 @@ import { useRef, useMemo, useEffect, useState } from 'react'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { useSettings } from '../providers/SettingsProvider'
 import styles from './EnKmHtmlRenderer.module.css'
-import type { EnglishKhmerCom_Images_Mode } from '../types'
+import type { DictionaryLanguage, EnglishKhmerCom_Images_Mode } from '../types'
 import { useToast } from '../providers/ToastProvider'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import {
@@ -14,6 +14,7 @@ import { memoizeAsync1Lru } from '@gemini-ocr-automate-images-upload-chrome-exte
 import { get_en_km_com_images_ocr, type KhmerWordsMap } from '../db/dict'
 import {
   nonEmptyString_afterTrim,
+  String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type MaybeColorizationMode } from '../utils/text-processing/utils'
@@ -22,6 +23,7 @@ import {
   Set_toNonEmptySet_orUndefined,
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -157,7 +159,11 @@ const useOcrData = (html: NonEmptyStringTrimmed) => {
   return ocrMap
 }
 
-const useImageInteraction = (ref: React.RefObject<HTMLDivElement | null>) => {
+const useImageOrTextInteraction = (
+  ref: React.RefObject<HTMLDivElement | null>,
+  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
+  isKhmerLinksEnabled: boolean,
+) => {
   const toast = useToast()
 
   useEffect(() => {
@@ -167,6 +173,24 @@ const useImageInteraction = (ref: React.RefObject<HTMLDivElement | null>) => {
 
     const handleImageClick = async (e: MouseEvent) => {
       const target = e.target as HTMLElement
+
+      // 1. Handle Text Navigation (Higher Priority if enabled)
+      if (isKhmerLinksEnabled) {
+        const navigateSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
+
+        if (navigateSpan) {
+          const rawWord = navigateSpan.getAttribute('data-navigate-khmer-word')
+          const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
+
+          if (word) {
+            e.preventDefault()
+            e.stopPropagation()
+            onNavigate(word, 'km')
+
+            return
+          }
+        }
+      }
 
       // Only handle clicks on the Image itself
       if (target.tagName !== 'IMG') return
@@ -193,23 +217,25 @@ const useImageInteraction = (ref: React.RefObject<HTMLDivElement | null>) => {
     container.addEventListener('click', handleImageClick)
 
     return () => container.removeEventListener('click', handleImageClick)
-  }, [ref, toast])
+  }, [ref, toast, onNavigate, isKhmerLinksEnabled])
 }
 
 // --- Main Component ---
 
 export interface EnKmHtmlRendererProps {
   html: NonEmptyStringTrimmed
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
+  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
 }
 
-export const EnKmHtmlRenderer = ({ html, km_map, maybeColorMode }: EnKmHtmlRendererProps) => {
+export const EnKmHtmlRenderer = ({ html, km_map, maybeColorMode, onNavigate }: EnKmHtmlRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { imageMode } = useSettings()
+  const { imageMode, isKhmerLinksEnabled } = useSettings() // Consume setting
   const ocrMap = useOcrData(html)
 
   const finalHtml = useMemo(() => {
+    // Logic remains same: inject OCR -> Change URLs -> Colorize (which now adds data-navigate-word)
     const html_withInjectedOcr = ocrMap ? injectOcrIntoHtml(html, ocrMap) : html
 
     const html_withChangedUrls = processHtmlImages(html_withInjectedOcr, imageMode)
@@ -222,13 +248,13 @@ export const EnKmHtmlRenderer = ({ html, km_map, maybeColorMode }: EnKmHtmlRende
     return { __html: html_colorized }
   }, [html, ocrMap, km_map, maybeColorMode, imageMode])
 
-  useImageInteraction(containerRef)
+  useImageOrTextInteraction(containerRef, onNavigate, isKhmerLinksEnabled)
 
   return (
     <div
       dangerouslySetInnerHTML={finalHtml}
       ref={containerRef}
-      className={`${styles.enKmScope} cursor-pointer`}
+      className={`${styles.enKmScope} ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${isKhmerLinksEnabled ? srghma_khmer_dict_content_styles.interactive : ''} cursor-pointer`}
       title="Click image to translate in Google Lens"
     />
   )

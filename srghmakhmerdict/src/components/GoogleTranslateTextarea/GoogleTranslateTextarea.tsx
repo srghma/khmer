@@ -11,8 +11,8 @@ import { useGoogleTranslation, useTtsHandlers } from './hooks'
 import { LanguageSelector, SpeakButtons, ResultDisplay, StatusDisplay } from './components'
 
 interface GoogleTranslateTextareaProps extends TextAreaProps {
-  defaultTargetLang: ToTranslateLanguage // Required, no default in logic
-  km_map: KhmerWordsMap | undefined // Explicit undefined if missing
+  defaultTargetLang: ToTranslateLanguage
+  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
 }
 

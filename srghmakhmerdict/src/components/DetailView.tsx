@@ -26,10 +26,9 @@ interface DetailViewProps {
   fontSize: number
   highlightMatch: NonEmptyStringTrimmed | undefined
   onBack: () => void | undefined
-  km_map: KhmerWordsMap | undefined
-  canGoBack: boolean | undefined
+  km_map: KhmerWordsMap
+  canGoBack: boolean
   maybeColorMode: MaybeColorizationMode
-  setMaybeColorMode: (c: MaybeColorizationMode) => void
   setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
 }
 
@@ -42,7 +41,6 @@ const DetailViewImpl = ({
   km_map,
   canGoBack,
   maybeColorMode,
-  setMaybeColorMode,
   setKhmerAnalyzerModalText_setToOpen,
 }: DetailViewProps) => {
   // 1. Data Logic
@@ -75,9 +73,13 @@ const DetailViewImpl = ({
 
   const handleOpenSearch = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
+      // console.log('handleOpenSearch selectedText', selectedText)
+      // console.log('handleOpenSearch currentHistoryItem', currentHistoryItem)
       if (!currentHistoryItem) return
       if (!selectedText) return
-      const targetMode = detectModeFromText(selectedText, currentHistoryItem.mode)
+      const targetMode = detectModeFromText(selectedText) ?? currentHistoryItem.mode
+
+      // console.log('handleOpenSearch targetMode', targetMode)
 
       navigateTo(selectedText, targetMode)
 
@@ -89,6 +91,7 @@ const DetailViewImpl = ({
   const renderPopupContent = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
       if (!currentHistoryItem) return null // Type safety
+      if (!km_map) return null // Type safety
 
       return (
         <SelectionMenuBody
@@ -137,11 +140,9 @@ const DetailViewImpl = ({
         isGoogleSpeaking={isGoogleSpeaking}
         khmerFontName={khmerFontName}
         km_map={km_map}
-        maybeColorMode={maybeColorMode}
         mode={mode}
         phonetic={data.phonetic}
         setKhmerFontName={setKhmerFontName}
-        setMaybeColorMode={setMaybeColorMode}
         toggleFav={toggleFav}
         onBack={onBack}
       />

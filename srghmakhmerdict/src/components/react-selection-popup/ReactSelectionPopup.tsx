@@ -147,6 +147,11 @@ export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ childr
     e.preventDefault()
   }, [])
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+  }, [])
+
   const content = selectedText ? popupContent(selectedText) : null
 
   return (
@@ -163,7 +168,7 @@ export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ childr
               classNames={cardClassNames}
               style={popupStyle}
               onClick={handleStopPropagation}
-              onMouseDown={handleStopPropagation}
+              onMouseDown={handleMouseDown}
               onMouseUp={handleStopPropagation}
               onPointerDown={handleStopPropagation} // Isolate all interaction events
             >

@@ -9,6 +9,7 @@ import { CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
 import { Tooltip } from '@heroui/tooltip'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
+import { TbLink, TbLinkOff } from 'react-icons/tb'
 
 import { type DictionaryLanguage } from '../types'
 import { GoogleSpeakerIcon } from './GoogleSpeakerIcon'
@@ -18,12 +19,12 @@ import {
   stringToKhmerFontNameOrThrow,
   stringToMaybeColorizationModeOrThrow,
   type KhmerFontName,
-  type MaybeColorizationMode,
 } from '../utils/text-processing/utils'
 import type { KhmerWordsMap } from '../db/dict'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { SharedSelection } from '@heroui/system'
 import { getSingleSelection_string } from '../utils/selection-utils'
+import { useSettings } from '../providers/SettingsProvider'
 
 // --- NEW CONSTANTS ---
 export const KHMER_FONTS: { name: NonEmptyStringTrimmed; value: string }[] = [
@@ -37,17 +38,13 @@ export const KHMER_FONTS: { name: NonEmptyStringTrimmed; value: string }[] = [
 
 interface HeaderProps {
   displayWordHtml: { __html: string } | undefined
-  phonetic?: string
+  phonetic: string | undefined
   mode: DictionaryLanguage
   isFav: boolean
   toggleFav: () => void
-  onBack?: () => void
-  canGoBack?: boolean
-  km_map?: KhmerWordsMap
-
-  // Color Props
-  maybeColorMode: MaybeColorizationMode
-  setMaybeColorMode: (v: MaybeColorizationMode) => void
+  onBack: () => void | undefined
+  canGoBack: boolean
+  km_map: KhmerWordsMap | undefined
 
   // Font Props (NEW)
   khmerFontName: KhmerFontName
@@ -74,9 +71,6 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
     canGoBack,
     km_map,
 
-    maybeColorMode,
-    setMaybeColorMode,
-
     khmerFontName,
     setKhmerFontName,
 
@@ -84,6 +78,8 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
     handleGoogleSpeak,
     isGoogleSpeaking,
   } = props
+
+  const { maybeColorMode, setMaybeColorMode, isKhmerLinksEnabled, toggleKhmerLinks } = useSettings()
 
   // Merge base style with selected font
   const h1Style = useMemo(() => {
@@ -147,6 +143,19 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
       </div>
 
       <div className="flex gap-1 shrink-0">
+        <Tooltip closeDelay={0} content={isKhmerLinksEnabled ? 'Disable word links' : 'Enable word links'}>
+          <Button
+            isIconOnly
+            className={isKhmerLinksEnabled ? 'text-primary' : 'text-default-500'}
+            isDisabled={maybeColorMode === 'none'} // Disable if colorization is off
+            radius="full"
+            variant="light"
+            onPress={toggleKhmerLinks}
+          >
+            {isKhmerLinksEnabled ? <TbLink className="h-6 w-6" /> : <TbLinkOff className="h-6 w-6" />}
+          </Button>
+        </Tooltip>
+
         {/* FONT DROPDOWN */}
         <Dropdown>
           <DropdownTrigger>

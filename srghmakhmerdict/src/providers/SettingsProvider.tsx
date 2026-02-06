@@ -59,6 +59,10 @@ interface SettingsContextType {
   setMaybeColorMode: (
     v: MaybeColorizationMode | ((prev: MaybeColorizationMode | undefined) => MaybeColorizationMode),
   ) => void
+
+  isKhmerLinksEnabled: boolean
+  setIsKhmerLinksEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+  toggleKhmerLinks: () => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -110,11 +114,20 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     { defaultValue: 'online' },
   )
 
+  const [isKhmerLinksEnabled, setIsKhmerLinksEnabled] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__is_khmer_links_enabled',
+    { defaultValue: true }, // Default to off
+  )
+
   // Modal State (Transient - do not persist)
   const [isKhmerTableOpen, setIsKhmerTableOpen] = useState(false)
 
   const onOpenKhmerTable = useCallback(() => setIsKhmerTableOpen(true), [])
   const onCloseKhmerTable = useCallback(() => setIsKhmerTableOpen(false), [])
+
+  const toggleKhmerLinks = useCallback(() => {
+    setIsKhmerLinksEnabled(prev => !prev)
+  }, [setIsKhmerLinksEnabled])
 
   const value = useMemo(
     () => ({
@@ -142,6 +155,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setImageMode,
       maybeColorMode: maybeColorMode ?? 'segmenter',
       setMaybeColorMode,
+      isKhmerLinksEnabled: isKhmerLinksEnabled ?? true,
+      setIsKhmerLinksEnabled,
+      toggleKhmerLinks,
     }),
     [
       isRegex,
@@ -165,6 +181,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setMaybeColorMode,
       onOpenKhmerTable,
       onCloseKhmerTable,
+      isKhmerLinksEnabled,
+      setIsKhmerLinksEnabled,
+      toggleKhmerLinks,
     ],
   )
 

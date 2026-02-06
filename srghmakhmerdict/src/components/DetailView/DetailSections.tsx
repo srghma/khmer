@@ -6,22 +6,22 @@ import type { DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { EnKmHtmlRenderer } from '../EnKmHtmlRenderer'
 import { WiktionaryRenderer } from '../WiktionaryRenderer'
-import { SectionTitle, RenderHtmlColorized, CsvListRendererColorized, CsvListRendererText, RenderHtml } from './atoms'
+import { SectionTitle, RenderHtmlColorized, CsvListRendererColorized, CsvListRendererText } from './atoms'
 
 interface DetailSectionsProps {
-  desc?: NonEmptyStringTrimmed
-  desc_en_only?: NonEmptyStringTrimmed
-  en_km_com?: NonEmptyStringTrimmed
-  from_csv_raw_html?: NonEmptyStringTrimmed
-  from_csv_variants?: NonEmptyArray<NonEmptyStringTrimmed>
-  from_csv_noun_forms?: NonEmptyArray<NonEmptyStringTrimmed>
-  from_csv_pronunciations?: NonEmptyArray<NonEmptyStringTrimmed>
-  wiktionary?: NonEmptyStringTrimmed
-  from_russian_wiki?: NonEmptyStringTrimmed
-  from_chuon_nath?: NonEmptyStringTrimmed
-  from_chuon_nath_translated?: NonEmptyStringTrimmed
+  desc: NonEmptyStringTrimmed | undefined //can have km
+  desc_en_only: NonEmptyStringTrimmed | undefined // cannot have km
+  en_km_com: NonEmptyStringTrimmed | undefined //can have km
+  from_csv_raw_html: NonEmptyStringTrimmed | undefined //can have km
+  from_csv_variants: NonEmptyArray<NonEmptyStringTrimmed> | undefined //can have km
+  from_csv_noun_forms: NonEmptyArray<NonEmptyStringTrimmed> | undefined //can have km
+  from_csv_pronunciations: NonEmptyArray<NonEmptyStringTrimmed> | undefined // cannot have km
+  wiktionary: NonEmptyStringTrimmed | undefined //can have km
+  from_russian_wiki: NonEmptyStringTrimmed | undefined //can have km
+  from_chuon_nath: NonEmptyStringTrimmed | undefined //can have km
+  from_chuon_nath_translated: NonEmptyStringTrimmed | undefined // cannot have km
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   mode: DictionaryLanguage
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }
@@ -49,21 +49,38 @@ export const DetailSections = React.memo(
         {desc && (
           <div className="mb-1">
             <SectionTitle>Definition</SectionTitle>
-            <RenderHtmlColorized html={desc} km_map={km_map} maybeColorMode={maybeColorMode} />
+            <RenderHtmlColorized
+              hideBrokenImages_enable={true}
+              html={desc}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              onNavigate={onNavigate}
+            />
           </div>
         )}
 
         {desc_en_only && (
           <div className="mb-6">
             <SectionTitle>English Definition</SectionTitle>
-            <RenderHtmlColorized html={desc_en_only} km_map={km_map} maybeColorMode={maybeColorMode} />
+            <RenderHtmlColorized
+              hideBrokenImages_enable={true}
+              html={desc_en_only}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              onNavigate={onNavigate}
+            />
           </div>
         )}
 
         {en_km_com && (
           <div className="mb-1">
             <SectionTitle>English-Khmer</SectionTitle>
-            <EnKmHtmlRenderer html={en_km_com} km_map={km_map} maybeColorMode={maybeColorMode} />
+            <EnKmHtmlRenderer
+              html={en_km_com}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              onNavigate={onNavigate}
+            />
           </div>
         )}
 
@@ -72,7 +89,12 @@ export const DetailSections = React.memo(
             <SectionTitle>English</SectionTitle>
             {from_csv_variants && (
               <div className="mb-2">
-                <CsvListRendererColorized items={from_csv_variants} km_map={km_map} maybeColorMode={maybeColorMode} />
+                <CsvListRendererColorized
+                  items={from_csv_variants}
+                  km_map={km_map}
+                  maybeColorMode={maybeColorMode}
+                  onNavigate={onNavigate}
+                />
               </div>
             )}
             {from_csv_noun_forms && (
@@ -80,7 +102,12 @@ export const DetailSections = React.memo(
                 <div className="mt-4 border-b border-divider pb-1 mb-3">
                   <span className="text-[0.7em] uppercase tracking-wider font-bold text-default-400">Noun forms</span>
                 </div>
-                <CsvListRendererColorized items={from_csv_noun_forms} km_map={km_map} maybeColorMode={maybeColorMode} />
+                <CsvListRendererColorized
+                  items={from_csv_noun_forms}
+                  km_map={km_map}
+                  maybeColorMode={maybeColorMode}
+                  onNavigate={onNavigate}
+                />
               </>
             )}
             {from_csv_pronunciations && (
@@ -93,7 +120,13 @@ export const DetailSections = React.memo(
                 <CsvListRendererText items={from_csv_pronunciations} />
               </>
             )}
-            <RenderHtml html={from_csv_raw_html} />
+            <RenderHtmlColorized
+              hideBrokenImages_enable={false}
+              html={from_csv_raw_html}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              onNavigate={onNavigate}
+            />
           </div>
         )}
 
@@ -113,20 +146,34 @@ export const DetailSections = React.memo(
         {from_russian_wiki && (
           <div className="mb-6">
             <SectionTitle>Russian Wiki</SectionTitle>
-            <RenderHtmlColorized html={from_russian_wiki} km_map={km_map} maybeColorMode={maybeColorMode} />
+            <RenderHtmlColorized
+              hideBrokenImages_enable={false}
+              html={from_russian_wiki}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              onNavigate={onNavigate}
+            />
           </div>
         )}
 
         {from_chuon_nath && (
           <div className="mb-6">
             <SectionTitle>Chuon Nath</SectionTitle>
-            <RenderHtmlColorized html={from_chuon_nath} km_map={km_map} maybeColorMode={maybeColorMode} />
+            <RenderHtmlColorized
+              hideBrokenImages_enable={false}
+              html={from_chuon_nath}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              onNavigate={onNavigate}
+            />
             {from_chuon_nath_translated && (
               <div className="mt-4 pt-4 border-t border-divider">
                 <RenderHtmlColorized
+                  hideBrokenImages_enable={false}
                   html={from_chuon_nath_translated}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
+                  onNavigate={onNavigate}
                 />
               </div>
             )}

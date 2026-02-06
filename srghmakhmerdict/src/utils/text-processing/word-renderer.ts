@@ -30,5 +30,5 @@ export const renderKhmerWordSpan = (
 ): NonEmptyStringTrimmed => {
   const className = getKhmerWordCssClass(colorIndex, isKnown)
 
-  return `<span class="${className}">${word}</span>` as NonEmptyStringTrimmed
+  return `<span class="${className}" data-navigate-khmer-word="${word}">${word}</span>` as NonEmptyStringTrimmed
 }

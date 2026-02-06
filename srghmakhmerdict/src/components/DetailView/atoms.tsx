@@ -5,6 +5,9 @@ import type { KhmerWordsMap } from '../../db/dict'
 import { colorizeHtml_allowUndefined } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { processArrayColorized } from './utils'
+import styles from './hide-broken-images.module.css'
+import type { DictionaryLanguage } from '../../types'
+import { useKhmerLinkInterception } from '../../hooks/useKhmerLinks'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
   <div className="text-[0.7em] uppercase tracking-wider font-bold text-default-400 mb-[0.75em] border-b border-divider pb-1">
@@ -14,35 +17,26 @@ export const SectionTitle = React.memo(({ children }: { children: React.ReactNod
 
 SectionTitle.displayName = 'SectionTitle'
 
-export const RenderHtml = React.memo(({ html }: { html: NonEmptyStringTrimmed | undefined }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null)
-  const dangerousHtml = useMemo(() => (html ? { __html: html } : undefined), [html])
+type RenderHtmlProps = {
+  html: NonEmptyStringTrimmed | undefined
+  className?: string
+}
 
-  React.useEffect(() => {
-    const container = containerRef.current
+export const RenderHtml = React.memo(
+  React.forwardRef<HTMLDivElement, RenderHtmlProps>(({ html, className }, ref) => {
+    const dangerousHtml = React.useMemo(() => (html ? { __html: html } : undefined), [html])
 
-    if (!container) return
-    const handleImageError = (event: Event) => {
-      const target = event.target as HTMLElement
+    if (!dangerousHtml) return null
 
-      if (target.tagName === 'IMG') target.style.display = 'none'
-    }
-
-    container.addEventListener('error', handleImageError, true)
-
-    return () => container.removeEventListener('error', handleImageError, true)
-  }, [])
-
-  if (!dangerousHtml) return null
-
-  return (
-    <div
-      dangerouslySetInnerHTML={dangerousHtml}
-      ref={containerRef}
-      className="prose prose-sm max-w-none text-foreground/90 dark:prose-invert"
-    />
-  )
-})
+    return (
+      <div
+        dangerouslySetInnerHTML={dangerousHtml}
+        ref={ref}
+        className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert ${className}`}
+      />
+    )
+  }),
+)
 
 RenderHtml.displayName = 'RenderHtml'
 
@@ -51,19 +45,29 @@ export const RenderHtmlColorized = React.memo(
     html,
     maybeColorMode,
     km_map,
+    hideBrokenImages_enable,
+    onNavigate,
   }: {
     html: NonEmptyStringTrimmed | undefined
     maybeColorMode: MaybeColorizationMode
-    km_map: KhmerWordsMap | undefined
+    km_map: KhmerWordsMap
+    hideBrokenImages_enable: boolean
+    onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
   }) => {
+    const containerRef = React.useRef<HTMLDivElement>(null)
     const processedHtml = useMemo(
       () => (maybeColorMode !== 'none' && km_map ? colorizeHtml_allowUndefined(html, maybeColorMode, km_map) : html),
       [html, maybeColorMode, km_map],
     )
 
+    const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
+    const interactiveClass = useKhmerLinkInterception(containerRef, onNavigate)
+
     if (!processedHtml) return null
 
-    return <RenderHtml html={processedHtml} />
+    return (
+      <RenderHtml ref={containerRef} className={`${hideBrokenImagesClass} ${interactiveClass}`} html={processedHtml} />
+    )
   },
 )
 
@@ -75,13 +79,20 @@ export const HtmlListItem = React.memo(({ html }: { html: NonEmptyStringTrimmed 
 
 HtmlListItem.displayName = 'HtmlListItem'
 
-export const CsvListRendererHtml = React.memo(({ items }: { items: NonEmptyArray<NonEmptyStringTrimmed> }) => (
-  <ul className="list-disc list-inside space-y-1 text-foreground/80 font-khmer">
-    {items.map((item, i) => (
-      <HtmlListItem key={i} html={item} />
-    ))}
-  </ul>
-))
+type CsvListRendererHtmlProps = {
+  items: NonEmptyArray<NonEmptyStringTrimmed>
+  ulClassName?: string
+}
+
+export const CsvListRendererHtml = React.memo(
+  React.forwardRef<HTMLUListElement, CsvListRendererHtmlProps>(({ items, ulClassName }, ref) => (
+    <ul ref={ref} className={`list-disc list-inside space-y-1 text-foreground/80 ${ulClassName}`}>
+      {items.map((item, i) => (
+        <HtmlListItem key={i} html={item} />
+      ))}
+    </ul>
+  )),
+)
 
 CsvListRendererHtml.displayName = 'CsvListRendererHtml'
 
@@ -90,26 +101,32 @@ export const CsvListRendererColorized = React.memo(
     items,
     maybeColorMode,
     km_map,
+    onNavigate,
   }: {
     items: NonEmptyArray<NonEmptyStringTrimmed> | undefined
     maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap | undefined
+    onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
   }) => {
+    const listRef = React.useRef<HTMLUListElement>(null)
+
     const processedItems = useMemo(
       () => processArrayColorized(items, maybeColorMode, km_map),
       [items, maybeColorMode, km_map],
     )
 
+    const interactiveClass = useKhmerLinkInterception(listRef, onNavigate)
+
     if (!processedItems) return null
 
-    return <CsvListRendererHtml items={processedItems} />
+    return <CsvListRendererHtml ref={listRef} items={processedItems} ulClassName={interactiveClass} />
   },
 )
 
 CsvListRendererColorized.displayName = 'CsvListRendererColorized'
 
 export const CsvListRendererText = React.memo(({ items }: { items: NonEmptyArray<NonEmptyStringTrimmed> }) => (
-  <ul className="list-disc list-inside space-y-1 text-foreground/80 font-khmer">
+  <ul className="list-disc list-inside space-y-1 text-foreground/80">
     {items.map((item, i) => (
       <li key={i}>{item}</li>
     ))}

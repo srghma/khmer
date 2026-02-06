@@ -9,20 +9,19 @@ import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'
 import lazyWithPreload from 'react-lazy-with-preload'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
+import { useSettings } from '../providers/SettingsProvider'
 
 // --- LAZY IMPORT ---
 const DetailView = lazyWithPreload(() => import('./DetailView').then(m => ({ default: m.DetailView })))
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
-  setMaybeColorMode: (v: MaybeColorizationMode) => void
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | null
   onBack: () => void // Legacy prop for 'closing' the panel entirely
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void // Legacy
   detailsFontSize: number
-  highlightInDetails: boolean
   searchQuery: NonEmptyStringTrimmed | undefined
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
 }
 
@@ -44,11 +43,9 @@ const NoSelectedWord = (
 export const RightPanel: React.FC<RightPanelProps> = ({
   selectedWord,
   detailsFontSize,
-  highlightInDetails,
   searchQuery,
   km_map,
   maybeColorMode,
-  setMaybeColorMode,
   setKhmerAnalyzerModalText_setToOpen,
 }) => {
   // Use the global navigation hooks
@@ -64,6 +61,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       clearSelection()
     }
   }, [canGoBack, goBack, clearSelection])
+
+  const { highlightInDetails } = useSettings()
 
   const highlightMatch = useMemo(
     () => (highlightInDetails && searchQuery ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
@@ -84,7 +83,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           maybeColorMode={maybeColorMode}
           mode={selectedWord.mode}
           setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
-          setMaybeColorMode={setMaybeColorMode}
           word={selectedWord.word}
           onBack={handleBack}
           onNavigate={navigateTo}
