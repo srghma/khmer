@@ -12,9 +12,10 @@ export type UseKhmerDefinitionsResult =
   | { t: 'idle' }
   | { t: 'loading' }
   | { t: 'request_error'; e: Error }
-  | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed> }
+  | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null> }
 
-const initialState: UseKhmerDefinitionsResult = { t: 'idle' }
+const UseKhmerDefinitionsResult_idle: UseKhmerDefinitionsResult = { t: 'idle' }
+const UseKhmerDefinitionsResult_loading: UseKhmerDefinitionsResult = { t: 'loading' }
 
 // --- Hook Actions ---
 // Combines Core Actions with Hook-specific lifecycle actions (RESET)
@@ -22,19 +23,27 @@ type HookAction = KhmerDefCoreAction | { type: 'RESET' }
 
 // --- Reducer ---
 
-const reducer = (_state: UseKhmerDefinitionsResult, action: HookAction): UseKhmerDefinitionsResult => {
+const reducer = (state: UseKhmerDefinitionsResult, action: HookAction): UseKhmerDefinitionsResult => {
   switch (action.type) {
     // Core Actions
     case 'FETCH_START':
-      return { t: 'loading' }
+      return UseKhmerDefinitionsResult_loading
+
     case 'FETCH_SUCCESS':
+      // Optimization: If already success with exact same definitions object
+      if (state.t === 'success' && state.definitions === action.payload) return state
+
       return { t: 'success', definitions: action.payload }
+
     case 'FETCH_ERROR':
+      // Optimization: If already error with exact same error object
+      if (state.t === 'request_error' && state.e === action.error) return state
+
       return { t: 'request_error', e: action.error }
 
     // Lifecycle Actions
     case 'RESET':
-      return initialState
+      return UseKhmerDefinitionsResult_idle
 
     default:
       assertNever(action)
@@ -46,7 +55,7 @@ const reducer = (_state: UseKhmerDefinitionsResult, action: HookAction): UseKhme
 export const useKhmerDefinitions = (
   uniqueWords: ReadonlySet<TypedKhmerWord> | undefined,
 ): UseKhmerDefinitionsResult => {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, UseKhmerDefinitionsResult_idle)
 
   useEffect(() => {
     // 1. Validation Logic

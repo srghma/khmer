@@ -3,13 +3,12 @@ import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-e
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import { Record_stripNullValuesOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/record'
 
 // --- Actions (Core Fetch Cycle) ---
 
 export type KhmerDefCoreAction =
   | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; payload: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed> }
+  | { type: 'FETCH_SUCCESS'; payload: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null> }
   | { type: 'FETCH_ERROR'; error: Error }
 
 // --- Types ---
@@ -35,10 +34,10 @@ export const startKhmerDefinitionFetch = (
   // 2. Perform Async Work
   getKmWordsDetailShort(uniqueWords)
     .then(res => {
-      const cleanRes = Record_stripNullValuesOrThrow(res) // all words should be found
+      // const cleanRes = Record_stripNullValuesOrThrow(res) // all words should be found
 
       if (active) {
-        dispatch({ type: 'FETCH_SUCCESS', payload: cleanRes })
+        dispatch({ type: 'FETCH_SUCCESS', payload: res })
       }
     })
     .catch(err => {

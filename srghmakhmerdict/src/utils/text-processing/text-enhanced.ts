@@ -17,7 +17,7 @@ export type TextSegmentEnhanced =
 
 export const enhanceSegments = (
   segments: NonEmptyArray<TextSegment>,
-  definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed>,
+  definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null>,
 ): NonEmptyArray<TextSegmentEnhanced> => {
   return Array_toNonEmptyArray_orThrow(
     segments.map(seg => {
@@ -28,7 +28,7 @@ export const enhanceSegments = (
       const enhancedWords = Array_toNonEmptyArray_orThrow(
         seg.words.map(w => ({
           w,
-          def: definitions[w],
+          def: definitions[w] ?? undefined,
         })),
       )
 

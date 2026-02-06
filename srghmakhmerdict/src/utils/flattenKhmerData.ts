@@ -9,6 +9,7 @@ import type {
   ProcessDataOutputKhmerCursorSub_FirstAndSecondLevel,
 } from '../utils/toGroupKhmer_cursor_full'
 import type { Char } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 export interface FlattenKhmerResult {
   flatList: FlatListItem[]
@@ -24,8 +25,8 @@ export interface FlattenKhmerResult {
  */
 export function flattenKhmerData(
   data: ProcessDataOutputKhmer,
-  searchQuery?: NonEmptyStringTrimmed,
-  contentMatches?: NonEmptyStringTrimmed[],
+  searchQuery: NonEmptyStringTrimmed | undefined,
+  contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
 ): FlattenKhmerResult {
   const flatList: FlatListItem[] = []
   const stickyIndexes: number[] = []

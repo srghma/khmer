@@ -10,7 +10,7 @@ import { useToast } from './providers/ToastProvider'
 import { useNavigation } from './providers/NavigationProvider'
 import { useSettings } from './providers/SettingsProvider'
 
-import { isAppTabNonLanguage, stringToAppTabOrThrow, type AppTab, type DictionaryLanguage } from './types'
+import { isAppTabNonLanguage, type AppTab, type DictionaryLanguage } from './types'
 
 import { useDictionarySearch } from './hooks/useDictionarySearch'
 
@@ -23,6 +23,7 @@ import { useDictionary } from './providers/DictionaryProvider'
 import { usePreloadOnIdle } from './utils/lazyWithPreload'
 import lazyWithPreload from 'react-lazy-with-preload'
 import { detectModeFromText } from './utils/rendererUtils'
+import { KhmerAnalyzerModal } from './components/KhmerAnalyzerModal/KhmerAnalyzerModal'
 
 // Replaced static import with Lazy load to reduce initial bundle size
 const KhmerComplexTableModal = lazyWithPreload(() =>
@@ -36,7 +37,7 @@ function App() {
   const dictData = useDictionary()
   const toast = useToast()
 
-  const { currentWord, resetNavigation, clearSelection } = useNavigation()
+  const { currentHistoryItem, resetNavigation, clearSelection } = useNavigation()
 
   usePreloadOnIdle([KhmerComplexTableModal])
 
@@ -50,6 +51,8 @@ function App() {
     filters,
     isKhmerTableOpen,
     onCloseKhmerTable,
+    maybeColorMode,
+    setMaybeColorMode,
   } = useSettings()
 
   useEffect(() => {
@@ -97,9 +100,9 @@ function App() {
   }, [])
 
   const handleTabChange = useCallback(
-    (key: React.Key) => {
-      setActiveTab(stringToAppTabOrThrow(String(key)))
-      onSearch('')
+    (key: AppTab) => {
+      setActiveTab(key)
+      onSearch(undefined)
     },
     [onSearch],
   )
@@ -125,23 +128,46 @@ function App() {
     [handleSidebarSelect],
   )
 
-  const safeSearchQuery = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(searchQuery), [searchQuery])
+  const safeSearchQuery = useMemo(
+    () => (searchQuery ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
+    [searchQuery],
+  )
+
   const uiFontSize_ = useMemo(() => ({ fontSize: `${uiFontSize}px`, lineHeight: 1.5 }), [uiFontSize])
+
   const divClassName = useMemo(
     () =>
       `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${
-        currentWord ? 'hidden md:flex' : 'w-full'
+        currentHistoryItem ? 'hidden md:flex' : 'w-full'
       }`,
-    [currentWord],
+    [currentHistoryItem],
   )
+
+  // --- Memoized Render Prop ---
+  // This function is stable, so ReactSelectionPopup won't re-render unless these deps change
+  const [khmerAnalyzerModalText_setToOpen, setKhmerAnalyzerModalText_setToOpen] = useState<
+    NonEmptyStringTrimmed | undefined
+  >()
 
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
+      {/* Khmer Analyzer Modal */}
+      {khmerAnalyzerModalText_setToOpen && currentHistoryItem && (
+        <KhmerAnalyzerModal
+          currentMode={currentHistoryItem.mode}
+          km_map={dictData.km_map}
+          maybeColorMode={maybeColorMode}
+          textAndOpen={khmerAnalyzerModalText_setToOpen}
+          onClose={() => setKhmerAnalyzerModalText_setToOpen(undefined)}
+        />
+      )}
+
       <div className={divClassName}>
         <SidebarHeader
           activeTab={activeTab}
           isRegex={isRegex}
           resultCount={resultCount}
+          searchInitialValue={undefined}
           showSearchBar={!isAppTabNonLanguage(activeTab)}
           onSearch={onSearch}
           onTabChange={handleTabChange}
@@ -150,12 +176,12 @@ function App() {
         <div className="flex-1 flex overflow-hidden relative bg-content1" style={uiFontSize_}>
           <SidebarContent
             activeTab={activeTab}
-            colorMode="segmenter"
             contentMatches={contentMatches}
             highlightInList={highlightInList}
             isSearching={isSearching}
             km_map={dictData.km_map}
             loading={dictData === undefined}
+            maybeColorMode="segmenter"
             refreshHistoryTrigger={refreshHistoryTrigger}
             resultData={resultData}
             searchQuery={safeSearchQuery}
@@ -171,8 +197,11 @@ function App() {
         detailsFontSize={detailsFontSize}
         highlightInDetails={highlightInDetails}
         km_map={dictData.km_map}
+        maybeColorMode={maybeColorMode}
         searchQuery={searchQuery}
-        selectedWord={currentWord}
+        selectedWord={currentHistoryItem}
+        setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
+        setMaybeColorMode={setMaybeColorMode}
         onBack={clearSelection}
         onNavigate={handleSidebarSelect}
       />

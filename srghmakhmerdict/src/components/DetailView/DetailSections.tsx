@@ -3,7 +3,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import React from 'react'
 import type { KhmerWordsMap } from '../../db/dict'
 import type { DictionaryLanguage } from '../../types'
-import type { ColorizationMode } from '../../utils/text-processing/utils'
+import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { EnKmHtmlRenderer } from '../EnKmHtmlRenderer'
 import { WiktionaryRenderer } from '../WiktionaryRenderer'
 import { SectionTitle, RenderHtmlColorized, CsvListRendererColorized, CsvListRendererText, RenderHtml } from './atoms'
@@ -20,7 +20,7 @@ interface DetailSectionsProps {
   from_russian_wiki?: NonEmptyStringTrimmed
   from_chuon_nath?: NonEmptyStringTrimmed
   from_chuon_nath_translated?: NonEmptyStringTrimmed
-  colorMode: ColorizationMode
+  maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap | undefined
   mode: DictionaryLanguage
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -39,7 +39,7 @@ export const DetailSections = React.memo(
     from_russian_wiki,
     from_chuon_nath,
     from_chuon_nath_translated,
-    colorMode,
+    maybeColorMode,
     km_map,
     mode,
     onNavigate,
@@ -49,21 +49,21 @@ export const DetailSections = React.memo(
         {desc && (
           <div className="mb-1">
             <SectionTitle>Definition</SectionTitle>
-            <RenderHtmlColorized colorMode={colorMode} html={desc} km_map={km_map} />
+            <RenderHtmlColorized html={desc} km_map={km_map} maybeColorMode={maybeColorMode} />
           </div>
         )}
 
         {desc_en_only && (
           <div className="mb-6">
             <SectionTitle>English Definition</SectionTitle>
-            <RenderHtmlColorized colorMode={colorMode} html={desc_en_only} km_map={km_map} />
+            <RenderHtmlColorized html={desc_en_only} km_map={km_map} maybeColorMode={maybeColorMode} />
           </div>
         )}
 
         {en_km_com && (
           <div className="mb-1">
             <SectionTitle>English-Khmer</SectionTitle>
-            <EnKmHtmlRenderer colorMode={colorMode} html={en_km_com} km_map={km_map} />
+            <EnKmHtmlRenderer html={en_km_com} km_map={km_map} maybeColorMode={maybeColorMode} />
           </div>
         )}
 
@@ -72,7 +72,7 @@ export const DetailSections = React.memo(
             <SectionTitle>English</SectionTitle>
             {from_csv_variants && (
               <div className="mb-2">
-                <CsvListRendererColorized colorMode={colorMode} items={from_csv_variants} km_map={km_map} />
+                <CsvListRendererColorized items={from_csv_variants} km_map={km_map} maybeColorMode={maybeColorMode} />
               </div>
             )}
             {from_csv_noun_forms && (
@@ -80,7 +80,7 @@ export const DetailSections = React.memo(
                 <div className="mt-4 border-b border-divider pb-1 mb-3">
                   <span className="text-[0.7em] uppercase tracking-wider font-bold text-default-400">Noun forms</span>
                 </div>
-                <CsvListRendererColorized colorMode={colorMode} items={from_csv_noun_forms} km_map={km_map} />
+                <CsvListRendererColorized items={from_csv_noun_forms} km_map={km_map} maybeColorMode={maybeColorMode} />
               </>
             )}
             {from_csv_pronunciations && (
@@ -101,10 +101,10 @@ export const DetailSections = React.memo(
           <div className="mb-6">
             <SectionTitle>Wiktionary</SectionTitle>
             <WiktionaryRenderer
-              colorMode={colorMode}
               currentMode={mode}
               html={wiktionary}
               km_map={km_map}
+              maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
             />
           </div>
@@ -113,17 +113,21 @@ export const DetailSections = React.memo(
         {from_russian_wiki && (
           <div className="mb-6">
             <SectionTitle>Russian Wiki</SectionTitle>
-            <RenderHtmlColorized colorMode={colorMode} html={from_russian_wiki} km_map={km_map} />
+            <RenderHtmlColorized html={from_russian_wiki} km_map={km_map} maybeColorMode={maybeColorMode} />
           </div>
         )}
 
         {from_chuon_nath && (
           <div className="mb-6">
             <SectionTitle>Chuon Nath</SectionTitle>
-            <RenderHtmlColorized colorMode={colorMode} html={from_chuon_nath} km_map={km_map} />
+            <RenderHtmlColorized html={from_chuon_nath} km_map={km_map} maybeColorMode={maybeColorMode} />
             {from_chuon_nath_translated && (
               <div className="mt-4 pt-4 border-t border-divider">
-                <RenderHtmlColorized colorMode={colorMode} html={from_chuon_nath_translated} km_map={km_map} />
+                <RenderHtmlColorized
+                  html={from_chuon_nath_translated}
+                  km_map={km_map}
+                  maybeColorMode={maybeColorMode}
+                />
               </div>
             )}
           </div>

@@ -8,7 +8,7 @@ interface HistoryItem {
 }
 
 interface NavigationContextType {
-  currentWord: HistoryItem | null
+  currentHistoryItem: HistoryItem | null
   canGoBack: boolean
   /** Pushes a new word onto the stack (used for internal links/search) */
   navigateTo: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -24,26 +24,26 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 
 export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   const [history, setHistory] = useState<HistoryItem[]>([])
-  const [currentWord, setCurrentWord] = useState<HistoryItem | null>(null)
+  const [currentHistoryItem, setCurrentHistoryItem] = useState<HistoryItem | null>(null)
 
   // Refs to access latest state inside event listeners without re-binding
   const historyRef = useRef(history)
-  const currentWordRef = useRef(currentWord)
+  const currentHistoryItemRef = useRef(currentHistoryItem)
 
   useEffect(() => {
     historyRef.current = history
   }, [history])
 
   useEffect(() => {
-    currentWordRef.current = currentWord
-  }, [currentWord])
+    currentHistoryItemRef.current = currentHistoryItem
+  }, [currentHistoryItem])
 
   // --- Internal State Logic ---
 
   // Performed when 'popstate' fires (Hardware Back) OR when 'goBack' (UI Back) triggers history.back()
   const performInternalPop = useCallback(() => {
     const currentHist = historyRef.current
-    const currentW = currentWordRef.current
+    const currentHI = currentHistoryItemRef.current
 
     // Case 1: Stack has items (Internal navigation A -> B)
     if (currentHist.length > 0) {
@@ -52,7 +52,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
         const previousItem = newHistory.pop()
 
         if (previousItem) {
-          setCurrentWord(previousItem)
+          setCurrentHistoryItem(previousItem)
 
           return newHistory
         }
@@ -64,8 +64,8 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Case 2: Stack is empty but Detail View is open (Sidebar -> Detail)
-    if (currentW) {
-      setCurrentWord(null)
+    if (currentHI) {
+      setCurrentHistoryItem(null)
       setHistory([])
     }
   }, [])
@@ -92,18 +92,18 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   // 1. Navigate (Push to history)
   const navigateTo = useCallback(
     (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
-      if (currentWord) {
-        if (currentWord.word === word && currentWord.mode === mode) return
+      if (currentHistoryItem) {
+        if (currentHistoryItem.word === word && currentHistoryItem.mode === mode) return
 
         // Push current word to internal stack
-        setHistory(prev => [...prev, currentWord])
+        setHistory(prev => [...prev, currentHistoryItem])
       }
-      setCurrentWord({ word, mode })
+      setCurrentHistoryItem({ word, mode })
 
       // Push to Browser History to enable System Back Button
       window.history.pushState({ type: 'internal' }, '', '')
     },
-    [currentWord],
+    [currentHistoryItem],
   )
 
   // 2. Reset (Sidebar click)
@@ -113,7 +113,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     // we REPLACE the state (so we don't build an infinite back stack for sidebar clicks),
     // or we can choose to PUSH if we want sidebar clicks to be back-navigable too.
     // Standard Master-Detail pattern usually replaces detail view.
-    if (currentWordRef.current === null) {
+    if (currentHistoryItemRef.current === null) {
       window.history.pushState({ type: 'root' }, '', '')
     } else {
       // Optional: use replaceState if you don't want sidebar navigation to pile up history
@@ -121,7 +121,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setHistory([])
-    setCurrentWord({ word, mode })
+    setCurrentHistoryItem({ word, mode })
   }, [])
 
   // 3. Go Back (Trigger System Back)
@@ -138,21 +138,21 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     // Note: This leaves "forward" history in the browser if the user had navigated deep.
     // This is generally acceptable for a "Close" action.
     setHistory([])
-    setCurrentWord(null)
+    setCurrentHistoryItem(null)
   }, [])
 
   const canGoBack = history.length > 0
 
   const value = useMemo(
     () => ({
-      currentWord,
+      currentHistoryItem,
       canGoBack,
       navigateTo,
       resetNavigation,
       goBack,
       clearSelection,
     }),
-    [currentWord, canGoBack, navigateTo, resetNavigation, goBack, clearSelection],
+    [currentHistoryItem, canGoBack, navigateTo, resetNavigation, goBack, clearSelection],
   )
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>

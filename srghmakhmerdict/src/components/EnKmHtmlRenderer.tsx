@@ -133,17 +133,10 @@ const injectOcrIntoHtml = (
 const useOcrData = (html: NonEmptyStringTrimmed) => {
   const [ocrMap, setOcrMap] = useState<Record<ValidNonNegativeInt, NonEmptyStringTrimmed> | undefined>(undefined)
   const toast = useToast()
+  const ids = useMemo(() => extractImageIds(html), [html])
 
   useEffect(() => {
-    const ids = extractImageIds(html)
-
-    // console.log('effect called', ids, html)
-
-    if (!ids) {
-      setOcrMap(undefined)
-
-      return
-    }
+    if (!ids) return
 
     // Using the LRU cached function.
     // If IDs haven't changed (or are in LRU history), this returns the resolved promise immediately.
@@ -159,7 +152,7 @@ const useOcrData = (html: NonEmptyStringTrimmed) => {
         // console.error('OCR Fetch Error:', err)
         toast.error('OCR Fetch Error:', err.message)
       })
-  }, [html, toast, ocrMap]) // Dependency on HTML string is fine now due to internal checks
+  }, [ids, toast]) // Dependency on HTML string is fine now due to internal checks
 
   return ocrMap
 }
@@ -208,29 +201,26 @@ const useImageInteraction = (ref: React.RefObject<HTMLDivElement | null>) => {
 export interface EnKmHtmlRendererProps {
   html: NonEmptyStringTrimmed
   km_map: KhmerWordsMap | undefined
-  colorMode: MaybeColorizationMode
+  maybeColorMode: MaybeColorizationMode
 }
 
-export const EnKmHtmlRenderer = ({ html, km_map, colorMode }: EnKmHtmlRendererProps) => {
+export const EnKmHtmlRenderer = ({ html, km_map, maybeColorMode }: EnKmHtmlRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const { imageMode } = useSettings()
   const ocrMap = useOcrData(html)
 
   const finalHtml = useMemo(() => {
-    if (colorMode === 'none' || !km_map) return { __html: processHtmlImages(html, imageMode) }
-    if (!ocrMap) return { __html: colorizeHtml(processHtmlImages(html, imageMode), colorMode, km_map) }
+    const html_withInjectedOcr = ocrMap ? injectOcrIntoHtml(html, ocrMap) : html
 
-    const htmlWithOcr = injectOcrIntoHtml(
-      html,
-      ocrMap,
-      // km_map,
-      // colorMode
-    )
-    const htmlWithOcr_ = processHtmlImages(htmlWithOcr, imageMode)
-    const htmlWithOcr__ = colorizeHtml(htmlWithOcr_, colorMode, km_map)
+    const html_withChangedUrls = processHtmlImages(html_withInjectedOcr, imageMode)
 
-    return { __html: htmlWithOcr__ }
-  }, [html, ocrMap, km_map, colorMode, imageMode])
+    const html_colorized =
+      maybeColorMode !== 'none' && km_map
+        ? colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
+        : html_withChangedUrls
+
+    return { __html: html_colorized }
+  }, [html, ocrMap, km_map, maybeColorMode, imageMode])
 
   useImageInteraction(containerRef)
 

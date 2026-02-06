@@ -11,13 +11,14 @@ import {
 import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../utils/toGroupKhmer_cursor_full'
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenKhmerData } from '../utils/flattenKhmerData'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 interface WordListKhmerProps {
   readonly data: ProcessDataOutputKhmer
   readonly onWordClick: (word: NonEmptyStringTrimmed) => void
-  readonly searchQuery?: NonEmptyStringTrimmed
-  readonly highlightMatch?: boolean
-  readonly contentMatches?: NonEmptyStringTrimmed[]
+  readonly searchQuery: NonEmptyStringTrimmed | undefined
+  readonly highlightMatch: boolean | undefined
+  readonly contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
 }
 
 export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({

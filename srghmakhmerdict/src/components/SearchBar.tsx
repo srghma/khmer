@@ -3,12 +3,16 @@ import { memo, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { CiSearch } from 'react-icons/ci'
 import { useDebounce } from 'use-debounce'
 import type { DictionaryLanguage, AppTab } from '../types'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 interface SearchBarProps {
-  onSearch: (query: string) => void
+  onSearch: (query: NonEmptyStringTrimmed | undefined) => void
   isRegex: boolean
-  count?: number
-  initialValue?: string
+  count: number | undefined
+  initialValue: NonEmptyStringTrimmed | undefined
   /**
    * The current active tab/language context.
    * Used to hint the keyboard layout.
@@ -33,11 +37,11 @@ const getLangHint = (tab: AppTab): DictionaryLanguage => {
   }
 }
 
-export const SearchBar = memo(({ onSearch, isRegex, count, initialValue = '', activeTab }: SearchBarProps) => {
-  const [localValue, setLocalValue] = useState(initialValue)
+export const SearchBar = memo(({ onSearch, isRegex, count, initialValue, activeTab }: SearchBarProps) => {
+  const [localValue, setLocalValue] = useState<string>(initialValue ?? '')
 
   // Use the library to debounce the value (updates 300ms after localValue changes)
-  const [debouncedValue] = useDebounce(localValue, 300)
+  const [debouncedValue] = useDebounce<string>(localValue, 300)
 
   // Optimization: Store latest onSearch in a ref to keep useEffect dependencies stable
   const onSearchRef = useRef(onSearch)
@@ -48,7 +52,9 @@ export const SearchBar = memo(({ onSearch, isRegex, count, initialValue = '', ac
 
   // Trigger the search when the debounced value changes
   useEffect(() => {
-    onSearchRef.current(debouncedValue)
+    const debouncedValue_ = String_toNonEmptyString_orUndefined_afterTrim(debouncedValue)
+
+    onSearchRef.current(debouncedValue_)
   }, [debouncedValue])
 
   const handleChange = useCallback((val: string) => {
@@ -58,7 +64,7 @@ export const SearchBar = memo(({ onSearch, isRegex, count, initialValue = '', ac
   const handleClear = useCallback(() => {
     setLocalValue('')
     // UX Optimization: Force immediate search update on clear
-    onSearchRef.current('')
+    onSearchRef.current(undefined)
   }, [])
 
   const endContent = useMemo(

@@ -1,35 +1,15 @@
-use flate2::read::GzDecoder;
-use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::{Row, SqlitePool};
-use std::fs;
-use std::io::Cursor;
-use std::path::PathBuf;
+use crate::app_state::AppState;
+use tauri::Manager;
 use tauri::http::{Response, StatusCode};
-use tauri::path::BaseDirectory;
-use tauri::{AppHandle, Emitter, Manager};
-use tauri_plugin_fs::FsExt;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tokio::sync::RwLock;
 
+mod app_state;
 mod constants;
 mod db;
 mod db_initialize;
 mod image_manager;
 pub mod utils;
-
-pub struct AppState {
-    pub dict_pool: RwLock<Option<SqlitePool>>,
-}
-
-impl AppState {
-    pub async fn get_pool(&self) -> Result<SqlitePool, String> {
-        let guard = self.dict_pool.read().await;
-        match &*guard {
-            Some(pool) => Ok(pool.clone()),
-            None => Err("DB_NOT_READY".to_string()),
-        }
-    }
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

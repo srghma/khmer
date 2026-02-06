@@ -4,6 +4,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import { mkColorRotator } from './mkColorRotator'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 export type GeneralChar = CharUppercaseLatin | CharUppercaseCyrillic
 
@@ -19,8 +20,8 @@ export interface FlattenGeneralResult {
  */
 export function flattenGeneralData(
   data: ProcessDataOutput<GeneralChar>,
-  searchQuery?: NonEmptyStringTrimmed,
-  contentMatches?: NonEmptyStringTrimmed[],
+  searchQuery: NonEmptyStringTrimmed | undefined,
+  contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
 ): FlattenGeneralResult {
   const flatList: FlatListItem[] = []
   const stickyIndexes: number[] = []

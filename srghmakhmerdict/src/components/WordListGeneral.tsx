@@ -9,6 +9,7 @@ import { isCharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chro
 import { isCharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenGeneralData, type GeneralChar } from '../utils/flattenGeneralData'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 type L12SidebarGeneral_activeL1 = GeneralChar | '*'
 
@@ -24,9 +25,9 @@ export const stringToL12SidebarGeneral_activeL1OrThrow = (value: Char | '*'): L1
 interface WordListGeneralProps {
   readonly data: ProcessDataOutput<GeneralChar>
   readonly onWordClick: (word: NonEmptyStringTrimmed) => void
-  readonly searchQuery?: NonEmptyStringTrimmed
-  readonly highlightMatch?: boolean
-  readonly contentMatches?: NonEmptyStringTrimmed[]
+  readonly searchQuery: NonEmptyStringTrimmed | undefined
+  readonly highlightMatch: boolean | undefined
+  readonly contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
 }
 
 const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({

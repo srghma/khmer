@@ -1,4 +1,4 @@
-use crate::AppState;
+use crate::app_state::AppState;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::{State, command};
@@ -207,7 +207,7 @@ pub async fn get_km_words_detail_full(
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
     if words.is_empty() {
-        return Err("List of words should not be empty");
+        return Err("List of words should not be empty".to_string());
     }
 
     let pool = state.get_pool().await?;
@@ -256,7 +256,7 @@ pub async fn get_km_words_detail_short(
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<String>>, String> {
     if words.is_empty() {
-        return Err("List of words should not be empty");
+        return Err("List of words should not be empty".to_string());
     }
 
     let pool = state.get_pool().await?;
@@ -406,7 +406,7 @@ pub async fn get_en_km_com_images_ocr(
     ids: Vec<i64>,
 ) -> Result<HashMap<i64, String>, String> {
     if ids.is_empty() {
-        return Err("List of words should not be empty");
+        return Err("List of words should not be empty".to_string());
     }
 
     let pool = state.get_pool().await?;

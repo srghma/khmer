@@ -1,15 +1,13 @@
+use crate::app_state::AppState;
 use flate2::read::GzDecoder;
 use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::{Row, SqlitePool};
+use sqlx::{Row};
 use std::fs;
 use std::io::Cursor;
 use std::path::PathBuf;
-use tauri::http::{Response, StatusCode};
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_fs::FsExt;
-use tauri_plugin_sql::{Migration, MigrationKind};
-use tokio::sync::RwLock;
 
 /// Helper to check the version inside the existing extracted DB
 async fn get_existing_db_version(db_path: &PathBuf) -> Option<String> {

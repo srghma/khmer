@@ -9,7 +9,8 @@ import { WordListGeneral } from './WordListGeneral'
 import { usePreloadOnIdle } from '../utils/lazyWithPreload'
 import lazyWithPreload from 'react-lazy-with-preload'
 import type { KhmerWordsMap } from '../db/dict'
-import type { ColorizationMode } from '../utils/text-processing/utils'
+import type { MaybeColorizationMode } from '../utils/text-processing/utils'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 // --- LAZY IMPORTS ---
 const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
@@ -30,12 +31,12 @@ interface SidebarContentProps {
   activeTab: AppTab
   isSearching: boolean
   resultData: ProcessedDataState | undefined
-  contentMatches: NonEmptyStringTrimmed[]
+  contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
   highlightInList: boolean
   searchQuery: NonEmptyStringTrimmed | undefined
   refreshHistoryTrigger: number
   km_map: KhmerWordsMap | undefined
-  colorMode: ColorizationMode
+  maybeColorMode: MaybeColorizationMode
 
   onWordClickKm: (w: NonEmptyStringTrimmed) => void
   onWordClickEn: (w: NonEmptyStringTrimmed) => void
@@ -44,7 +45,7 @@ interface SidebarContentProps {
 }
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
-  const { activeTab, loading, isSearching, resultData, km_map, colorMode } = props
+  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode } = props
 
   usePreloadOnIdle([WordListKhmer, HistoryOrFavouritesList, SettingsView])
 
@@ -69,8 +70,8 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
     return (
       <Suspense fallback={ContentFallback}>
         <HistoryOrFavouritesList
-          colorMode={colorMode}
           km_map={km_map}
+          maybeColorMode={maybeColorMode}
           refreshTrigger={props.refreshHistoryTrigger}
           type={activeTab}
           onSelect={props.onHistorySelect}

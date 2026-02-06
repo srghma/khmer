@@ -22,7 +22,7 @@ export const GROUP_COLORS = [
 ] as const
 
 export function mkColorRotator() {
-  let index = -1
+  let index = 0
 
   return {
     nextAndIncrement: () => assertIsDefinedAndReturn(GROUP_COLORS[index++ % GROUP_COLORS.length]),

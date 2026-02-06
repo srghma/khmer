@@ -49,16 +49,16 @@ RenderHtml.displayName = 'RenderHtml'
 export const RenderHtmlColorized = React.memo(
   ({
     html,
-    colorMode,
+    maybeColorMode,
     km_map,
   }: {
     html: NonEmptyStringTrimmed | undefined
-    colorMode: MaybeColorizationMode
+    maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap | undefined
   }) => {
     const processedHtml = useMemo(
-      () => (colorMode !== 'none' && km_map ? colorizeHtml_allowUndefined(html, colorMode, km_map) : html),
-      [html, colorMode, km_map],
+      () => (maybeColorMode !== 'none' && km_map ? colorizeHtml_allowUndefined(html, maybeColorMode, km_map) : html),
+      [html, maybeColorMode, km_map],
     )
 
     if (!processedHtml) return null
@@ -88,14 +88,17 @@ CsvListRendererHtml.displayName = 'CsvListRendererHtml'
 export const CsvListRendererColorized = React.memo(
   ({
     items,
-    colorMode,
+    maybeColorMode,
     km_map,
   }: {
     items: NonEmptyArray<NonEmptyStringTrimmed> | undefined
-    colorMode: MaybeColorizationMode
+    maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap | undefined
   }) => {
-    const processedItems = useMemo(() => processArrayColorized(items, colorMode, km_map), [items, colorMode, km_map])
+    const processedItems = useMemo(
+      () => processArrayColorized(items, maybeColorMode, km_map),
+      [items, maybeColorMode, km_map],
+    )
 
     if (!processedItems) return null
 

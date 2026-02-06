@@ -5,6 +5,7 @@
     <!-- AndroidTV support -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
+    <!-- FIXME: android:hardwareAccelerated="true" = https://github.com/tauri-apps/tauri/issues/14888 -->
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

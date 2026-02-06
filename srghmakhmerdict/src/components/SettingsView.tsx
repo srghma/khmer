@@ -6,6 +6,7 @@ import { ThemeSwitch } from './theme-switch'
 import { GoDash, GoPlus, GoTable } from 'react-icons/go'
 import { useSettings, type DictFilterSettings, type DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
 import { SettingsEnKmOfflineImagesControl } from './SettingsEnKmOfflineImagesControl'
+import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 const DictFilterSettings_Km_ModeOptions = [
   { key: 'all', label: 'Show All' },
@@ -71,14 +72,29 @@ export const SettingsView: React.FC = memo(() => {
 
   const updateKm = useCallback(
     (key: keyof DictFilterSettings['km'], val: string) =>
-      setFilters(prev => ({ ...prev, km: { ...prev.km, [key]: val as DictFilterSettings_Km_Mode } })),
+      setFilters(prev => ({
+        ...prev,
+        km: { ...assertIsDefinedAndReturn(prev).km, [key]: val as DictFilterSettings_Km_Mode },
+      })),
     [setFilters],
   )
 
-  const decUiFont = useCallback(() => setUiFontSize(p => Math.max(10, p - 1)), [setUiFontSize])
-  const incUiFont = useCallback(() => setUiFontSize(p => Math.min(24, p + 1)), [setUiFontSize])
-  const decDetFont = useCallback(() => setDetailsFontSize(p => Math.max(12, p - 1)), [setDetailsFontSize])
-  const incDetFont = useCallback(() => setDetailsFontSize(p => Math.min(32, p + 1)), [setDetailsFontSize])
+  const decUiFont = useCallback(
+    () => setUiFontSize(p => Math.max(10, assertIsDefinedAndReturn(p) - 1)),
+    [setUiFontSize],
+  )
+  const incUiFont = useCallback(
+    () => setUiFontSize(p => Math.min(24, assertIsDefinedAndReturn(p) + 1)),
+    [setUiFontSize],
+  )
+  const decDetFont = useCallback(
+    () => setDetailsFontSize(p => Math.max(12, assertIsDefinedAndReturn(p) - 1)),
+    [setDetailsFontSize],
+  )
+  const incDetFont = useCallback(
+    () => setDetailsFontSize(p => Math.min(32, assertIsDefinedAndReturn(p) + 1)),
+    [setDetailsFontSize],
+  )
 
   return (
     <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6" style={{ fontSize: '14px' }}>

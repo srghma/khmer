@@ -80,6 +80,8 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'SET_DEFINITIONS':
       if (state.t !== 'ready') return state
+      // Optimization: If definitions reference hasn't changed
+      if (state.definitions === action.definitions) return state
 
       return {
         ...state,
@@ -88,6 +90,8 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'SELECT_WORD':
       if (state.t !== 'ready') return state
+      // Optimization: If selecting the same word and the card is already hidden (not revealed)
+      if (state.selectedWord === action.word && !state.isRevealed) return state
 
       return {
         ...state,
@@ -97,6 +101,8 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'REVEAL':
       if (state.t !== 'ready') return state
+      // Optimization: If already revealed
+      if (state.isRevealed) return state
 
       return {
         ...state,
@@ -105,6 +111,10 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'REVIEW_SUCCESS':
       if (state.t !== 'ready') return state
+      // Optimization: Check referential equality of payload and current state
+      if (state.cards === action.newCards && state.selectedWord === action.nextWord && !state.isRevealed) {
+        return state
+      }
 
       return {
         ...state,

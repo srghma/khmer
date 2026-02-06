@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { Button } from '@heroui/button'
@@ -8,12 +8,16 @@ import { Spinner } from '@heroui/spinner'
 
 import { type DictionaryLanguage } from '../types'
 import { useWordData, useTtsHandlers } from '../hooks/useDetailViewLogic'
-import { type ColorizationMode } from '../utils/text-processing/utils'
+import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { KhmerWordsMap } from '../db/dict'
 import { DetailViewHeader } from './DetailViewHeader'
 import { DetailSections } from './DetailView/DetailSections'
-import { useDetailViewAppearance } from './DetailView/useDetailViewAppearance'
 import { useWordDisplay } from './DetailView/useWordDisplay'
+import useLocalStorageState from 'ahooks/lib/useLocalStorageState'
+import { ReactSelectionPopup } from './react-selection-popup/ReactSelectionPopup'
+import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
+import { useNavigation } from '../providers/NavigationProvider'
+import { detectModeFromText } from '../utils/rendererUtils'
 
 interface DetailViewProps {
   word: NonEmptyStringTrimmed
@@ -24,73 +28,129 @@ interface DetailViewProps {
   onBack: () => void | undefined
   km_map: KhmerWordsMap | undefined
   canGoBack: boolean | undefined
-  colorMode: ColorizationMode
-  setColorMode: (c: ColorizationMode) => void
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (c: MaybeColorizationMode) => void
+  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
 }
 
-const DetailViewImpl = React.forwardRef<HTMLDivElement, DetailViewProps>(
-  ({ word, mode, onNavigate, fontSize, onBack, km_map, canGoBack, colorMode, setColorMode }, ref) => {
-    // 1. Data Logic
-    const { data, loading, isFav, toggleFav } = useWordData(word, mode)
-    const { isGoogleSpeaking, handleNativeSpeak, handleGoogleSpeak } = useTtsHandlers(data, mode)
+const DetailViewImpl = ({
+  word,
+  mode,
+  onNavigate,
+  fontSize,
+  onBack,
+  km_map,
+  canGoBack,
+  maybeColorMode,
+  setMaybeColorMode,
+  setKhmerAnalyzerModalText_setToOpen,
+}: DetailViewProps) => {
+  // 1. Data Logic
+  const { data, loading, isFav, toggleFav } = useWordData(word, mode)
+  const { isGoogleSpeaking, handleNativeSpeak, handleGoogleSpeak } = useTtsHandlers(data, mode)
 
-    // 2. Appearance Logic (Font, Color, Styles)
-    const { khmerFont, cardStyle, colorSelection, fontSelection, handleColorChange, handleFontChange } =
-      useDetailViewAppearance({ fontSize, colorMode, setColorMode })
+  // 2. Appearance Logic (Font, Color, Styles)
+  const [khmerFontName, setKhmerFontName] = useLocalStorageState<KhmerFontName>('Default')
 
-    // 3. Display Logic
-    const displayWordHtml = useWordDisplay(data)
+  // 3. Display Logic
+  const displayWordHtml = useWordDisplay(data)
 
-    // 4. Loading / Empty States
-    if (loading) {
+  const cardStyle = useMemo(
+    () => ({
+      fontSize: `${fontSize}px`,
+      fontFamily: KHMER_FONT_FAMILY[khmerFontName],
+    }),
+    [fontSize, khmerFontName],
+  )
+
+  const handleOpenKhmerAnalyzer = useCallback(
+    (selectedText: NonEmptyStringTrimmed) => {
+      window.getSelection()?.removeAllRanges()
+      setKhmerAnalyzerModalText_setToOpen(selectedText)
+    },
+    [setKhmerAnalyzerModalText_setToOpen],
+  )
+
+  const { navigateTo, currentHistoryItem } = useNavigation()
+
+  const handleOpenSearch = useCallback(
+    (selectedText: NonEmptyStringTrimmed) => {
+      if (!currentHistoryItem) return
+      if (!selectedText) return
+      const targetMode = detectModeFromText(selectedText, currentHistoryItem.mode)
+
+      navigateTo(selectedText, targetMode)
+
+      window.getSelection()?.removeAllRanges()
+    },
+    [navigateTo, currentHistoryItem],
+  )
+
+  const renderPopupContent = useCallback(
+    (selectedText: NonEmptyStringTrimmed) => {
+      if (!currentHistoryItem) return null // Type safety
+
       return (
-        <div className="h-full flex items-center justify-center">
-          <Spinner color="primary" size="lg" />
-        </div>
-      )
-    }
-
-    if (!data) {
-      return (
-        <div className="h-full flex flex-col items-center justify-center text-default-400 gap-4">
-          <p>Word not found.</p>
-          {onBack && (
-            <Button color="primary" variant="light" onPress={onBack}>
-              Go Back
-            </Button>
-          )}
-        </div>
-      )
-    }
-
-    // 5. Render
-    return (
-      <Card ref={ref} className="h-full w-full border-none rounded-none bg-background shadow-none" style={cardStyle}>
-        <DetailViewHeader
-          canGoBack={canGoBack}
-          colorMode={colorMode}
-          colorSelection={colorSelection}
-          displayWordHtml={displayWordHtml}
-          fontSelection={fontSelection}
-          handleColorChange={handleColorChange}
-          handleFontChange={handleFontChange}
-          handleGoogleSpeak={handleGoogleSpeak}
-          handleNativeSpeak={handleNativeSpeak}
-          isFav={isFav}
-          isGoogleSpeaking={isGoogleSpeaking}
-          khmerFont={khmerFont}
+        <SelectionMenuBody
+          currentMode={currentHistoryItem.mode}
           km_map={km_map}
-          mode={mode}
-          phonetic={data.phonetic}
-          toggleFav={toggleFav}
-          onBack={onBack}
+          selectedText={selectedText}
+          onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
+          onClosePopupAndOpenSearch={() => handleOpenSearch(selectedText)}
         />
+      )
+    },
+    [currentHistoryItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
+  )
 
-        {/* BODY */}
-        <ScrollShadow className="flex-1">
-          <CardBody className="p-6 gap-6">
+  // 4. Loading / Empty States
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Spinner color="primary" size="lg" />
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-default-400 gap-4">
+        <p>Word not found.</p>
+        {onBack && (
+          <Button color="primary" variant="light" onPress={onBack}>
+            Go Back
+          </Button>
+        )}
+      </div>
+    )
+  }
+
+  // 5. Render
+  return (
+    <Card className={`h-full w-full border-none rounded-none bg-background shadow-none`} style={cardStyle}>
+      <DetailViewHeader
+        canGoBack={canGoBack}
+        displayWordHtml={displayWordHtml}
+        handleGoogleSpeak={handleGoogleSpeak}
+        handleNativeSpeak={handleNativeSpeak}
+        isFav={isFav}
+        isGoogleSpeaking={isGoogleSpeaking}
+        khmerFontName={khmerFontName}
+        km_map={km_map}
+        maybeColorMode={maybeColorMode}
+        mode={mode}
+        phonetic={data.phonetic}
+        setKhmerFontName={setKhmerFontName}
+        setMaybeColorMode={setMaybeColorMode}
+        toggleFav={toggleFav}
+        onBack={onBack}
+      />
+
+      {/* BODY */}
+      <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <CardBody className="p-6 gap-6 your-khmer-text-class">
+          <ReactSelectionPopup popupContent={renderPopupContent}>
             <DetailSections
-              colorMode={colorMode}
               desc={data.desc}
               desc_en_only={data.desc_en_only}
               en_km_com={data.en_km_com}
@@ -102,17 +162,17 @@ const DetailViewImpl = React.forwardRef<HTMLDivElement, DetailViewProps>(
               from_csv_variants={data.from_csv_variants}
               from_russian_wiki={data.from_russian_wiki}
               km_map={km_map}
+              maybeColorMode={maybeColorMode}
               mode={mode}
               wiktionary={data.wiktionary}
               onNavigate={onNavigate}
             />
-          </CardBody>
-          <div className="h-[calc(1rem+env(safe-area-inset-bottom))]" />
-        </ScrollShadow>
-      </Card>
-    )
-  },
-)
+          </ReactSelectionPopup>
+        </CardBody>
+      </ScrollShadow>
+    </Card>
+  )
+}
 
 DetailViewImpl.displayName = 'DetailView'
 

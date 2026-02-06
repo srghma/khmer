@@ -9,11 +9,11 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 export const processArrayColorized = (
   items: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
-  colorMode: MaybeColorizationMode,
+  maybeColorMode: MaybeColorizationMode,
   km_map: KhmerWordsMap | undefined,
 ): NonEmptyArray<NonEmptyStringTrimmed> | undefined => {
   if (!items) return undefined
-  if (colorMode === 'none' || !km_map) return undefined
+  if (maybeColorMode === 'none' || !km_map) return undefined
 
-  return Array_toNonEmptyArray_orThrow(items.map(item => colorizeHtml(item, colorMode, km_map)))
+  return Array_toNonEmptyArray_orThrow(items.map(item => colorizeHtml(item, maybeColorMode, km_map)))
 }

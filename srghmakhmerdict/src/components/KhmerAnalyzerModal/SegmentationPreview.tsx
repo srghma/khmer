@@ -10,14 +10,14 @@ import type { TextSegment } from '../../utils/text-processing/text'
 
 interface SegmentationPreviewProps {
   segments: NonEmptyArray<TextSegment | TextSegmentEnhanced>
-  colorMode: MaybeColorizationMode
+  maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap
   label: string
   className?: string
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = React.memo(
-  ({ segments, colorMode, km_map, label, className = '' }) => {
+  ({ segments, maybeColorMode, km_map, label, className = '' }) => {
     let globalWordIndex = 0
 
     return (
@@ -51,7 +51,7 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = React.mem
                 <KhmerWordUnit
                   key={`${i}-${j}`}
                   colorIndex={currentIdx}
-                  colorization={colorMode === 'none' ? 'none' : km_map.has(w) ? 'isKnown' : 'isNotKnown'}
+                  colorization={maybeColorMode === 'none' ? 'none' : km_map.has(w) ? 'isKnown' : 'isNotKnown'}
                   definitionHtml={def}
                   word={w}
                 />

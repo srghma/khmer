@@ -20,6 +20,10 @@ import { useDictionary } from '../providers/DictionaryProvider'
 import { useDebounce } from 'use-debounce'
 import type { DictData } from '../initDictionary'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import {
+  Array_toNonEmptyArray_orUndefined,
+  type NonEmptyArray,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 export type ProcessedDataState =
   | { mode: 'en'; data: ProcessDataOutput<CharUppercaseLatin> }
@@ -62,7 +66,7 @@ const performProcessing = (words: Iterable<NonEmptyStringTrimmed>, mode: Diction
  */
 function* filterDictionaryWords(
   source: Iterable<NonEmptyStringTrimmed>,
-  query: FilterQuery | null,
+  query: FilterQuery | undefined,
 ): Generator<NonEmptyStringTrimmed> {
   // If no query, yield everything
   if (!query) {
@@ -119,14 +123,14 @@ function getSourceIterator(
   lang: DictionaryLanguage,
   dictData: DictData,
   mode: DictFilterSettings_Km_Mode,
-): Iterable<NonEmptyStringTrimmed> | null {
+): Iterable<NonEmptyStringTrimmed> | undefined {
   switch (lang) {
     case 'en':
       return dictData.en
     case 'ru':
       return dictData.ru
     case 'km':
-      return dictData.km_map ? getKhmerSourceIterator(dictData.km_map, mode) : null
+      return dictData.km_map ? getKhmerSourceIterator(dictData.km_map, mode) : undefined
     default:
       return assertNever(lang)
   }
@@ -135,19 +139,19 @@ function getSourceIterator(
 // --- Reducer Logic ---
 
 interface SearchState {
-  contentMatches: NonEmptyStringTrimmed[]
+  contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
   resultData: ProcessedDataState | undefined
   dictMatchCount: number
   isSearching: boolean
-  regexError: string | null
+  regexError: string | undefined
 }
 
 const INITIAL_STATE: SearchState = {
-  contentMatches: [],
+  contentMatches: undefined,
   resultData: undefined,
   dictMatchCount: 0,
   isSearching: false,
-  regexError: null,
+  regexError: undefined,
 }
 
 type SearchAction =
@@ -155,13 +159,24 @@ type SearchAction =
   | { type: 'SET_REGEX_ERROR'; error: string }
   | { type: 'START_SEARCH' }
   | { type: 'SEARCH_SUCCESS'; data: ProcessedDataState; count: number }
-  | { type: 'SET_CONTENT_MATCHES'; matches: NonEmptyStringTrimmed[] }
+  | { type: 'SET_CONTENT_MATCHES'; matches: NonEmptyArray<NonEmptyStringTrimmed> | undefined }
 
 function searchReducer(state: SearchState, action: SearchAction): SearchState {
   switch (action.type) {
-    case 'RESET':
+    case 'RESET': {
       return INITIAL_STATE
-    case 'SET_REGEX_ERROR':
+    }
+
+    case 'SET_REGEX_ERROR': {
+      if (
+        state.regexError === action.error &&
+        state.resultData === undefined &&
+        state.dictMatchCount === 0 &&
+        state.isSearching === false
+      ) {
+        return state
+      }
+
       return {
         ...state,
         regexError: action.error,
@@ -169,24 +184,47 @@ function searchReducer(state: SearchState, action: SearchAction): SearchState {
         dictMatchCount: 0,
         isSearching: false,
       }
-    case 'START_SEARCH':
+    }
+
+    case 'START_SEARCH': {
+      if (state.isSearching === true && state.regexError === undefined) {
+        return state
+      }
+
       return {
         ...state,
         isSearching: true,
-        regexError: null,
+        regexError: undefined,
       }
-    case 'SEARCH_SUCCESS':
+    }
+
+    case 'SEARCH_SUCCESS': {
+      if (state.isSearching === false && state.dictMatchCount === action.count && state.resultData === action.data) {
+        return state
+      }
+
       return {
         ...state,
         isSearching: false,
         resultData: action.data,
         dictMatchCount: action.count,
       }
-    case 'SET_CONTENT_MATCHES':
+    }
+
+    case 'SET_CONTENT_MATCHES': {
+      // Critical optimization:
+      // If matches are undefined (cleared) and already undefined, return state.
+      // If matches are the same reference, return state.
+      if (state.contentMatches === action.matches) {
+        return state
+      }
+
       return {
         ...state,
         contentMatches: action.matches,
       }
+    }
+
     default:
       return state
   }
@@ -206,10 +244,10 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
   const dictData = useDictionary()
 
   // Controlled input state
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState<NonEmptyStringTrimmed | undefined>(undefined)
   const [debouncedQuery] = useDebounce(query, 300)
   const debouncedQueryNonEmpty = useMemo(
-    () => String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery),
+    () => (debouncedQuery ? String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery) : undefined),
     [debouncedQuery],
   )
 
@@ -221,7 +259,7 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
     let active = true
 
     if (!searchInContent || !debouncedQueryNonEmpty || !isDictionaryLanguage(activeTab)) {
-      dispatch({ type: 'SET_CONTENT_MATCHES', matches: [] })
+      dispatch({ type: 'SET_CONTENT_MATCHES', matches: undefined })
 
       return
     }
@@ -238,7 +276,7 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
         return
       }
       if (active) {
-        dispatch({ type: 'SET_CONTENT_MATCHES', matches: results })
+        dispatch({ type: 'SET_CONTENT_MATCHES', matches: Array_toNonEmptyArray_orUndefined(results) })
       }
     }
 
@@ -269,18 +307,24 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
       return
     }
 
-    // Step B: Validate Query
-    const queryResult = makeFilterQueryWithCache(debouncedQuery, isRegex)
+    const filterQuery: FilterQuery | undefined = (() => {
+      if (!debouncedQuery) return
 
-    if (queryResult.t === 'error') {
-      dispatch({ type: 'SET_REGEX_ERROR', error: queryResult.v })
+      // Step B: Validate Query
+      const queryResult = makeFilterQueryWithCache(debouncedQuery, isRegex)
 
-      return
-    }
+      if (queryResult.t === 'error') {
+        dispatch({ type: 'SET_REGEX_ERROR', error: queryResult.v })
 
-    let filterQuery: FilterQuery | null = null
+        return
+      }
 
-    if (queryResult.t === 'ok') filterQuery = queryResult.v
+      let filterQuery: FilterQuery | undefined = undefined
+
+      if (queryResult.t === 'ok') filterQuery = queryResult.v
+
+      return filterQuery
+    })()
 
     // Step C: Execute Search
     dispatch({ type: 'START_SEARCH' })
@@ -320,7 +364,7 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
   }, [debouncedQuery, activeTab, dictData, mode, isRegex])
 
   // Derived result count
-  const totalResultCount = state.dictMatchCount + state.contentMatches.length
+  const totalResultCount = state.dictMatchCount + (state.contentMatches?.length ?? 0)
 
   return {
     onSearch: setQuery,

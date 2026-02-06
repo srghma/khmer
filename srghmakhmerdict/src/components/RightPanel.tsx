@@ -1,4 +1,4 @@
-import React, { useCallback, Suspense, useRef, useState, useMemo } from 'react'
+import React, { useCallback, Suspense, useMemo } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -8,21 +8,22 @@ import { type DictionaryLanguage } from '../types'
 import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'
 import lazyWithPreload from 'react-lazy-with-preload'
-import { SelectionContextMenu } from './SelectionContextMenu'
-import { detectModeFromText } from '../utils/rendererUtils'
-import type { ColorizationMode } from '../utils/text-processing/utils'
+import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 
 // --- LAZY IMPORT ---
 const DetailView = lazyWithPreload(() => import('./DetailView').then(m => ({ default: m.DetailView })))
 
 interface RightPanelProps {
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (v: MaybeColorizationMode) => void
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | null
   onBack: () => void // Legacy prop for 'closing' the panel entirely
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void // Legacy
   detailsFontSize: number
   highlightInDetails: boolean
-  searchQuery: string
+  searchQuery: NonEmptyStringTrimmed | undefined
   km_map: KhmerWordsMap | undefined
+  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
 }
 
 const SuspenseFallback = (
@@ -46,6 +47,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   highlightInDetails,
   searchQuery,
   km_map,
+  maybeColorMode,
+  setMaybeColorMode,
+  setKhmerAnalyzerModalText_setToOpen,
 }) => {
   // Use the global navigation hooks
   const { navigateTo, goBack, clearSelection, canGoBack } = useNavigation()
@@ -61,49 +65,26 @@ export const RightPanel: React.FC<RightPanelProps> = ({
     }
   }, [canGoBack, goBack, clearSelection])
 
-  const handleSelectionSearch = useCallback(
-    (text: string) => {
-      if (!selectedWord) return
-      const trimmed = String_toNonEmptyString_orUndefined_afterTrim(text)
-
-      if (!trimmed) return
-      const targetMode = detectModeFromText(trimmed, selectedWord.mode)
-
-      navigateTo(trimmed, targetMode)
-    },
-    [navigateTo, selectedWord],
-  )
-
-  const [colorMode, setColorMode] = useState<ColorizationMode>('segmenter')
   const highlightMatch = useMemo(
-    () => (highlightInDetails ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
+    () => (highlightInDetails && searchQuery ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
     [searchQuery, highlightInDetails],
   )
-
-  const contentRef = useRef<HTMLDivElement>(null)
 
   if (!selectedWord) return NoSelectedWord
 
   return (
     <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
       <Suspense fallback={SuspenseFallback}>
-        <SelectionContextMenu
-          colorMode={colorMode}
-          containerRef={contentRef}
-          currentMode={selectedWord.mode}
-          km_map={km_map}
-          onSearch={handleSelectionSearch}
-        />
-
+        {/* Detail View Wrapper with Selection Class */}
         <DetailView
-          ref={contentRef}
           canGoBack={canGoBack}
-          colorMode={colorMode}
           fontSize={detailsFontSize}
           highlightMatch={highlightMatch}
           km_map={km_map}
+          maybeColorMode={maybeColorMode}
           mode={selectedWord.mode}
-          setColorMode={setColorMode}
+          setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
+          setMaybeColorMode={setMaybeColorMode}
           word={selectedWord.word}
           onBack={handleBack}
           onNavigate={navigateTo}

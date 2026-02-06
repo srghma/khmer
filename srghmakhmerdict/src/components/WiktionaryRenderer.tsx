@@ -100,13 +100,13 @@ export const WiktionaryRenderer = ({
   onNavigate,
   currentMode,
   km_map,
-  colorMode,
+  maybeColorMode,
 }: {
   html: NonEmptyStringTrimmed
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
   currentMode: DictionaryLanguage
   km_map: KhmerWordsMap | undefined
-  colorMode: MaybeColorizationMode
+  maybeColorMode: MaybeColorizationMode
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -115,10 +115,10 @@ export const WiktionaryRenderer = ({
 
   // Utility: Process HTML string
   const __html = useMemo(() => {
-    if (colorMode === 'none' || !km_map) return { __html: html }
+    if (maybeColorMode === 'none' || !km_map) return { __html: html }
 
-    return { __html: colorizeHtml(html, colorMode, km_map) }
-  }, [html, colorMode, km_map])
+    return { __html: colorizeHtml(html, maybeColorMode, km_map) }
+  }, [html, maybeColorMode, km_map])
 
   return (
     <>

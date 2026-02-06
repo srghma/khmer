@@ -7,7 +7,7 @@ import { Button } from '@heroui/button'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../types'
 import type { KhmerWordsMap } from '../db/dict'
-import type { ColorizationMode, MaybeColorizationMode } from '../utils/text-processing/utils'
+import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { colorizeText } from '../utils/text-processing/text'
 import { useToast } from '../providers/ToastProvider'
 import {
@@ -99,66 +99,68 @@ interface HistoryItemRowProps {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   onDelete: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => void
   km_map: KhmerWordsMap | undefined
-  colorMode: MaybeColorizationMode
+  maybeColorMode: MaybeColorizationMode
 }
 
-const HistoryItemRow = React.memo<HistoryItemRowProps>(({ word, language, onSelect, onDelete, km_map, colorMode }) => {
-  const controls = useAnimation()
+const HistoryItemRow = React.memo<HistoryItemRowProps>(
+  ({ word, language, onSelect, onDelete, km_map, maybeColorMode }) => {
+    const controls = useAnimation()
 
-  const handleDragEnd = useCallback(
-    async (_: unknown, info: PanInfo) => {
-      const offset = info.offset.x
-      const velocity = info.velocity.x
+    const handleDragEnd = useCallback(
+      async (_: unknown, info: PanInfo) => {
+        const offset = info.offset.x
+        const velocity = info.velocity.x
 
-      if (offset < -100 || (offset < -50 && velocity < -500)) {
-        await controls.start(ANIM_TRASH_EXIT)
-        onDelete(word, language)
-      } else {
-        controls.start(ANIM_SNAP_BACK)
-      }
-    },
-    [controls, onDelete, word, language],
-  )
+        if (offset < -100 || (offset < -50 && velocity < -500)) {
+          await controls.start(ANIM_TRASH_EXIT)
+          onDelete(word, language)
+        } else {
+          controls.start(ANIM_SNAP_BACK)
+        }
+      },
+      [controls, onDelete, word, language],
+    )
 
-  const wordColorized = useMemo(() => {
-    if (colorMode === 'none' || !km_map) return { __html: word }
+    const wordColorized = useMemo(() => {
+      if (maybeColorMode === 'none' || !km_map) return { __html: word }
 
-    return { __html: colorizeText(word, colorMode, km_map) }
-  }, [word, km_map, colorMode])
+      return { __html: colorizeText(word, maybeColorMode, km_map) }
+    }, [word, km_map, maybeColorMode])
 
-  return (
-    <motion.div
-      animate={ANIM_ENTER}
-      className="relative overflow-hidden border-b border-divider bg-content1"
-      exit={ANIM_EXIT}
-      initial={ANIM_INITIAL}
-      layout="position"
-    >
-      <TrashIcon />
+    return (
       <motion.div
-        animate={controls}
-        className="relative bg-content1 flex items-center px-4 py-3 w-full cursor-pointer hover:bg-default-100 transition-colors"
-        drag="x"
-        dragConstraints={DRAG_CONSTRAINTS}
-        dragElastic={0.1}
-        style={TOUCH_STYLE}
-        onDragEnd={handleDragEnd}
-        onTap={() => onSelect(word, language)}
+        animate={ANIM_ENTER}
+        className="relative overflow-hidden border-b border-divider bg-content1"
+        exit={ANIM_EXIT}
+        initial={ANIM_INITIAL}
+        layout="position"
       >
-        <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0">
-          {MODES_ICON[language]}
-        </div>
-        <div className="flex-1 min-w-0 pointer-events-none select-none">
-          <div
-            dangerouslySetInnerHTML={wordColorized}
-            className="font-khmer text-foreground text-medium leading-snug truncate"
-          />
-        </div>
-        <ChevronIcon />
+        <TrashIcon />
+        <motion.div
+          animate={controls}
+          className="relative bg-content1 flex items-center px-4 py-3 w-full cursor-pointer hover:bg-default-100 transition-colors"
+          drag="x"
+          dragConstraints={DRAG_CONSTRAINTS}
+          dragElastic={0.1}
+          style={TOUCH_STYLE}
+          onDragEnd={handleDragEnd}
+          onTap={() => onSelect(word, language)}
+        >
+          <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0">
+            {MODES_ICON[language]}
+          </div>
+          <div className="flex-1 min-w-0 pointer-events-none select-none">
+            <div
+              dangerouslySetInnerHTML={wordColorized}
+              className="font-khmer text-foreground text-medium leading-snug truncate"
+            />
+          </div>
+          <ChevronIcon />
+        </motion.div>
       </motion.div>
-    </motion.div>
-  )
-})
+    )
+  },
+)
 
 HistoryItemRow.displayName = 'HistoryItemRow'
 
@@ -277,131 +279,39 @@ interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   refreshTrigger: number | undefined
   km_map: KhmerWordsMap | undefined
-  colorMode: ColorizationMode
+  maybeColorMode: MaybeColorizationMode
 }
 
-const HistoryListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, refreshTrigger, km_map, colorMode }) => {
-  const { items, loading, handleDelete, handleClearAll } = useListLogic(
-    HistoryDb.getHistory,
-    HistoryDb.removeHistoryItem,
-    HistoryDb.deleteAllHistory,
-    refreshTrigger,
-    'history',
-  )
-
-  if (loading) return <LoadingState />
-  if (items.length === 0) return <EmptyState type="history" />
-
-  return (
-    <div className="flex-1 overflow-y-auto bg-content1 overflow-x-hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
-      {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm">
-        <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">
-          Recent History ({items.length})
-        </span>
-        <Button
-          className="h-8 text-tiny font-medium"
-          color="danger"
-          size="sm"
-          startContent={<FaRegTrashAlt />}
-          variant="light"
-          onPress={handleClearAll}
-        >
-          Clear All
-        </Button>
-      </div>
-
-      {/* List */}
-      <AnimatePresence initial={false} mode="popLayout">
-        {items.map(item => (
-          <HistoryItemRow
-            key={`${item.word}-${item.language}`}
-            colorMode={colorMode}
-            km_map={km_map}
-            language={item.language}
-            word={item.word}
-            onDelete={handleDelete}
-            onSelect={onSelect}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  )
-})
-
-HistoryListOnly.displayName = 'HistoryListOnly'
-
-// --- Component: FavouritesListOnly ---
-
-const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, refreshTrigger, km_map, colorMode }) => {
-  const toast = useToast()
-  const { items, loading, handleDelete, handleClearAll } = useListLogic(
-    FavDb.getFavorites,
-    FavDb.removeFavorite,
-    FavDb.deleteAllFavourites,
-    refreshTrigger,
-    'favorites',
-  )
-
-  // Anki State
-  const [isAnkiOpen, setIsAnkiOpen] = useState(false)
-  const [ankiDeck, setAnkiDeck] = useState<NonEmptySet<TypedContainsKhmer> | undefined>()
-
-  const handleOpenAnki = useCallback(() => {
-    if (!km_map) {
-      toast.error('Dictionary not loaded yet')
-
-      return
-    }
-
-    // Filter: only Khmer words that exist in dictionary
-    const khmerFavorites: NonEmptySet<TypedContainsKhmer> | undefined = Set_toNonEmptySet_orUndefined(
-      new Set(items.filter(i => i.language === 'km' && km_map.has(i.word)).map(i => strToContainsKhmerOrThrow(i.word))),
+const HistoryListOnly: React.FC<ListPropsCommon> = React.memo(
+  ({ onSelect, refreshTrigger, km_map, maybeColorMode }) => {
+    const { items, loading, handleDelete, handleClearAll } = useListLogic(
+      HistoryDb.getHistory,
+      HistoryDb.removeHistoryItem,
+      HistoryDb.deleteAllHistory,
+      refreshTrigger,
+      'history',
     )
 
-    if (!khmerFavorites) {
-      toast.error('No Khmer words in favorites to review')
+    if (loading) return <LoadingState />
+    if (items.length === 0) return <EmptyState type="history" />
 
-      return
-    }
-
-    setAnkiDeck(khmerFavorites)
-    setIsAnkiOpen(true)
-  }, [items, km_map, toast])
-
-  if (loading) return <LoadingState />
-  if (items.length === 0) return <EmptyState type="favorites" />
-
-  return (
-    <>
+    return (
       <div className="flex-1 overflow-y-auto bg-content1 overflow-x-hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm">
           <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">
-            Favorites ({items.length})
+            Recent History ({items.length})
           </span>
-          <div className="flex gap-2">
-            <Button
-              className="h-8 text-tiny font-medium"
-              color="secondary"
-              size="sm"
-              startContent={<FaGraduationCap />}
-              variant="flat"
-              onPress={handleOpenAnki}
-            >
-              Khmer Anki Mode
-            </Button>
-            <Button
-              className="h-8 text-tiny font-medium"
-              color="danger"
-              size="sm"
-              startContent={<FaRegTrashAlt />}
-              variant="light"
-              onPress={handleClearAll}
-            >
-              Clear All
-            </Button>
-          </div>
+          <Button
+            className="h-8 text-tiny font-medium"
+            color="danger"
+            size="sm"
+            startContent={<FaRegTrashAlt />}
+            variant="light"
+            onPress={handleClearAll}
+          >
+            Clear All
+          </Button>
         </div>
 
         {/* List */}
@@ -409,9 +319,9 @@ const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, re
           {items.map(item => (
             <HistoryItemRow
               key={`${item.word}-${item.language}`}
-              colorMode={colorMode}
               km_map={km_map}
               language={item.language}
+              maybeColorMode={maybeColorMode}
               word={item.word}
               onDelete={handleDelete}
               onSelect={onSelect}
@@ -419,19 +329,117 @@ const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, re
           ))}
         </AnimatePresence>
       </div>
+    )
+  },
+)
 
-      {/* Modal */}
-      {km_map && ankiDeck && (
-        <KhmerAnkiModal
-          isOpen={isAnkiOpen}
-          items={ankiDeck}
-          km_map={km_map} // Anki fetches details internally, but map used for basic checks if needed
-          onClose={() => setIsAnkiOpen(false)}
-        />
-      )}
-    </>
-  )
-})
+HistoryListOnly.displayName = 'HistoryListOnly'
+
+// --- Component: FavouritesListOnly ---
+
+const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(
+  ({ onSelect, refreshTrigger, km_map, maybeColorMode }) => {
+    const toast = useToast()
+    const { items, loading, handleDelete, handleClearAll } = useListLogic(
+      FavDb.getFavorites,
+      FavDb.removeFavorite,
+      FavDb.deleteAllFavourites,
+      refreshTrigger,
+      'favorites',
+    )
+
+    // Anki State
+    const [isAnkiOpen, setIsAnkiOpen] = useState(false)
+    const [ankiDeck, setAnkiDeck] = useState<NonEmptySet<TypedContainsKhmer> | undefined>()
+
+    const handleOpenAnki = useCallback(() => {
+      if (!km_map) {
+        toast.error('Dictionary not loaded yet')
+
+        return
+      }
+
+      // Filter: only Khmer words that exist in dictionary
+      const khmerFavorites: NonEmptySet<TypedContainsKhmer> | undefined = Set_toNonEmptySet_orUndefined(
+        new Set(
+          items.filter(i => i.language === 'km' && km_map.has(i.word)).map(i => strToContainsKhmerOrThrow(i.word)),
+        ),
+      )
+
+      if (!khmerFavorites) {
+        toast.error('No Khmer words in favorites to review')
+
+        return
+      }
+
+      setAnkiDeck(khmerFavorites)
+      setIsAnkiOpen(true)
+    }, [items, km_map, toast])
+
+    if (loading) return <LoadingState />
+    if (items.length === 0) return <EmptyState type="favorites" />
+
+    return (
+      <>
+        <div className="flex-1 overflow-y-auto bg-content1 overflow-x-hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          {/* Header */}
+          <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm">
+            <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">
+              Favorites ({items.length})
+            </span>
+            <div className="flex gap-2">
+              <Button
+                className="h-8 text-tiny font-medium"
+                color="secondary"
+                size="sm"
+                startContent={<FaGraduationCap />}
+                variant="flat"
+                onPress={handleOpenAnki}
+              >
+                Khmer Anki Mode
+              </Button>
+              <Button
+                className="h-8 text-tiny font-medium"
+                color="danger"
+                size="sm"
+                startContent={<FaRegTrashAlt />}
+                variant="light"
+                onPress={handleClearAll}
+              >
+                Clear All
+              </Button>
+            </div>
+          </div>
+
+          {/* List */}
+          <AnimatePresence initial={false} mode="popLayout">
+            {items.map(item => (
+              <HistoryItemRow
+                key={`${item.word}-${item.language}`}
+                km_map={km_map}
+                language={item.language}
+                maybeColorMode={maybeColorMode}
+                word={item.word}
+                onDelete={handleDelete}
+                onSelect={onSelect}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* Modal */}
+        {km_map && ankiDeck && (
+          <KhmerAnkiModal
+            isOpen={isAnkiOpen}
+            items={ankiDeck}
+            km_map={km_map} // Anki fetches details internally, but map used for basic checks if needed
+            onClose={() => setIsAnkiOpen(false)}
+          />
+        )}
+      </>
+    )
+  },
+)
 
 FavouritesListOnly.displayName = 'FavouritesListOnly'
 

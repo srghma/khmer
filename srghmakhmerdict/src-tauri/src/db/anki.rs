@@ -1,8 +1,7 @@
-use crate::AppState;
+use crate::app_state::AppState;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use sqlx::{FromRow, Type, query_as};
+use sqlx::{Type, query_as};
 use std::collections::HashMap;
-use tauri::{State, Window};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i64)]
@@ -90,7 +89,7 @@ pub struct AnkiCardRow {
 
 #[tauri::command]
 pub async fn get_all_anki_cards(
-    state: State<'_, AppState>,
+    state: tauri::State<'_, AppState>,
 ) -> Result<HashMap<String, AnkiCardRow>, String> {
     let pool = state.get_pool().await?;
 
@@ -109,7 +108,7 @@ pub async fn get_all_anki_cards(
 
 #[tauri::command]
 pub async fn save_anki_cards(
-    state: State<'_, AppState>,
+    state: tauri::State<'_, AppState>,
     cards: HashMap<String, AnkiCardRow>,
 ) -> Result<(), String> {
     let pool = state.get_pool().await?;

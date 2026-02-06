@@ -26,7 +26,7 @@ interface GoogleTranslateProps {
   text: string
   defaultTarget?: ToTranslateLanguage
   className?: string
-  colorMode: MaybeColorizationMode
+  maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap | undefined
 }
 
@@ -39,7 +39,7 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
   text,
   defaultTarget = 'km',
   className,
-  colorMode,
+  maybeColorMode,
   km_map,
 }) => {
   const [targetLang, setTargetLang] = useState(defaultTarget)
@@ -93,10 +93,10 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
   // Calculate Colorized HTML for the RESULT if target is Khmer
   const resultHtml = useMemo(() => {
     if (!result?.text) return null
-    if (targetLang !== 'km' || colorMode === 'none' || !km_map) return { __html: result.text }
+    if (targetLang !== 'km' || maybeColorMode === 'none' || !km_map) return { __html: result.text }
 
-    return { __html: colorizeHtml(result.text, colorMode, km_map) }
-  }, [result?.text, targetLang, colorMode, km_map])
+    return { __html: colorizeHtml(result.text, maybeColorMode, km_map) }
+  }, [result?.text, targetLang, maybeColorMode, km_map])
 
   return (
     <Card className={`w-full shrink-0 ${className || ''}`}>

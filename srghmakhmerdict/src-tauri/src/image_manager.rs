@@ -14,7 +14,7 @@ struct ProgressPayload {
 }
 
 #[tauri::command]
-pub async fn check_offline_images_status(app: &AppHandle) -> Result<Option<usize>, String> {
+pub async fn check_offline_images_status(app: AppHandle) -> Result<Option<usize>, String> {
     println!("IMG: Checking offline images status...");
     let app_data = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
 
@@ -40,7 +40,7 @@ pub async fn check_offline_images_status(app: &AppHandle) -> Result<Option<usize
 }
 
 #[tauri::command]
-pub async fn download_offline_images(app: &AppHandle) -> Result<Option<usize>, String> {
+pub async fn download_offline_images(app: AppHandle) -> Result<Option<usize>, String> {
     let url = constants::IMAGES_DOWNLOAD_URL;
     println!("IMG: Starting download process from {}", url);
 
