@@ -5,11 +5,13 @@ import { KhmerWordUnit } from './KhmerWordUnit'
 import type { TextSegmentEnhanced } from '../../utils/text-processing/text-enhanced'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import type { TextSegment } from '../../utils/text-processing/text'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 // --- Main Component ---
 
 interface SegmentationPreviewProps {
   segments: NonEmptyArray<TextSegment | TextSegmentEnhanced>
+  onKhmerWordClick: (v: TypedKhmerWord) => void
   maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap
   label: string
@@ -17,7 +19,7 @@ interface SegmentationPreviewProps {
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = React.memo(
-  ({ segments, maybeColorMode, km_map, label, className = '' }) => {
+  ({ onKhmerWordClick, segments, maybeColorMode, km_map, label, className = '' }) => {
     let globalWordIndex = 0
 
     return (
@@ -54,6 +56,7 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = React.mem
                   colorization={maybeColorMode === 'none' ? 'none' : km_map.has(w) ? 'isKnown' : 'isNotKnown'}
                   definitionHtml={def}
                   word={w}
+                  onClick={() => onKhmerWordClick(w)}
                 />
               )
             })

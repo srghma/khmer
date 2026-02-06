@@ -1,5 +1,5 @@
 import { Input } from '@heroui/input'
-import { memo, useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { memo, useState, useEffect, useCallback, useMemo } from 'react'
 import { CiSearch } from 'react-icons/ci'
 import { useDebounce } from 'use-debounce'
 import type { DictionaryLanguage, AppTab } from '../types'
@@ -43,18 +43,9 @@ export const SearchBar = memo(({ onSearch, isRegex, count, initialValue, activeT
   // Use the library to debounce the value (updates 300ms after localValue changes)
   const [debouncedValue] = useDebounce<string>(localValue, 300)
 
-  // Optimization: Store latest onSearch in a ref to keep useEffect dependencies stable
-  const onSearchRef = useRef(onSearch)
-
-  useEffect(() => {
-    onSearchRef.current = onSearch
-  }, [onSearch])
-
   // Trigger the search when the debounced value changes
   useEffect(() => {
-    const debouncedValue_ = String_toNonEmptyString_orUndefined_afterTrim(debouncedValue)
-
-    onSearchRef.current(debouncedValue_)
+    onSearch(String_toNonEmptyString_orUndefined_afterTrim(debouncedValue))
   }, [debouncedValue])
 
   const handleChange = useCallback((val: string) => {
@@ -63,9 +54,8 @@ export const SearchBar = memo(({ onSearch, isRegex, count, initialValue, activeT
 
   const handleClear = useCallback(() => {
     setLocalValue('')
-    // UX Optimization: Force immediate search update on clear
-    onSearchRef.current(undefined)
-  }, [])
+    onSearch(undefined)
+  }, [onSearch])
 
   const endContent = useMemo(
     () =>

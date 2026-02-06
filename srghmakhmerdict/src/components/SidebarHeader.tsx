@@ -15,6 +15,13 @@ interface SidebarHeaderProps {
   showSearchBar: boolean
 }
 
+const tab_title_en = <span className="text-lg">🇬🇧</span>
+const tab_title_km = <span className="text-lg">🇰🇭</span>
+const tab_title_ru = <img alt="RU" className="w-5 h-5" src="/free_russia_flag_wavy.svg" />
+const tab_title_history = <GoHistory className="text-lg" />
+const tab_title_favorites = <GoStar className="text-lg" />
+const tab_title_settings = <GoGear className="text-lg" />
+
 export const SidebarHeader = memo<SidebarHeaderProps>(
   ({ activeTab, onTabChange, onSearch, resultCount, isRegex, showSearchBar, searchInitialValue }) => {
     const handleTabChange = useCallback(
@@ -38,12 +45,12 @@ export const SidebarHeader = memo<SidebarHeaderProps>(
             variant="underlined"
             onSelectionChange={handleTabChange}
           >
-            <Tab key="en" title={<span className="text-lg">🇬🇧</span>} />
-            <Tab key="km" title={<span className="text-lg">🇰🇭</span>} />
-            <Tab key="ru" title={<img alt="RU" className="w-5 h-5" src="/free_russia_flag_wavy.svg" />} />
-            <Tab key="history" title={<GoHistory className="text-lg" />} />
-            <Tab key="favorites" title={<GoStar className="text-lg" />} />
-            <Tab key="settings" title={<GoGear className="text-lg" />} />
+            <Tab key="en" title={tab_title_en} />
+            <Tab key="km" title={tab_title_km} />
+            <Tab key="ru" title={tab_title_ru} />
+            <Tab key="history" title={tab_title_history} />
+            <Tab key="favorites" title={tab_title_favorites} />
+            <Tab key="settings" title={tab_title_settings} />
           </Tabs>
         </div>
         {showSearchBar && (

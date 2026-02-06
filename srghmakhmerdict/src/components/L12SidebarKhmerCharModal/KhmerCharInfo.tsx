@@ -19,7 +19,7 @@ const SeriesBadge = React.memo(({ series }: { series: 'a' | 'o' }) => (
 
 SeriesBadge.displayName = 'KhmerCharInfoSeriesBadge'
 
-export const KhmerCharInfo: React.FC<{ data: KhmerCharDefinition }> = React.memo(({ data }) => {
+export const KhmerCharInfo: React.FC<KhmerCharDefinition> = React.memo(data => {
   switch (data.type) {
     case 'consonant':
       return (

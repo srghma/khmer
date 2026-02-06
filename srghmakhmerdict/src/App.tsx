@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -20,17 +20,9 @@ import { RightPanel } from './components/RightPanel'
 
 import './App.css'
 import { useDictionary } from './providers/DictionaryProvider'
-import { usePreloadOnIdle } from './utils/lazyWithPreload'
-import lazyWithPreload from 'react-lazy-with-preload'
 import { detectModeFromText } from './utils/rendererUtils'
 import { KhmerAnalyzerModal } from './components/KhmerAnalyzerModal/KhmerAnalyzerModal'
-
-// Replaced static import with Lazy load to reduce initial bundle size
-const KhmerComplexTableModal = lazyWithPreload(() =>
-  import('./components/KhmerComplexTableModal/KhmerComplexTableModal').then(module => ({
-    default: module.KhmerComplexTableModal,
-  })),
-)
+import { KhmerComplexTableModal } from './components/KhmerComplexTableModal/KhmerComplexTableModal'
 
 function App() {
   const { theme } = useTheme()
@@ -38,8 +30,6 @@ function App() {
   const toast = useToast()
 
   const { currentHistoryItem, resetNavigation, clearSelection } = useNavigation()
-
-  usePreloadOnIdle([KhmerComplexTableModal])
 
   const {
     isRegex,
@@ -144,10 +134,20 @@ function App() {
   )
 
   // --- Memoized Render Prop ---
-  // This function is stable, so ReactSelectionPopup won't re-render unless these deps change
   const [khmerAnalyzerModalText_setToOpen, setKhmerAnalyzerModalText_setToOpen] = useState<
     NonEmptyStringTrimmed | undefined
   >()
+
+  const khmerAnalyzerModal_onClose = useCallback(() => setKhmerAnalyzerModalText_setToOpen(undefined), [])
+
+  // New handler: Close modal AND Navigate
+  const handleKhmerAnalyzerWordSelect = useCallback(
+    (word: NonEmptyStringTrimmed) => {
+      setKhmerAnalyzerModalText_setToOpen(undefined) // Close modal
+      handleSidebarSelect(word, 'km') // Navigate to detail view
+    },
+    [handleSidebarSelect],
+  )
 
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
@@ -158,7 +158,8 @@ function App() {
           km_map={dictData.km_map}
           maybeColorMode={maybeColorMode}
           textAndOpen={khmerAnalyzerModalText_setToOpen}
-          onClose={() => setKhmerAnalyzerModalText_setToOpen(undefined)}
+          onClose={khmerAnalyzerModal_onClose}
+          onNavigate={handleKhmerAnalyzerWordSelect}
         />
       )}
 
@@ -207,9 +208,7 @@ function App() {
       />
 
       {dictData.km_map && (
-        <Suspense fallback={null}>
-          <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />
-        </Suspense>
+        <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />
       )}
     </div>
   )

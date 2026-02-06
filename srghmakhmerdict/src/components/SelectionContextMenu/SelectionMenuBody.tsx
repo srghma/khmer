@@ -75,6 +75,8 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
           case 'khmer_analyzer':
             onClosePopupAndKhmerAnalyzerModal()
             break
+          default:
+            throw new Error(`unknown key ${key}`)
         }
       },
       [selectedText, currentMode, onClosePopupAndOpenSearch, onClosePopupAndKhmerAnalyzerModal],

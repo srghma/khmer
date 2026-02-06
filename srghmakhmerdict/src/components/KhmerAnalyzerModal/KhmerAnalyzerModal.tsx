@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react'
-import { Modal } from '@heroui/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
+import { Skeleton } from '@heroui/skeleton'
 
 import type { DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap } from '../../db/dict'
@@ -15,12 +16,47 @@ const KhmerAnalyzerContent = lazyWithPreload(() =>
   })),
 )
 
+// --- Skeleton Component ---
+const KhmerAnalyzerSkeletonImpl = () => {
+  return (
+    <ModalContent>
+      <ModalHeader className="flex flex-col gap-3 pb-4">
+        {/* Title "Khmer Analyzer" */}
+        <Skeleton className="rounded-lg w-48 h-7" />
+
+        {/* Textarea Input Mock */}
+        <div className="flex flex-col gap-2">
+          <Skeleton className="rounded-medium w-full h-32" />
+        </div>
+      </ModalHeader>
+
+      <ModalBody className="py-6 gap-6">
+        {/* Segmentation Preview Mock */}
+        <div className="flex flex-col gap-2">
+          <Skeleton className="rounded-lg w-64 h-5" />
+          <Skeleton className="rounded-medium w-full h-24" />
+        </div>
+
+        {/* Khmer Analyzer/Translation Results Mock */}
+        <div className="flex flex-col gap-2">
+          <Skeleton className="rounded-medium w-full h-64" />
+        </div>
+      </ModalBody>
+    </ModalContent>
+  )
+}
+
+const KhmerAnalyzerSkeleton = React.memo(KhmerAnalyzerSkeletonImpl)
+
+// --- Main Modal Component ---
+
 interface KhmerAnalyzerModalProps {
   textAndOpen: NonEmptyStringTrimmed | undefined
   currentMode: DictionaryLanguage
   maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap | undefined
   onClose: () => void
+  onNavigate: (word: NonEmptyStringTrimmed) => void
 }
 
 // FIX: Force height to 100vh to ignore virtual viewport resizing (keyboard)
@@ -38,6 +74,7 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
   currentMode,
   maybeColorMode,
   km_map,
+  onNavigate,
 }) => {
   usePreloadOnIdle([KhmerAnalyzerContent])
 
@@ -53,12 +90,13 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
       onClose={onClose}
     >
       {textAndOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<KhmerAnalyzerSkeleton />}>
           <KhmerAnalyzerContent
             currentMode={currentMode}
             km_map={km_map}
             maybeColorMode={maybeColorMode}
             text={textAndOpen}
+            onNavigate={onNavigate}
           />
         </Suspense>
       )}

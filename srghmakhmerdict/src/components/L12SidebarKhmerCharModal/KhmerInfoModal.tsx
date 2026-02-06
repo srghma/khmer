@@ -45,7 +45,7 @@ export const KhmerInfoModal: React.FC<KhmerInfoModalProps> = ({ isOpen, onClose,
           <span className="text-xs text-default-400 uppercase tracking-widest">Character Info</span>
         </ModalHeader>
         <ModalBody>
-          <KhmerCharInfo data={definition} />
+          <KhmerCharInfo {...definition} />
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="light" onPress={onClose}>

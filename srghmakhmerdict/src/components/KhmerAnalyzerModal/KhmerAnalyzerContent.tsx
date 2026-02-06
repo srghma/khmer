@@ -16,6 +16,7 @@ interface KhmerAnalyzerContentProps {
   currentMode: DictionaryLanguage
   maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap | undefined
+  onNavigate: (word: NonEmptyStringTrimmed) => void
 }
 
 const textAreaClassNames = {
@@ -28,6 +29,7 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
   currentMode,
   maybeColorMode,
   km_map,
+  onNavigate,
 }) => {
   // Logic is now isolated inside the content
   const { analyzedText, setAnalyzedText, analyzedTextKhmer, segmentsDict, segmentsIntl } = useKhmerAnalysis(
@@ -64,6 +66,7 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
             label="Segmentation (Dictionary Lookup)"
             maybeColorMode="dictionary"
             segments={segmentsDict}
+            onKhmerWordClick={onNavigate}
           />
         )}
 
