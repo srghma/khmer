@@ -2,14 +2,14 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { executeNativeTts, nativeTtsResultToError } from '../utils/tts/native'
 import { useAppToast } from '../providers/ToastProvider'
-import { createBooleanStore } from '../utils/createBooleanStore'
 import type { BCP47LanguageTagName } from '../utils/my-bcp-47'
+import { createStore } from '../utils/createStore'
 
 const NATIVE_TTS_SPEAKING = { isSpeaking: true } as const
 
 export type NativeTtsState = typeof NATIVE_TTS_SPEAKING | { isSpeaking: false; speak: () => Promise<void> }
 
-const nativeSpeakingStore = createBooleanStore()
+const nativeSpeakingStore = createStore<boolean>(false, (x: boolean, y: boolean) => x === y)
 
 export function useNativeTts(word: NonEmptyStringTrimmed | undefined, lang: BCP47LanguageTagName): NativeTtsState {
   const toast = useAppToast()

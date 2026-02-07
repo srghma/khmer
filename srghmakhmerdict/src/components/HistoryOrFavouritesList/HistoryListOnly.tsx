@@ -11,6 +11,7 @@ import { LoadingState, EmptyState } from './SharedComponents'
 import { HistoryItemRow } from './HistoryItemRow'
 import { useListLogic } from './useListLogic'
 import { Map_entriesToArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
+import { ConfirmAction } from '../ConfirmAction'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -36,16 +37,25 @@ export const HistoryListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect
         <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">
           Recent History ({items.size})
         </span>
-        <Button
-          className="h-8 text-tiny font-medium"
-          color="danger"
-          size="sm"
-          startContent={<FaRegTrashAlt />}
-          variant="light"
-          onPress={handleClearAll}
+        <ConfirmAction
+          confirmLabel="Clear All"
+          title="Clear Search History?"
+          trigger={onOpen => (
+            <Button
+              className="h-8 text-tiny font-medium"
+              color="danger"
+              size="sm"
+              startContent={<FaRegTrashAlt />}
+              variant="light"
+              onPress={onOpen}
+            >
+              Clear All
+            </Button>
+          )}
+          onConfirm={handleClearAll}
         >
-          Clear All
-        </Button>
+          <p className="text-small text-default-500">Are you sure you want to delete all {items.size} items?</p>
+        </ConfirmAction>
       </div>
 
       <AnimatePresence initial={false} mode="popLayout">

@@ -25,6 +25,7 @@ import {
   Map_entriesToArray,
   Map_entriesMapToArray_unlessUndefined,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
+import { ConfirmAction } from '../ConfirmAction'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -86,9 +87,25 @@ export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSel
             >
               Anki
             </Button>
-            <Button color="danger" size="sm" startContent={<FaRegTrashAlt />} variant="light" onPress={handleClearAll}>
-              Clear
-            </Button>
+            <ConfirmAction
+              confirmLabel="Clear All"
+              title="Clear Search History?"
+              trigger={onOpen => (
+                <Button
+                  className="h-8 text-tiny font-medium"
+                  color="danger"
+                  size="sm"
+                  startContent={<FaRegTrashAlt />}
+                  variant="light"
+                  onPress={onOpen}
+                >
+                  Clear All
+                </Button>
+              )}
+              onConfirm={handleClearAll}
+            >
+              <p className="text-small text-default-500">Are you sure you want to delete all {items.size} items?</p>
+            </ConfirmAction>
           </div>
         </div>
 

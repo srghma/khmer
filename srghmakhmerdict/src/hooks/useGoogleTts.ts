@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useAppToast } from '../providers/ToastProvider'
-import { createBooleanStore } from '../utils/createBooleanStore'
 import type { ToTranslateLanguage } from '../utils/googleTranslate/toTranslateLanguage'
 import { executeGoogleTts, googleTtsResultToError } from '../utils/tts/google'
+import { createStore } from '../utils/createStore'
 
 const GOOGLE_TTS_OFFLINE = { t: 'offline' } as const
 const GOOGLE_TTS_SPEAKING = { t: 'online_and_speaking' } as const
@@ -13,7 +13,7 @@ export type GoogleTtsState =
   | typeof GOOGLE_TTS_SPEAKING
   | { t: 'online'; speak: () => Promise<void> }
 
-const googleSpeakingStore = createBooleanStore()
+const googleSpeakingStore = createStore<boolean>(false, (x: boolean, y: boolean) => x === y)
 
 export function useGoogleTts(word: NonEmptyStringTrimmed | undefined, mode: ToTranslateLanguage): GoogleTtsState {
   const toast = useAppToast()

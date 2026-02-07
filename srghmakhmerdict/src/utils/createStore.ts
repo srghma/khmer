@@ -1,5 +1,6 @@
-export function createBooleanStore() {
-  let state = false
+// to use with useSyncExternalStore
+export function createStore<T>(initial: T, eq: (x: T, y: T) => boolean) {
+  let state = initial
   const listeners = new Set<() => void>()
 
   return {
@@ -9,7 +10,8 @@ export function createBooleanStore() {
       return () => listeners.delete(listener)
     },
     getSnapshot: () => state,
-    set: (val: boolean) => {
+    set: (val: T) => {
+      if (eq(val, state)) return
       state = val
       listeners.forEach(l => l())
     },

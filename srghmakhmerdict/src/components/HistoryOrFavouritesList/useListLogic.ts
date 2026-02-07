@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-
-// Types & Utils
+import useSWR from 'swr'
+import { useCallback } from 'react'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
 import { useAppToast } from '../../providers/ToastProvider'
@@ -8,9 +7,7 @@ import {
   type NonEmptyMap,
   Map_toNonEmptyMap_orUndefined,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
-
-const LIST_CACHE: Record<'history' | 'favorites', NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined> =
-  { history: undefined, favorites: undefined }
+import { unknown_to_errorMessage } from '../../utils/errorMessage'
 
 type DbFetchFn = () => Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>
 type DbDeleteFn = (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<boolean>
@@ -23,78 +20,77 @@ export function useListLogic(
   typeLabel: 'history' | 'favorites',
 ) {
   const toast = useAppToast()
-  const [items, setItems] = useState<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>(
-    () => LIST_CACHE[typeLabel],
-  )
-  const [loading, setLoading] = useState(() => !LIST_CACHE[typeLabel])
 
-  useEffect(() => {
-    let active = true
-    const load = async () => {
-      if (!LIST_CACHE[typeLabel]) setLoading(true)
-      try {
-        const res = await fetchFn()
+  // 1. Fetching & Cache Management
+  const {
+    data: items,
+    mutate,
+    isLoading,
+  } = useSWR(typeLabel, fetchFn, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  })
 
-        LIST_CACHE[typeLabel] = res
-        if (active) setItems(res)
-      } catch (e: any) {
-        toast.error(`Loading ${typeLabel} failed`, e.message)
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
-    load()
-
-    return () => {
-      active = false
-    }
-  }, [fetchFn, toast, typeLabel])
-
+  // 2. Delete with Boolean handling & Optimistic UI
   const handleDelete = useCallback(
     async (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => {
       if (!items) return
 
-      const prevItems = items
-      // Create new map to trigger React re-render
       const nextMap = new Map(items)
 
       nextMap.delete(word)
-
-      const nextNonEmpty = Map_toNonEmptyMap_orUndefined(nextMap)
-
-      setItems(nextNonEmpty)
-      LIST_CACHE[typeLabel] = nextNonEmpty
+      const nextData = Map_toNonEmptyMap_orUndefined(nextMap)
 
       try {
-        await deleteFn(word, language)
-      } catch (e: any) {
-        toast.error('Failed to delete item', e.message)
-        setItems(prevItems)
-        LIST_CACHE[typeLabel] = prevItems
+        await mutate(
+          async () => {
+            const success = await deleteFn(word, language)
+
+            // If deleteFn returns false, throw to trigger rollback
+            if (!success) throw new Error('Action was not successful. Nothing to delete?')
+
+            return nextData
+          },
+          {
+            optimisticData: nextData,
+            rollbackOnError: true,
+            populateCache: true,
+            revalidate: false,
+          },
+        )
+      } catch (e: unknown) {
+        toast.error('Failed to delete item', unknown_to_errorMessage(e))
       }
     },
-    [items, deleteFn, toast, typeLabel],
+    [items, deleteFn, mutate, toast],
   )
 
+  // 3. Clear All Logic (Triggered by Modal)
   const handleClearAll = useCallback(async () => {
-    if (!items || items.size === 0) return
-    if (!window.confirm('Are you sure you want to clear all items?')) return
-
-    const prevItems = items
-
-    setItems(undefined)
-    LIST_CACHE[typeLabel] = undefined
-
     try {
-      await clearFn()
-      toast.success('Cleared successfully')
-    } catch (e: any) {
-      setItems(prevItems)
-      LIST_CACHE[typeLabel] = prevItems
-      toast.error('Failed to clear items', e.message)
-    }
-  }, [items, typeLabel, clearFn, toast])
+      await mutate(
+        async () => {
+          await clearFn()
 
-  return { items, loading, handleDelete, handleClearAll }
+          return undefined
+        },
+        {
+          optimisticData: undefined,
+          rollbackOnError: true,
+          populateCache: true,
+          revalidate: false,
+        },
+      )
+      toast.success('Cleared successfully')
+    } catch (e: unknown) {
+      toast.error('Failed to clear items', unknown_to_errorMessage(e))
+    }
+  }, [clearFn, mutate, toast])
+
+  return {
+    items,
+    loading: isLoading,
+    handleDelete,
+    handleClearAll,
+  }
 }
