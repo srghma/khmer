@@ -4,7 +4,7 @@ import React, { useMemo } from 'react'
 import type { KhmerWordsMap } from '../../db/dict'
 import { colorizeHtml_allowUndefined } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import { processArrayColorized } from './utils'
+import { colorizeHtml_nonEmptyArray } from './utils'
 import styles from './hide-broken-images.module.css'
 import type { DictionaryLanguage } from '../../types'
 import { useKhmerClickListener, useKhmerContentStyles } from '../../hooks/useKhmerLinks'
@@ -47,12 +47,16 @@ export const RenderHtmlColorized = React.memo(
     km_map,
     hideBrokenImages_enable,
     onNavigate,
+    isKhmerLinksEnabled,
+    isKhmerWordsHidingEnabled,
   }: {
     html: NonEmptyStringTrimmed | undefined
     maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap
     hideBrokenImages_enable: boolean
     onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
+    isKhmerLinksEnabled: boolean
+    isKhmerWordsHidingEnabled: boolean
   }) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
     const processedHtml = useMemo(
@@ -61,9 +65,9 @@ export const RenderHtmlColorized = React.memo(
     )
 
     const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
-    const { isKhmerLinksEnabled, khmerContentClass } = useKhmerContentStyles()
+    const khmerContentClass = useKhmerContentStyles(isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
 
-    useKhmerClickListener(containerRef, isKhmerLinksEnabled, onNavigate)
+    useKhmerClickListener(containerRef, onNavigate, isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
 
     if (!processedHtml) return null
 
@@ -104,22 +108,26 @@ export const CsvListRendererColorized = React.memo(
     maybeColorMode,
     km_map,
     onNavigate,
+    isKhmerLinksEnabled,
+    isKhmerWordsHidingEnabled,
   }: {
     items: NonEmptyArray<NonEmptyStringTrimmed> | undefined
     maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap | undefined
     onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
+    isKhmerLinksEnabled: boolean
+    isKhmerWordsHidingEnabled: boolean
   }) => {
     const listRef = React.useRef<HTMLUListElement>(null)
 
     const processedItems = useMemo(
-      () => processArrayColorized(items, maybeColorMode, km_map),
+      () => colorizeHtml_nonEmptyArray(items, maybeColorMode, km_map),
       [items, maybeColorMode, km_map],
     )
 
-    const { isKhmerLinksEnabled, khmerContentClass } = useKhmerContentStyles()
+    const khmerContentClass = useKhmerContentStyles(isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
 
-    useKhmerClickListener(listRef, isKhmerLinksEnabled, onNavigate)
+    useKhmerClickListener(listRef, onNavigate, isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
 
     if (!processedItems) return null
 

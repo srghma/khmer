@@ -54,7 +54,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   // Logic:
   // - If we have history, Back button -> goBack()
   // - If no history (e.g. came from sidebar), Back button -> clearSelection() (Close Panel on Mobile)
-  const handleBack = useCallback(() => {
+  const backButton_goBack = useCallback(() => {
     if (canGoBack) {
       goBack()
     } else {
@@ -76,7 +76,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       <Suspense fallback={SuspenseFallback}>
         {/* Detail View Wrapper with Selection Class */}
         <DetailView
-          canGoBack={canGoBack}
+          backButton_desktopOnlyStyles_showButton={canGoBack}
+          backButton_goBack={backButton_goBack}
           fontSize={detailsFontSize}
           highlightMatch={highlightMatch}
           km_map={km_map}
@@ -84,7 +85,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           mode={selectedWord.mode}
           setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
           word={selectedWord.word}
-          onBack={handleBack}
           onNavigate={navigateTo}
         />
       </Suspense>

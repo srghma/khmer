@@ -1,15 +1,20 @@
-import { FSRS, Rating, type Card as FSRSCard } from '@squeakyrobot/fsrs'
+import { FSRS, Rating, type Rating as RatingType, type Card as FSRSCard } from '@squeakyrobot/fsrs'
 
 // --- Types & Interfaces ---
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import {
   NonEmptyRecord_toMap_fromSetToGetOrderFromSet,
   Record_toNonEmptyRecord_orThrow,
+  Record_toNonEmptyRecord_unsafe,
   type NonEmptyRecord,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { NonEmptyMap } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
+import {
+  unknownToValidDateOrThrow,
+  type ValidDate,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
 
 const storageKey = 'khmer_anki_state_v1'
 
@@ -155,13 +160,15 @@ export function transition_reviewCard(
   }
 }
 
-export function getNextIntervals(card: FSRSCard): NonEmptyRecord<Rating, Date> {
+export function getNextIntervals(card: FSRSCard): NonEmptyRecord<RatingType, ValidDate> {
   const scheduling = fsrs.repeat(card)
 
-  return {
-    [Rating.Again]: scheduling[Rating.Again].card.due,
-    [Rating.Hard]: scheduling[Rating.Hard].card.due,
-    [Rating.Good]: scheduling[Rating.Good].card.due,
-    [Rating.Easy]: scheduling[Rating.Easy].card.due,
-  } as NonEmptyRecord<Rating, Date>
+  const data: Record<RatingType, ValidDate> = {
+    [Rating.Again]: unknownToValidDateOrThrow(scheduling[Rating.Again].card.due),
+    [Rating.Hard]: unknownToValidDateOrThrow(scheduling[Rating.Hard].card.due),
+    [Rating.Good]: unknownToValidDateOrThrow(scheduling[Rating.Good].card.due),
+    [Rating.Easy]: unknownToValidDateOrThrow(scheduling[Rating.Easy].card.due),
+  } as Record<RatingType, ValidDate>
+
+  return Record_toNonEmptyRecord_unsafe(data)
 }

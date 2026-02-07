@@ -14,6 +14,11 @@
   --kw-unknown: #d32f2f;
   /* Red reserved for unknown */
   --kw-legacy-blue: #2563eb;
+
+  /* Skeleton Colors */
+  --kw-skeleton-bg: #e4e4e7;
+  /* Zinc-200 */
+  --kw-skeleton-fg: transparent;
 }
 
 /* --- Dark Mode Overrides --- */
@@ -32,6 +37,10 @@
   --kw-unknown: #ff5555;
   /* Bright Red */
   --kw-legacy-blue: #3b82f6;
+
+  /* Skeleton Colors Dark */
+  --kw-skeleton-bg: #3f3f46;
+  /* Zinc-700 */
 }
 
 /* --- Base Utility Classes --- */
@@ -127,4 +136,40 @@
 .interactive :global(.khmer--is-not-in-dictionary:hover) {
   text-decoration-style: solid;
   background-color: rgba(211, 47, 47, 0.1);
+}
+
+/* ========================================= */
+/* KH MER WORD HIDING (Flashcard Mode)       */
+/* ========================================= */
+
+/*
+  Target all span elements with a class starting with 'khmer--'
+  BUT exclude '.khmer--blue-lbl' (legacy blue)
+  AND exclude elements that have been clicked ('.is-revealed')
+*/
+.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed)) {
+  color: var(--kw-skeleton-fg) !important;
+  background-color: var(--kw-skeleton-bg);
+  border-radius: 6px;
+  user-select: none;
+  /* Prevent cheating by selecting text */
+  cursor: pointer;
+
+  /* Smooth transition for revealing */
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+
+  /* Ensure it looks like a block/pill */
+  padding-left: 2px;
+  padding-right: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Hover effect on hidden words to hint interactivity */
+.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover) {
+  background-color: var(--kw-0);
+  /* Show a hint color or darker gray */
+  opacity: 0.5;
 }

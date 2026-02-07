@@ -7,7 +7,7 @@ import type { KhmerWordsMap } from '../../db/dict'
 import { colorizeHtml } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
-export const processArrayColorized = (
+export const colorizeHtml_nonEmptyArray = (
   items: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
   maybeColorMode: MaybeColorizationMode,
   km_map: KhmerWordsMap | undefined,

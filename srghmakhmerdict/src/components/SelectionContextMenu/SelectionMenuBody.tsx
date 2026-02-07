@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import { CardBody } from '@heroui/card'
 import { HiMagnifyingGlass } from 'react-icons/hi2'
 import { SiGoogletranslate } from 'react-icons/si'
@@ -17,40 +17,49 @@ import { detectModeFromText } from '../../utils/rendererUtils'
 import { executeNativeTts, mapModeToNativeLang, executeGoogleTts } from '../../utils/tts'
 
 // --- REUSABLE BUTTON COMPONENT (Mimics ListboxItem, but ListboxItem doesnt react on mouse click) ---
-const MenuButton = ({
-  icon,
-  children,
-  onClick,
-  className = '',
-}: {
-  icon: React.ReactNode
-  children: React.ReactNode
-  onClick: () => void
-  className?: string
-}) => {
-  return (
-    <button
-      className={`
+const MenuButton = React.memo(
+  ({
+    icon,
+    children,
+    onClick,
+    className = '',
+  }: {
+    icon: React.ReactNode
+    children: React.ReactNode
+    onClick: () => void
+    className?: string
+  }) => {
+    const buttonOnClick = useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        // Prevent default browser behavior but allow propagation to our specific logic
+        e.preventDefault()
+        onClick()
+      },
+      [onClick],
+    )
+
+    return (
+      <button
+        className={`
         group w-full flex items-center gap-3 px-3 py-2
         rounded-medium transition-colors duration-150
         hover:bg-default-100 active:bg-default-200
         cursor-pointer outline-none select-none text-start
         ${className}
       `}
-      type="button"
-      onClick={e => {
-        // Prevent default browser behavior but allow propagation to our specific logic
-        e.preventDefault()
-        onClick()
-      }}
-    >
-      <span className="text-default-500 text-lg flex-shrink-0 group-hover:text-default-900 transition-colors">
-        {icon}
-      </span>
-      <div className="flex-1 text-small text-default-700 truncate font-medium">{children}</div>
-    </button>
-  )
-}
+        type="button"
+        onClick={buttonOnClick}
+      >
+        <span className="text-default-500 text-lg flex-shrink-0 group-hover:text-default-900 transition-colors">
+          {icon}
+        </span>
+        <div className="flex-1 text-small text-default-700 truncate font-medium">{children}</div>
+      </button>
+    )
+  },
+)
+
+MenuButton.displayName = 'MenuButton'
 
 // Define icons outside component to prevent re-creation
 const HiMagnifyingGlass_ = <HiMagnifyingGlass className="text-xl text-primary" />

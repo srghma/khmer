@@ -9,9 +9,7 @@ import { colorizeHtml } from '../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
-import { useSettings } from '../providers/SettingsProvider'
-import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
-import { tryHandleKhmerWordClick } from '../hooks/useKhmerLinks'
+import { tryHandleKhmerWordClick, useKhmerContentStyles } from '../hooks/useKhmerLinks'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
@@ -31,6 +29,7 @@ export const useWikiLinkInterception = (
   currentMode: DictionaryLanguage,
   htmlContent: NonEmptyStringTrimmed,
   isKhmerLinksEnabled: boolean,
+  isKhmerWordsHidingEnabled: boolean,
 ) => {
   const toast = useToast()
 
@@ -41,7 +40,7 @@ export const useWikiLinkInterception = (
 
     const handleLinkClick = (e: MouseEvent) => {
       // 1. Custom "Data Attribute" Links (Khmer Words) - Priority
-      const handled = tryHandleKhmerWordClick(e, isKhmerLinksEnabled, onNavigate)
+      const handled = tryHandleKhmerWordClick(e, isKhmerLinksEnabled, isKhmerWordsHidingEnabled, onNavigate)
 
       if (handled) return
 
@@ -91,6 +90,8 @@ interface WiktionaryRendererProps {
   currentMode: DictionaryLanguage
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
+  isKhmerLinksEnabled: boolean
+  isKhmerWordsHidingEnabled: boolean
 }
 
 export const WiktionaryRenderer = ({
@@ -99,19 +100,22 @@ export const WiktionaryRenderer = ({
   currentMode,
   km_map,
   maybeColorMode,
+  isKhmerLinksEnabled,
+  isKhmerWordsHidingEnabled,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { isKhmerLinksEnabled } = useSettings()
 
   // 1. Process HTML (Colorization)
   const content = useWiktionaryContent(html, maybeColorMode, km_map)
 
   // 2. Attach Event Listeners (Navigation)
-  useWikiLinkInterception(containerRef, onNavigate, currentMode, html, isKhmerLinksEnabled)
+  useWikiLinkInterception(containerRef, onNavigate, currentMode, html, isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
+
+  const srghma_khmer_dict_content_styles = useKhmerContentStyles(isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
 
   // 3. Dynamic Class for Interaction
   // contentStyles.interactive determines if hover effects are shown
-  const className = `${styles.wikiScope} ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${isKhmerLinksEnabled ? srghma_khmer_dict_content_styles.interactive : ''}`
+  const className = `${styles.wikiScope} ${srghma_khmer_dict_content_styles}`
 
   return <div dangerouslySetInnerHTML={content} ref={containerRef} className={className} />
 }

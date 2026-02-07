@@ -63,6 +63,10 @@ interface SettingsContextType {
   isKhmerLinksEnabled: boolean
   setIsKhmerLinksEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   toggleKhmerLinks: () => void
+
+  isKhmerWordsHidingEnabled: boolean
+  setIsKhmerWordsHidingEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+  toggleKhmerWordsHiding: () => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -116,7 +120,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   const [isKhmerLinksEnabled, setIsKhmerLinksEnabled] = useLocalStorageState<boolean>(
     'srghmakhmerdict__is_khmer_links_enabled',
-    { defaultValue: true }, // Default to off
+    { defaultValue: true },
+  )
+
+  const [isKhmerWordsHidingEnabled, setIsKhmerWordsHidingEnabled] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__is_khmer_words_hiding_enabled',
+    { defaultValue: false },
   )
 
   // Modal State (Transient - do not persist)
@@ -128,6 +137,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
+
+  const toggleKhmerWordsHiding = useCallback(() => {
+    setIsKhmerWordsHidingEnabled(prev => !prev)
+  }, [setIsKhmerWordsHidingEnabled])
 
   const value = useMemo(
     () => ({
@@ -158,6 +171,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerLinksEnabled: isKhmerLinksEnabled ?? true,
       setIsKhmerLinksEnabled,
       toggleKhmerLinks,
+      isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled ?? false,
+      setIsKhmerWordsHidingEnabled,
+      toggleKhmerWordsHiding,
     }),
     [
       isRegex,
@@ -184,6 +200,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerLinksEnabled,
       setIsKhmerLinksEnabled,
       toggleKhmerLinks,
+      isKhmerWordsHidingEnabled,
+      setIsKhmerWordsHidingEnabled,
+      toggleKhmerWordsHiding,
     ],
   )
 

@@ -19,6 +19,12 @@ export function Record_toNonEmptyRecord<K extends PropertyKey, V>(
   return Option_none
 }
 
+export function Record_toNonEmptyRecord_unsafe<K extends PropertyKey, V>(
+  record: Readonly<Record<K, V>>,
+): NonEmptyRecord<K, V> {
+  return record as NonEmptyRecord<K, V>
+}
+
 export function Record_toNonEmptyRecord_orUndefined<K extends PropertyKey, V>(
   record: Readonly<Record<K, V>>,
 ): NonEmptyRecord<K, V> | undefined {

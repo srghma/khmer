@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback, useReducer } from 'react'
+import { useEffect, useMemo, useReducer } from 'react'
 
 // --- FSRS Imports ---
 import type { Rating, Card as FSRSCard } from '@squeakyrobot/fsrs'
@@ -23,10 +23,11 @@ import {
   NonEmptyMap_keysSet,
   type NonEmptyMap,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
+import type { ValidDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
 
-// --- State Shape ---
+// --- Internal State (Data Only) ---
 
-export type AnkiState =
+type AnkiStateInternal =
   | { t: 'idle' }
   | { t: 'loading' }
   | {
@@ -37,8 +38,30 @@ export type AnkiState =
       isRevealed: boolean
     }
 
-export const AnkiState_idle: AnkiState = { t: 'idle' }
-export const AnkiState_loading: AnkiState = { t: 'loading' }
+// --- Public State (Exposed to UI) ---
+
+export type AnkiState =
+  | { t: 'idle' }
+  | { t: 'loading' }
+  | {
+      t: 'ready'
+      // Data
+      cards: NonEmptyMap<TypedContainsKhmer, FSRSCard>
+      definitions: NonEmptyRecord<TypedContainsKhmer, WordDetailKm> | undefined
+      selectedWord: TypedContainsKhmer
+      isRevealed: boolean
+
+      // Memoized Computed Data
+      nextIntervals: NonEmptyRecord<Rating, ValidDate>
+
+      // Bound Actions
+      revealSet: () => void
+      handleSelect: (word: TypedContainsKhmer) => void
+      handleRate: (rating: Rating) => void
+    }
+
+export const AnkiState_idle: AnkiStateInternal = { t: 'idle' }
+export const AnkiState_loading: AnkiStateInternal = { t: 'loading' }
 
 // --- Actions ---
 
@@ -61,7 +84,7 @@ export type AnkiAction =
 
 // --- Reducer ---
 
-export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => {
+const ankiReducer = (state: AnkiStateInternal, action: AnkiAction): AnkiStateInternal => {
   switch (action.type) {
     case 'RESET':
       return AnkiState_idle
@@ -80,7 +103,6 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'SET_DEFINITIONS':
       if (state.t !== 'ready') return state
-      // Optimization: If definitions reference hasn't changed
       if (state.definitions === action.definitions) return state
 
       return {
@@ -90,7 +112,6 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'SELECT_WORD':
       if (state.t !== 'ready') return state
-      // Optimization: If selecting the same word and the card is already hidden (not revealed)
       if (state.selectedWord === action.word && !state.isRevealed) return state
 
       return {
@@ -101,7 +122,6 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'REVEAL':
       if (state.t !== 'ready') return state
-      // Optimization: If already revealed
       if (state.isRevealed) return state
 
       return {
@@ -111,7 +131,6 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
 
     case 'REVIEW_SUCCESS':
       if (state.t !== 'ready') return state
-      // Optimization: Check referential equality of payload and current state
       if (state.cards === action.newCards && state.selectedWord === action.nextWord && !state.isRevealed) {
         return state
       }
@@ -128,22 +147,21 @@ export const ankiReducer = (state: AnkiState, action: AnkiAction): AnkiState => 
   }
 }
 
-export const useAnki = (items: NonEmptySet<TypedContainsKhmer>) => {
-  const toast = useToast()
-  const [state, dispatch] = useReducer(ankiReducer, AnkiState_idle)
+// --- Hook ---
 
-  // 1. Lifecycle: Initialize when opening
-  //    This is the ONLY place 'items' prop is strictly necessary
+export const useAnki = (items: NonEmptySet<TypedContainsKhmer>): AnkiState => {
+  const toast = useToast()
+  // Internal state management (Data only)
+  const [internalState, dispatch] = useReducer(ankiReducer, AnkiState_idle)
+
+  // 1. Lifecycle: Initialize
   useEffect(() => {
-    // Don't re-init if already ready (unless forced elsewhere)
-    if (state.t === 'ready' || state.t === 'loading') return
+    if (internalState.t === 'ready' || internalState.t === 'loading') return
 
     dispatch({ type: 'INIT_START' })
 
     try {
       const nextCards = localStorage_loadOrInitCards(items)
-
-      // Initial Selection Strategy (Earliest Due Date)
       const [nextDueWord] = findNextDue(nextCards)
 
       dispatch({
@@ -155,19 +173,18 @@ export const useAnki = (items: NonEmptySet<TypedContainsKhmer>) => {
       toast.error('Failed to initialize cards', error.message)
       dispatch({ type: 'RESET' })
     }
-  }, [items, state.t])
+  }, [items, internalState.t])
 
-  // 2. Lifecycle: Fetch Definitions (Side Effect)
-  //    Refactored to derive words from state.cards instead of unstable props
+  // 2. Lifecycle: Fetch Definitions
   useEffect(() => {
-    if (state.t !== 'ready') return
-    if (!state.definitions) return
+    if (internalState.t !== 'ready') return
+    if (internalState.definitions) return
 
     let active = true
 
-    getKmWordsDetailFull(NonEmptyMap_keysSet(state.cards))
+    getKmWordsDetailFull(NonEmptyMap_keysSet(internalState.cards))
       .then(res => {
-        const cleanRes = Record_stripNullValuesOrThrow(res) // all words should be found
+        const cleanRes = Record_stripNullValuesOrThrow(res)
 
         if (active) {
           dispatch({ type: 'SET_DEFINITIONS', definitions: cleanRes })
@@ -180,62 +197,49 @@ export const useAnki = (items: NonEmptySet<TypedContainsKhmer>) => {
     return () => {
       active = false
     }
-  }, [state.t, state.t === 'ready' ? state.cards : undefined])
+  }, [internalState.t, internalState.t === 'ready' ? internalState.cards : undefined])
 
-  // 3. Handlers
-  const handleRate = useCallback(
-    (rating: Rating) => {
-      if (state.t !== 'ready') return
+  // 3. Construct Public State (Memoized)
+  return useMemo<AnkiState>(() => {
+    if (internalState.t !== 'ready') return internalState
 
-      // 1. Calculate new state via pure function (No dependency on 'items')
-      const { newCards, nextWord } = transition_reviewCard(state.cards, state.selectedWord, rating)
+    // A. Compute Intervals (Memoized by virtue of useMemo dependency on internalState)
+    const currentCard = internalState.cards.get(internalState.selectedWord)
 
-      // 2. Persist (Side Effect)
+    // Robustness check: Card should always exist in ready state for selectedWord
+    if (!currentCard) throw new Error(`Critical: Card missing for ${internalState.selectedWord}`)
+
+    const nextIntervals = getNextIntervals(currentCard)
+
+    // B. Define Bound Actions
+    const revealSet = () => {
+      dispatch({ type: 'REVEAL' })
+    }
+
+    const handleSelect = (word: TypedContainsKhmer) => {
+      dispatch({ type: 'SELECT_WORD', word })
+    }
+
+    const handleRate = (rating: Rating) => {
+      const { newCards, nextWord } = transition_reviewCard(internalState.cards, internalState.selectedWord, rating)
+
+      // Side Effect: Persist
       localStorage_saveCardsMap(newCards)
 
-      // 3. Update State
       dispatch({
         type: 'REVIEW_SUCCESS',
         newCards,
         nextWord,
       })
-    },
-    [state],
-  )
+    }
 
-  const handleSelect = useCallback(
-    (word: TypedContainsKhmer) => {
-      if (state.t === 'ready') {
-        dispatch({ type: 'SELECT_WORD', word })
-      }
-    },
-    [state.t],
-  )
-
-  const setIsRevealed = useCallback(
-    (_: boolean) => {
-      if (state.t === 'ready') {
-        dispatch({ type: 'REVEAL' })
-      }
-    },
-    [state.t],
-  )
-
-  // 4. Derived Data (Next Intervals)
-  const nextIntervals = useMemo(() => {
-    if (state.t !== 'ready') return undefined
-    const card = state.cards.get(state.selectedWord)
-
-    if (!card) return undefined
-
-    return getNextIntervals(card)
-  }, [state])
-
-  return {
-    state,
-    handleRate,
-    handleSelect,
-    setIsRevealed,
-    nextIntervals,
-  }
+    // C. Return Combined Object
+    return {
+      ...internalState,
+      nextIntervals,
+      revealSet,
+      handleSelect,
+      handleRate,
+    }
+  }, [internalState])
 }

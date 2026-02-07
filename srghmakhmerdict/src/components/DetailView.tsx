@@ -12,12 +12,12 @@ import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } fro
 import type { KhmerWordsMap } from '../db/dict'
 import { DetailViewHeader } from './DetailViewHeader'
 import { DetailSections } from './DetailView/DetailSections'
-import { useWordDisplay } from './DetailView/useWordDisplay'
 import useLocalStorageState from 'ahooks/lib/useLocalStorageState'
 import { ReactSelectionPopup } from './react-selection-popup/ReactSelectionPopup'
 import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
 import { useNavigation } from '../providers/NavigationProvider'
 import { detectModeFromText } from '../utils/rendererUtils'
+import { useSettings } from '../providers/SettingsProvider'
 
 interface DetailViewProps {
   word: NonEmptyStringTrimmed
@@ -25,9 +25,9 @@ interface DetailViewProps {
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   fontSize: number
   highlightMatch: NonEmptyStringTrimmed | undefined
-  onBack: () => void | undefined
+  backButton_goBack: () => void | undefined
+  backButton_desktopOnlyStyles_showButton: boolean
   km_map: KhmerWordsMap
-  canGoBack: boolean
   maybeColorMode: MaybeColorizationMode
   setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
 }
@@ -37,9 +37,9 @@ const DetailViewImpl = ({
   mode,
   onNavigate,
   fontSize,
-  onBack,
+  backButton_goBack,
   km_map,
-  canGoBack,
+  backButton_desktopOnlyStyles_showButton,
   maybeColorMode,
   setKhmerAnalyzerModalText_setToOpen,
 }: DetailViewProps) => {
@@ -49,9 +49,6 @@ const DetailViewImpl = ({
 
   // 2. Appearance Logic (Font, Color, Styles)
   const [khmerFontName, setKhmerFontName] = useLocalStorageState<KhmerFontName>('Default')
-
-  // 3. Display Logic
-  const displayWordHtml = useWordDisplay(data)
 
   const cardStyle = useMemo(
     () => ({
@@ -106,6 +103,8 @@ const DetailViewImpl = ({
     [currentHistoryItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
   )
 
+  const { isKhmerLinksEnabled, isKhmerWordsHidingEnabled } = useSettings()
+
   // 4. Loading / Empty States
   if (loading) {
     return (
@@ -119,8 +118,8 @@ const DetailViewImpl = ({
     return (
       <div className="h-full flex flex-col items-center justify-center text-default-400 gap-4">
         <p>Word not found.</p>
-        {onBack && (
-          <Button color="primary" variant="light" onPress={onBack}>
+        {backButton_goBack && (
+          <Button color="primary" variant="light" onPress={backButton_goBack}>
             Go Back
           </Button>
         )}
@@ -132,19 +131,18 @@ const DetailViewImpl = ({
   return (
     <Card className={`h-full w-full border-none rounded-none bg-background shadow-none`} style={cardStyle}>
       <DetailViewHeader
-        canGoBack={canGoBack}
-        displayWordHtml={displayWordHtml}
+        backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
+        backButton_goBack={backButton_goBack}
+        displayWordHtml={data.word_display ?? data.word}
         handleGoogleSpeak={handleGoogleSpeak}
         handleNativeSpeak={handleNativeSpeak}
         isFav={isFav}
         isGoogleSpeaking={isGoogleSpeaking}
         khmerFontName={khmerFontName}
-        km_map={km_map}
         mode={mode}
         phonetic={data.phonetic}
         setKhmerFontName={setKhmerFontName}
         toggleFav={toggleFav}
-        onBack={onBack}
       />
 
       {/* BODY */}
@@ -162,6 +160,8 @@ const DetailViewImpl = ({
               from_csv_raw_html={data.from_csv_raw_html}
               from_csv_variants={data.from_csv_variants}
               from_russian_wiki={data.from_russian_wiki}
+              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               mode={mode}

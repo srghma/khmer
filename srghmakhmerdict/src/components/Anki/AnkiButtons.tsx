@@ -1,71 +1,80 @@
 import React from 'react'
-import { Button } from '@heroui/button'
+import { Button, type ButtonProps } from '@heroui/button'
 import { ModalFooter } from '@heroui/modal'
 import { formatDistanceToNow } from 'date-fns'
-
-// --- FSRS Imports ---
 import { Rating } from '@squeakyrobot/fsrs'
+import type { ValidDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
 
-// --- Types & Interfaces ---
+// --- Types & Config ---
 
-const formatInterval = (date: Date) => formatDistanceToNow(date, { addSuffix: true })
+interface RatingConfig {
+  rating: Rating
+  label: string
+  color: ButtonProps['color']
+}
+
+const RATINGS: RatingConfig[] = [
+  { rating: Rating.Again, label: 'Again', color: 'danger' },
+  { rating: Rating.Hard, label: 'Hard', color: 'warning' },
+  { rating: Rating.Good, label: 'Good', color: 'success' },
+  { rating: Rating.Easy, label: 'Easy', color: 'primary' },
+]
+
+// --- Sub-Component ---
+
+interface AnkiRatingButtonProps extends RatingConfig {
+  interval: ValidDate
+  onRate: (rating: Rating) => void
+}
+
+const AnkiRatingButton = React.memo(({ rating, label, color, interval, onRate }: AnkiRatingButtonProps) => (
+  <div className="flex flex-col gap-1">
+    <Button color={color} variant="flat" onPress={() => onRate(rating)}>
+      {label}
+    </Button>
+    <span className="text-[10px] text-center text-default-400 min-h-[1em]">
+      {formatDistanceToNow(interval, { addSuffix: true })}
+    </span>
+  </div>
+))
+
+AnkiRatingButton.displayName = 'AnkiRatingButton'
+
+// --- Main Component ---
+
+interface AnkiButtonsProps {
+  isRevealed: boolean
+  isDisabled: boolean
+  nextIntervals: Record<Rating, ValidDate>
+  onReveal: () => void
+  onRate: (rating: Rating) => void
+}
 
 export const AnkiButtons = React.memo(
-  ({
-    isRevealed,
-    isDisabled,
-    nextIntervals,
-    onReveal,
-    onRate,
-  }: {
-    isRevealed: boolean
-    isDisabled: boolean
-    nextIntervals: Record<Rating, Date> | undefined
-    onReveal: () => void
-    onRate: (rating: Rating) => void
-  }) => {
-    return (
-      <ModalFooter className="border-t border-divider bg-content2/30 p-4 justify-center">
-        {!isRevealed ? (
+  ({ isRevealed, isDisabled, nextIntervals, onReveal, onRate }: AnkiButtonsProps) => {
+    // Determine if we should show the "Show Answer" button or the rating grid
+    if (!isRevealed) {
+      return (
+        <ModalFooter className="border-t border-divider bg-content2/30 p-4 justify-center">
           <Button className="font-bold px-12" color="primary" isDisabled={isDisabled} size="lg" onPress={onReveal}>
             Show Answer
           </Button>
-        ) : (
-          <div className="grid grid-cols-4 gap-4 w-full max-w-3xl">
-            <div className="flex flex-col gap-1">
-              <Button color="danger" variant="flat" onPress={() => onRate(Rating.Again)}>
-                Again
-              </Button>
-              <span className="text-[10px] text-center text-default-400">
-                {nextIntervals && formatInterval(nextIntervals[Rating.Again])}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <Button color="warning" variant="flat" onPress={() => onRate(Rating.Hard)}>
-                Hard
-              </Button>
-              <span className="text-[10px] text-center text-default-400">
-                {nextIntervals && formatInterval(nextIntervals[Rating.Hard])}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <Button color="success" variant="flat" onPress={() => onRate(Rating.Good)}>
-                Good
-              </Button>
-              <span className="text-[10px] text-center text-default-400">
-                {nextIntervals && formatInterval(nextIntervals[Rating.Good])}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <Button color="primary" variant="flat" onPress={() => onRate(Rating.Easy)}>
-                Easy
-              </Button>
-              <span className="text-[10px] text-center text-default-400">
-                {nextIntervals && formatInterval(nextIntervals[Rating.Easy])}
-              </span>
-            </div>
-          </div>
-        )}
+        </ModalFooter>
+      )
+    }
+
+    return (
+      <ModalFooter className="border-t border-divider bg-content2/30 p-4 justify-center">
+        <div className="grid grid-cols-4 gap-4 w-full max-w-3xl">
+          {RATINGS.map(config => (
+            <AnkiRatingButton
+              key={config.rating}
+              {...config}
+              interval={nextIntervals?.[config.rating]}
+              onRate={onRate}
+            />
+          ))}
+        </div>
       </ModalFooter>
     )
   },

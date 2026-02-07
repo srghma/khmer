@@ -1,124 +1,73 @@
-import React, { useCallback, useMemo } from 'react'
-
+import React, { useMemo } from 'react'
 import { HiArrowLeft } from 'react-icons/hi2'
-import { GoStarFill, GoStar } from 'react-icons/go'
-import { IoColorPalette } from 'react-icons/io5'
-import { MdTextFields } from 'react-icons/md' // NEW ICON
 import { Button } from '@heroui/button'
 import { CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
-import { Tooltip } from '@heroui/tooltip'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
-import { TbLink, TbLinkOff } from 'react-icons/tb'
 
 import { type DictionaryLanguage } from '../types'
-import { GoogleSpeakerIcon } from './GoogleSpeakerIcon'
-import { NativeSpeakerIcon } from './NativeSpeakerIcon'
-import {
-  KHMER_FONT_FAMILY,
-  stringToKhmerFontNameOrThrow,
-  stringToMaybeColorizationModeOrThrow,
-  type KhmerFontName,
-} from '../utils/text-processing/utils'
-import type { KhmerWordsMap } from '../db/dict'
+import { KHMER_FONT_FAMILY, type KhmerFontName } from '../utils/text-processing/utils'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { SharedSelection } from '@heroui/system'
-import { getSingleSelection_string } from '../utils/selection-utils'
+import { DetailViewActions } from './DetailViewHeaderActions'
 import { useSettings } from '../providers/SettingsProvider'
 
-// --- NEW CONSTANTS ---
-export const KHMER_FONTS: { name: NonEmptyStringTrimmed; value: string }[] = [
-  { name: 'Default' as NonEmptyStringTrimmed, value: '' }, // Uses system/CSS default
-  { name: 'Moul' as NonEmptyStringTrimmed, value: '"Moul", serif' }, // Headings (Thick)
-  { name: 'Siemreap' as NonEmptyStringTrimmed, value: '"Siemreap", serif' }, // Elegant, traditional
-  { name: 'Battambang' as NonEmptyStringTrimmed, value: '"Battambang", cursive' }, // Standard readable
-  { name: 'Kantumruy' as NonEmptyStringTrimmed, value: '"Kantumruy Pro", sans-serif' }, // Modern Sans
-  { name: 'Fasthand' as NonEmptyStringTrimmed, value: '"Fasthand", cursive' }, // Handwritten style
-]
-
 interface HeaderProps {
-  displayWordHtml: { __html: string } | undefined
-  phonetic: string | undefined
+  displayWordHtml: NonEmptyStringTrimmed | undefined
+  phonetic: NonEmptyStringTrimmed | undefined
   mode: DictionaryLanguage
   isFav: boolean
   toggleFav: () => void
-  onBack: () => void | undefined
-  canGoBack: boolean
-  km_map: KhmerWordsMap | undefined
-
-  // Font Props (NEW)
+  backButton_goBack: () => void | undefined
+  backButton_desktopOnlyStyles_showButton: boolean
   khmerFontName: KhmerFontName
   setKhmerFontName: (v: KhmerFontName) => void
-
-  // TTS Props
   handleNativeSpeak: () => void
   handleGoogleSpeak: () => void
   isGoogleSpeaking: boolean
 }
-
-const GoogleSpeakerIcon_ = <GoogleSpeakerIcon className="h-6 w-6 text-[#4285F4]" />
-const GoStarFill_ = <GoStarFill className="h-6 w-6" />
-const GoStar_ = <GoStar className="h-6 w-6" />
 
 const DetailViewHeaderImpl = (props: HeaderProps) => {
   const {
     displayWordHtml,
     phonetic,
     mode,
-    isFav,
-    toggleFav,
-    onBack,
-    canGoBack,
-    km_map,
-
+    backButton_goBack,
+    backButton_desktopOnlyStyles_showButton,
     khmerFontName,
     setKhmerFontName,
-
+    isFav,
+    toggleFav,
     handleNativeSpeak,
     handleGoogleSpeak,
     isGoogleSpeaking,
   } = props
 
-  const { maybeColorMode, setMaybeColorMode, isKhmerLinksEnabled, toggleKhmerLinks } = useSettings()
+  // Pull settings from context here to pass into the pure Actions component
+  const {
+    maybeColorMode,
+    setMaybeColorMode,
+    isKhmerLinksEnabled,
+    toggleKhmerLinks,
+    isKhmerWordsHidingEnabled,
+    toggleKhmerWordsHiding,
+  } = useSettings()
 
-  // Merge base style with selected font
-  const h1Style = useMemo(() => {
-    return {
-      fontFamily: KHMER_FONT_FAMILY[khmerFontName], // undefined falls back to CSS class
-    }
-  }, [khmerFontName])
-
-  const maybeColorMode_ = useMemo(() => [maybeColorMode], [maybeColorMode])
-  const khmerFontName_ = useMemo(() => [khmerFontName], [khmerFontName])
-
-  const handleColorChange = useCallback(
-    (keys: SharedSelection) => {
-      const selectedKey = getSingleSelection_string(keys)
-
-      if (!selectedKey) return
-      setMaybeColorMode(stringToMaybeColorizationModeOrThrow(selectedKey))
-    },
-    [setMaybeColorMode],
+  const h1Style = useMemo(
+    () => ({
+      fontFamily: KHMER_FONT_FAMILY[khmerFontName],
+    }),
+    [khmerFontName],
   )
 
-  const handleFontChange = useCallback(
-    (keys: SharedSelection) => {
-      const selectedKey = getSingleSelection_string(keys)
-
-      if (!selectedKey) return
-      setKhmerFontName(stringToKhmerFontNameOrThrow(selectedKey))
-    },
-    [setKhmerFontName],
-  )
+  const h1Html = useMemo(() => (displayWordHtml ? { __html: displayWordHtml } : undefined), [displayWordHtml])
 
   return (
     <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider">
-      {onBack && (
+      {backButton_goBack && (
         <Button
           isIconOnly
-          className={`mr-3 text-default-500 -ml-2 ${canGoBack ? '' : 'md:hidden'}`}
+          className={`mr-3 text-default-500 -ml-2 ${backButton_desktopOnlyStyles_showButton ? '' : 'md:hidden'}`}
           variant="light"
-          onPress={onBack}
+          onPress={backButton_goBack}
         >
           <HiArrowLeft className="w-6 h-6" />
         </Button>
@@ -126,12 +75,8 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
 
       <div className="flex-1">
         <div className="flex items-center gap-3 flex-wrap">
-          {displayWordHtml && (
-            <h1
-              dangerouslySetInnerHTML={displayWordHtml}
-              className="font-bold text-foreground font-khmer"
-              style={h1Style}
-            />
+          {h1Html && (
+            <h1 dangerouslySetInnerHTML={h1Html} className="font-bold text-foreground font-khmer" style={h1Style} />
           )}
           {phonetic && (
             <Chip className="font-mono" color="secondary" size="sm" variant="flat">
@@ -142,100 +87,21 @@ const DetailViewHeaderImpl = (props: HeaderProps) => {
         <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest">{mode} Dictionary</div>
       </div>
 
-      <div className="flex gap-1 shrink-0">
-        <Tooltip closeDelay={0} content={isKhmerLinksEnabled ? 'Disable word links' : 'Enable word links'}>
-          <Button
-            isIconOnly
-            className={isKhmerLinksEnabled ? 'text-primary' : 'text-default-500'}
-            isDisabled={maybeColorMode === 'none'} // Disable if colorization is off
-            radius="full"
-            variant="light"
-            onPress={toggleKhmerLinks}
-          >
-            {isKhmerLinksEnabled ? <TbLink className="h-6 w-6" /> : <TbLinkOff className="h-6 w-6" />}
-          </Button>
-        </Tooltip>
-
-        {/* FONT DROPDOWN */}
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              isIconOnly
-              className="text-default-900 data-[hover=true]:bg-default-100"
-              radius="full"
-              variant="light"
-            >
-              <MdTextFields className={`h-6 w-6 ${khmerFontName ? 'text-primary' : 'text-default-500'}`} />
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            disallowEmptySelection
-            aria-label="Khmer Font Selection"
-            selectedKeys={khmerFontName_}
-            selectionMode="single"
-            onSelectionChange={handleFontChange}
-          >
-            {KHMER_FONTS.map(font => (
-              <DropdownItem key={font.name} className="font-khmer" style={{ fontFamily: font.value }}>
-                {font.name}
-              </DropdownItem>
-            ))}
-          </DropdownMenu>
-        </Dropdown>
-
-        {/* COLOR DROPDOWN */}
-        <Dropdown>
-          <DropdownTrigger>
-            <Button
-              isIconOnly
-              className="text-default-900 data-[hover=true]:bg-default-100"
-              isLoading={!km_map}
-              radius="full"
-              variant="light"
-            >
-              <IoColorPalette
-                className={`h-6 w-6 ${maybeColorMode !== 'none' ? 'text-primary' : 'text-default-500'}`}
-              />
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            disallowEmptySelection
-            aria-label="Colorization Settings"
-            selectedKeys={maybeColorMode_}
-            selectionMode="single"
-            onSelectionChange={handleColorChange}
-          >
-            <DropdownItem key="segmenter">Using Segmenter</DropdownItem>
-            <DropdownItem key="dictionary">Using Dictionary</DropdownItem>
-            <DropdownItem key="none">None</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-
-        <Tooltip closeDelay={0} content="Native Speech">
-          <Button isIconOnly radius="full" variant="light" onPress={handleNativeSpeak}>
-            <NativeSpeakerIcon className="h-6 w-6 text-default-900" />
-          </Button>
-        </Tooltip>
-
-        <Tooltip closeDelay={0} content="Google Speech">
-          <Button isIconOnly isLoading={isGoogleSpeaking} radius="full" variant="light" onPress={handleGoogleSpeak}>
-            {!isGoogleSpeaking && GoogleSpeakerIcon_}
-          </Button>
-        </Tooltip>
-
-        <Tooltip closeDelay={0} content={isFav ? 'Remove Favorite' : 'Add Favorite'}>
-          <Button
-            isIconOnly
-            className={isFav ? 'text-warning' : 'text-default-400'}
-            color={isFav ? 'warning' : 'default'}
-            radius="full"
-            variant="light"
-            onPress={toggleFav}
-          >
-            {isFav ? GoStarFill_ : GoStar_}
-          </Button>
-        </Tooltip>
-      </div>
+      <DetailViewActions
+        handleGoogleSpeak={handleGoogleSpeak}
+        handleNativeSpeak={handleNativeSpeak}
+        isFav={isFav}
+        isGoogleSpeaking={isGoogleSpeaking}
+        isKhmerLinksEnabled={isKhmerLinksEnabled}
+        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+        khmerFontName={khmerFontName}
+        maybeColorMode={maybeColorMode}
+        setKhmerFontName={setKhmerFontName}
+        setMaybeColorMode={setMaybeColorMode}
+        toggleFav={toggleFav}
+        toggleKhmerLinks={toggleKhmerLinks}
+        toggleKhmerWordsHiding={toggleKhmerWordsHiding}
+      />
     </CardHeader>
   )
 }
