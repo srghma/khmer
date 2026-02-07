@@ -10,7 +10,7 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import type { KhmerWordsMap } from '../../db/dict'
 import {
   stringToToTranslateLanguageOrThrow,
-  ToTranslateLanguage_nameCodeRecord,
+  ToTranslateLanguage_codeNameRecord,
   type ToTranslateLanguage,
 } from '../../utils/googleTranslate/toTranslateLanguage'
 import type { SharedSelection } from '@heroui/system'
@@ -58,7 +58,7 @@ export const LanguageSelector = memo(({ targetLang, onSelect }: LanguageSelector
         selectionMode="single"
         onSelectionChange={handleSelectionChange}
       >
-        {Record_entriesToArray(ToTranslateLanguage_nameCodeRecord, (code, name) => (
+        {Record_entriesToArray(ToTranslateLanguage_codeNameRecord, (code, name) => (
           <DropdownItem key={code}>{name}</DropdownItem>
         ))}
       </DropdownMenu>
@@ -77,29 +77,35 @@ interface ResultDisplayProps {
 export const ResultDisplay = memo(({ result, targetLang, maybeColorMode, km_map }: ResultDisplayProps) => {
   const resultHtml = useMemo(() => {
     if (!result.text) return null
-    if (targetLang !== 'km' || maybeColorMode === 'none' || !km_map) return { __html: result.text }
+    if (targetLang !== 'km' || maybeColorMode === 'none') return { __html: result.text }
 
     return { __html: colorizeHtml(result.text, maybeColorMode, km_map) }
   }, [result.text, targetLang, maybeColorMode, km_map])
 
   return (
     <div className="bg-default-100/50 border border-default-200 rounded-medium p-3 animate-in fade-in duration-200">
-      {resultHtml ? (
-        <div
-          dangerouslySetInnerHTML={resultHtml}
-          className={`font-medium text-medium font-khmer leading-relaxed select-text ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
-        />
-      ) : (
-        <div className="font-medium text-medium select-text">{result.text}</div>
-      )}
+      <div className="flex justify-between items-start gap-3">
+        {/* Left Side: Text Content */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          {resultHtml ? (
+            <div
+              dangerouslySetInnerHTML={resultHtml}
+              className={`font-medium text-medium font-khmer leading-relaxed select-text ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
+            />
+          ) : (
+            <div className="font-medium text-medium select-text">{result.text}</div>
+          )}
 
-      {result.transliteration && (
-        <div className="text-small text-default-500 font-mono mt-1 select-text">{result.transliteration}</div>
-      )}
+          {result.transliteration && (
+            <div className="text-small text-default-500 font-mono select-text">{result.transliteration}</div>
+          )}
+        </div>
 
-      <div className="flex gap-1">
-        <NativeSpeechAction mode={map_ToTranslateLanguage_to_BCP47LanguageTagName[targetLang]} word={result.text} />
-        <GoogleSpeechAction mode={targetLang} word={result.text} />
+        {/* Right Side: Actions */}
+        <div className="flex gap-1 shrink-0">
+          <NativeSpeechAction mode={map_ToTranslateLanguage_to_BCP47LanguageTagName[targetLang]} word={result.text} />
+          <GoogleSpeechAction mode={targetLang} word={result.text} />
+        </div>
       </div>
     </div>
   )

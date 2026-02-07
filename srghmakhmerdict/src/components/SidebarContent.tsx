@@ -1,9 +1,9 @@
-import { memo, Suspense } from 'react'
+import { memo, Suspense, useCallback } from 'react'
 import { Spinner } from '@heroui/spinner'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
-import { type AppTab, type DictionaryLanguage } from '../types'
+import { type AppTab } from '../types'
 import type { ProcessedDataState } from '../hooks/useDictionarySearch'
 import { WordListGeneral } from './WordListGeneral'
 import { usePreloadOnIdle } from '../utils/lazyWithPreload'
@@ -11,12 +11,12 @@ import lazyWithPreload from 'react-lazy-with-preload'
 import type { KhmerWordsMap } from '../db/dict'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import { HistoryListOnly } from './HistoryOrFavouritesList/HistoryListOnly'
+import { FavouritesListOnly } from './HistoryOrFavouritesList/FavouritesListOnly'
+import { useNavigation } from '../providers/NavigationProvider'
 
 // --- LAZY IMPORTS ---
 const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
-const HistoryOrFavouritesList = lazyWithPreload(() =>
-  import('./HistoryList').then(m => ({ default: m.HistoryOrFavouritesList })),
-)
 const SettingsView = lazyWithPreload(() => import('./SettingsView').then(m => ({ default: m.SettingsView })))
 
 // --- FALLBACK COMPONENT ---
@@ -34,20 +34,29 @@ interface SidebarContentProps {
   contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
   highlightInList: boolean
   searchQuery: NonEmptyStringTrimmed | undefined
-  refreshHistoryTrigger: number
   km_map: KhmerWordsMap | undefined
   maybeColorMode: MaybeColorizationMode
-
-  onWordClickKm: (w: NonEmptyStringTrimmed) => void
-  onWordClickEn: (w: NonEmptyStringTrimmed) => void
-  onWordClickRu: (w: NonEmptyStringTrimmed) => void
-  onHistorySelect: (w: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
   const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode } = props
 
-  usePreloadOnIdle([WordListKhmer, HistoryOrFavouritesList, SettingsView])
+  const { resetNavigationAndSetCurrentTo } = useNavigation()
+
+  const handleWordClickKm = useCallback(
+    (w: NonEmptyStringTrimmed) => resetNavigationAndSetCurrentTo(w, 'km'),
+    [resetNavigationAndSetCurrentTo],
+  )
+  const handleWordClickEn = useCallback(
+    (w: NonEmptyStringTrimmed) => resetNavigationAndSetCurrentTo(w, 'en'),
+    [resetNavigationAndSetCurrentTo],
+  )
+  const handleWordClickRu = useCallback(
+    (w: NonEmptyStringTrimmed) => resetNavigationAndSetCurrentTo(w, 'ru'),
+    [resetNavigationAndSetCurrentTo],
+  )
+
+  usePreloadOnIdle([WordListKhmer, SettingsView])
 
   if (loading) {
     return (
@@ -66,16 +75,18 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
     )
   }
 
-  if (activeTab === 'history' || activeTab === 'favorites') {
+  if (activeTab === 'history') {
     return (
       <Suspense fallback={ContentFallback}>
-        <HistoryOrFavouritesList
-          km_map={km_map}
-          maybeColorMode={maybeColorMode}
-          refreshTrigger={props.refreshHistoryTrigger}
-          type={activeTab}
-          onSelect={props.onHistorySelect}
-        />
+        <HistoryListOnly km_map={km_map} maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
+      </Suspense>
+    )
+  }
+
+  if (activeTab === 'favorites') {
+    return (
+      <Suspense fallback={ContentFallback}>
+        <FavouritesListOnly km_map={km_map} maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
       </Suspense>
     )
   }
@@ -101,7 +112,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
                   data={resultData.data}
                   highlightMatch={props.highlightInList}
                   searchQuery={props.searchQuery}
-                  onWordClick={props.onWordClickKm}
+                  onWordClick={handleWordClickKm}
                 />
               )
             case 'en':
@@ -111,7 +122,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
                   data={resultData.data}
                   highlightMatch={props.highlightInList}
                   searchQuery={props.searchQuery}
-                  onWordClick={props.onWordClickEn}
+                  onWordClick={handleWordClickEn}
                 />
               )
             case 'ru':
@@ -121,7 +132,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
                   data={resultData.data}
                   highlightMatch={props.highlightInList}
                   searchQuery={props.searchQuery}
-                  onWordClick={props.onWordClickRu}
+                  onWordClick={handleWordClickRu}
                 />
               )
             default:

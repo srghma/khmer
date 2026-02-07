@@ -99,7 +99,9 @@ export const KhmerFontAction = memo(({ khmerFontName, onChange }: KhmerFontActio
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly className="text-default-900" radius="full" variant="light">
-          <MdTextFields className={`h-6 w-6 ${khmerFontName ? 'text-primary' : 'text-default-500'}`} />
+          <Tooltip closeDelay={0} content="Khmer Font">
+            <MdTextFields className={`h-6 w-6 ${khmerFontName !== 'Default' ? 'text-primary' : 'text-default-500'}`} />
+          </Tooltip>
         </Button>
       </DropdownTrigger>
       <DropdownMenu
@@ -144,7 +146,9 @@ export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationAct
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly radius="full" variant="light">
-          <IoColorPalette className={`h-6 w-6 ${colorMode !== 'none' ? 'text-primary' : 'text-default-500'}`} />
+          <Tooltip closeDelay={0} content="Colorization Settings">
+            <IoColorPalette className={`h-6 w-6 ${colorMode !== 'none' ? 'text-primary' : 'text-default-500'}`} />
+          </Tooltip>
         </Button>
       </DropdownTrigger>
       <DropdownMenu

@@ -13,7 +13,7 @@ interface NavigationContextType {
   /** Pushes a new word onto the stack (used for internal links/search) */
   navigateTo: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   /** Clears stack and sets the word (used for Sidebar selection) */
-  resetNavigation: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
+  resetNavigationAndSetCurrentTo: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   /** Pops the stack */
   goBack: () => void
   /** Clears everything (closes the detail view) */
@@ -107,7 +107,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   )
 
   // 2. Reset (Sidebar click)
-  const resetNavigation = useCallback((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
+  const resetNavigationAndSetCurrentTo = useCallback((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
     // If we are transitioning from "List View" (null) to "Detail View", push a history state.
     // If we are already in "Detail View" and just clicking another sidebar item,
     // we REPLACE the state (so we don't build an infinite back stack for sidebar clicks),
@@ -148,11 +148,11 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
       currentHistoryItem,
       canGoBack,
       navigateTo,
-      resetNavigation,
+      resetNavigationAndSetCurrentTo,
       goBack,
       clearSelection,
     }),
-    [currentHistoryItem, canGoBack, navigateTo, resetNavigation, goBack, clearSelection],
+    [currentHistoryItem, canGoBack, navigateTo, resetNavigationAndSetCurrentTo, goBack, clearSelection],
   )
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>

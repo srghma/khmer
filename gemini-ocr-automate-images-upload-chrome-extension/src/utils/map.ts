@@ -2,14 +2,14 @@
 
 import { type Option } from './types.js'
 
-export function Map_every<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
+export function Map_every<K, V>(map: ReadonlyMap<K, V>, predicate: (k: K, v: V) => boolean): boolean {
   for (const [k, v] of map) {
     if (!predicate(k, v)) return false
   }
   return true
 }
 
-export function Map_keysToSet<K, V>(map: Map<K, V>): Set<K> {
+export function Map_keysToSet<K, V>(map: ReadonlyMap<K, V>): Set<K> {
   return new Set(map.keys())
 }
 
@@ -25,7 +25,7 @@ export function Map_entriesToArray<K, V, R>(map: ReadonlyMap<K, V>, fn: (key: K,
 }
 
 export function Map_entriesToRecord<K extends PropertyKey, V, R>(
-  map: Map<K, V>,
+  map: ReadonlyMap<K, V>,
   fn: (key: K, value: V) => R,
 ): Record<K, R> {
   const result = {} as Record<K, R>
@@ -35,7 +35,22 @@ export function Map_entriesToRecord<K extends PropertyKey, V, R>(
   return result
 }
 
-export function Map_entriesFlatMapToArray<K, V, R>(map: Map<K, V>, fn: (key: K, value: V) => readonly R[]): R[] {
+export function Map_entriesMapToArray_unlessUndefined<K, V, R>(
+  map: ReadonlyMap<K, V>,
+  fn: (key: K, value: V) => R | undefined,
+): R[] {
+  const result: R[] = []
+  for (const [key, value] of map) {
+    const item = fn(key, value)
+    if (item) result.push(item)
+  }
+  return result
+}
+
+export function Map_entriesFlatMapToArray<K, V, R>(
+  map: ReadonlyMap<K, V>,
+  fn: (key: K, value: V) => readonly R[],
+): R[] {
   // return Array.from(map.entries()).flatMap(([key, value]: [K, V]) => fn(key, value))
   const result: R[] = []
   for (const [key, value] of map) {
@@ -48,12 +63,12 @@ export function Map_entriesFlatMapToArray<K, V, R>(map: Map<K, V>, fn: (key: K, 
   return result
 }
 
-export function Map_find<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): [K, V] | undefined {
+export function Map_find<K, V>(map: ReadonlyMap<K, V>, predicate: (k: K, v: V) => boolean): [K, V] | undefined {
   for (const entry of map) if (predicate(entry[0], entry[1])) return entry
   return undefined
 }
 
-export function Map_getOr<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
+export function Map_getOr<K, V>(map: ReadonlyMap<K, V>, key: K, defaultValue: V): V {
   const value = map.get(key)
   // If the value is undefined, we check if the key actually exists
   // (to handle cases where V includes undefined)
@@ -63,7 +78,7 @@ export function Map_getOr<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
   return value as V
 }
 
-export function Map_union_onCollisionThrow<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
+export function Map_union_onCollisionThrow<K, V>(...maps: readonly ReadonlyMap<K, V>[]): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) {
@@ -77,7 +92,7 @@ export function Map_union_onCollisionThrow<K, V>(...maps: readonly Map<K, V>[]):
 // similar to Map_mkSemigroupArray, but with custom merge function
 export function Map_union_onCollisionMerge<K, V>(
   mergeCollision: (a: V, b: V) => V,
-  ...maps: readonly Map<K, V>[]
+  ...maps: readonly ReadonlyMap<K, V>[]
 ): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
@@ -93,7 +108,7 @@ export function Map_union_onCollisionMerge<K, V>(
   return result
 }
 
-export function Map_union_onCollisionPreferFirst<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
+export function Map_union_onCollisionPreferFirst<K, V>(...maps: readonly ReadonlyMap<K, V>[]): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) {
@@ -103,7 +118,7 @@ export function Map_union_onCollisionPreferFirst<K, V>(...maps: readonly Map<K, 
   return result
 }
 
-export function Map_union_onCollisionPreferLast<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
+export function Map_union_onCollisionPreferLast<K, V>(...maps: readonly ReadonlyMap<K, V>[]): Map<K, V> {
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) result.set(k, v)
@@ -111,7 +126,11 @@ export function Map_union_onCollisionPreferLast<K, V>(...maps: readonly Map<K, V
   return result
 }
 
-export function Map_intersection<K, V>(mapA: Map<K, V>, mapB: Map<K, V>, merge?: (a: V, b: V) => V): Map<K, V> {
+export function Map_intersection<K, V>(
+  mapA: ReadonlyMap<K, V>,
+  mapB: ReadonlyMap<K, V>,
+  merge?: (a: V, b: V) => V,
+): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of mapA) {
     if (mapB.has(k)) {
@@ -121,7 +140,7 @@ export function Map_intersection<K, V>(mapA: Map<K, V>, mapB: Map<K, V>, merge?:
   return result
 }
 
-export function Map_difference<K, V>(mapA: Map<K, V>, mapB: Map<K, V>): Map<K, V> {
+export function Map_difference<K, V>(mapA: ReadonlyMap<K, V>, mapB: ReadonlyMap<K, V>): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of mapA) {
     if (!mapB.has(k)) result.set(k, v)
@@ -146,7 +165,7 @@ export function Map_difference<K, V>(mapA: Map<K, V>, mapB: Map<K, V>): Map<K, V
  * //   'user' => Map { 2 => {name: 'Bob', ...}, 4 => {name: 'David', ...} }
  * // }
  */
-export function Map_groupBy<K, V, G>(input: Map<K, V>, fn: (key: K, value: V) => G): Map<G, Map<K, V>> {
+export function Map_groupBy<K, V, G>(input: ReadonlyMap<K, V>, fn: (key: K, value: V) => G): Map<G, Map<K, V>> {
   const result = new Map<G, Map<K, V>>()
   for (const [k, v] of input) {
     const groupKey = fn(k, v)
@@ -158,12 +177,12 @@ export function Map_groupBy<K, V, G>(input: Map<K, V>, fn: (key: K, value: V) =>
   return result
 }
 
-export function Map_some<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
+export function Map_some<K, V>(map: ReadonlyMap<K, V>, predicate: (k: K, v: V) => boolean): boolean {
   for (const [k, v] of map) if (predicate(k, v)) return true
   return false
 }
 
-export function Map_none<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
+export function Map_none<K, V>(map: ReadonlyMap<K, V>, predicate: (k: K, v: V) => boolean): boolean {
   return !Map_some(map, predicate)
 }
 
@@ -172,7 +191,7 @@ export function Map_none<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolea
  * - If the callback returns Option_none, the entry is skipped.
  * - If it returns Option_some, the transformed value is kept.
  */
-export function Map_filterMap<K, V, U>(map: Map<K, V>, f: (key: K, value: V) => Option<U>): Map<K, U> {
+export function Map_filterMap<K, V, U>(map: ReadonlyMap<K, V>, f: (key: K, value: V) => Option<U>): Map<K, U> {
   const result = new Map<K, U>()
   for (const [k, v] of map) {
     const opt = f(k, v)
@@ -183,7 +202,7 @@ export function Map_filterMap<K, V, U>(map: Map<K, V>, f: (key: K, value: V) => 
   return result
 }
 
-export function Map_filter<K, V>(map: Map<K, V>, predicate: (key: K, value: V) => boolean): Map<K, V> {
+export function Map_filter<K, V>(map: ReadonlyMap<K, V>, predicate: (key: K, value: V) => boolean): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of map) {
     if (predicate(k, v)) {
@@ -193,7 +212,7 @@ export function Map_filter<K, V>(map: Map<K, V>, predicate: (key: K, value: V) =
   return result
 }
 
-export function Map_mapKeys<K, V, J>(map: Map<K, V>, f: (key: K, value: V) => J): Map<J, V> {
+export function Map_mapKeys<K, V, J>(map: ReadonlyMap<K, V>, f: (key: K, value: V) => J): Map<J, V> {
   const result = new Map<J, V>()
   for (const [k, v] of map) {
     result.set(f(k, v), v)
@@ -201,7 +220,7 @@ export function Map_mapKeys<K, V, J>(map: Map<K, V>, f: (key: K, value: V) => J)
   return result
 }
 
-export function Map_mapValues<K, V, U>(inputMap: Map<K, V>, fn: (key: K, value: V) => U): Map<K, U> {
+export function Map_mapValues<K, V, U>(inputMap: ReadonlyMap<K, V>, fn: (key: K, value: V) => U): Map<K, U> {
   const result = new Map<K, U>()
   for (const [key, value] of inputMap) {
     result.set(key, fn(key, value))
@@ -209,7 +228,10 @@ export function Map_mapValues<K, V, U>(inputMap: Map<K, V>, fn: (key: K, value: 
   return result
 }
 
-export function Map_partition<K, V>(map: Map<K, V>, predicate: (key: K, value: V) => boolean): [Map<K, V>, Map<K, V>] {
+export function Map_partition<K, V>(
+  map: ReadonlyMap<K, V>,
+  predicate: (key: K, value: V) => boolean,
+): [Map<K, V>, Map<K, V>] {
   const yes = new Map<K, V>()
   const no = new Map<K, V>()
   for (const [k, v] of map) {
@@ -257,7 +279,10 @@ export function Map_mkOrThrowIfDuplicateKeys<K, V>(entries: readonly (readonly [
   return map
 }
 
-export function zipMaps<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): [Map<K, [A, B]>, Map<K, A>, Map<K, B>] {
+export function zipMaps<K, A, B>(
+  mapA: ReadonlyMap<K, A>,
+  mapB: ReadonlyMap<K, B>,
+): [Map<K, [A, B]>, Map<K, A>, Map<K, B>] {
   const zipped = new Map<K, [A, B]>()
   const leftoversA = new Map<K, A>()
   const leftoversB = new Map(mapB) // We only need to clone B
@@ -275,7 +300,7 @@ export function zipMaps<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): [Map<K, [A, 
 }
 
 // Strict version: throws if either map has leftovers
-export function zipMapsStrict<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): Map<K, [A, B]> {
+export function zipMapsStrict<K, A, B>(mapA: ReadonlyMap<K, A>, mapB: ReadonlyMap<K, B>): Map<K, [A, B]> {
   const [zipped, leftoversA, leftoversB] = zipMaps(mapA, mapB)
 
   if (leftoversA.size > 0) {
@@ -289,7 +314,10 @@ export function zipMapsStrict<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): Map<K,
   return zipped
 }
 
-export function zipMapsLeftIsSubsetOfRight<K extends string, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): Map<K, [A, B]> {
+export function zipMapsLeftIsSubsetOfRight<K extends string, A, B>(
+  mapA: ReadonlyMap<K, A>,
+  mapB: ReadonlyMap<K, B>,
+): Map<K, [A, B]> {
   // FIXME: dont use this method, sh return leftoversB
   const [zipped, leftoversA] = zipMaps(mapA, mapB)
 
@@ -305,9 +333,9 @@ export function zipMapsLeftIsSubsetOfRight<K extends string, A, B>(mapA: Map<K, 
 //////////////////////
 
 export function zipMaps3<K, A, B, C>(
-  mapA: Map<K, A>,
-  mapB: Map<K, B>,
-  mapC: Map<K, C>,
+  mapA: ReadonlyMap<K, A>,
+  mapB: ReadonlyMap<K, B>,
+  mapC: ReadonlyMap<K, C>,
 ): [Map<K, [A, B, C]>, Map<K, A>, Map<K, B>, Map<K, C>] {
   const zipped = new Map<K, [A, B, C]>()
   const leftoversA = new Map(mapA)
@@ -328,7 +356,11 @@ export function zipMaps3<K, A, B, C>(
   return [zipped, leftoversA, leftoversB, leftoversC]
 }
 
-export function zipMaps3Strict<K, A, B, C>(mapA: Map<K, A>, mapB: Map<K, B>, mapC: Map<K, C>): Map<K, [A, B, C]> {
+export function zipMaps3Strict<K, A, B, C>(
+  mapA: ReadonlyMap<K, A>,
+  mapB: ReadonlyMap<K, B>,
+  mapC: ReadonlyMap<K, C>,
+): Map<K, [A, B, C]> {
   const [zipped, leftoversA, leftoversB, leftoversC] = zipMaps3(mapA, mapB, mapC)
 
   if (leftoversA.size > 0 || leftoversB.size > 0 || leftoversC.size > 0) {
@@ -346,9 +378,9 @@ export function zipMaps3Strict<K, A, B, C>(mapA: Map<K, A>, mapB: Map<K, B>, map
 
 // Will throw if invariant keys(A) ⊆ keys(B) ⊆ keys(C) breaks
 export function zipMaps3_left_lessThan_middle_lessThan_right<K, A, B, C>(
-  mapA: Map<K, A>,
-  mapB: Map<K, B>,
-  mapC: Map<K, C>,
+  mapA: ReadonlyMap<K, A>,
+  mapB: ReadonlyMap<K, B>,
+  mapC: ReadonlyMap<K, C>,
 ): Map<K, [A, B, C]> {
   // FIXME: dont use this method, sh return leftoversB
   const [zipped, leftoversA, leftoversB] = zipMaps3(mapA, mapB, mapC)
@@ -374,13 +406,13 @@ export function zipMaps3_left_lessThan_middle_lessThan_right<K, A, B, C>(
   return zipped
 }
 
-export function Map_getFirstEntry<K, V>(map: Map<K, V>): [K, V] | undefined {
+export function Map_getFirstEntry<K, V>(map: ReadonlyMap<K, V>): [K, V] | undefined {
   const iterator = map.entries().next()
   if (iterator.done) return undefined
   return iterator.value
 }
 
-export function Map_getFirstKey<K, V>(map: Map<K, V>): K | undefined {
+export function Map_getFirstKey<K, V>(map: ReadonlyMap<K, V>): K | undefined {
   const iterator = map.keys().next()
   if (iterator.done) return undefined
   return iterator.value

@@ -2,12 +2,13 @@ import React, { useMemo } from 'react'
 import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { getKhmerWordCssClass } from '../../utils/text-processing/word-renderer'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import styles_srghma_khmer_dict_content from '../../srghma_khmer_dict_content.module.css'
 
 // --- Sub-Component: KhmerWordUnit ---
 
 interface KhmerWordUnitProps {
-  word: NonEmptyStringTrimmed
+  word: TypedKhmerWord
   definitionHtml: NonEmptyStringTrimmed | undefined
   colorIndex: number
   onClick: () => void
@@ -28,12 +29,11 @@ export const KhmerWordUnit = React.memo(
     )
 
     return (
-      <div className="inline-flex flex-col items-center mx-[2px] align-top vertical-align-top relative group">
+      <div
+        className={`inline-flex flex-col items-center mx-[2px] align-top vertical-align-top relative group ${styles_srghma_khmer_dict_content.srghma_khmer_dict_content}`}
+      >
         {/* 1. The Khmer Word */}
-        <button
-          className={`text-lg leading-normal cursor-text select-text ${wordClass} ${styles_srghma_khmer_dict_content.srghma_khmer_dict_content}`}
-          onClick={onClick}
-        >
+        <button className={`text-lg leading-normal cursor-text select-text ${wordClass}`} onClick={onClick}>
           {word}
         </button>
 

@@ -1,5 +1,4 @@
-// Use Tauri's native fetch
-import { speak } from 'tauri-plugin-tts-api'
+import { speak, isSpeaking as tauriIsSpeaking } from 'tauri-plugin-tts-api'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { unknown_to_errorMessage } from '../errorMessage'
@@ -10,6 +9,25 @@ export type TtsExecutionResult =
   | { t: 'success_using_speechSynthesis'; tauriError: unknown }
   | { t: 'error_using_tauri_plugin_and_no_speechSynthesis'; tauriError: unknown }
   | { t: 'error_using_tauri_plugin_and_using_speechSynthesis'; tauriError: unknown; browserError: unknown }
+
+/**
+ * Polls the Tauri plugin until it reports it has finished speaking.
+ */
+async function waitForTauriTts(): Promise<void> {
+  // Give the OS a moment to start the speech engine
+  await new Promise(resolve => setTimeout(resolve, 150))
+
+  return new Promise(resolve => {
+    const interval = setInterval(async () => {
+      const active = await tauriIsSpeaking()
+
+      if (!active) {
+        clearInterval(interval)
+        resolve()
+      }
+    }, 100)
+  })
+}
 
 export const executeNativeTts = async (
   text: NonEmptyStringTrimmed,
@@ -25,6 +43,9 @@ export const executeNativeTts = async (
       voiceId: null,
       volume: null,
     })
+
+    // BLOCK until the audio actually finishes
+    await waitForTauriTts()
 
     return { t: 'success_using_tauri_plugin' }
   } catch (tauriError) {

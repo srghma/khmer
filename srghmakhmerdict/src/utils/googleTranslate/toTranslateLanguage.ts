@@ -159,7 +159,7 @@ export const ToTranslateLanguage_codeNameRecord = ToTranslateLanguage_codeNameRe
 >
 
 export function isToTranslateLanguage(value: string): value is ToTranslateLanguage {
-  return value in ToTranslateLanguage_codeNameRecord_impl
+  return value in ToTranslateLanguage_codeNameRecord
 }
 
 export function stringToToTranslateLanguageOrUndefined(value: string): ToTranslateLanguage | undefined {
@@ -170,5 +170,8 @@ export function stringToToTranslateLanguageOrThrow(value: string): ToTranslateLa
   return stringToEnumOrThrowUsingCustomChecker(value, isToTranslateLanguage, 'ToTranslateLanguage')
 }
 
+/**
+ * @deprecated prefer ToTranslateLanguage_codeNameRecord
+ */
 export const ToTranslateLanguage_nameCodeRecord: NonEmptyRecord<NonEmptyStringTrimmed, ToTranslateLanguage> =
-  Record_invertValuesToKeys_preferSmallestValue(ToTranslateLanguage_codeNameRecord_impl) as any
+  Record_invertValuesToKeys_preferSmallestValue(ToTranslateLanguage_codeNameRecord) as any

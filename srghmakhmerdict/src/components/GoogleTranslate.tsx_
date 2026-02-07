@@ -17,7 +17,6 @@ import { type MaybeColorizationMode } from '../utils/text-processing/utils'
 import { colorizeHtml } from '../utils/text-processing/html'
 import {
   type ToTranslateLanguage,
-  ToTranslateLanguage_nameCodeRecord,
   stringToToTranslateLanguageOrThrow,
 } from '../utils/googleTranslate/toTranslateLanguage'
 import { executeNativeTts } from '../utils/tts/native'
@@ -116,7 +115,7 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
             size="sm"
             onChange={selectOnChange}
           >
-            {Record_entriesToArray(ToTranslateLanguage_nameCodeRecord, (code, name) => (
+            {Record_entriesToArray(ToTranslateLanguage_codeNameRecord, (code, name) => (
               <SelectItem key={code}>{name}</SelectItem>
             ))}
           </Select>

@@ -8,7 +8,7 @@ import { ThemeProps } from '@heroui/use-theme'
 import { useNavigation } from './providers/NavigationProvider'
 import { useSettings } from './providers/SettingsProvider'
 
-import { isAppTabNonLanguage, type AppTab, type DictionaryLanguage } from './types'
+import { isAppTabNonLanguage, type AppTab } from './types'
 
 import { useDictionarySearch } from './hooks/useDictionarySearch'
 
@@ -26,7 +26,7 @@ function App() {
   const { theme } = useTheme()
   const dictData = useDictionary()
 
-  const { currentHistoryItem, resetNavigation, clearSelection } = useNavigation()
+  const { currentHistoryItem, resetNavigationAndSetCurrentTo, clearSelection } = useNavigation()
 
   const {
     isRegex,
@@ -45,7 +45,6 @@ function App() {
   }, [theme])
 
   const [activeTab, setActiveTab] = useState<AppTab>('en')
-  const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0)
 
   const { onSearch, searchQuery, contentMatches, resultData, resultCount, isSearching } = useDictionarySearch({
     activeTab,
@@ -56,7 +55,7 @@ function App() {
 
   useDeepLinkHandler({
     setActiveTab,
-    resetNavigation,
+    resetNavigation: resetNavigationAndSetCurrentTo,
   })
 
   const handleTabChange = useCallback(
@@ -65,27 +64,6 @@ function App() {
       onSearch(undefined)
     },
     [onSearch],
-  )
-
-  const handleSidebarSelect = useCallback(
-    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
-      resetNavigation(word, mode)
-      if (activeTab !== 'history') setRefreshHistoryTrigger(p => p + 1)
-    },
-    [activeTab, resetNavigation],
-  )
-
-  const handleWordClickKm = useCallback(
-    (w: NonEmptyStringTrimmed) => handleSidebarSelect(w, 'km'),
-    [handleSidebarSelect],
-  )
-  const handleWordClickEn = useCallback(
-    (w: NonEmptyStringTrimmed) => handleSidebarSelect(w, 'en'),
-    [handleSidebarSelect],
-  )
-  const handleWordClickRu = useCallback(
-    (w: NonEmptyStringTrimmed) => handleSidebarSelect(w, 'ru'),
-    [handleSidebarSelect],
   )
 
   const safeSearchQuery = useMemo(
@@ -114,9 +92,9 @@ function App() {
   const handleKhmerAnalyzerWordSelect = useCallback(
     (word: NonEmptyStringTrimmed) => {
       setKhmerAnalyzerModalText_setToOpen(undefined) // Close modal
-      handleSidebarSelect(word, 'km') // Navigate to detail view
+      resetNavigationAndSetCurrentTo(word, 'km') // Navigate to detail view
     },
-    [handleSidebarSelect],
+    [resetNavigationAndSetCurrentTo],
   )
 
   return (
@@ -153,13 +131,8 @@ function App() {
             km_map={dictData.km_map}
             loading={dictData === undefined}
             maybeColorMode="segmenter"
-            refreshHistoryTrigger={refreshHistoryTrigger}
             resultData={resultData}
             searchQuery={safeSearchQuery}
-            onHistorySelect={handleSidebarSelect}
-            onWordClickEn={handleWordClickEn}
-            onWordClickKm={handleWordClickKm}
-            onWordClickRu={handleWordClickRu}
           />
         </div>
       </div>
@@ -171,7 +144,7 @@ function App() {
         selectedWord={currentHistoryItem}
         setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
         onBack={clearSelection}
-        onNavigate={handleSidebarSelect}
+        onNavigate={resetNavigationAndSetCurrentTo}
       />
 
       {dictData.km_map && (

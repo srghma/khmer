@@ -128,8 +128,8 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
 
   // Clear result when input changes
   useEffect(() => {
-    if (state.t === 'success') clearResult()
-  }, [value, clearResult, state.t])
+    clearResult()
+  }, [value, clearResult])
 
   // Memoize styles to prevent unnecessary prop updates to Textarea
   const memoizedClassNames = useMemo(
