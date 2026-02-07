@@ -3,7 +3,7 @@
 import { type Option } from './types.js'
 
 export function Map_every<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): boolean {
-  for (const [k, v] of map.entries()) {
+  for (const [k, v] of map) {
     if (!predicate(k, v)) return false
   }
   return true
@@ -13,8 +13,15 @@ export function Map_keysToSet<K, V>(map: Map<K, V>): Set<K> {
   return new Set(map.keys())
 }
 
-export function Map_entriesToArray<K, V, R>(map: Map<K, V>, fn: (key: K, value: V, index: number) => R): R[] {
-  return Array.from(map.entries()).map(([k, v], i) => fn(k, v, i))
+export function Map_entriesToArray<K, V, R>(map: ReadonlyMap<K, V>, fn: (key: K, value: V, index: number) => R): R[] {
+  const size = map.size
+  const result = new Array<R>(size)
+  let i = 0
+  for (const [k, v] of map) {
+    result[i] = fn(k, v, i)
+    i++
+  }
+  return result
 }
 
 export function Map_entriesToRecord<K extends PropertyKey, V, R>(
@@ -22,7 +29,7 @@ export function Map_entriesToRecord<K extends PropertyKey, V, R>(
   fn: (key: K, value: V) => R,
 ): Record<K, R> {
   const result = {} as Record<K, R>
-  for (const [k, v] of map.entries()) {
+  for (const [k, v] of map) {
     result[k] = fn(k, v)
   }
   return result
@@ -41,23 +48,19 @@ export function Map_entriesFlatMapToArray<K, V, R>(map: Map<K, V>, fn: (key: K, 
   return result
 }
 
-export function Map_everyEntry<K, V>(map: Map<K, V>, fn: (key: K, value: V) => boolean): boolean {
-  // return Array.from(map.entries()).every(([key, value]: [K, V]) => fn(key, value))
-  for (const [key, value] of map) {
-    if (!fn(key, value)) {
-      return false
-    }
-  }
-  return true
-}
-
 export function Map_find<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean): [K, V] | undefined {
-  for (const [k, v] of map) if (predicate(k, v)) return [k, v]
+  for (const entry of map) if (predicate(entry[0], entry[1])) return entry
   return undefined
 }
 
 export function Map_getOr<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
-  return map.has(key) ? map.get(key)! : defaultValue
+  const value = map.get(key)
+  // If the value is undefined, we check if the key actually exists
+  // (to handle cases where V includes undefined)
+  if (value === undefined && !map.has(key)) {
+    return defaultValue
+  }
+  return value as V
 }
 
 export function Map_union_onCollisionThrow<K, V>(...maps: readonly Map<K, V>[]): Map<K, V> {
@@ -79,8 +82,9 @@ export function Map_union_onCollisionMerge<K, V>(
   const result = new Map<K, V>()
   for (const map of maps) {
     for (const [k, v] of map) {
-      if (result.has(k)) {
-        result.set(k, mergeCollision(result.get(k)!, v))
+      const existing = result.get(k)
+      if (existing !== undefined || result.has(k)) {
+        result.set(k, mergeCollision(existing!, v))
       } else {
         result.set(k, v)
       }
@@ -220,11 +224,16 @@ export function Map_partition<K, V>(map: Map<K, V>, predicate: (key: K, value: V
  * @param entries Array of [K, V]
  * @returns Map<K, V[]>
  */
-export function Map_mkSemigroupArray<K, V>(entries: readonly [K, V][]): Map<K, V[]> {
+export function Map_mkSemigroupArray<K, V>(entries: readonly (readonly [K, V])[]): Map<K, V[]> {
   const map = new Map<K, V[]>()
-  for (const [key, value] of entries) {
-    const existing = map.has(key) ? map.get(key)! : []
-    map.set(key, [...existing, value])
+  for (let i = 0; i < entries.length; i++) {
+    const [key, value] = entries[i]!
+    let arr = map.get(key)
+    if (arr === undefined) {
+      arr = []
+      map.set(key, arr)
+    }
+    arr.push(value) // O(1) instead of O(N) spread
   }
   return map
 }
@@ -250,17 +259,18 @@ export function Map_mkOrThrowIfDuplicateKeys<K, V>(entries: readonly (readonly [
 
 export function zipMaps<K, A, B>(mapA: Map<K, A>, mapB: Map<K, B>): [Map<K, [A, B]>, Map<K, A>, Map<K, B>] {
   const zipped = new Map<K, [A, B]>()
-  const leftoversA = new Map(mapA)
-  const leftoversB = new Map(mapB)
+  const leftoversA = new Map<K, A>()
+  const leftoversB = new Map(mapB) // We only need to clone B
 
-  for (const [key, valueA] of mapA) {
-    if (mapB.has(key)) {
-      zipped.set(key, [valueA, mapB.get(key)!])
-      leftoversA.delete(key)
-      leftoversB.delete(key)
+  for (const [k, vA] of mapA) {
+    const vB = leftoversB.get(k)
+    if (vB !== undefined || leftoversB.has(k)) {
+      zipped.set(k, [vA, vB!])
+      leftoversB.delete(k) // Remove from B so only leftovers remain
+    } else {
+      leftoversA.set(k, vA)
     }
   }
-
   return [zipped, leftoversA, leftoversB]
 }
 
@@ -381,10 +391,11 @@ export function Map_mergeWithRecord<K extends PropertyKey, V1, V2, V3>(
   secondary: Readonly<Record<K, V2>>,
   merge: (v1: V1, v2: V2 | undefined) => V3,
 ): Map<K, V3> {
-  const result = new Map()
-
-  for (const key in primary) result.set(key, merge(primary.get(key as K)!, (secondary as any)[key]))
-
+  const result = new Map<K, V3>()
+  // .forEach is the fastest way to iterate a Map if you don't need to break
+  primary.forEach((v1, k) => {
+    result.set(k, merge(v1, secondary[k]))
+  })
   return result
 }
 

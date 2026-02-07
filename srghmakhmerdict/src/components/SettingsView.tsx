@@ -55,10 +55,10 @@ export const SettingsView: React.FC = memo(() => {
   const {
     filters,
     setFilters,
-    uiFontSize,
-    setUiFontSize,
-    detailsFontSize,
-    setDetailsFontSize,
+    fontSize_ui,
+    setFontSize_ui,
+    fontSize_details,
+    setFontSize_details,
     isRegex,
     setIsRegex,
     searchInContent,
@@ -80,20 +80,20 @@ export const SettingsView: React.FC = memo(() => {
   )
 
   const decUiFont = useCallback(
-    () => setUiFontSize(p => Math.max(10, assertIsDefinedAndReturn(p) - 1)),
-    [setUiFontSize],
+    () => setFontSize_ui(p => Math.max(10, assertIsDefinedAndReturn(p) - 1)),
+    [setFontSize_ui],
   )
   const incUiFont = useCallback(
-    () => setUiFontSize(p => Math.min(24, assertIsDefinedAndReturn(p) + 1)),
-    [setUiFontSize],
+    () => setFontSize_ui(p => Math.min(24, assertIsDefinedAndReturn(p) + 1)),
+    [setFontSize_ui],
   )
   const decDetFont = useCallback(
-    () => setDetailsFontSize(p => Math.max(12, assertIsDefinedAndReturn(p) - 1)),
-    [setDetailsFontSize],
+    () => setFontSize_details(p => Math.max(12, assertIsDefinedAndReturn(p) - 1)),
+    [setFontSize_details],
   )
   const incDetFont = useCallback(
-    () => setDetailsFontSize(p => Math.min(32, assertIsDefinedAndReturn(p) + 1)),
-    [setDetailsFontSize],
+    () => setFontSize_details(p => Math.min(32, assertIsDefinedAndReturn(p) + 1)),
+    [setFontSize_details],
   )
 
   return (
@@ -180,7 +180,7 @@ export const SettingsView: React.FC = memo(() => {
               <Button isIconOnly size="sm" variant="flat" onPress={decUiFont}>
                 <GoDash />
               </Button>
-              <span className="w-8 text-center text-sm font-mono">{uiFontSize}</span>
+              <span className="w-8 text-center text-sm font-mono">{fontSize_ui}</span>
               <Button isIconOnly size="sm" variant="flat" onPress={incUiFont}>
                 <GoPlus />
               </Button>
@@ -195,7 +195,7 @@ export const SettingsView: React.FC = memo(() => {
               <Button isIconOnly size="sm" variant="flat" onPress={decDetFont}>
                 <GoDash />
               </Button>
-              <span className="w-8 text-center text-sm font-mono">{detailsFontSize}</span>
+              <span className="w-8 text-center text-sm font-mono">{fontSize_details}</span>
               <Button isIconOnly size="sm" variant="flat" onPress={incDetFont}>
                 <GoPlus />
               </Button>

@@ -7,7 +7,7 @@ import type { Rating, Card as FSRSCard } from '@squeakyrobot/fsrs'
 import { getKmWordsDetailFull, type WordDetailKm } from '../../db/dict'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { Record_stripNullValuesOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/record'
-import { useToast } from '../../providers/ToastProvider'
+import { useAppToast } from '../../providers/ToastProvider'
 import {
   findNextDue,
   getNextIntervals,
@@ -150,7 +150,7 @@ const ankiReducer = (state: AnkiStateInternal, action: AnkiAction): AnkiStateInt
 // --- Hook ---
 
 export const useAnki = (items: NonEmptySet<TypedContainsKhmer>): AnkiState => {
-  const toast = useToast()
+  const toast = useAppToast()
   // Internal state management (Data only)
   const [internalState, dispatch] = useReducer(ankiReducer, AnkiState_idle)
 

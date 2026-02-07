@@ -14,7 +14,7 @@ import { mkMakeFilterQuery_memoized, type FilterQuery } from '../utils/mkFilterQ
 import { isDictionaryLanguage, stringToDictionaryLanguageOrThrow, type AppTab, type DictionaryLanguage } from '../types'
 import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
-import { useToast } from '../providers/ToastProvider'
+import { useAppToast } from '../providers/ToastProvider'
 import type { DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
 import { useDebounce } from 'use-debounce'
@@ -240,7 +240,7 @@ interface UseDictionarySearchProps {
 }
 
 export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent }: UseDictionarySearchProps) {
-  const toast = useToast()
+  const toast = useAppToast()
   const dictData = useDictionary()
 
   // Controlled input state

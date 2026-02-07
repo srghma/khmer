@@ -2,8 +2,8 @@ import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { type DictionaryLanguage } from '../types'
 import styles from './WiktionaryRenderer.module.css'
-import { useToast } from '../providers/ToastProvider'
-import { detectModeFromText } from '../utils/rendererUtils'
+import { useAppToast } from '../providers/ToastProvider'
+import { detectModeFromText } from '../utils/detectModeFromText'
 import type { KhmerWordsMap } from '../db/dict'
 import { colorizeHtml } from '../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
@@ -31,7 +31,7 @@ export const useWikiLinkInterception = (
   isKhmerLinksEnabled: boolean,
   isKhmerWordsHidingEnabled: boolean,
 ) => {
-  const toast = useToast()
+  const toast = useAppToast()
 
   useEffect(() => {
     const container = containerRef.current

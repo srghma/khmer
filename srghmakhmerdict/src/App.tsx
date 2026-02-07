@@ -6,7 +6,7 @@ import {
 import { useTheme } from '@heroui/use-theme'
 import { ThemeProps } from '@heroui/use-theme'
 import { listen } from '@tauri-apps/api/event'
-import { useToast } from './providers/ToastProvider'
+import { useAppToast } from './providers/ToastProvider'
 import { useNavigation } from './providers/NavigationProvider'
 import { useSettings } from './providers/SettingsProvider'
 
@@ -20,14 +20,14 @@ import { RightPanel } from './components/RightPanel'
 
 import './App.css'
 import { useDictionary } from './providers/DictionaryProvider'
-import { detectModeFromText } from './utils/rendererUtils'
+import { detectModeFromText } from './utils/detectModeFromText'
 import { KhmerAnalyzerModal } from './components/KhmerAnalyzerModal/KhmerAnalyzerModal'
 import { KhmerComplexTableModal } from './components/KhmerComplexTableModal/KhmerComplexTableModal'
 
 function App() {
   const { theme } = useTheme()
   const dictData = useDictionary()
-  const toast = useToast()
+  const toast = useAppToast()
 
   const { currentHistoryItem, resetNavigation, clearSelection } = useNavigation()
 
@@ -35,8 +35,7 @@ function App() {
     isRegex,
     searchInContent,
     highlightInList,
-    uiFontSize,
-    detailsFontSize,
+    fontSize_ui,
     filters,
     isKhmerTableOpen,
     onCloseKhmerTable,
@@ -121,7 +120,7 @@ function App() {
     [searchQuery],
   )
 
-  const uiFontSize_ = useMemo(() => ({ fontSize: `${uiFontSize}px`, lineHeight: 1.5 }), [uiFontSize])
+  const fontSize_ui_ = useMemo(() => ({ fontSize: `${fontSize_ui}px`, lineHeight: 1.5 }), [fontSize_ui])
 
   const divClassName = useMemo(
     () =>
@@ -172,7 +171,7 @@ function App() {
           onTabChange={handleTabChange}
         />
 
-        <div className="flex-1 flex overflow-hidden relative bg-content1" style={uiFontSize_}>
+        <div className="flex-1 flex overflow-hidden relative bg-content1" style={fontSize_ui_}>
           <SidebarContent
             activeTab={activeTab}
             contentMatches={contentMatches}
@@ -193,7 +192,6 @@ function App() {
       </div>
 
       <RightPanel
-        detailsFontSize={detailsFontSize}
         km_map={dictData.km_map}
         maybeColorMode={maybeColorMode}
         searchQuery={searchQuery}

@@ -32,11 +32,14 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
   onNavigate,
 }) => {
   // Logic is now isolated inside the content
-  const { analyzedText, setAnalyzedText, analyzedTextKhmer, segmentsDict, segmentsIntl } = useKhmerAnalysis(
-    initialText,
-    currentMode,
-    km_map,
-  )
+  const {
+    analyzedText,
+    setAnalyzedText,
+    analyzedText_undefinedUnlessNonEmptyAndContainsKhmer,
+    analyzedText_nonEmptyTrimmed,
+    segmentsDict,
+    segmentsIntl,
+  } = useKhmerAnalysis(initialText, currentMode, km_map)
 
   return (
     <ModalContent>
@@ -54,13 +57,14 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
           minRows={2}
           placeholder="Enter text to analyze..."
           value={analyzedText}
+          value_nonEmptyTrimmed={analyzedText_nonEmptyTrimmed}
           variant="faded"
           onValueChange={setAnalyzedText}
         />
       </ModalHeader>
 
       <ModalBody className="py-6 gap-6">
-        {analyzedTextKhmer && km_map && segmentsDict && (
+        {analyzedText_undefinedUnlessNonEmptyAndContainsKhmer && km_map && segmentsDict && (
           <SegmentationPreview
             km_map={km_map}
             label="Segmentation (Dictionary Lookup)"

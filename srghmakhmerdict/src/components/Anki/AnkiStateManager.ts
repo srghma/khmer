@@ -3,7 +3,7 @@ import { FSRS, Rating, type Rating as RatingType, type Card as FSRSCard } from '
 // --- Types & Interfaces ---
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import {
-  NonEmptyRecord_toMap_fromSetToGetOrderFromSet,
+  NonEmptyRecord_toMap_getOrderFromSet,
   Record_toNonEmptyRecord_orThrow,
   Record_toNonEmptyRecord_unsafe,
   type NonEmptyRecord,
@@ -64,7 +64,7 @@ export const localStorage_loadOrInitCards = (
     }
   }
 
-  return NonEmptyRecord_toMap_fromSetToGetOrderFromSet(items, nextCards)
+  return NonEmptyRecord_toMap_getOrderFromSet(items, nextCards)
 }
 
 // --- Sync Logic ---

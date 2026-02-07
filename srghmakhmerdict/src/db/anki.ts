@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { State, type Card as FSRSCard } from '@squeakyrobot/fsrs'
+import { parseStringOrNumberToValidDateOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
 
 // --- Types ---
 
@@ -32,7 +33,7 @@ export const loadCards = async (): Promise<AnkiMap> => {
   for (const [word, row] of Object.entries(rawMap)) {
     // Cast the word to TypedContainsKhmer (caller assumes it's valid if in this DB)
     parsedMap[word as TypedContainsKhmer] = {
-      due: new Date(row.due),
+      due: parseStringOrNumberToValidDateOrThrow(row.due),
       stability: row.stability,
       difficulty: row.difficulty,
       elapsed_days: row.elapsed_days,
@@ -40,7 +41,7 @@ export const loadCards = async (): Promise<AnkiMap> => {
       reps: row.reps,
       lapses: row.lapses,
       state: row.state,
-      last_review: row.last_review ? new Date(row.last_review) : null,
+      last_review: row.last_review ? parseStringOrNumberToValidDateOrThrow(row.last_review) : null,
     }
   }
 

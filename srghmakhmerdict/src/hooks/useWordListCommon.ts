@@ -5,8 +5,8 @@ import { renderWordMatch } from '../components/WordList.utils'
 
 interface UseWordListCommonProps {
   exactMatchIndex: number
-  searchQuery?: NonEmptyStringTrimmed
-  highlightMatch?: boolean
+  searchQuery: NonEmptyStringTrimmed | undefined
+  highlightMatch: boolean | undefined
 }
 
 export function useWordListCommon({ exactMatchIndex, searchQuery, highlightMatch }: UseWordListCommonProps) {

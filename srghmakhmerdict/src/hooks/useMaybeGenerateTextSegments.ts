@@ -8,10 +8,10 @@ import type { ColorizationMode } from '../utils/text-processing/utils'
 export const useMaybeGenerateTextSegments = (
   text: TypedContainsKhmer | undefined,
   colorMode: ColorizationMode,
-  km_map: KhmerWordsMap | undefined,
+  km_map: KhmerWordsMap,
 ): NonEmptyArray<TextSegment> | undefined => {
   return useMemo(() => {
-    if (!text || !km_map) return undefined
+    if (!text) return undefined
 
     return generateTextSegments(text, colorMode, km_map)
   }, [text, km_map, colorMode])

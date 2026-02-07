@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { detectModeFromText } from '../../utils/rendererUtils'
+import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap } from '../../db/dict'
 import {
@@ -18,16 +18,10 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { enhanceSegments, type TextSegmentEnhanced } from '../../utils/text-processing/text-enhanced'
 
-const DictionaryLanguage_to_DictionaryLanguage: Record<DictionaryLanguage, DictionaryLanguage> = {
-  en: 'km',
-  km: 'en',
-  ru: 'km',
-}
-
 export const useKhmerAnalysis = (
   initialText: NonEmptyStringTrimmed,
-  currentMode: DictionaryLanguage,
-  km_map: KhmerWordsMap | undefined,
+  initialText_language_fallback: DictionaryLanguage,
+  km_map: KhmerWordsMap,
 ) => {
   const [analyzedText, setAnalyzedText] = useState<string>(initialText)
 
@@ -37,25 +31,26 @@ export const useKhmerAnalysis = (
   )
 
   const detectedMode = useMemo(
-    () => (analyzedText_nonEmptyTrimmed ? (detectModeFromText(analyzedText_nonEmptyTrimmed) ?? currentMode) : 'en'),
-    [analyzedText_nonEmptyTrimmed, currentMode],
+    () =>
+      analyzedText_nonEmptyTrimmed
+        ? (detectModeFromText(analyzedText_nonEmptyTrimmed) ?? initialText_language_fallback)
+        : initialText_language_fallback,
+    [analyzedText_nonEmptyTrimmed, initialText_language_fallback],
   )
 
-  const defaultTarget = useMemo(() => DictionaryLanguage_to_DictionaryLanguage[detectedMode], [detectedMode])
-
-  const analyzedTextKhmer = useMemo(
+  const analyzedText_undefinedUnlessNonEmptyAndContainsKhmer = useMemo(
     () => (analyzedText_nonEmptyTrimmed ? strToContainsKhmerOrUndefined(analyzedText_nonEmptyTrimmed) : undefined),
     [analyzedText_nonEmptyTrimmed],
   )
 
   // 1. Get basic segments for both modes
   const segmentsIntlRaw: NonEmptyArray<TextSegment> | undefined = useMaybeGenerateTextSegments(
-    analyzedTextKhmer,
+    analyzedText_undefinedUnlessNonEmptyAndContainsKhmer,
     'segmenter',
     km_map,
   )
   const segmentsDictRaw: NonEmptyArray<TextSegment> | undefined = useMaybeGenerateTextSegments(
-    analyzedTextKhmer,
+    analyzedText_undefinedUnlessNonEmptyAndContainsKhmer,
     'dictionary',
     km_map,
   )
@@ -102,9 +97,10 @@ export const useKhmerAnalysis = (
 
   return {
     analyzedText,
+    analyzedText_nonEmptyTrimmed,
     setAnalyzedText,
-    defaultTarget,
-    analyzedTextKhmer,
+    detectedMode,
+    analyzedText_undefinedUnlessNonEmptyAndContainsKhmer,
     defsResult,
     segmentsDict,
     segmentsIntl,

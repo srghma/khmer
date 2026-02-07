@@ -16,13 +16,12 @@ const DetailView = lazyWithPreload(() => import('./DetailView').then(m => ({ def
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
-  selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | null
+  selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
   onBack: () => void // Legacy prop for 'closing' the panel entirely
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void // Legacy
-  detailsFontSize: number
   searchQuery: NonEmptyStringTrimmed | undefined
   km_map: KhmerWordsMap
-  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
+  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
 }
 
 const SuspenseFallback = (
@@ -42,10 +41,8 @@ const NoSelectedWord = (
 
 export const RightPanel: React.FC<RightPanelProps> = ({
   selectedWord,
-  detailsFontSize,
   searchQuery,
   km_map,
-  maybeColorMode,
   setKhmerAnalyzerModalText_setToOpen,
 }) => {
   // Use the global navigation hooks
@@ -78,10 +75,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         <DetailView
           backButton_desktopOnlyStyles_showButton={canGoBack}
           backButton_goBack={backButton_goBack}
-          fontSize={detailsFontSize}
           highlightMatch={highlightMatch}
           km_map={km_map}
-          maybeColorMode={maybeColorMode}
           mode={selectedWord.mode}
           setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
           word={selectedWord.word}

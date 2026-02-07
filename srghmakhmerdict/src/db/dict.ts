@@ -51,7 +51,7 @@ export function* yieldOnlyVerifiedKhmerWords(map: KhmerWordsMap): Generator<NonE
 // --- Details ---
 
 export const WordDetailKmSchema = z.strictObject({
-  word: NonEmptyStringTrimmedSchema,
+  // word: NonEmptyStringTrimmedSchema,
   desc: z.optional(NonEmptyStringTrimmedSchema), // html
   phonetic: z.optional(NonEmptyStringTrimmedSchema),
   wiktionary: z.optional(NonEmptyStringTrimmedSchema), // html
@@ -66,7 +66,7 @@ export const WordDetailKmSchema = z.strictObject({
 })
 
 export const WordDetailEnSchema = z.strictObject({
-  word: NonEmptyStringTrimmedSchema,
+  // word: NonEmptyStringTrimmedSchema,
   word_display: z.optional(NonEmptyStringTrimmedSchema), // html
   desc: z.optional(NonEmptyStringTrimmedSchema), // html
   desc_en_only: z.optional(NonEmptyStringTrimmedSchema), // html
@@ -74,7 +74,7 @@ export const WordDetailEnSchema = z.strictObject({
 })
 
 export const WordDetailRuSchema = z.strictObject({
-  word: NonEmptyStringTrimmedSchema,
+  // word: NonEmptyStringTrimmedSchema,
   word_display: z.optional(NonEmptyStringTrimmedSchema),
   desc: z.optional(NonEmptyStringTrimmedSchema), // html
 })

@@ -1,20 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
-export const useOnline = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
+// 1. Define getSnapshot outside the component:
+// It reads the current state from the external source.
+function getOnlineStatusSnapshot() {
+  return navigator.onLine
+}
 
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+// 2. Define subscribe outside the component:
+// It sets up listeners and calls the React-provided callback on change.
+function subscribeToOnlineStatus(callback: () => void) {
+  window.addEventListener('online', callback)
+  window.addEventListener('offline', callback)
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+  // Return the cleanup function
+  return () => {
+    window.removeEventListener('online', callback)
+    window.removeEventListener('offline', callback)
+  }
+}
 
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+// 3. Create the custom hook
+export function useOnline() {
+  const isOnline = useSyncExternalStore(subscribeToOnlineStatus, getOnlineStatusSnapshot, () => true)
 
   return isOnline
 }

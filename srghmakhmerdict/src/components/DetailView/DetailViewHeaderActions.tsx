@@ -8,17 +8,20 @@ import { Tooltip } from '@heroui/tooltip'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
 import type { SharedSelection } from '@heroui/system'
 
-import { KhmerHideToggleIcon } from './KhmerHideToggleIcon'
-import { GoogleSpeakerIcon } from './GoogleSpeakerIcon'
-import { NativeSpeakerIcon } from './NativeSpeakerIcon'
+import { KhmerHideToggleIcon } from '../KhmerHideToggleIcon'
 import {
   KHMER_FONT_FAMILY,
   KHMER_FONT_NAME,
   stringToKhmerFontNameOrThrow,
   stringToMaybeColorizationModeOrThrow,
-} from '../utils/text-processing/utils'
-import { getSingleSelection_string } from '../utils/selection-utils'
-import type { KhmerFontName, MaybeColorizationMode } from '../utils/text-processing/utils'
+} from '../../utils/text-processing/utils'
+import { herouiSharedSelection_getFirst_string } from '../../utils/herouiSharedSelection_getFirst_string'
+import type { KhmerFontName, MaybeColorizationMode } from '../../utils/text-processing/utils'
+import { GoogleSpeechAction } from './GoogleSpeechAction'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { DictionaryLanguage } from '../../types'
+import { NativeSpeechAction } from './NativeSpeechAction'
+import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
 
 /**
  * 1. WORD HIDING TOGGLE
@@ -85,7 +88,7 @@ export const KhmerFontAction = memo(({ khmerFontName, onChange }: KhmerFontActio
 
   const handleFontChange = useCallback(
     (keys: SharedSelection) => {
-      const selectedKey = getSingleSelection_string(keys)
+      const selectedKey = herouiSharedSelection_getFirst_string(keys)
 
       if (selectedKey) onChange(stringToKhmerFontNameOrThrow(selectedKey))
     },
@@ -130,7 +133,7 @@ export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationAct
 
   const handleColorChange = useCallback(
     (keys: SharedSelection) => {
-      const selectedKey = getSingleSelection_string(keys)
+      const selectedKey = herouiSharedSelection_getFirst_string(keys)
 
       if (selectedKey) onChange(stringToMaybeColorizationModeOrThrow(selectedKey))
     },
@@ -161,30 +164,6 @@ export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationAct
 ColorizationAction.displayName = 'ColorizationAction'
 
 /**
- * 5. NATIVE SPEECH BUTTON
- */
-export const NativeSpeechAction = memo(({ onSpeak }: { onSpeak: () => void }) => (
-  <Tooltip closeDelay={0} content="Native Speech">
-    <Button isIconOnly radius="full" variant="light" onPress={onSpeak}>
-      <NativeSpeakerIcon className="h-6 w-6 text-default-900" />
-    </Button>
-  </Tooltip>
-))
-NativeSpeechAction.displayName = 'NativeSpeechAction'
-
-/**
- * 6. GOOGLE SPEECH BUTTON
- */
-export const GoogleSpeechAction = memo(({ onSpeak, isLoading }: { onSpeak: () => void; isLoading: boolean }) => (
-  <Tooltip closeDelay={0} content="Google Speech">
-    <Button isIconOnly isLoading={isLoading} radius="full" variant="light" onPress={onSpeak}>
-      {!isLoading && <GoogleSpeakerIcon className="h-6 w-6 text-[#4285F4]" />}
-    </Button>
-  </Tooltip>
-))
-GoogleSpeechAction.displayName = 'GoogleSpeechAction'
-
-/**
  * 7. FAVORITE TOGGLE
  */
 export const FavoriteAction = memo(({ isFav, onToggle }: { isFav: boolean; onToggle: () => void }) => (
@@ -207,6 +186,8 @@ FavoriteAction.displayName = 'FavoriteAction'
  * MAIN CONTAINER COMPONENT
  */
 interface DetailViewActionsProps {
+  word: NonEmptyStringTrimmed | undefined
+  mode: DictionaryLanguage
   // Khmer Words Hiding
   isKhmerWordsHidingEnabled: boolean
   toggleKhmerWordsHiding: () => void
@@ -219,10 +200,6 @@ interface DetailViewActionsProps {
   // Colorization
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
-  // Speech
-  handleNativeSpeak: () => void
-  handleGoogleSpeak: () => void
-  isGoogleSpeaking: boolean
   // Favorites
   isFav: boolean
   toggleFav: () => void
@@ -230,6 +207,8 @@ interface DetailViewActionsProps {
 
 export const DetailViewActions = memo(
   ({
+    word,
+    mode,
     isKhmerWordsHidingEnabled,
     toggleKhmerWordsHiding,
     isKhmerLinksEnabled,
@@ -238,9 +217,6 @@ export const DetailViewActions = memo(
     setKhmerFontName,
     maybeColorMode,
     setMaybeColorMode,
-    handleNativeSpeak,
-    handleGoogleSpeak,
-    isGoogleSpeaking,
     isFav,
     toggleFav,
   }: DetailViewActionsProps) => {
@@ -254,8 +230,8 @@ export const DetailViewActions = memo(
         />
         <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
         <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-        <NativeSpeechAction onSpeak={handleNativeSpeak} />
-        <GoogleSpeechAction isLoading={isGoogleSpeaking} onSpeak={handleGoogleSpeak} />
+        <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[mode]} word={word} />
+        <GoogleSpeechAction mode={mode} word={word} />
         <FavoriteAction isFav={isFav} onToggle={toggleFav} />
       </div>
     )

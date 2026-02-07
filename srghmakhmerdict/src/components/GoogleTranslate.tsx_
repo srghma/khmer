@@ -10,25 +10,25 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
-import {
-  stringToToTranslateLanguageOrThrow,
-  TO_LANGUAGES,
-  translate,
-  type ToTranslateLanguage,
-  type TranslateResult,
-} from '../utils/googleTranslate'
-import { executeNativeTts } from '../utils/tts'
+import { translate, type TranslateResultSuccess } from '../utils/googleTranslate/googleTranslate'
 import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../db/dict'
 import { type MaybeColorizationMode } from '../utils/text-processing/utils'
 import { colorizeHtml } from '../utils/text-processing/html'
+import {
+  type ToTranslateLanguage,
+  ToTranslateLanguage_nameCodeRecord,
+  stringToToTranslateLanguageOrThrow,
+} from '../utils/googleTranslate/toTranslateLanguage'
+import { executeNativeTts } from '../utils/tts/native'
+import { Record_entriesToArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/record'
 
 interface GoogleTranslateProps {
   text: string
-  defaultTarget?: ToTranslateLanguage
+  defaultTarget: ToTranslateLanguage
   className?: string
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
 }
 
 const SpeakStartContent = <span>🔊</span>
@@ -38,13 +38,13 @@ const cachedTranslate = memoizeAsync3_LRU_cachePromise(translate, memoizeAsync3_
 
 const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
   text,
-  defaultTarget = 'km',
+  defaultTarget,
   className,
   maybeColorMode,
   km_map,
 }) => {
   const [targetLang, setTargetLang] = useState(defaultTarget)
-  const [result, setResult] = useState<TranslateResult | null>(null)
+  const [result, setResult] = useState<TranslateResultSuccess | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -116,8 +116,8 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
             size="sm"
             onChange={selectOnChange}
           >
-            {TO_LANGUAGES.map(x => (
-              <SelectItem key={x.code}>{x.name}</SelectItem>
+            {Record_entriesToArray(ToTranslateLanguage_nameCodeRecord, (code, name) => (
+              <SelectItem key={code}>{name}</SelectItem>
             ))}
           </Select>
 

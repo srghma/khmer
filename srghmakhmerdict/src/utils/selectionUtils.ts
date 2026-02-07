@@ -1,76 +1,10 @@
-interface Rect {
-  top: number
-  bottom: number
-  left: number
-  width: number
-  height: number
-}
-
-interface Viewport {
-  innerWidth: number
-  innerHeight: number
-}
-
-export interface Position {
-  x: number
-  y: number
-}
-
-/**
- * PURE FUNCTION: Calculates where the menu should sit based on the rectangle and viewport.
- * Does not touch the DOM.
- */
-export function calculateMenuPosition(
-  rect: Rect,
-  viewport: Viewport,
-  menuHeight: number = 160,
-  menuWidth: number = 200,
-  useFullWidth: boolean = false,
-): Position {
-  const padding = 10
-
-  // If useFullWidth is true, make menu span full width with padding
-  const effectiveMenuWidth = useFullWidth ? viewport.innerWidth - padding * 2 : menuWidth
-
-  // 1. Calculate Space
-  const spaceBelow = viewport.innerHeight - rect.bottom
-
-  // 2. Determine Y (Vertical)
-  let y = rect.bottom + 10 // Default: Below
-
-  // Flip to top if not enough space below AND there is space above
-  if (spaceBelow < menuHeight && rect.top > menuHeight) {
-    y = rect.top - menuHeight - 10
-  }
-
-  // 3. Determine X (Horizontal)
-  let x: number
-
-  if (useFullWidth) {
-    // Full width mode: align to screen edges with padding
-    x = padding
-  } else {
-    // Normal mode: Center on selection
-    x = rect.left + rect.width / 2 - effectiveMenuWidth / 2
-
-    // Boundary Checks (Keep it on screen)
-    const maxRight = viewport.innerWidth - effectiveMenuWidth - padding
-
-    if (x < padding) x = padding
-    if (x > maxRight) x = maxRight
-  }
-
-  return { x, y }
-}
-
 /**
  * DOM HELPER: Safely gets the range without throwing errors.
- * Returns null if selection is invalid, empty, or collapsed.
+ * Returns undefined if selection is invalid, empty, or collapsed.
  */
-export function getSafeRange(selection: Selection | null): Range | null {
-  if (!selection) return null
-  if (selection.rangeCount === 0) return null
-  if (selection.isCollapsed) return null
+export function getSafeRange(selection: Selection): Range | undefined {
+  if (selection.rangeCount === 0) return undefined
+  if (selection.isCollapsed) return undefined
 
   try {
     // This is the specific line that can throw IndexSizeError
@@ -81,7 +15,7 @@ export function getSafeRange(selection: Selection | null): Range | null {
     // However, wrapping the entire math logic in a `try/catch` block that triggers a user-facing Toast error is bad UX (the user shouldn't see "Calculation error" just because they clicked away fast).
     //
     // Silently fail here, as it usually means selection was cleared mid-operation
-    return null
+    return undefined
   }
 }
 

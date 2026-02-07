@@ -1,112 +1,38 @@
-import React, { useCallback, useMemo } from 'react'
+import React from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-
-import { Button } from '@heroui/button'
-import { Card, CardBody } from '@heroui/card'
-import { ScrollShadow } from '@heroui/scroll-shadow'
 import { Spinner } from '@heroui/spinner'
 
 import { type DictionaryLanguage } from '../types'
-import { useWordData, useTtsHandlers } from '../hooks/useDetailViewLogic'
-import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { KhmerWordsMap } from '../db/dict'
-import { DetailViewHeader } from './DetailViewHeader'
-import { DetailSections } from './DetailView/DetailSections'
-import useLocalStorageState from 'ahooks/lib/useLocalStorageState'
-import { ReactSelectionPopup } from './react-selection-popup/ReactSelectionPopup'
-import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
-import { useNavigation } from '../providers/NavigationProvider'
-import { detectModeFromText } from '../utils/rendererUtils'
-import { useSettings } from '../providers/SettingsProvider'
+
+import { DetailViewFound } from './DetailView/DetailViewFound'
+import { DetailViewNotFound } from './DetailView/DetailViewNotFound'
+import { useWordData } from '../hooks/useWordData'
 
 interface DetailViewProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
-  fontSize: number
   highlightMatch: NonEmptyStringTrimmed | undefined
   backButton_goBack: () => void | undefined
   backButton_desktopOnlyStyles_showButton: boolean
   km_map: KhmerWordsMap
-  maybeColorMode: MaybeColorizationMode
-  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed | undefined) => void
+  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
 }
 
 const DetailViewImpl = ({
   word,
   mode,
   onNavigate,
-  fontSize,
   backButton_goBack,
   km_map,
   backButton_desktopOnlyStyles_showButton,
-  maybeColorMode,
   setKhmerAnalyzerModalText_setToOpen,
 }: DetailViewProps) => {
-  // 1. Data Logic
-  const { data, loading, isFav, toggleFav } = useWordData(word, mode)
-  const { isGoogleSpeaking, handleNativeSpeak, handleGoogleSpeak } = useTtsHandlers(data, mode)
+  const res = useWordData(word, mode)
 
-  // 2. Appearance Logic (Font, Color, Styles)
-  const [khmerFontName, setKhmerFontName] = useLocalStorageState<KhmerFontName>('Default')
-
-  const cardStyle = useMemo(
-    () => ({
-      fontSize: `${fontSize}px`,
-      fontFamily: KHMER_FONT_FAMILY[khmerFontName],
-    }),
-    [fontSize, khmerFontName],
-  )
-
-  const handleOpenKhmerAnalyzer = useCallback(
-    (selectedText: NonEmptyStringTrimmed) => {
-      window.getSelection()?.removeAllRanges()
-      setKhmerAnalyzerModalText_setToOpen(selectedText)
-    },
-    [setKhmerAnalyzerModalText_setToOpen],
-  )
-
-  const { navigateTo, currentHistoryItem } = useNavigation()
-
-  const handleOpenSearch = useCallback(
-    (selectedText: NonEmptyStringTrimmed) => {
-      // console.log('handleOpenSearch selectedText', selectedText)
-      // console.log('handleOpenSearch currentHistoryItem', currentHistoryItem)
-      if (!currentHistoryItem) return
-      if (!selectedText) return
-      const targetMode = detectModeFromText(selectedText) ?? currentHistoryItem.mode
-
-      // console.log('handleOpenSearch targetMode', targetMode)
-
-      navigateTo(selectedText, targetMode)
-
-      window.getSelection()?.removeAllRanges()
-    },
-    [navigateTo, currentHistoryItem],
-  )
-
-  const renderPopupContent = useCallback(
-    (selectedText: NonEmptyStringTrimmed) => {
-      if (!currentHistoryItem) return null // Type safety
-      if (!km_map) return null // Type safety
-
-      return (
-        <SelectionMenuBody
-          currentMode={currentHistoryItem.mode}
-          km_map={km_map}
-          selectedText={selectedText}
-          onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
-          onClosePopupAndOpenSearch={() => handleOpenSearch(selectedText)}
-        />
-      )
-    },
-    [currentHistoryItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
-  )
-
-  const { isKhmerLinksEnabled, isKhmerWordsHidingEnabled } = useSettings()
-
-  // 4. Loading / Empty States
-  if (loading) {
+  // 1. Loading state
+  if (res.t === 'loading') {
     return (
       <div className="h-full flex items-center justify-center">
         <Spinner color="primary" size="lg" />
@@ -114,64 +40,34 @@ const DetailViewImpl = ({
     )
   }
 
-  if (!data) {
+  // 4. Not Found (Show Analyzer)
+  if (res.t === 'not_found') {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-default-400 gap-4">
-        <p>Word not found.</p>
-        {backButton_goBack && (
-          <Button color="primary" variant="light" onPress={backButton_goBack}>
-            Go Back
-          </Button>
-        )}
-      </div>
+      <DetailViewNotFound
+        backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
+        backButton_goBack={backButton_goBack}
+        km_map={km_map}
+        mode={mode}
+        word={word}
+        onNavigate={onNavigate}
+      />
     )
   }
 
-  // 5. Render
+  // 5. Found (Show Details)
   return (
-    <Card className={`h-full w-full border-none rounded-none bg-background shadow-none`} style={cardStyle}>
-      <DetailViewHeader
-        backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
-        backButton_goBack={backButton_goBack}
-        displayWordHtml={data.word_display ?? data.word}
-        handleGoogleSpeak={handleGoogleSpeak}
-        handleNativeSpeak={handleNativeSpeak}
-        isFav={isFav}
-        isGoogleSpeaking={isGoogleSpeaking}
-        khmerFontName={khmerFontName}
-        mode={mode}
-        phonetic={data.phonetic}
-        setKhmerFontName={setKhmerFontName}
-        toggleFav={toggleFav}
-      />
-
-      {/* BODY */}
-      <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <CardBody className="p-6 gap-6 your-khmer-text-class">
-          <ReactSelectionPopup popupContent={renderPopupContent}>
-            <DetailSections
-              desc={data.desc}
-              desc_en_only={data.desc_en_only}
-              en_km_com={data.en_km_com}
-              from_chuon_nath={data.from_chuon_nath}
-              from_chuon_nath_translated={data.from_chuon_nath_translated}
-              from_csv_noun_forms={data.from_csv_noun_forms}
-              from_csv_pronunciations={data.from_csv_pronunciations}
-              from_csv_raw_html={data.from_csv_raw_html}
-              from_csv_variants={data.from_csv_variants}
-              from_russian_wiki={data.from_russian_wiki}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
-              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-              km_map={km_map}
-              maybeColorMode={maybeColorMode}
-              mode={mode}
-              wiktionary={data.wiktionary}
-              onNavigate={onNavigate}
-            />
-          </ReactSelectionPopup>
-        </CardBody>
-      </ScrollShadow>
-    </Card>
+    <DetailViewFound
+      backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
+      backButton_goBack={backButton_goBack}
+      data={res.data}
+      isFav={res.isFav}
+      km_map={km_map}
+      mode={mode}
+      setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
+      toggleFav={res.toggleFav}
+      word={word}
+      onNavigate={onNavigate}
+    />
   )
 }
 

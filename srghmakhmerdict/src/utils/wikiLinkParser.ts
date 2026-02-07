@@ -1,8 +1,8 @@
-import { extractWikiTerm } from '../utils/rendererUtils'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { extractWikiTerm } from './extractWikiTerm'
 
 export type WikiLinkResult =
   | { kind: 'internal'; term: NonEmptyStringTrimmed }

@@ -5,7 +5,7 @@ import { Progress } from '@heroui/progress'
 import { MdOutlineCloudDownload, MdCheckCircle } from 'react-icons/md'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { useToast } from '../providers/ToastProvider'
+import { useAppToast } from '../providers/ToastProvider'
 import { useSettings } from '../providers/SettingsProvider'
 
 interface ProgressPayload {
@@ -17,7 +17,7 @@ const MdOutlineCloudDownload_ = <MdOutlineCloudDownload className="text-lg" />
 
 export const SettingsEnKmOfflineImagesControl = () => {
   const { imageMode, setImageMode } = useSettings()
-  const toast = useToast()
+  const toast = useAppToast()
 
   const [hasOfflineAssets, setHasOfflineAssets] = useState<number | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)

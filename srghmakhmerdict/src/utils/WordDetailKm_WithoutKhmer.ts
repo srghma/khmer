@@ -7,7 +7,7 @@ import {
 import type { WordDetailKm } from '../db/dict'
 
 export type WordDetailKm_WithoutKhmer = {
-  word: NonEmptyStringTrimmed
+  // word: NonEmptyStringTrimmed
   desc: TypedWithoutKhmer | undefined
   phonetic: NonEmptyStringTrimmed | undefined
   wiktionary: TypedWithoutKhmer | undefined // html
@@ -23,7 +23,7 @@ export type WordDetailKm_WithoutKhmer = {
 
 export const wordDetailKm_WithoutKhmer_mk = (x: WordDetailKm): WordDetailKm_WithoutKhmer => {
   return {
-    word: x.word,
+    // word: x.word,
     desc: x.desc ? strToWithoutKhmer_remove_orUndefined(x.desc) : undefined,
     phonetic: x.phonetic,
     wiktionary: x.wiktionary ? strToWithoutKhmer_remove_orUndefined(x.wiktionary) : undefined,

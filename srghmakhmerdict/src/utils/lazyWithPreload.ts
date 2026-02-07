@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { type PreloadableComponent } from 'react-lazy-with-preload'
-import { useToast } from '../providers/ToastProvider'
+import { useAppToast } from '../providers/ToastProvider'
 
 /**
  * Hook to trigger preloading of components when the browser is idle.
  * If window.requestIdleCallback is missing, it does nothing.
  */
 export function usePreloadOnIdle(components: PreloadableComponent<any>[]) {
-  const toast = useToast()
+  const toast = useAppToast()
 
   useEffect(() => {
     // Check specifically for requestIdleCallback availability

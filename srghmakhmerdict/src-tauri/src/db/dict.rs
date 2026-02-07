@@ -41,7 +41,7 @@ pub struct WordDetailKmRaw {
 
 #[derive(Serialize, Debug)]
 pub struct WordDetailKm {
-    word: String,
+    // word: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     desc: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -69,7 +69,7 @@ pub struct WordDetailKm {
 impl From<WordDetailKmRaw> for WordDetailKm {
     fn from(raw: WordDetailKmRaw) -> Self {
         Self {
-            word: raw.word,
+            // word: raw.word,
             desc: raw.desc,
             phonetic: raw.phonetic,
             wiktionary: raw.wiktionary,
@@ -87,8 +87,8 @@ impl From<WordDetailKmRaw> for WordDetailKm {
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct WordDetailEn {
-    #[sqlx(rename = "Word")]
-    word: String,
+    // #[sqlx(rename = "Word")]
+    // word: String,
     #[sqlx(rename = "WordDisplay")]
     #[serde(skip_serializing_if = "Option::is_none")]
     word_display: Option<String>,
@@ -105,8 +105,8 @@ pub struct WordDetailEn {
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct WordDetailRu {
-    #[sqlx(rename = "Word")]
-    word: String,
+    // #[sqlx(rename = "Word")]
+    // word: String,
     #[sqlx(rename = "WordDisplay")]
     #[serde(skip_serializing_if = "Option::is_none")]
     word_display: Option<String>,

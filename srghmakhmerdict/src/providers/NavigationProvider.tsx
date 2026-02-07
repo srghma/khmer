@@ -8,7 +8,7 @@ interface HistoryItem {
 }
 
 interface NavigationContextType {
-  currentHistoryItem: HistoryItem | null
+  currentHistoryItem: HistoryItem | undefined
   canGoBack: boolean
   /** Pushes a new word onto the stack (used for internal links/search) */
   navigateTo: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -24,7 +24,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 
 export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   const [history, setHistory] = useState<HistoryItem[]>([])
-  const [currentHistoryItem, setCurrentHistoryItem] = useState<HistoryItem | null>(null)
+  const [currentHistoryItem, setCurrentHistoryItem] = useState<HistoryItem | undefined>(undefined)
 
   // Refs to access latest state inside event listeners without re-binding
   const historyRef = useRef(history)
@@ -65,7 +65,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
 
     // Case 2: Stack is empty but Detail View is open (Sidebar -> Detail)
     if (currentHI) {
-      setCurrentHistoryItem(null)
+      setCurrentHistoryItem(undefined)
       setHistory([])
     }
   }, [])
@@ -138,7 +138,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     // Note: This leaves "forward" history in the browser if the user had navigated deep.
     // This is generally acceptable for a "Close" action.
     setHistory([])
-    setCurrentHistoryItem(null)
+    setCurrentHistoryItem(undefined)
   }, [])
 
   const canGoBack = history.length > 0

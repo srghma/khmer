@@ -21,13 +21,16 @@ import {
   VOWELS,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-consonants-vovels'
 
-import { executeNativeTts } from '../utils/tts'
+import { executeNativeTts } from '../utils/tts/native'
 import type { TextSegment } from '../utils/text-processing/text'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { TextSegmentEnhanced } from '../utils/text-processing/text-enhanced'
 import { DefinitionPopup } from './DefinitionPopup'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
-import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // --- Helper Components ---
 
@@ -73,7 +76,10 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
         ? token.v.join('')
         : token.v
 
-    executeNativeTts(text, 'km-KH')
+    const text_ = String_toNonEmptyString_orUndefined_afterTrim(text)
+
+    if (!text_) return
+    executeNativeTts(text_, 'km-KH')
   }
 
   // Common container style

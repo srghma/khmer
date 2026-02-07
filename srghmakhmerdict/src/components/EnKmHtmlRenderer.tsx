@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener'
 import { useSettings } from '../providers/SettingsProvider'
 import styles from './EnKmHtmlRenderer.module.css'
 import type { DictionaryLanguage, EnglishKhmerCom_Images_Mode } from '../types'
-import { useToast } from '../providers/ToastProvider'
+import { useAppToast } from '../providers/ToastProvider'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import {
   strOrNumberToNonNegativeIntOrThrow_strict,
@@ -133,7 +133,7 @@ const injectOcrIntoHtml = (
 
 const useOcrData = (html: NonEmptyStringTrimmed) => {
   const [ocrMap, setOcrMap] = useState<Record<ValidNonNegativeInt, NonEmptyStringTrimmed> | undefined>(undefined)
-  const toast = useToast()
+  const toast = useAppToast()
   const ids = useMemo(() => extractImageIds(html), [html])
 
   useEffect(() => {
@@ -164,7 +164,7 @@ const useImageOrTextInteraction = (
   isKhmerLinksEnabled: boolean,
   isKhmerWordsHidingEnabled: boolean,
 ) => {
-  const toast = useToast()
+  const toast = useAppToast()
 
   useEffect(() => {
     const container = ref.current

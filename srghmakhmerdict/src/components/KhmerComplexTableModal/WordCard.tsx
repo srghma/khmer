@@ -2,7 +2,7 @@ import React, { useCallback, memo } from 'react'
 import { Tooltip } from '@heroui/tooltip'
 import { HiSpeakerWave, HiArrowTopRightOnSquare } from 'react-icons/hi2'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { executeGoogleTts } from '../../utils/tts'
+import { executeGoogleTts } from '../../utils/tts/google'
 
 // TanStack Virtual
 

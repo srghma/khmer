@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useMemo, type ReactNode, useCallback } from 'react'
 import { useLocalStorageState } from 'ahooks'
 import { type EnglishKhmerCom_Images_Mode } from '../types'
-import type { MaybeColorizationMode } from '../utils/text-processing/utils'
+import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } from '../utils/text-processing/utils'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // --- Types ---
 
@@ -33,10 +34,10 @@ interface SettingsContextType {
   setHighlightInDetails: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
 
   // UI Settings
-  uiFontSize: number
-  setUiFontSize: (v: number | ((prev: number | undefined) => number)) => void
-  detailsFontSize: number
-  setDetailsFontSize: (v: number | ((prev: number | undefined) => number)) => void
+  fontSize_ui: number
+  setFontSize_ui: (v: number | ((prev: number | undefined) => number)) => void
+  fontSize_details: number
+  setFontSize_details: (v: number | ((prev: number | undefined) => number)) => void
 
   // Data Filters
   filters: DictFilterSettings
@@ -67,6 +68,10 @@ interface SettingsContextType {
   isKhmerWordsHidingEnabled: boolean
   setIsKhmerWordsHidingEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   toggleKhmerWordsHiding: () => void
+
+  khmerFontName: KhmerFontName
+  khmerFontFamily: NonEmptyStringTrimmed | undefined
+  setKhmerFontName: (v: KhmerFontName | ((prev: KhmerFontName | undefined) => KhmerFontName)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -93,12 +98,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   )
 
   // Font State
-  const [uiFontSize, setUiFontSize] = useLocalStorageState<number>('srghmakhmerdict__ui_font_size', {
+  const [fontSize_ui, setFontSize_ui] = useLocalStorageState<number>('srghmakhmerdict__ui_font_size', {
     defaultValue: 14,
   })
 
-  const [detailsFontSize, setDetailsFontSize] = useLocalStorageState<number>('srghmakhmerdict__details_font_size', {
+  const [fontSize_details, setFontSize_details] = useLocalStorageState<number>('srghmakhmerdict__details_font_size', {
     defaultValue: 16,
+  })
+
+  const [khmerFontName, setKhmerFontName] = useLocalStorageState<KhmerFontName>('srghmakhmerdict__khmer_font_name', {
+    defaultValue: 'Default',
   })
 
   // Filter State
@@ -154,10 +163,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setHighlightInList,
       highlightInDetails: highlightInDetails ?? true,
       setHighlightInDetails,
-      uiFontSize: uiFontSize ?? 14,
-      setUiFontSize,
-      detailsFontSize: detailsFontSize ?? 16,
-      setDetailsFontSize,
+      fontSize_ui: fontSize_ui ?? 14,
+      setFontSize_ui,
+      fontSize_details: fontSize_details ?? 16,
+      setFontSize_details,
       filters: filters ?? DEFAULT_FILTERS,
       setFilters,
       isKhmerTableOpen,
@@ -174,6 +183,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled ?? false,
       setIsKhmerWordsHidingEnabled,
       toggleKhmerWordsHiding,
+      khmerFontName: khmerFontName ?? 'Default',
+      khmerFontFamily: KHMER_FONT_FAMILY[khmerFontName ?? 'Default'],
+      setKhmerFontName,
     }),
     [
       isRegex,
@@ -184,10 +196,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setHighlightInList,
       highlightInDetails,
       setHighlightInDetails,
-      uiFontSize,
-      setUiFontSize,
-      detailsFontSize,
-      setDetailsFontSize,
+      fontSize_ui,
+      setFontSize_ui,
+      fontSize_details,
+      setFontSize_details,
       filters,
       setFilters,
       isKhmerTableOpen,
@@ -203,6 +215,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerWordsHidingEnabled,
       setIsKhmerWordsHidingEnabled,
       toggleKhmerWordsHiding,
+      khmerFontName,
+      setKhmerFontName,
     ],
   )
 

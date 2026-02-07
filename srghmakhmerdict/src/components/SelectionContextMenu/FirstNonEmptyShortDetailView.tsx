@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { Spinner } from '@heroui/spinner'
 import type { DictionaryLanguage } from '../../types'
-import { useWordData } from '../../hooks/useDetailViewLogic'
+import { useWordData } from '../../hooks/useWordData'
 import { colorizeHtml } from '../../utils/text-processing/html'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
@@ -14,7 +14,7 @@ import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.mo
 interface FirstNonEmptyShortDetailViewProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   fallback: React.ReactNode
 }
 
@@ -27,16 +27,15 @@ export const Loading = (
 
 export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailViewProps> = React.memo(
   ({ word, mode, km_map, fallback }) => {
-    // We assume this hook caches results, so it's cheap to call again here
-    const { data, loading } = useWordData(word, mode)
+    const res = useWordData(word, mode)
 
-    // 2. Resolve Data
+    // 1. Resolve Raw Content from candidates
     const rawContent = useMemo(() => {
-      if (!data) return null
+      if (res.t !== 'found') return null
 
-      // Priority list of columns to check
+      const { data } = res
       const candidates = [
-        data.from_csv_raw_html, // Generic CSV HTML
+        data.from_csv_raw_html,
         data.wiktionary,
         data.desc,
         // data.desc_en_only,
@@ -47,41 +46,32 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
       ]
 
       return candidates.find(c => c && c.trim().length > 0)
-    }, [data])
+    }, [res])
 
-    // 3. Process Content (Truncate -> Colorize)
+    // 2. Process Content (Truncate -> Colorize)
     const displayHtml = useMemo(() => {
       if (!rawContent) return null
 
-      // Truncate first to avoid processing huge strings
       const truncated = String_toNonEmptyString_orUndefined_afterTrim(truncateHtmlSafe(rawContent, 1000))
 
       if (!truncated) return null
       if (!km_map) return { __html: truncated }
 
-      // Colorize (inject spans for click handlers etc if needed, though usually just color)
-      const displayHtml = colorizeHtml(truncated, 'segmenter', km_map)
+      const colorized = colorizeHtml(truncated, 'segmenter', km_map)
 
-      return { __html: displayHtml }
+      return { __html: colorized }
     }, [rawContent, km_map])
 
-    // 1. Loading State
-    if (loading) {
-      return Loading
-    }
+    // 3. Handle Discriminated Union States
+    if (res.t === 'loading') return Loading
 
-    // 4. Render
-    if (!displayHtml) {
-      return fallback
-    }
+    if (res.t === 'not_found' || !displayHtml) return fallback
 
+    // 4. Render 'found' state
     return (
       <div className="flex flex-col gap-1 w-full max-w-[400px]">
-        {/* Title / Context label */}
         <div className="text-[10px] uppercase font-bold text-primary tracking-wider opacity-70">Dictionary Preview</div>
 
-        {/* HTML Content */}
-        {/* We adds max-h and overflow-hidden as a second layer of defense for visual neatness */}
         <div
           className={`text-sm text-foreground-700 prose prose-sm dark:prose-invert max-w-none leading-snug line-clamp-4 max-h-[100px] overflow-hidden relative`}
         >

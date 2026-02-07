@@ -2,6 +2,7 @@ import { assertIsDefinedAndReturn } from './asserts'
 import type { NonEmptyArray } from './non-empty-array'
 import type { NonEmptyMap } from './non-empty-map'
 import type { NonEmptySet } from './non-empty-set'
+import { Record_entriesToArray } from './record'
 import { Option_none, Option_some, type Option } from './types'
 
 export type NonEmptyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>> & {
@@ -95,7 +96,7 @@ export function NonEmptyRecord_keysSet<K extends PropertyKey, V>(r: NonEmptyReco
   return new Set(Object.keys(r)) as unknown as NonEmptySet<K>
 }
 
-export function NonEmptyRecord_toMap_fromSetToGetOrderFromSet<K extends PropertyKey, V>(
+export function NonEmptyRecord_toMap_getOrderFromSet<K extends PropertyKey, V>(
   set: NonEmptySet<K> | NonEmptyArray<K>,
   r: NonEmptyRecord<K, V>,
 ): NonEmptyMap<K, V> {
@@ -103,3 +104,8 @@ export function NonEmptyRecord_toMap_fromSetToGetOrderFromSet<K extends Property
   for (const key of set) m.set(key, assertIsDefinedAndReturn(r[key]))
   return m as any
 }
+
+export const NonEmptyRecord_entriesToArray = Record_entriesToArray as unknown as <K extends PropertyKey, V, R>(
+  record: NonEmptyRecord<K, V>,
+  fn: (key: K, value: V, index: number) => R,
+) => NonEmptyArray<R>

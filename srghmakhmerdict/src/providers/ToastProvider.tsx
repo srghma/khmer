@@ -14,7 +14,7 @@ export const GlobalToastProvider = () => {
  * Abstraction to enforce "Android Style" (solid variant, radius)
  * so you don't repeat props in every component.
  */
-export const useToast = () => {
+export const useAppToast = () => {
   const success = useCallback((title: string, description?: string) => {
     addToast({
       title,
