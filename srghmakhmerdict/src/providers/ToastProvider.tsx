@@ -1,5 +1,5 @@
 import { addToast, ToastProvider as HeroToastProvider } from '@heroui/toast'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 /**
  * 1. The Global Provider Component
@@ -55,5 +55,5 @@ export const useAppToast = () => {
     })
   }, [])
 
-  return { success, error, info, warn }
+  return useMemo(() => ({ success, error, info, warn }), [success, error, info, warn])
 }

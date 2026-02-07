@@ -1,18 +1,14 @@
-import React, { useCallback, Suspense, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { Spinner } from '@heroui/spinner'
 import { type DictionaryLanguage } from '../types'
 import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'
-import lazyWithPreload from 'react-lazy-with-preload'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { useSettings } from '../providers/SettingsProvider'
-
-// --- LAZY IMPORT ---
-const DetailView = lazyWithPreload(() => import('./DetailView').then(m => ({ default: m.DetailView })))
+import { DetailView } from './DetailView'
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
@@ -23,12 +19,6 @@ interface RightPanelProps {
   km_map: KhmerWordsMap
   setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
 }
-
-const SuspenseFallback = (
-  <div className="flex-1 flex items-center justify-center h-full">
-    <Spinner color="primary" size="lg" />
-  </div>
-)
 
 const NoSelectedWord = (
   <div className="hidden md:flex flex-1 bg-background items-center justify-center text-default-400 p-8 text-center">
@@ -70,19 +60,17 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
-      <Suspense fallback={SuspenseFallback}>
-        {/* Detail View Wrapper with Selection Class */}
-        <DetailView
-          backButton_desktopOnlyStyles_showButton={canGoBack}
-          backButton_goBack={backButton_goBack}
-          highlightMatch={highlightMatch}
-          km_map={km_map}
-          mode={selectedWord.mode}
-          setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
-          word={selectedWord.word}
-          onNavigate={navigateTo}
-        />
-      </Suspense>
+      {/* Detail View Wrapper with Selection Class */}
+      <DetailView
+        backButton_desktopOnlyStyles_showButton={canGoBack}
+        backButton_goBack={backButton_goBack}
+        highlightMatch={highlightMatch}
+        km_map={km_map}
+        mode={selectedWord.mode}
+        setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
+        word={selectedWord.word}
+        onNavigate={navigateTo}
+      />
     </div>
   )
 }

@@ -13,6 +13,7 @@ import {
 import { Map_sortBy, Map_mergeWithRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
 import { getBestDefinitionHtml } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 import type { TypedWithoutKhmerAndHtml } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-without-khmer-and-html'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 type CardDetail = {
   card: FSRSCard
@@ -25,13 +26,14 @@ export function mergeCardAndDefinitionsAndSortByDueDate(
   cards: NonEmptyMap<TypedContainsKhmer, FSRSCard>,
   definitions: NonEmptyRecord<TypedContainsKhmer, WordDetailKm> | undefined,
 ): NonEmptyMap<TypedContainsKhmer, CardDetail> {
+  const dateNow = new Date()
   const card2 = Map_sortBy(cards, (_k: TypedContainsKhmer, v: FSRSCard) => v.due.getTime())
   const m: Map<TypedContainsKhmer, CardDetail> = Map_mergeWithRecord(
     card2,
     definitions || {},
     (card: FSRSCard, detail: WordDetailKm | undefined) => {
       const detailShort = detail ? getBestDefinitionHtml(detail) : undefined
-      const isDue = card.due <= new Date()
+      const isDue = card.due <= dateNow
 
       return {
         card,
@@ -44,6 +46,13 @@ export function mergeCardAndDefinitionsAndSortByDueDate(
 
   return Map_toNonEmptyMap_orThrow(m)
 }
+
+const StateToString: Record<State, NonEmptyStringTrimmed> = {
+  [State.New]: 'New',
+  [State.Review]: 'Review',
+  [State.Relearning]: 'Relearning',
+  [State.Learning]: 'Learning',
+} as Record<State, NonEmptyStringTrimmed>
 
 export const AnkiList = React.memo(
   ({
@@ -81,13 +90,7 @@ export const AnkiList = React.memo(
               </div>
               <div className="flex justify-between items-center mt-1">
                 <Chip color={card.card.state === State.New ? 'primary' : 'default'} size="sm" variant="flat">
-                  {card.card.state === State.New
-                    ? 'New'
-                    : card.card.state === State.Review
-                      ? 'Review'
-                      : card.card.state === State.Relearning
-                        ? 'Relearning'
-                        : 'Learning'}
+                  {StateToString[card.card.state]}
                 </Chip>
                 <span className={clsx('text-[10px]', card.isDue ? 'text-danger font-bold' : 'text-default-400')}>
                   {card.isDue ? 'Due Now' : format(card.card.due, 'MMM d, HH:mm')}

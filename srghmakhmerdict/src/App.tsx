@@ -5,8 +5,6 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useTheme } from '@heroui/use-theme'
 import { ThemeProps } from '@heroui/use-theme'
-import { listen } from '@tauri-apps/api/event'
-import { useAppToast } from './providers/ToastProvider'
 import { useNavigation } from './providers/NavigationProvider'
 import { useSettings } from './providers/SettingsProvider'
 
@@ -20,14 +18,13 @@ import { RightPanel } from './components/RightPanel'
 
 import './App.css'
 import { useDictionary } from './providers/DictionaryProvider'
-import { detectModeFromText } from './utils/detectModeFromText'
 import { KhmerAnalyzerModal } from './components/KhmerAnalyzerModal/KhmerAnalyzerModal'
 import { KhmerComplexTableModal } from './components/KhmerComplexTableModal/KhmerComplexTableModal'
+import { useDeepLinkHandler } from './hooks/useDeepLinkHandler'
 
 function App() {
   const { theme } = useTheme()
   const dictData = useDictionary()
-  const toast = useAppToast()
 
   const { currentHistoryItem, resetNavigation, clearSelection } = useNavigation()
 
@@ -57,34 +54,10 @@ function App() {
     searchInContent,
   })
 
-  useEffect(() => {
-    const unlisten = listen<string[]>('deep-link://new-url', event => {
-      const url = event.payload[0]
-
-      if (url && url.startsWith('srghmakhmerdict://')) {
-        try {
-          let wordR = decodeURIComponent(url.substring('srghmakhmerdict://'.length))
-
-          wordR = (wordR.split('?')[0] ?? '').replace(/\/$/, '')
-          const word = String_toNonEmptyString_orUndefined_afterTrim(wordR)
-
-          if (word) {
-            const targetMode: DictionaryLanguage = detectModeFromText(word) ?? 'en'
-
-            setActiveTab(targetMode)
-            resetNavigation(word, targetMode)
-            toast.success('Link Opened', `Navigating to "${word}"`)
-          }
-        } catch (e: any) {
-          toast.error('Deep Link Failed', `Could not open the requested word. ${e.message}`)
-        }
-      }
-    })
-
-    return () => {
-      unlisten.then(f => f())
-    }
-  }, [])
+  useDeepLinkHandler({
+    setActiveTab,
+    resetNavigation,
+  })
 
   const handleTabChange = useCallback(
     (key: AppTab) => {

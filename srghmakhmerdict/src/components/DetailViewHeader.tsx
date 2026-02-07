@@ -39,7 +39,7 @@ interface HeaderProps {
   mode: DictionaryLanguage
   isFav: boolean
   toggleFav: () => void
-  backButton_goBack: () => void | undefined
+  backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
   khmerFontName: KhmerFontName
   setKhmerFontName: (v: KhmerFontName) => void

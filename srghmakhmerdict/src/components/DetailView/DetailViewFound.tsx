@@ -27,7 +27,7 @@ interface DetailViewFoundProps {
   toggleFav: () => void
 
   // Appearance / Nav
-  backButton_goBack: () => void | undefined
+  backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
 }
 

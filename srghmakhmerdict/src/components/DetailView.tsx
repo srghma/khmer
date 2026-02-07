@@ -14,7 +14,7 @@ interface DetailViewProps {
   mode: DictionaryLanguage
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   highlightMatch: NonEmptyStringTrimmed | undefined
-  backButton_goBack: () => void | undefined
+  backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
   km_map: KhmerWordsMap
   setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void

@@ -28,7 +28,7 @@ interface DetailViewNotFoundProps {
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 
   // Navigation / Header Props
-  backButton_goBack: () => void | undefined
+  backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
 }
 

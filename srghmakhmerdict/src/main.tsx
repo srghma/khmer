@@ -8,6 +8,7 @@ import { SettingsProvider } from './providers/SettingsProvider'
 import App from './App'
 import { initializeDictionaryData } from './initDictionary'
 import { DictionaryProvider } from './providers/DictionaryProvider'
+import { GlobalErrorBoundary } from './components/ErrorBoundary'
 
 // Start the 2-stage initialization immediately
 const initPromise = initializeDictionaryData()
@@ -17,13 +18,15 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <HeroUIProvider>
       <GlobalToastProvider />
       {/* Pass the promise that resolves when DB is ready */}
-      <DictionaryProvider initPromise={initPromise}>
-        <NavigationProvider>
-          <SettingsProvider>
-            <App />
-          </SettingsProvider>
-        </NavigationProvider>
-      </DictionaryProvider>
+      <GlobalErrorBoundary>
+        <DictionaryProvider initPromise={initPromise}>
+          <NavigationProvider>
+            <SettingsProvider>
+              <App />
+            </SettingsProvider>
+          </NavigationProvider>
+        </DictionaryProvider>
+      </GlobalErrorBoundary>
     </HeroUIProvider>
   </React.StrictMode>,
 )
