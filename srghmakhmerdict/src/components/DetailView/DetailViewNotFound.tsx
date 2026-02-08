@@ -1,33 +1,25 @@
-import { useMemo } from 'react'
-import { Card, CardBody, CardHeader } from '@heroui/card'
+import { useMemo, useState } from 'react'
+import { Card } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { useKhmerAnalysis } from '../KhmerAnalyzerModal/useKhmerAnalysis'
-import { SegmentationPreview } from '../KhmerAnalyzerModal/SegmentationPreview'
-import { KhmerAnalyzer } from '../KhmerAnalyzer'
 
 import type { DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap } from '../../db/dict'
-import {
-  KhmerWordsHidingAction,
-  KhmerLinksAction,
-  KhmerFontAction,
-  ColorizationAction,
-} from './DetailViewHeaderActions'
+
 import { useSettings } from '../../providers/SettingsProvider'
-import { DetailViewBackButton } from '../DetailViewHeader'
-import { GoogleSpeechAction } from './GoogleSpeechAction'
-import { NativeSpeechAction } from './NativeSpeechAction'
-import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
+import { DetailViewHeader } from './DetailViewHeader'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { GoogleTranslateTextarea } from '../GoogleTranslateTextarea/GoogleTranslateTextarea'
+import { KhmerAnalysisResults } from '../KhmerAnalyzerModal/KhmerAnalyzerContent'
+import { truncateString } from '../../utils/truncateString'
 
 interface DetailViewNotFoundProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
   km_map: KhmerWordsMap
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
-
-  // Navigation / Header Props
   backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
 }
@@ -40,21 +32,20 @@ export const DetailViewNotFound = ({
   backButton_goBack,
   backButton_desktopOnlyStyles_showButton,
 }: DetailViewNotFoundProps) => {
+  const [analyzedText, setAnalyzedText] = useState<string>(word)
   // 1. Analyze the unknown text
-  const { analyzedText_undefinedUnlessNonEmptyAndContainsKhmer, segmentsDict, segmentsIntl, detectedMode } =
-    useKhmerAnalysis(word, mode, km_map)
+  const res = useKhmerAnalysis(analyzedText, mode, km_map)
 
   const {
-    maybeColorMode,
-    setMaybeColorMode,
     isKhmerLinksEnabled,
     toggleKhmerLinks,
-    isKhmerWordsHidingEnabled,
-    toggleKhmerWordsHiding,
+    // isKhmerWordsHidingEnabled,
+    // toggleKhmerWordsHiding,
     khmerFontName,
     setKhmerFontName,
     khmerFontFamily,
     fontSize_ui,
+    maybeColorMode,
   } = useSettings()
 
   // 2. Styling
@@ -66,54 +57,61 @@ export const DetailViewNotFound = ({
     [fontSize_ui, khmerFontFamily],
   )
 
-  return (
-    <Card className="h-full w-full border-none rounded-none bg-background shadow-none" style={cardStyle}>
-      {backButton_goBack && (
-        <DetailViewBackButton
-          desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
-          onPress={backButton_goBack}
-        />
-      )}
+  // 3. Stable click handler
+  const handleKhmerWordClick = useMemo(() => {
+    if (!isKhmerLinksEnabled) return undefined
 
-      <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider">
-        <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
-        <KhmerLinksAction
-          isDisabled={maybeColorMode === 'none'}
-          isEnabled={isKhmerLinksEnabled}
-          onToggle={toggleKhmerLinks}
-        />
-        <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
-        <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-        <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[detectedMode]} word={word} />
-        <GoogleSpeechAction mode={detectedMode} word={word} />
-      </CardHeader>
+    return (w: TypedKhmerWord) => onNavigate(w, mode)
+  }, [isKhmerLinksEnabled, onNavigate, mode])
+
+  const wordNotFound = useMemo(() => {
+    const w = truncateString(word, 20)
+
+    return (
+      <>
+        <button className="font-semibold text-md" onClick={() => setAnalyzedText(word)}>
+          {w} not found
+        </button>
+        <p className="text-default-500 text-tiny">
+          This text is not in the dictionary. Showing automated analysis below.
+        </p>
+      </>
+    )
+  }, [word])
+
+  return (
+    <Card className="h-full md:px-1 bg-background" style={cardStyle}>
+      <DetailViewHeader
+        backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
+        backButton_goBack={backButton_goBack}
+        header={wordNotFound}
+        isKhmerLinksEnabled={isKhmerLinksEnabled}
+        // isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+        // toggleKhmerWordsHiding={toggleKhmerWordsHiding}
+        khmerFontName={khmerFontName}
+        setKhmerFontName={setKhmerFontName}
+        toggleKhmerLinks={toggleKhmerLinks}
+        type="sentence_analyzer"
+        word_or_sentence={word}
+        word_or_sentence__language={res.t !== 'empty_text' ? res.analyzedText_language : 'km'}
+      />
 
       <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <CardBody className="p-6 gap-6">
-          <div className="p-4 bg-default-50 rounded-lg border border-default-200 text-center">
-            <h3 className="font-semibold text-lg mb-1">Word not found</h3>
-            <p className="text-default-500 text-sm">
-              This text is not in the dictionary. Showing automated analysis below.
-            </p>
-          </div>
+        <GoogleTranslateTextarea
+          defaultTargetLang="en"
+          km_map={km_map}
+          labelPlacement="outside"
+          maxRows={10} // Increased slightly to accommodate translation text growth
+          maybeColorMode={maybeColorMode}
+          minRows={2}
+          placeholder="Enter text to analyze..."
+          value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
+          value_toShowInTextArea={analyzedText}
+          variant="faded"
+          onValueChange={setAnalyzedText}
+        />
 
-          {analyzedText_undefinedUnlessNonEmptyAndContainsKhmer && km_map && segmentsDict && (
-            <SegmentationPreview
-              km_map={km_map}
-              label="Dictionary Segmentation"
-              maybeColorMode="dictionary"
-              segments={segmentsDict}
-              onKhmerWordClick={w => onNavigate(w, mode)}
-            />
-          )}
-
-          {segmentsIntl && (
-            <div className="flex flex-col gap-2">
-              <h4 className="text-small font-bold uppercase text-default-500">Character Analysis</h4>
-              <KhmerAnalyzer segments={segmentsIntl} />
-            </div>
-          )}
-        </CardBody>
+        <KhmerAnalysisResults km_map={km_map} res={res} onKhmerWordClick={handleKhmerWordClick} />
       </ScrollShadow>
     </Card>
   )

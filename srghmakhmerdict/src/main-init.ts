@@ -56,7 +56,7 @@
 //     baseDir: BaseDirectory.Resource,
 //   })
 //   console.log('metadata', metadata)
-// } catch (e) {
+// } catch (e: unknown) {
 //   console.error('metadata e', e)
 // }
 //
@@ -65,7 +65,7 @@
 //     baseDir: BaseDirectory.Resource,
 //   })
 //   console.log('icon.byteLength', icon.byteLength)
-// } catch (e) {
+// } catch (e: unknown) {
 //   console.error('icon e', e)
 // }
 //
@@ -74,7 +74,7 @@
 //     baseDir: BaseDirectory.Resource,
 //   })
 //   console.log('db.byteLength', db.byteLength)
-// } catch (e) {
+// } catch (e: unknown) {
 //   console.error('db e', e)
 // }
 

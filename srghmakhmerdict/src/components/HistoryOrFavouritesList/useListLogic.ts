@@ -7,32 +7,20 @@ import {
   Map_toNonEmptyMap_orUndefined,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
-import { createStore } from '../../utils/createStore'
+import type { ExternalStore } from '../../utils/createExternalStore'
 
 type DbFetchFn = () => Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>
 type DbDeleteFn = (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<boolean>
 type DbClearFn = () => Promise<void>
-
-// Global registry to act as our cache (replacing SWR's internal cache)
-const STORES = {
-  history: createStore<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>(
-    undefined,
-    (x, y) => x === y,
-  ),
-  favorites: createStore<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>(
-    undefined,
-    (x, y) => x === y,
-  ),
-}
 
 export function useListLogic(
   fetchFn: DbFetchFn,
   deleteFn: DbDeleteFn,
   clearFn: DbClearFn,
   typeLabel: 'history' | 'favorites',
+  store: ExternalStore<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>,
 ) {
   const toast = useAppToast()
-  const store = STORES[typeLabel]
 
   // 1. Subscribe to the external store
   const items = useSyncExternalStore(store.subscribe, store.getSnapshot)
@@ -52,8 +40,8 @@ export function useListLogic(
         const data = await fetchFn()
 
         if (active) store.set(data)
-      } catch (e) {
-        toast.error(`Failed to load ${typeLabel}`, unknown_to_errorMessage(e))
+      } catch (e: unknown) {
+        toast.error(`Failed to load ${typeLabel}` as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       } finally {
         if (active) setLoading(false)
       }
@@ -88,7 +76,7 @@ export function useListLogic(
       } catch (e: unknown) {
         // Rollback on error
         store.set(prevItems)
-        toast.error('Failed to delete item', unknown_to_errorMessage(e))
+        toast.error('Failed to delete item' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       }
     },
     [deleteFn, store, toast],
@@ -102,10 +90,10 @@ export function useListLogic(
 
     try {
       await clearFn()
-      toast.success('Cleared successfully')
+      toast.success('Cleared successfully' as NonEmptyStringTrimmed)
     } catch (e: unknown) {
       store.set(prevItems) // Rollback
-      toast.error('Failed to clear items', unknown_to_errorMessage(e))
+      toast.error('Failed to clear items' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
     }
   }, [clearFn, store, toast])
 

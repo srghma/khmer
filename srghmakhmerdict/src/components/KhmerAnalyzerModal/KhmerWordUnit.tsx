@@ -11,7 +11,7 @@ interface KhmerWordUnitProps {
   word: TypedKhmerWord
   definitionHtml: NonEmptyStringTrimmed | undefined
   colorIndex: number
-  onClick: () => void
+  onClick: (() => void) | undefined
   colorization: 'none' | 'isKnown' | 'isNotKnown'
 }
 

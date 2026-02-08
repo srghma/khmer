@@ -7,6 +7,8 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { useAppToast } from '../providers/ToastProvider'
 import { useSettings } from '../providers/SettingsProvider'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 interface ProgressPayload {
   percentage: number
@@ -34,7 +36,7 @@ export const SettingsEnKmOfflineImagesControl = () => {
 
         setHasOfflineAssets(count)
       })
-      .catch((e: any) => toast.error('Check failed', e.message))
+      .catch((e: unknown) => toast.error('Check failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(e)))
   }, [])
 
   // Listen for progress events from Rust
@@ -71,16 +73,16 @@ export const SettingsEnKmOfflineImagesControl = () => {
       }
 
       if (count === null) {
-        toast.error('Files were not downloaded.')
+        toast.error('Files were not downloaded.' as NonEmptyStringTrimmed)
       } else if (count > 0) {
         setHasOfflineAssets(count)
         setImageMode('offline')
-        toast.success(`Offline images ready! (${count} files)`)
+        toast.success(`Offline images ready! (${count} files)` as NonEmptyStringTrimmed)
       } else {
-        toast.error('Download completed but no files found.')
+        toast.error('Download completed but no files found.' as NonEmptyStringTrimmed)
       }
-    } catch (e: any) {
-      toast.error('Download failed', e.message || 'Unknown error')
+    } catch (e: unknown) {
+      toast.error('Download failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
     } finally {
       setIsDownloading(false)
       setProgress(0)

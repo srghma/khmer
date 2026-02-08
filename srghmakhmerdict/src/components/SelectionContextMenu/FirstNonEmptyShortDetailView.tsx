@@ -10,12 +10,15 @@ import {
 import type { KhmerWordsMap } from '../../db/dict'
 import { truncateHtmlSafe } from './truncateHtmlSafe'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
+import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { ColorizationMode } from '../../utils/text-processing/utils'
 
 interface FirstNonEmptyShortDetailViewProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
   km_map: KhmerWordsMap
   fallback: React.ReactNode
+  colorizationMode: ColorizationMode
 }
 
 export const Loading = (
@@ -26,7 +29,7 @@ export const Loading = (
 )
 
 export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailViewProps> = React.memo(
-  ({ word, mode, km_map, fallback }) => {
+  ({ word, mode, km_map, colorizationMode, fallback }) => {
     const res = useWordData(word, mode)
 
     // 1. Resolve Raw Content from candidates
@@ -55,12 +58,12 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
       const truncated = String_toNonEmptyString_orUndefined_afterTrim(truncateHtmlSafe(rawContent, 1000))
 
       if (!truncated) return null
-      if (!km_map) return { __html: truncated }
+      if (!km_map || !isContainsKhmer(truncated)) return { __html: truncated }
 
-      const colorized = colorizeHtml(truncated, 'segmenter', km_map)
+      const colorized = colorizeHtml(truncated, colorizationMode, km_map)
 
       return { __html: colorized }
-    }, [rawContent, km_map])
+    }, [rawContent, colorizationMode, km_map])
 
     // 3. Handle Discriminated Union States
     if (res.t === 'loading') return Loading

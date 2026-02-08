@@ -7,6 +7,7 @@ import {
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { processDataKhmer } from './toGroupKhmer'
+import { unknown_to_errorMessage } from './errorMessage'
 
 const DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
@@ -45,10 +46,10 @@ describe('extractKeysKhmer (Real DB)', () => {
         const result = extractKeysKhmer(word)
 
         success.push([word, result])
-      } catch (error: any) {
+      } catch (e: unknown) {
         failures++
         if (failureSamples.length < 100) {
-          failureSamples.push(`Word: "${word}" -> ${error.message}\n  ${JSON.stringify(row)}`)
+          failureSamples.push(`Word: "${word}" -> ${unknown_to_errorMessage(e)}\n  ${JSON.stringify(row)}`)
         }
       }
     }

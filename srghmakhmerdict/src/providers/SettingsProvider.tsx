@@ -22,7 +22,7 @@ const DEFAULT_FILTERS: DictFilterSettings = {
 
 // --- Context Interface ---
 
-interface SettingsContextType {
+export interface SettingsContextType {
   // Search Settings
   isRegex: boolean
   setIsRegex: (v: boolean | ((prev: boolean | undefined) => boolean)) => void

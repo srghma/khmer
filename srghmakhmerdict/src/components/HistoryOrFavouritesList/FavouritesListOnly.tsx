@@ -26,10 +26,11 @@ import {
   Map_entriesMapToArray_unlessUndefined,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
 import { ConfirmAction } from '../ConfirmAction'
+import { favoritesStore } from '../../externalStores/historyAndFavourites'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
 }
 
@@ -41,6 +42,7 @@ export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSel
     FavDb.removeFavorite,
     FavDb.deleteAllFavourites,
     'favorites',
+    favoritesStore,
   )
 
   const [isAnkiOpen, setIsAnkiOpen] = useState(false)
@@ -59,7 +61,7 @@ export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSel
     const khmerSet = Set_toNonEmptySet_orUndefined(new Set(khmerWords))
 
     if (!khmerSet) {
-      toast.error('No Khmer words in favorites to review')
+      toast.error('No Khmer words in favorites to review' as NonEmptyStringTrimmed)
 
       return
     }

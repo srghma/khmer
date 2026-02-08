@@ -10,6 +10,8 @@ import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { tryHandleKhmerWordClick, useKhmerContentStyles } from '../hooks/useKhmerLinks'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
+import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
@@ -17,7 +19,9 @@ export const useWiktionaryContent = (
   km_map: KhmerWordsMap,
 ) => {
   return useMemo(() => {
-    if (maybeColorMode === 'none' || !km_map) return { __html: html }
+    if (maybeColorMode === 'none') return { __html: html }
+
+    if (!isContainsKhmer(html)) return { __html: html }
 
     return { __html: colorizeHtml(html, maybeColorMode, km_map) }
   }, [html, maybeColorMode, km_map])
@@ -68,7 +72,7 @@ export const useWikiLinkInterception = (
         }
         case 'invalid': {
           e.preventDefault()
-          toast.error('Invalid Link', result.reason)
+          toast.error(result.reason, unknown_to_errorMessage(result.e))
           break
         }
         case 'ignore':

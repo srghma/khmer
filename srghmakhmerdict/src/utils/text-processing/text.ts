@@ -23,6 +23,7 @@ import {
   Set_toNonEmptySet_orUndefined,
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -64,7 +65,7 @@ export const segmentsToUniqueKhmerWords = (
  * Splits text into segments and performs Khmer segmentation/lookup where applicable.
  */
 export const generateTextSegments = (
-  text: NonEmptyStringTrimmed,
+  text: TypedContainsKhmer,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyArray<TextSegment> => {
@@ -141,7 +142,7 @@ export const colorizeSegments = (
 // --- Main Export ---
 
 export const colorizeText = (
-  text: NonEmptyStringTrimmed,
+  text: TypedContainsKhmer,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed => {
@@ -151,7 +152,7 @@ export const colorizeText = (
 }
 
 export const colorizeText_allowUndefined = (
-  text: NonEmptyStringTrimmed | undefined,
+  text: TypedContainsKhmer | undefined,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed | undefined => {

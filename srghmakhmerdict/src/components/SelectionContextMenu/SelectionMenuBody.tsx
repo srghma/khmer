@@ -62,6 +62,7 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
           {/* 1. Search Item */}
           <MenuButton icon={HiMagnifyingGlass_} onClick={onClosePopupAndOpenSearch}>
             <FirstNonEmptyShortDetailView
+              colorizationMode="segmenter"
               fallback={searchFallback}
               km_map={km_map}
               mode={currentMode}

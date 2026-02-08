@@ -7,6 +7,7 @@ import {
 import { type DictionaryLanguage } from '../types'
 import { detectModeFromText } from '../utils/detectModeFromText'
 import { useAppToast } from '../providers/ToastProvider'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 interface DeepLinkHandlerProps {
   setActiveTab: (tab: DictionaryLanguage) => void
@@ -39,10 +40,13 @@ export const useDeepLinkHandler = ({ setActiveTab, resetNavigation }: DeepLinkHa
           setActiveTab(targetMode)
           resetNavigation(word, targetMode)
 
-          toast.success('Deep Link', `Navigating to "${word}"`)
+          toast.success('Deep Link' as NonEmptyStringTrimmed, `Navigating to "${word}"` as NonEmptyStringTrimmed)
         }
-      } catch (e: any) {
-        toast.error('Deep Link Error', `Failed to open link: ${e.message || String(e)}`)
+      } catch (e: unknown) {
+        toast.error(
+          'Deep Link Error' as NonEmptyStringTrimmed,
+          `Failed to open link: ${unknown_to_errorMessage(e)}` as NonEmptyStringTrimmed,
+        )
       }
     }
 

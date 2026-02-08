@@ -3,7 +3,7 @@ import { Card, CardBody } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
-import { DetailViewHeader } from '../DetailViewHeader'
+import { DetailViewHeader } from './DetailViewHeader'
 import { DetailSections } from './DetailSections'
 import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopup'
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
@@ -47,11 +47,14 @@ export const DetailViewFound = ({
   const {
     isKhmerLinksEnabled,
     isKhmerWordsHidingEnabled,
-    // fontSize_ui,
     fontSize_details,
     khmerFontName,
     setKhmerFontName,
     maybeColorMode,
+    setMaybeColorMode,
+    toggleKhmerLinks,
+    toggleKhmerWordsHiding,
+    khmerFontFamily,
   } = useSettings()
   const { navigateTo, currentHistoryItem } = useNavigation()
 
@@ -116,14 +119,22 @@ export const DetailViewFound = ({
       <DetailViewHeader
         backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
         backButton_goBack={backButton_goBack}
-        displayWordHtml={data.word_display ?? word}
         isFav={isFav}
+        isKhmerLinksEnabled={isKhmerLinksEnabled}
+        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+        khmerFontFamily={khmerFontFamily}
         khmerFontName={khmerFontName}
-        mode={mode}
+        maybeColorMode={maybeColorMode}
         phonetic={data.phonetic}
         setKhmerFontName={setKhmerFontName}
+        setMaybeColorMode={setMaybeColorMode}
         toggleFav={toggleFav}
-        word={word}
+        toggleKhmerLinks={toggleKhmerLinks}
+        toggleKhmerWordsHiding={toggleKhmerWordsHiding}
+        type="known_word"
+        word_displayHtml={data.word_display ?? word}
+        word_or_sentence={word}
+        word_or_sentence__language={mode}
       />
 
       <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">

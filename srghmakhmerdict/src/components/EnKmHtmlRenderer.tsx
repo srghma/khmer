@@ -23,6 +23,8 @@ import {
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { tryHandleKhmerWordClick, useKhmerContentStyles } from '../hooks/useKhmerLinks'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
+import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -149,9 +151,9 @@ const useOcrData = (html: NonEmptyStringTrimmed) => {
 
         setOcrMap(newOcrMap)
       })
-      .catch((err: any) => {
+      .catch((e: unknown) => {
         // console.error('OCR Fetch Error:', err)
-        toast.error('OCR Fetch Error:', err.message)
+        toast.error('OCR Fetch Error:' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       })
   }, [ids, toast]) // Dependency on HTML string is fine now due to internal checks
 
@@ -194,11 +196,14 @@ const useImageOrTextInteraction = (
 
         try {
           await openUrl(lensUrl)
-        } catch (err: any) {
-          toast.error('Failed to open Google Lens.', err.message)
+        } catch (e: unknown) {
+          toast.error('Failed to open Google Lens.' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
         }
       } else {
-        toast.error('Image Error', 'Could not identify this image for translation.')
+        toast.error(
+          'Image Error' as NonEmptyStringTrimmed,
+          'Could not identify this image for translation.' as NonEmptyStringTrimmed,
+        )
       }
     }
 
@@ -238,7 +243,7 @@ export const EnKmHtmlRenderer = ({
     const html_withChangedUrls = processHtmlImages(html_withInjectedOcr, imageMode)
 
     const html_colorized =
-      maybeColorMode !== 'none' && km_map
+      maybeColorMode !== 'none' && isContainsKhmer(html_withChangedUrls)
         ? colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
         : html_withChangedUrls
 

@@ -24,6 +24,8 @@ import {
   type NonEmptyMap,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import type { ValidDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
+import { unknown_to_errorMessage } from '../../utils/errorMessage'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // --- Internal State (Data Only) ---
 
@@ -169,8 +171,8 @@ export const useAnki = (items: NonEmptySet<TypedContainsKhmer>): AnkiState => {
         cards: nextCards,
         selectedWord: nextDueWord,
       })
-    } catch (error: any) {
-      toast.error('Failed to initialize cards', error.message)
+    } catch (e: unknown) {
+      toast.error('Failed to initialize cards' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       dispatch({ type: 'RESET' })
     }
   }, [items, internalState.t])
@@ -190,8 +192,8 @@ export const useAnki = (items: NonEmptySet<TypedContainsKhmer>): AnkiState => {
           dispatch({ type: 'SET_DEFINITIONS', definitions: cleanRes })
         }
       })
-      .catch((err: any) => {
-        if (active) toast.error('Failed to fetch definitions', err.message)
+      .catch((e: unknown) => {
+        if (active) toast.error('Failed to fetch definitions' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       })
 
     return () => {

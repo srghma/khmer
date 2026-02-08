@@ -24,6 +24,7 @@ import {
   Array_toNonEmptyArray_orUndefined,
   type NonEmptyArray,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 export type ProcessedDataState =
   | { mode: 'en'; data: ProcessDataOutput<CharUppercaseLatin> }
@@ -40,7 +41,7 @@ function* mapKhmerInput(words: Iterable<NonEmptyStringTrimmed>) {
   for (const w of words) {
     // try {
     yield [w, extractKeysKhmer(w)] as const
-    // } catch (e: any) {
+    // } catch (e: unknown) {
     //   console.error('extractKeysKhmer error', JSON.stringify(w), toHex(w), e)
     // }
   }
@@ -270,8 +271,8 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
 
       try {
         results = await DictDb.searchContentByMode(l, debouncedQueryNonEmpty)
-      } catch (e: any) {
-        toast.error('Search content by mode failed', e.message)
+      } catch (e: unknown) {
+        toast.error('Search content by mode failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
 
         return
       }

@@ -65,7 +65,7 @@ const GoogleTranslateImpl: React.FC<GoogleTranslateProps> = ({
       const res = await cachedTranslate(inputText, 'auto', targetLang)
 
       setResult(res)
-    } catch (err: any) {
+    } catch (e: unknown) {
       const msg = err.message || ''
 
       if (msg.includes('429') || msg.includes('Too Many Requests')) {

@@ -25,7 +25,7 @@ export type GoogleTranslationState =
 type Action =
   | { type: 'INIT' }
   | { type: 'SUCCESS'; result: TranslateResultSuccess }
-  | { type: 'ERROR'; title: string; description?: string }
+  | { type: 'ERROR'; title: string; description?: NonEmptyStringTrimmed }
   | { type: 'CLEAR' }
 
 function reducer(_state: GoogleTranslationState, action: Action): GoogleTranslationState {
@@ -65,12 +65,12 @@ export const useGoogleTranslation = (
       } else {
         // res.error is the TranslateResultError { status, statusText }
         const title = 'Translation Error'
-        const description = `Server Error (${res.error.status}): ${res.error.statusText}`
+        const description = `Server Error (${res.error.status}): ${res.error.statusText}` as NonEmptyStringTrimmed
 
         dispatch({ type: 'ERROR', title, description })
       }
-    } catch (err: unknown) {
-      const msg = unknown_to_errorMessage(err)
+    } catch (e: unknown) {
+      const msg = unknown_to_errorMessage(e)
       const title = 'Translation Error'
 
       dispatch({ type: 'ERROR', title, description: msg })

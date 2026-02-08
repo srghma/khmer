@@ -6,6 +6,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { KhmerWordsMap } from '../../db/dict'
 import { colorizeHtml } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
+import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 export const colorizeHtml_nonEmptyArray = (
   items: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
@@ -15,5 +16,7 @@ export const colorizeHtml_nonEmptyArray = (
   if (!items) return undefined
   if (maybeColorMode === 'none' || !km_map) return undefined
 
-  return Array_toNonEmptyArray_orThrow(items.map(item => colorizeHtml(item, maybeColorMode, km_map)))
+  return Array_toNonEmptyArray_orThrow(
+    items.map(item => (isContainsKhmer(item) ? colorizeHtml(item, maybeColorMode, km_map) : item)),
+  )
 }

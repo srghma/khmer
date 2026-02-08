@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { DictData } from '../initDictionary'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 type LoadingStage = 'initializing_db' | 'loading_data' | 'ready' | 'error'
 
@@ -20,7 +22,7 @@ type DictionaryProviderProps = {
 export function DictionaryProvider({ initPromise, children }: DictionaryProviderProps) {
   const [dictData, setDictData] = useState<DictData | undefined>()
   const [stage, setStage] = useState<LoadingStage>('initializing_db')
-  const [error, setError] = useState<Error | null>(null)
+  const [error, setError] = useState<NonEmptyStringTrimmed | undefined>(undefined)
 
   useEffect(() => {
     let mounted = true
@@ -45,10 +47,10 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
           setStage('ready')
           // console.log('Provider: Ready')
         }
-      } catch (err: any) {
+      } catch (e: unknown) {
         if (mounted) {
           // console.error('Provider Error:', err)
-          setError(err instanceof Error ? err : new Error(String(err)))
+          setError(unknown_to_errorMessage(e))
           setStage('error')
         }
       }
@@ -66,7 +68,7 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
     return (
       <div className="flex flex-col items-center justify-center h-screen p-5 text-center font-sans">
         <h1 className="text-red-500 mb-4 text-2xl font-bold">❌ Failed to Initialize</h1>
-        <p className="text-gray-500 max-w-lg mb-6">{error.message || 'Unknown error'}</p>
+        <p className="text-gray-500 max-w-lg mb-6">{error ?? 'Unknown error'}</p>
         <button
           className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           onClick={() => window.location.reload()}

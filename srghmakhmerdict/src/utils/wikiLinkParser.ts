@@ -7,7 +7,7 @@ import { extractWikiTerm } from './extractWikiTerm'
 export type WikiLinkResult =
   | { kind: 'internal'; term: NonEmptyStringTrimmed }
   | { kind: 'external' }
-  | { kind: 'invalid'; reason: string }
+  | { kind: 'invalid'; reason: NonEmptyStringTrimmed; e?: unknown }
   | { kind: 'ignore' } // For empty hrefs or non-links
 
 export const parseWikiHref = (href: string | null | undefined): WikiLinkResult => {
@@ -20,7 +20,7 @@ export const parseWikiHref = (href: string | null | undefined): WikiLinkResult =
 
     return cleanTerm
       ? { kind: 'internal', term: cleanTerm }
-      : { kind: 'invalid', reason: 'Could not parse wiki link term' }
+      : { kind: 'invalid', reason: 'Could not parse wiki link term' as NonEmptyStringTrimmed }
   }
 
   // 2. Query Style Links (Redlinks, Edit): /w/index.php?title=Word...
@@ -32,9 +32,9 @@ export const parseWikiHref = (href: string | null | undefined): WikiLinkResult =
 
       return cleanTerm
         ? { kind: 'internal', term: cleanTerm }
-        : { kind: 'invalid', reason: 'Could not resolve word from query link' }
-    } catch (err: any) {
-      return { kind: 'invalid', reason: `Failed to parse wiki query link: ${err.message}` }
+        : { kind: 'invalid', reason: 'Could not resolve word from query link' as NonEmptyStringTrimmed }
+    } catch (e: unknown) {
+      return { kind: 'invalid', reason: `Failed to parse wiki query link` as NonEmptyStringTrimmed, e }
     }
   }
 

@@ -2,12 +2,13 @@ import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-ex
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import React, { useMemo } from 'react'
 import type { KhmerWordsMap } from '../../db/dict'
-import { colorizeHtml_allowUndefined } from '../../utils/text-processing/html'
+import { colorizeHtml } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { colorizeHtml_nonEmptyArray } from './utils'
 import styles from './hide-broken-images.module.css'
 import type { DictionaryLanguage } from '../../types'
 import { useKhmerClickListener, useKhmerContentStyles } from '../../hooks/useKhmerLinks'
+import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
   <div className="text-[0.7em] uppercase tracking-wider font-bold text-default-400 mb-[0.75em] border-b border-divider pb-1">
@@ -60,7 +61,8 @@ export const RenderHtmlColorized = React.memo(
   }) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
     const processedHtml = useMemo(
-      () => (maybeColorMode !== 'none' && km_map ? colorizeHtml_allowUndefined(html, maybeColorMode, km_map) : html),
+      () =>
+        maybeColorMode !== 'none' && html && isContainsKhmer(html) ? colorizeHtml(html, maybeColorMode, km_map) : html,
       [html, maybeColorMode, km_map],
     )
 

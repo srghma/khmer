@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { Set_isNonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { type KhmerDefCoreAction, startKhmerDefinitionFetch } from './useEnhancedSegments/core'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
@@ -11,7 +11,7 @@ import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension
 export type UseKhmerDefinitionsResult =
   | { t: 'idle' }
   | { t: 'loading' }
-  | { t: 'request_error'; e: Error }
+  | { t: 'request_error'; e: NonEmptyStringTrimmed | undefined }
   | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null> }
 
 const UseKhmerDefinitionsResult_idle: UseKhmerDefinitionsResult = { t: 'idle' }
@@ -53,13 +53,13 @@ const reducer = (state: UseKhmerDefinitionsResult, action: HookAction): UseKhmer
 // --- Hook ---
 
 export const useKhmerDefinitions = (
-  uniqueWords: ReadonlySet<TypedKhmerWord> | undefined,
+  uniqueWords: NonEmptySet<TypedKhmerWord> | undefined,
 ): UseKhmerDefinitionsResult => {
   const [state, dispatch] = useReducer(reducer, UseKhmerDefinitionsResult_idle)
 
   useEffect(() => {
     // 1. Validation Logic
-    if (!uniqueWords || !Set_isNonEmptySet(uniqueWords)) {
+    if (!uniqueWords) {
       if (state.t !== 'idle') dispatch({ type: 'RESET' })
 
       return

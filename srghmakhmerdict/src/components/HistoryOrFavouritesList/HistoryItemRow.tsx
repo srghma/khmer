@@ -15,6 +15,7 @@ import { colorizeText } from '../../utils/text-processing/text'
 
 import { TrashIcon, ChevronIcon } from './SharedComponents'
 import { tab_title_ru } from '../SidebarHeader'
+import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -35,12 +36,13 @@ interface HistoryItemRowProps {
   language: DictionaryLanguage
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   onDelete: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => void
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
+  renderRightAction?: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => React.ReactNode
 }
 
 export const HistoryItemRow = React.memo<HistoryItemRowProps>(
-  ({ word, language, onSelect, onDelete, km_map, maybeColorMode }) => {
+  ({ word, language, onSelect, onDelete, km_map, maybeColorMode, renderRightAction }) => {
     const controls = useAnimation()
 
     const handleDragEnd = useCallback(
@@ -59,10 +61,12 @@ export const HistoryItemRow = React.memo<HistoryItemRowProps>(
     )
 
     const wordColorized = useMemo(() => {
-      if (maybeColorMode === 'none' || !km_map) return { __html: word }
+      if (maybeColorMode === 'none' || !isContainsKhmer(word)) return { __html: word }
 
       return { __html: colorizeText(word, maybeColorMode, km_map) }
     }, [word, km_map, maybeColorMode])
+
+    const onTap = useCallback(() => onSelect(word, language), [onSelect, word, language])
 
     return (
       <motion.div
@@ -81,7 +85,7 @@ export const HistoryItemRow = React.memo<HistoryItemRowProps>(
           dragElastic={0.1}
           style={TOUCH_STYLE}
           onDragEnd={handleDragEnd}
-          onTap={() => onSelect(word, language)}
+          onTap={onTap}
         >
           <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0">
             {MODES_ICON[language]}
@@ -92,6 +96,10 @@ export const HistoryItemRow = React.memo<HistoryItemRowProps>(
               className={`text-foreground text-medium leading-snug truncate ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
             />
           </div>
+
+          {/* Render the action if provided (e.g., the star button) */}
+          {renderRightAction?.(word, language)}
+
           <ChevronIcon />
         </motion.div>
       </motion.div>

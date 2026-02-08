@@ -107,14 +107,14 @@ interface GoogleTranslateTextareaProps extends Pick<
   defaultTargetLang: ToTranslateLanguage
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
-  value: string
-  value_nonEmptyTrimmed: NonEmptyStringTrimmed | undefined
+  value_toShowInTextArea: string
+  value_toShowInBottom: NonEmptyStringTrimmed | undefined
   // onValueChange: (value: string) => void
 }
 
 export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = ({
-  value,
-  value_nonEmptyTrimmed,
+  value_toShowInTextArea,
+  value_toShowInBottom,
   onValueChange,
   defaultTargetLang,
   km_map,
@@ -124,18 +124,19 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
 }) => {
   const [targetLang, setTargetLang] = useState<ToTranslateLanguage>(defaultTargetLang)
 
-  const { state, performTranslate, clearResult } = useGoogleTranslation(value_nonEmptyTrimmed, 'auto', targetLang)
+  const { state, performTranslate, clearResult } = useGoogleTranslation(value_toShowInBottom, 'auto', targetLang)
 
   // Clear result when input changes
   useEffect(() => {
     clearResult()
-  }, [value, clearResult])
+  }, [value_toShowInTextArea, clearResult])
 
   // Memoize styles to prevent unnecessary prop updates to Textarea
   const memoizedClassNames = useMemo(
     () => ({
       ...classNames,
-      inputWrapper: 'pb-2',
+      input: 'text-medium font-khmer leading-relaxed',
+      inputWrapper: 'bg-default-100 hover:bg-default-200 pb-2',
     }),
     [classNames],
   )
@@ -146,12 +147,12 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
       <GoogleTranslateEndContent
         loading={state.t === 'loading'}
         targetLang={targetLang}
-        value={value_nonEmptyTrimmed}
+        value={value_toShowInBottom}
         onTargetLangChange={setTargetLang}
         onTranslate={performTranslate}
       />
     ),
-    [state.t, targetLang, value_nonEmptyTrimmed, performTranslate],
+    [state.t, targetLang, value_toShowInBottom, performTranslate],
   )
 
   return (
@@ -159,7 +160,7 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
       <Textarea
         classNames={memoizedClassNames}
         endContent={endContent}
-        value={value}
+        value={value_toShowInTextArea}
         onValueChange={onValueChange}
         {...props}
       />

@@ -1,3 +1,4 @@
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { addToast, ToastProvider as HeroToastProvider } from '@heroui/toast'
 import { useCallback, useMemo } from 'react'
 
@@ -15,7 +16,7 @@ export const GlobalToastProvider = () => {
  * so you don't repeat props in every component.
  */
 export const useAppToast = () => {
-  const success = useCallback((title: string, description?: string) => {
+  const success = useCallback((title: NonEmptyStringTrimmed, description?: NonEmptyStringTrimmed) => {
     addToast({
       title,
       description,
@@ -25,7 +26,7 @@ export const useAppToast = () => {
     })
   }, [])
 
-  const warn = useCallback((title: string, description?: string) => {
+  const warn = useCallback((title: NonEmptyStringTrimmed, description?: NonEmptyStringTrimmed) => {
     addToast({
       title,
       description,
@@ -35,7 +36,7 @@ export const useAppToast = () => {
     })
   }, [])
 
-  const error = useCallback((title: string, description?: string) => {
+  const error = useCallback((title: NonEmptyStringTrimmed, description?: NonEmptyStringTrimmed) => {
     addToast({
       title,
       description,
@@ -45,7 +46,7 @@ export const useAppToast = () => {
     })
   }, [])
 
-  const info = useCallback((title: string, description?: string) => {
+  const info = useCallback((title: NonEmptyStringTrimmed, description?: NonEmptyStringTrimmed) => {
     addToast({
       title,
       description,

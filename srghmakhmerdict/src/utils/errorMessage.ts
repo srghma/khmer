@@ -1,5 +1,10 @@
-export function unknown_to_errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
-  return String(error)
+export function unknown_to_errorMessage(error: unknown): NonEmptyStringTrimmed | undefined {
+  console.error(error)
+
+  return String_toNonEmptyString_orUndefined_afterTrim(error instanceof Error ? error.message : String(error))
 }

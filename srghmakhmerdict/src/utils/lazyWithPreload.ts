@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { type PreloadableComponent } from 'react-lazy-with-preload'
 import { useAppToast } from '../providers/ToastProvider'
+import { unknown_to_errorMessage } from './errorMessage'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 /**
  * Hook to trigger preloading of components when the browser is idle.
@@ -16,8 +18,8 @@ export function usePreloadOnIdle(components: PreloadableComponent<any>[]) {
         components.forEach(component => {
           try {
             component.preload()
-          } catch (e: any) {
-            toast.warn('Failed to preload component on idle', e.message)
+          } catch (e: unknown) {
+            toast.warn('Failed to preload component on idle' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
           }
         })
       })

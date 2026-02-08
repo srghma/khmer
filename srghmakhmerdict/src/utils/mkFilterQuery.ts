@@ -3,6 +3,7 @@ import {
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { memoizeSync2_LRU } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
+import { unknown_to_errorMessage } from './errorMessage'
 
 export type FilterQuery = { isRegex: true; v: RegExp } | { isRegex: false; v: NonEmptyStringTrimmed }
 
@@ -21,10 +22,10 @@ export function makeFilterQuery(debouncedQuery: string, isRegex: boolean): MakeF
         t: 'ok',
         v: { isRegex: true, v: new RegExp(debouncedQuery, 'i') },
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       return {
         t: 'error',
-        v: e?.message ?? 'Invalid regular expression',
+        v: unknown_to_errorMessage(e) ?? 'Invalid regular expression',
       }
     }
   }

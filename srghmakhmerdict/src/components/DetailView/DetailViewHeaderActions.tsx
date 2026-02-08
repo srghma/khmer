@@ -189,56 +189,68 @@ FavoriteAction.displayName = 'FavoriteAction'
 /**
  * MAIN CONTAINER COMPONENT
  */
-interface DetailViewActionsProps {
-  word: NonEmptyStringTrimmed | undefined
-  mode: DictionaryLanguage
-  // Khmer Words Hiding
-  isKhmerWordsHidingEnabled: boolean
-  toggleKhmerWordsHiding: () => void
+export interface DetailViewActionsProps_Common {
+  word_or_sentence: NonEmptyStringTrimmed
+  word_or_sentence__language: DictionaryLanguage
   // Links
   isKhmerLinksEnabled: boolean
   toggleKhmerLinks: () => void
   // Font
   khmerFontName: KhmerFontName
   setKhmerFontName: (v: KhmerFontName) => void
-  // Colorization
-  maybeColorMode: MaybeColorizationMode
-  setMaybeColorMode: (v: MaybeColorizationMode) => void
+}
+
+export interface DetailViewActionsProps_KnownWord extends DetailViewActionsProps_Common {
+  type: 'known_word'
   // Favorites
   isFav: boolean
   toggleFav: () => void
+  // Colorization
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (v: MaybeColorizationMode) => void
+  // Khmer Words Hiding
+  isKhmerWordsHidingEnabled: boolean
+  toggleKhmerWordsHiding: () => void
 }
 
-export const DetailViewActions = memo(
-  ({
-    word,
-    mode,
-    isKhmerWordsHidingEnabled,
-    toggleKhmerWordsHiding,
+export interface DetailViewActionsProps_SentenceAnalyzer extends DetailViewActionsProps_Common {
+  type: 'sentence_analyzer'
+}
+
+export type DetailViewActionsProps = DetailViewActionsProps_KnownWord | DetailViewActionsProps_SentenceAnalyzer
+
+export const DetailViewActions = memo((props: DetailViewActionsProps) => {
+  const {
+    type,
+    word_or_sentence,
+    word_or_sentence__language,
     isKhmerLinksEnabled,
     toggleKhmerLinks,
     khmerFontName,
     setKhmerFontName,
-    maybeColorMode,
-    setMaybeColorMode,
-    isFav,
-    toggleFav,
-  }: DetailViewActionsProps) => {
-    return (
-      <div className="flex gap-1 shrink-0">
-        <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
-        <KhmerLinksAction
-          isDisabled={maybeColorMode === 'none'}
-          isEnabled={isKhmerLinksEnabled}
-          onToggle={toggleKhmerLinks}
-        />
-        <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
-        <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-        <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[mode]} word={word} />
-        <GoogleSpeechAction mode={mode} word={word} />
-        <FavoriteAction isFav={isFav} onToggle={toggleFav} />
-      </div>
-    )
-  },
-)
+  } = props
+
+  const isKnownWordType = type === 'known_word'
+
+  return (
+    <div className="flex gap-1 shrink-0">
+      {isKnownWordType && (
+        <KhmerWordsHidingAction isEnabled={props.isKhmerWordsHidingEnabled} onToggle={props.toggleKhmerWordsHiding} />
+      )}
+      <KhmerLinksAction
+        isDisabled={isKnownWordType ? props.maybeColorMode === 'none' : false}
+        isEnabled={isKhmerLinksEnabled}
+        onToggle={toggleKhmerLinks}
+      />
+      <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
+      {isKnownWordType && <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />}
+      <NativeSpeechAction
+        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
+        word={word_or_sentence}
+      />
+      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+      {isKnownWordType && <FavoriteAction isFav={props.isFav} onToggle={props.toggleFav} />}
+    </div>
+  )
+})
 DetailViewActions.displayName = 'DetailViewActions'

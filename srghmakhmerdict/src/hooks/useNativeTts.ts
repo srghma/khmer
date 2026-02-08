@@ -3,13 +3,13 @@ import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { executeNativeTts, nativeTtsResultToError } from '../utils/tts/native'
 import { useAppToast } from '../providers/ToastProvider'
 import type { BCP47LanguageTagName } from '../utils/my-bcp-47'
-import { createStore } from '../utils/createStore'
+import { createExternalStore } from '../utils/createExternalStore'
 
 const NATIVE_TTS_SPEAKING = { isSpeaking: true } as const
 
 export type NativeTtsState = typeof NATIVE_TTS_SPEAKING | { isSpeaking: false; speak: () => Promise<void> }
 
-const nativeSpeakingStore = createStore<boolean>(false, (x: boolean, y: boolean) => x === y)
+const nativeSpeakingStore = createExternalStore<boolean>(false, (x: boolean, y: boolean) => x === y)
 
 export function useNativeTts(word: NonEmptyStringTrimmed | undefined, lang: BCP47LanguageTagName): NativeTtsState {
   const toast = useAppToast()

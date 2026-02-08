@@ -9,7 +9,7 @@ export function getSafeRange(selection: Selection): Range | undefined {
   try {
     // This is the specific line that can throw IndexSizeError
     return selection.getRangeAt(0)
-  } catch (e) {
+  } catch (e: unknown) {
     // `selection.getRangeAt(0)` **can throw** an `IndexSizeError` if the `rangeCount` drops to 0 (e.g., the user clicks away deselecting text) exactly when your debounce timeout fires.
     //
     // However, wrapping the entire math logic in a `try/catch` block that triggers a user-facing Toast error is bad UX (the user shouldn't see "Calculation error" just because they clicked away fast).

@@ -34,7 +34,7 @@ interface SidebarContentProps {
   contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
   highlightInList: boolean
   searchQuery: NonEmptyStringTrimmed | undefined
-  km_map: KhmerWordsMap | undefined
+  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
 }
 

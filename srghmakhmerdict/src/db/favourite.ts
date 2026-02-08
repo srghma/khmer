@@ -67,46 +67,25 @@ COMMIT;
 }
 
 /**
- * Atomic One-Statement Toggle
- * 1. Tries to delete the row.
- * 2. If no row was deleted, it inserts it.
+ * Atomic Toggle Logic
+ * 1. Tries to delete the row using existing removeFavorite.
+ * 2. If no row was deleted (it didn't exist), it inserts it using addFavorite.
  * 3. Returns true if it ended up being inserted (now a favorite), false otherwise.
  */
-export const toggleFavorite = async (
-  word: NonEmptyStringTrimmed,
-  language: DictionaryLanguage,
-  toast_warn: (title: string, description?: string) => void,
-): Promise<boolean> => {
-  const db = await getUserDb()
-  const now = Date.now()
+export const toggleFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
+  // 1. Try to remove it first
+  const wasRemoved = await removeFavorite(word, language)
 
-  // We use a CTE to perform the toggle in one logical statement.
-  // This requires SQLite 3.35+ (standard in modern Tauri environments).
-  const result = await db.select<{ res: string }[]>(
-    `
-    WITH deleted AS (
-      DELETE FROM favorites
-      WHERE word = $1 AND language = $2
-      RETURNING 'removed' as res
-    ),
-    inserted AS (
-      INSERT INTO favorites (word, language, timestamp)
-      SELECT $1, $2, $3
-      WHERE NOT EXISTS (SELECT 1 FROM deleted)
-      RETURNING 'added' as res
-    )
-    SELECT res FROM deleted UNION ALL SELECT res FROM inserted;
-    `,
-    [word, language, now],
-  )
+  if (wasRemoved) {
+    // It existed and was removed, so it's no longer a favorite.
+    return false
+  }
 
-  // Side effect: Cleanup older items (maintenance)
-  // We do this separately so the primary toggle stays as fast as possible.
-  db.execute(
-    'DELETE FROM favorites WHERE rowid NOT IN (SELECT rowid FROM favorites ORDER BY timestamp DESC LIMIT 1000)',
-  ).catch(e => toast_warn('Favorite cleanup failed:', e))
+  // 2. If it wasn't removed, it didn't exist, so we add it.
+  // addFavorite already contains the INSERT logic and the 1000-item cleanup.
+  await addFavorite(word, language)
 
-  return result[0]?.res === 'added'
+  return true
 }
 
 export const isFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {

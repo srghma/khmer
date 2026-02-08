@@ -1,5 +1,8 @@
 import { speak, isSpeaking as tauriIsSpeaking } from 'tauri-plugin-tts-api'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { unknown_to_errorMessage } from '../errorMessage'
 import type { BCP47LanguageTagName } from '../my-bcp-47'
@@ -71,20 +74,24 @@ export const executeNativeTts = async (
 
 //////////////////////////////////////////
 
-export function nativeTtsResultToError(result: TtsExecutionResult): { title: string; description: string } | undefined {
+export function nativeTtsResultToError(
+  result: TtsExecutionResult,
+): { title: NonEmptyStringTrimmed; description: NonEmptyStringTrimmed | undefined } | undefined {
   if (result.t === 'success_using_tauri_plugin' || result.t === 'success_using_speechSynthesis') {
     return undefined
   }
 
   if (result.t === 'error_using_tauri_plugin_and_no_speechSynthesis') {
     return {
-      title: 'Native TTS Error',
+      title: 'Native TTS Error' as NonEmptyStringTrimmed,
       description: unknown_to_errorMessage(result.tauriError),
     }
   }
 
   return {
-    title: 'Native TTS Failed',
-    description: `Plugin: ${unknown_to_errorMessage(result.tauriError)}. Browser: ${unknown_to_errorMessage(result.browserError)}`,
+    title: 'Native TTS Failed' as NonEmptyStringTrimmed,
+    description: String_toNonEmptyString_orUndefined_afterTrim(
+      `Plugin: ${unknown_to_errorMessage(result.tauriError)}. Browser: ${unknown_to_errorMessage(result.browserError)}`,
+    ),
   }
 }

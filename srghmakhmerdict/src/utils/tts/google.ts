@@ -78,7 +78,7 @@ export const executeGoogleTts = async (
         resolve({ t: 'error_playback', error: e })
       }
 
-      audio.play().catch(e => {
+      audio.play().catch((e: unknown) => {
         cleanup()
         resolve({ t: 'error_playback', error: e })
       })
@@ -90,26 +90,28 @@ export const executeGoogleTts = async (
   }
 }
 
-export function googleTtsResultToError(result: GoogleTtsResult): { title: string; description: string } | undefined {
+export function googleTtsResultToError(
+  result: GoogleTtsResult,
+): { title: NonEmptyStringTrimmed; description: NonEmptyStringTrimmed | undefined } | undefined {
   if (result.t === 'success') return undefined
 
   switch (result.t) {
     case 'error_fetch':
       return {
-        title: 'Google TTS Network Error',
+        title: 'Google TTS Network Error' as NonEmptyStringTrimmed,
         description: result.status
-          ? `Status ${result.status} ${result.statusText || ''}`.trim()
+          ? String_toNonEmptyString_orUndefined_afterTrim(`Status ${result.status} ${result.statusText || ''}`)
           : unknown_to_errorMessage(result.error),
       }
     case 'error_playback':
       return {
-        title: 'Google TTS Playback Error',
+        title: 'Google TTS Playback Error' as NonEmptyStringTrimmed,
         description: unknown_to_errorMessage(result.error),
       }
     case 'error_empty_createObjectURL':
       return {
-        title: 'Google TTS Error',
-        description: 'Unable to process audio data.',
+        title: 'Google TTS Error' as NonEmptyStringTrimmed,
+        description: 'Unable to process audio data.' as NonEmptyStringTrimmed,
       }
   }
 }
