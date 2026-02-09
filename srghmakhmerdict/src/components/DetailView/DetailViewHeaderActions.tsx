@@ -7,22 +7,22 @@ import { Button } from '@heroui/button'
 import { Tooltip } from '@heroui/tooltip'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
 import type { SharedSelection } from '@heroui/system'
-
-import { KhmerHideToggleIcon } from '../KhmerHideToggleIcon'
-import {
-  KHMER_FONT_FAMILY,
-  KHMER_FONT_NAME,
-  stringToKhmerFontNameOrThrow,
-  stringToMaybeColorizationModeOrThrow,
-} from '../../utils/text-processing/utils'
-import { herouiSharedSelection_getFirst_string } from '../../utils/herouiSharedSelection_getFirst_string'
-import type { KhmerFontName, MaybeColorizationMode } from '../../utils/text-processing/utils'
-import { GoogleSpeechAction } from './GoogleSpeechAction'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../../types'
-import { NativeSpeechAction } from './NativeSpeechAction'
+import { herouiSharedSelection_getFirst_string } from '../../utils/herouiSharedSelection_getFirst_string'
 import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
-import { NonKhmerHideToggleIcon } from '../NonKhmerHideToggleIcon'
+import {
+  type KhmerFontName,
+  stringToKhmerFontNameOrThrow,
+  KHMER_FONT_NAME,
+  KHMER_FONT_FAMILY,
+  type MaybeColorizationMode,
+  stringToMaybeColorizationModeOrThrow,
+} from '../../utils/text-processing/utils'
+import { GoogleSpeechAction } from './Tooltips/GoogleSpeechAction'
+import { NativeSpeechAction } from './Tooltips/NativeSpeechAction'
+import { KhmerHideToggleIcon } from '../Icons/KhmerHideToggleIcon'
+import { NonKhmerHideToggleIcon } from '../Icons/NonKhmerHideToggleIcon'
 
 /**
  * 1. WORD HIDING TOGGLE
@@ -59,7 +59,7 @@ interface NonKhmerWordsHidingActionProps {
 
 export const NonKhmerWordsHidingAction = memo(({ isEnabled, onToggle }: NonKhmerWordsHidingActionProps) => {
   return (
-    <Tooltip closeDelay={0} content={isEnabled ? 'Hide khmer words' : 'Show khmer words'}>
+    <Tooltip closeDelay={0} content={isEnabled ? 'Hide non khmer words' : 'Show non khmer words'}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -264,7 +264,13 @@ export const DetailViewActions = memo((props: DetailViewActionsProps) => {
   return (
     <div className="flex gap-1 shrink-0">
       {isKnownWordType && (
-        <KhmerWordsHidingAction isEnabled={props.isKhmerWordsHidingEnabled} onToggle={props.toggleKhmerWordsHiding} />
+        <>
+          <KhmerWordsHidingAction isEnabled={props.isKhmerWordsHidingEnabled} onToggle={props.toggleKhmerWordsHiding} />
+          <NonKhmerWordsHidingAction
+            isEnabled={props.isNonKhmerWordsHidingEnabled}
+            onToggle={props.toggleNonKhmerWordsHiding}
+          />
+        </>
       )}
       <KhmerLinksAction
         isDisabled={isKnownWordType ? props.maybeColorMode === 'none' : false}

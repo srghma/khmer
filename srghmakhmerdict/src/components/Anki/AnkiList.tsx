@@ -3,7 +3,7 @@ import { format } from 'date-fns'
 import React, { useMemo } from 'react'
 import { Chip } from '@heroui/chip'
 
-import type { FavoriteItem } from '../../db/favorite/favorite-item'
+import type { FavoriteItem } from '../../db/favorite/item'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 type CardDetail = {

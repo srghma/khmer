@@ -12,8 +12,8 @@ import { generateTextSegments, type TextSegment } from '../../utils/text-process
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { detectModeFromText } from '../../utils/detectModeFromText'
-import { GoogleSpeechAction } from './GoogleSpeechAction'
-import { NativeSpeechAction } from './NativeSpeechAction'
+import { GoogleSpeechAction } from './MenuButtons/GoogleSpeechAction'
+import { NativeSpeechAction } from './MenuButtons/NativeSpeechAction'
 import { MenuButton } from './MenuButton'
 import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
 

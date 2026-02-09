@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { getFavorites } from '../../db/favorite'
-import type { FavoriteItem } from '../../db/favorite/favorite-item'
+import type { FavoriteItem } from '../../db/favorite/item'
 import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useAppToast } from '../../providers/ToastProvider'
 import type { DictionaryLanguage } from '../../types'

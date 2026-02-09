@@ -1,6 +1,6 @@
 import React from 'react'
 import { SiGoogletranslate } from 'react-icons/si'
-import { type GoogleTtsState } from '../hooks/useGoogleTts'
+import { type GoogleTtsState } from '../../hooks/useGoogleTts'
 import { clsx } from 'clsx'
 import { HiOutlineSpeakerWave } from 'react-icons/hi2'
 

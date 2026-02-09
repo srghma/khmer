@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
-import { type NativeTtsState } from '../../../hooks/useNativeTts'
-import { MenuButton } from '../MenuButton'
-import { NativeSpeakerIcon } from '../../NativeSpeakerIcon'
+import { type NativeTtsState } from '../../../../hooks/useNativeTts'
+import { MenuButton } from '../../MenuButton'
+import { NativeSpeakerIcon } from '../../../Icons/NativeSpeakerIcon'
 
 export const NativeSpeechActionPresentation = memo((state: NativeTtsState & { isDisabled: boolean }) => {
   const handlePress = !state.isSpeaking ? state.speak : undefined

@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { useNativeTts } from '../../../hooks/useNativeTts'
+import { useNativeTts } from '../../../../hooks/useNativeTts'
 import { NativeSpeechActionPresentation } from './Presentation'
-import type { BCP47LanguageTagName } from '../../../utils/my-bcp-47'
+import type { BCP47LanguageTagName } from '../../../../utils/my-bcp-47'
 
 interface NativeSpeechActionProps {
   word: NonEmptyStringTrimmed | undefined

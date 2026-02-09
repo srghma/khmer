@@ -9,7 +9,7 @@ import {
   favoriteItemArray_add,
   favoriteItemArray_containsWordLanguage,
   favoriteItemArray_remove,
-} from '../db/favorite/favorite-item'
+} from '../db/favorite/item'
 
 export function useToggleFavorite(word: NonEmptyStringTrimmed, word_language: DictionaryLanguage) {
   const toast = useAppToast()

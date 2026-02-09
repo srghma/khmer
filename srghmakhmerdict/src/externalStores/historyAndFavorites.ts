@@ -1,6 +1,6 @@
 import { createExternalStore } from '../utils/createExternalStore'
 import type { HistoryItem } from '../db/history'
-import type { FavoriteItem } from '../db/favorite/favorite-item'
+import type { FavoriteItem } from '../db/favorite/item'
 
 // We store the full Map to sync between the detail view and the favorites list
 // type Store = NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined

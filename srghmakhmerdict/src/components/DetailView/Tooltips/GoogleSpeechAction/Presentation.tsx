@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { Button } from '@heroui/button'
 import { Tooltip } from '@heroui/tooltip'
-import { GoogleSpeakerIcon } from '../../GoogleSpeakerIcon'
-import { type GoogleTtsState } from '../../../hooks/useGoogleTts'
+import { GoogleSpeakerIcon } from '../../../Icons/GoogleSpeakerIcon'
+import { type GoogleTtsState } from '../../../../hooks/useGoogleTts'
 
 export const GoogleSpeechActionPresentation = memo((state: GoogleTtsState & { isDisabled: boolean }) => {
   const isOffline = state.t === 'offline'

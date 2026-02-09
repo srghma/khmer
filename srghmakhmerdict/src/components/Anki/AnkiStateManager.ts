@@ -1,10 +1,10 @@
 import { Grade } from 'femto-fsrs'
-import { deck, getOneDayInMs } from '../../db/favorite_anki'
+import { deck, getOneDayInMs } from '../../db/favorite/anki'
 import {
   numberToNOfDays_orThrow_mk,
   type NOfDays,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/n-of-days'
-import type { FavoriteItem } from '../../db/favorite/favorite-item'
+import type { FavoriteItem } from '../../db/favorite/item'
 import type { DictionaryLanguage } from '../../types'
 import { descNumber, sortBy_mutating } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/sort'
 

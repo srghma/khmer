@@ -1,8 +1,8 @@
-import { getUserDb } from './core'
+import { getUserDb } from '../core'
 import { createDeck, Grade } from 'femto-fsrs' // Assuming you saved the file there
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { DictionaryLanguage } from '../types'
-import type { FavoriteItem } from './favorite/favorite-item'
+import type { DictionaryLanguage } from '../../types'
+import type { FavoriteItem } from './item'
 
 // Initialize the FSRS algorithm (Default parameters)
 export const deck = createDeck()

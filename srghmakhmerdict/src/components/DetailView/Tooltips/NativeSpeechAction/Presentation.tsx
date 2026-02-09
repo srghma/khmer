@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { Button } from '@heroui/button'
 import { Tooltip } from '@heroui/tooltip'
-import type { NativeTtsState } from '../../../hooks/useNativeTts'
-import { NativeSpeakerIcon } from '../../NativeSpeakerIcon'
+import type { NativeTtsState } from '../../../../hooks/useNativeTts'
+import { NativeSpeakerIcon } from '../../../Icons/NativeSpeakerIcon'
 
 export const NativeSpeechActionPresentation = memo((state: NativeTtsState & { isDisabled: boolean }) => {
   const handlePress = !state.isSpeaking ? state.speak : undefined
