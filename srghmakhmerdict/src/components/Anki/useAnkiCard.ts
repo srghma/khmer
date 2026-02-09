@@ -7,7 +7,7 @@ import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useAppToast } from '../../providers/ToastProvider'
 import type { DictionaryLanguage } from '../../types'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
-import { getDueCards } from './AnkiStateManager'
+import { getDueCards } from './utils'
 import {
   Array_isNonEmptyArray,
   type NonEmptyArray,

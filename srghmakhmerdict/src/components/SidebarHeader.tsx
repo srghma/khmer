@@ -15,8 +15,8 @@ interface SidebarHeaderProps {
   showSearchBar: boolean
 }
 
-const tab_title_en = <span className="text-lg">🇬🇧</span>
-const tab_title_km = <span className="text-lg">🇰🇭</span>
+export const tab_title_en = <span className="text-lg">🇬🇧</span>
+export const tab_title_km = <span className="text-lg">🇰🇭</span>
 
 export const tab_title_ru = <img alt="RU" className="w-5 h-5" src="/free_russia_flag_wavy.svg" />
 const tab_title_history = <GoHistory className="text-lg" />

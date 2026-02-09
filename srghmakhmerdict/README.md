@@ -14,8 +14,11 @@ there should be 1 button to open anki modal, inside of anki game there should be
 
 therefore 6 modes:
 
-1. "you are shown khmer db - list is a Word (khmer word) - you try to guess translation (in your mind)"
-2. "you are shown khmer db - list is a Desc fields where khmer text is removed - you try to guess Word (there is also "fill in blank" that will show diff on reveal, filled optionally)"
-3. "you are shown en db - list is a Word (en word) - you try to guess translation (in your mind)"
-4. "you are shown en db - list is a Desc fields where non-khmer text is removed - you try to guess Word (there is also "fill in blank" that will show diff on reveal, filled optionally)"
-5. 6. - same for ru
+1. "you are shown khmer db - list is a Word (khmer word) - you try to guess translation (en or ru) (in your mind)"
+2. "you are shown khmer db - list is a Desc (en or ru) fields where khmer text is removed - you try to guess Word (km) (there is also "fill in blank" that will show diff on reveal, filled optionally)"
+
+3. "you are shown en db - list is a Word (en word) - you try to guess translation (km) (in your mind)"
+4. "you are shown en db - list is a Desc (en) fields where non-khmer text is removed - you try to guess Word (there is also "fill in blank" that will show diff on reveal, filled optionally)"
+
+5. "you are shown ru db - list is a Word (ru word) - you try to guess translation (km) (in your mind)"
+6. "you are shown ru db - list is a Desc (ru) fields where non-khmer text is removed - you try to guess Word (there is also "fill in blank" that will show diff on reveal, filled optionally)"

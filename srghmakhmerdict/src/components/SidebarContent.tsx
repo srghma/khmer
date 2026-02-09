@@ -86,7 +86,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   if (activeTab === 'favorites') {
     return (
       <Suspense fallback={ContentFallback}>
-        <FavoritesListOnly km_map={km_map} maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
+        <FavoritesListOnly maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
       </Suspense>
     )
   }

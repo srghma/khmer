@@ -1,16 +1,16 @@
 // Copyright 2023 srghma
 
-import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 import { reorderText as reorderTextImpl } from 'khmer-normalize'
 import { khnormal as khnormalImpl } from 'khmer-normalizer'
 import { Iterator_yieldUnique_usingSet } from './iterator'
+import type { TypedContainsKhmer } from './string-contains-khmer-char'
 
 // Khmer Unicode range: U+1780 to U+17FF
 const KhmerWord_REGEX = /^\p{Script=Khmer}+$/u
 
 // text that contains only khmer letters and no other letters (not even space)
 
-export type TypedKhmerWord = NonEmptyStringTrimmed & { readonly __brandTypedKhmerWord: 'TypedKhmerWord' }
+export type TypedKhmerWord = TypedContainsKhmer & { readonly __brandTypedKhmerWord: 'TypedKhmerWord' }
 export const isKhmerWord = (value: string): value is TypedKhmerWord => KhmerWord_REGEX.test(value)
 export const strToKhmerWordOrUndefined = (value: string): TypedKhmerWord | undefined =>
   isKhmerWord(value) ? value : undefined

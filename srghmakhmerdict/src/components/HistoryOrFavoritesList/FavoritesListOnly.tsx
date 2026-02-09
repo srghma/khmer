@@ -2,32 +2,37 @@ import React, { useState, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { FaRegTrashAlt } from 'react-icons/fa'
 import { Button } from '@heroui/button'
-import { Tooltip } from '@heroui/react'
+import { Modal, Tooltip } from '@heroui/react'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import { useAppToast } from '../../providers/ToastProvider'
 
 import * as FavDb from '../../db/favorite'
-import { KhmerAnkiModal } from '../Anki/Anki'
-import type { ReviewDirection } from '../Anki/AnkiModalContent'
 
 import { LoadingState, EmptyState } from './SharedComponents'
 import { HistoryItemRow } from './HistoryItemRow'
 import { useListLogic } from './useListLogic'
 import { ConfirmAction } from '../ConfirmAction'
 import { favoritesStore } from '../../externalStores/historyAndFavorites'
+import { useDictionary } from '../../providers/DictionaryProvider'
+import { AnkiModalContent } from '../Anki/AnkiModalContent'
+import { AnkiPulseProvider } from '../Anki/AnkiPulseContext'
+import { AnkiSettingsProvider } from '../Anki/useAnkiSettings'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
-  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
 }
 
-export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, km_map, maybeColorMode }) => {
-  const toast = useAppToast()
+const ankiModalClassNames = {
+  // body: 'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
+  header: 'mt-[env(safe-area-inset-top)]',
+  closeButton: 'mt-[env(safe-area-inset-top)]',
+}
+
+export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, maybeColorMode }) => {
+  const dictData = useDictionary()
 
   const { items, loading, handleDelete, handleClearAll } = useListLogic(
     FavDb.getFavorites,
@@ -38,33 +43,14 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
   )
 
   const [isAnkiOpen, setIsAnkiOpen] = useState(false)
-  const [reviewDirection, setReviewDirection] = useState<ReviewDirection>('KM_TO_ALL')
-
-  const handleOpenAnki = useCallback(
-    (direction: ReviewDirection) => {
-      if (!items) return
-
-      // Logic check: ensure there are words for that direction?
-      // For now, simple check for any favorites is likely enough,
-      // or check specific language presence if strictly required.
-      if (items.length === 0) {
-        toast.error('No favorites to review' as NonEmptyStringTrimmed)
-
-        return
-      }
-
-      setReviewDirection(direction)
-      setIsAnkiOpen(true)
-    },
-    [items, toast],
-  )
+  const handleOpenAnki = useCallback(() => setIsAnkiOpen(true), [])
 
   const confirmContent = React.useMemo(
     () => <p className="text-small text-default-500">Are you sure you want to delete all {items?.length} items?</p>,
     [items?.length],
   )
 
-  const khmerAnkiModalOnClose = useCallback(() => setIsAnkiOpen(false), [])
+  const handleCloseAnki = useCallback(() => setIsAnkiOpen(false), [])
 
   if (loading) return <LoadingState />
   if (!items) return <EmptyState type="favorites" />
@@ -77,21 +63,16 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
             Favorites ({items.length})
           </span>
           <div className="flex gap-2">
-            <Tooltip content="Guess Khmer from English">
-              <Button isIconOnly color="secondary" size="sm" variant="flat" onPress={() => handleOpenAnki('EN_TO_KM')}>
-                <span className="text-xs font-bold">EN</span>
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Guess Khmer from Russian">
-              <Button isIconOnly color="secondary" size="sm" variant="flat" onPress={() => handleOpenAnki('RU_TO_KM')}>
-                <span className="text-xs font-bold">RU</span>
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Read Khmer, guess meaning">
-              <Button isIconOnly color="secondary" size="sm" variant="flat" onPress={() => handleOpenAnki('KM_TO_ALL')}>
-                <span className="text-xs font-bold">KM</span>
+            <Tooltip content="Open anki">
+              <Button
+                isIconOnly
+                color="secondary"
+                isDisabled={items.length === 0}
+                size="sm"
+                variant="flat"
+                onPress={handleOpenAnki}
+              >
+                <span className="text-xs font-bold">Anki</span>
               </Button>
             </Tooltip>
             <ConfirmAction
@@ -120,7 +101,7 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
           {items.map(({ word, language }) => (
             <HistoryItemRow
               key={`${word}-${language}`}
-              km_map={km_map}
+              km_map={dictData.km_map}
               language={language}
               maybeColorMode={maybeColorMode}
               word={word}
@@ -131,14 +112,19 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
         </AnimatePresence>
       </div>
 
-      {km_map && (
-        <KhmerAnkiModal
-          isOpen={isAnkiOpen}
-          km_map={km_map}
-          reviewDirection={reviewDirection}
-          onClose={khmerAnkiModalOnClose}
-        />
-      )}
+      <AnkiPulseProvider>
+        <AnkiSettingsProvider>
+          <Modal
+            classNames={ankiModalClassNames}
+            isOpen={isAnkiOpen}
+            scrollBehavior="inside"
+            size="full"
+            onClose={handleCloseAnki}
+          >
+            <AnkiModalContent />
+          </Modal>
+        </AnkiSettingsProvider>
+      </AnkiPulseProvider>
     </>
   )
 })

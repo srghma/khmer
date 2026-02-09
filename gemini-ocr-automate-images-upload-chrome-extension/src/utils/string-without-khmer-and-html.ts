@@ -1,18 +1,16 @@
 // Copyright 2023 srghma
 
 import { strToWithoutKhmer_remove_orUndefined, type TypedWithoutKhmer } from './string-without-khmer'
+import { stripHtml } from './strip-html'
 
 export type TypedWithoutKhmerAndHtml = TypedWithoutKhmer & {
   readonly __brandTypedWithoutKhmerAndHtml: 'TypedWithoutKhmerAndHtml'
 }
 
 export const strToWithoutKhmerAndHtml_remove_orUndefined = (value: string): TypedWithoutKhmerAndHtml | undefined => {
-  const div = document.createElement('div')
+  if (!value) return
 
-  div.innerHTML = value
-  const text = div.textContent || ''
-
-  return strToWithoutKhmer_remove_orUndefined(text) as TypedWithoutKhmerAndHtml | undefined
+  return strToWithoutKhmer_remove_orUndefined(stripHtml(value)) as TypedWithoutKhmerAndHtml | undefined
 }
 
 export const strToWithoutKhmerAndHtml_remove_orThrow = (value: string): TypedWithoutKhmerAndHtml => {

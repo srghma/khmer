@@ -16,6 +16,7 @@ export const strToWithoutKhmerOrThrow = (value: NonEmptyStringTrimmed): TypedWit
 }
 
 export const strToWithoutKhmer_remove_orUndefined = (value: string): TypedWithoutKhmer | undefined => {
+  if (!value) return undefined
   const v = value
     .replace(/\p{Script=Khmer}+/gu, '')
     .replace(/\s\s+/g, ' ')

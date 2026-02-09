@@ -8,24 +8,25 @@ import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useAppToast } from '../../providers/ToastProvider'
 import type { DictionaryLanguage } from '../../types'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
-import { type NextIntervals, getPreviewIntervals } from './AnkiStateManager'
+import { type NextIntervals, getPreviewIntervals } from './utils'
 import { AnkiCardsResult_empty, AnkiCardsResult_loading, useAnkiCards } from './useAnkiCard'
 
 export type AnkiGameState =
   | typeof AnkiCardsResult_loading
   | typeof AnkiCardsResult_empty
   | {
-      t: 'review'
-      currentCard: FavoriteItem
-      nextIntervals: NextIntervals
-      isRevealed: boolean
-      remainingCount: number
-      isProcessing: boolean
+    t: 'review'
+    currentCard: FavoriteItem
+    nextIntervals: NextIntervals
+    isRevealed: boolean
+    remainingCount: number
+    queue: ReadonlyArray<FavoriteItem>
+    isProcessing: boolean
 
-      // Actions
-      reveal: () => void
-      rate: (grade: Grade) => Promise<void>
-    }
+    // Actions
+    reveal: () => void
+    rate: (grade: Grade) => Promise<void>
+  }
 
 export function useAnkiGame(language: DictionaryLanguage): AnkiGameState {
   const cardsState = useAnkiCards(language)
@@ -62,6 +63,7 @@ export function useAnkiGame(language: DictionaryLanguage): AnkiGameState {
     nextIntervals,
     isRevealed,
     remainingCount: cardsState.dueQueue.length,
+    queue: cardsState.dueQueue,
     isProcessing,
     reveal,
     rate,

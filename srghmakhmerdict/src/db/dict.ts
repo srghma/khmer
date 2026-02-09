@@ -8,7 +8,7 @@ import { NonEmptyArraySchema } from '@gemini-ocr-automate-images-upload-chrome-e
 import { NonEmptyStringTrimmedSchema } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed-zod'
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
-import { isKhmerWord, type TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { isKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import {
   Map_toNonEmptyMap_orThrow,
   type NonEmptyMap,
@@ -178,13 +178,67 @@ export const get_en_km_com_images_ocr = async (ids: NonEmptySet<ValidNonNegative
 }
 
 export const getKmWordsDetailShort = async (
-  words: NonEmptySet<TypedKhmerWord>, // TypedKhmerWord
-): Promise<NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null>> => {
-  return invoke('get_km_words_detail_short', { words: Array.from(words) })
+  words: NonEmptySet<TypedContainsKhmer>,
+): Promise<NonEmptyRecord<TypedContainsKhmer, NonEmptyStringTrimmed | null>> => {
+  return invoke('km_for_many__short_description', { words: Array.from(words) })
+}
+
+export const getKmWordsDetailShort_Strict = async (
+  words: NonEmptySet<TypedContainsKhmer>,
+): Promise<NonEmptyRecord<TypedContainsKhmer, NonEmptyStringTrimmed>> => {
+  return invoke('km_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getKmWordsDetailFull = async (
   words: NonEmptySet<TypedContainsKhmer>,
 ): Promise<NonEmptyRecord<TypedContainsKhmer, WordDetailKm | null>> => {
-  return invoke('get_km_words_detail_full', { words: Array.from(words) })
+  return invoke('km_for_many__full_details__none_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getKmWordsDetailFull_Strict = async (
+  words: NonEmptySet<TypedContainsKhmer>,
+): Promise<NonEmptyRecord<TypedContainsKhmer, WordDetailKm>> => {
+  return invoke('km_for_many__full_details__throws_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getEnWordsDetailShort = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed | null>> => {
+  return invoke('en_for_many__short_description', { words: Array.from(words) })
+}
+
+export const getEnWordsDetailShort_Strict = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed>> => {
+  return invoke('en_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getEnWordsDetailFull = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, WordDetailEn | null>> => {
+  return invoke('en_for_many__full_details__none_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getEnWordsDetailFull_Strict = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, WordDetailEn>> => {
+  return invoke('en_for_many__full_details__throws_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getRuWordsDetailShort = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed | null>> => {
+  return invoke('ru_for_many__short_description', { words: Array.from(words) })
+}
+
+export const getRuWordsDetailShort_Strict = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed>> => {
+  return invoke('ru_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getRuWordsDetailFull_Strict = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, WordDetailRu>> => {
+  return invoke('ru_for_many__full_details__throws_if_word_not_found', { words: Array.from(words) })
 }
