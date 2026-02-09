@@ -7,6 +7,7 @@ import type { KhmerWordsMap } from '../../db/dict'
 import { useAnkiGame } from './useAnkiGame'
 import { AnkiDeckView } from './AnkiDeckView'
 import type { AnkiFlowMode } from './types'
+import { AnkiPulseProvider } from './AnkiPulseContext'
 
 export type ReviewDirection = 'EN_TO_KM' | 'RU_TO_KM' | 'KM_TO_ALL'
 
@@ -72,7 +73,11 @@ export const AnkiModalContent = React.memo(
             </div>
           )}
 
-          {state.t === 'review' && <AnkiDeckView km_map={km_map} language={language} mode={mode} state={state} />}
+          {state.t === 'review' && (
+            <AnkiPulseProvider>
+              <AnkiDeckView km_map={km_map} language={language} mode={mode} state={state} />
+            </AnkiPulseProvider>
+          )}
         </div>
       </div>
     )

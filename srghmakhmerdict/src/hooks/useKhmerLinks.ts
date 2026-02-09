@@ -1,20 +1,20 @@
-import {
-  String_toNonEmptyString_orUndefined_afterTrim,
-  type NonEmptyStringTrimmed,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { DictionaryLanguage } from '../types'
+import { nonEmptyString_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 import { useEffect } from 'react'
+import { memoizeSync3_Booleans } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
+import {
+  strToKhmerWordOrThrow,
+  type TypedKhmerWord,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 /**
  * Tries to handle a click on a word (Khmer or Non-Khmer).
  */
 export const tryHandleKhmerAndNonKhmerWordClick = (
   e: MouseEvent,
-  isKhmerLinksEnabled: boolean,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined,
   isKhmerWordsHidingEnabled: boolean,
   isNonKhmerWordsHidingEnabled: boolean,
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
 ): boolean => {
   const target = e.target as HTMLElement
 
@@ -35,14 +35,14 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
       }
     }
 
-    if (isKhmerLinksEnabled) {
+    if (isKhmerLinksEnabled_ifTrue_passOnNavigateKm) {
       const rawWord = khmerSpan.getAttribute('data-navigate-khmer-word')
-      const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
+      const word = rawWord ? strToKhmerWordOrThrow(nonEmptyString_afterTrim(rawWord)) : undefined // if fails - then there is mistake in parser logic
 
       if (word) {
         e.preventDefault()
         e.stopPropagation()
-        onNavigate(word, 'km')
+        isKhmerLinksEnabled_ifTrue_passOnNavigateKm(word)
 
         return true
       }
@@ -69,42 +69,56 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
   return false
 }
 
-export const useKhmerAndNonKhmerContentStyles = (
-  isKhmerLinksEnabled: boolean,
-  isKhmerWordsHidingEnabled: boolean,
-  isNonKhmerWordsHidingEnabled: boolean,
-) => {
-  const interactive = isKhmerLinksEnabled ? srghma_khmer_dict_content_styles.interactive : ''
-  const hidingKhmer = isKhmerWordsHidingEnabled ? srghma_khmer_dict_content_styles.hiding_enabled : ''
-  const hidingNonKhmer = isNonKhmerWordsHidingEnabled ? srghma_khmer_dict_content_styles.hiding_non_khmer_enabled : ''
+export const calculateKhmerAndNonKhmerContentStyles = memoizeSync3_Booleans(
+  (isKhmerLinksEnabled: boolean, isKhmerWordsHidingEnabled: boolean, isNonKhmerWordsHidingEnabled: boolean) => {
+    const classes = [
+      srghma_khmer_dict_content_styles.srghma_khmer_dict_content,
+      isKhmerLinksEnabled && srghma_khmer_dict_content_styles.interactive,
+      isKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_enabled,
+      isNonKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_non_khmer_enabled,
+    ]
 
-  return `${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${interactive} ${hidingKhmer} ${hidingNonKhmer}`
-}
+    return classes.filter(Boolean).join(' ')
+  },
+)
 
+/**
+ * Extended click listener that tries Khmer/non-Khmer handling first,
+ * then falls back to custom logic if not handled.
+ */
 export const useKhmerAndNonKhmerClickListener = (
   ref: React.RefObject<HTMLElement | null>,
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
-  isKhmerLinksEnabled: boolean,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined,
   isKhmerWordsHidingEnabled: boolean,
   isNonKhmerWordsHidingEnabled: boolean,
+  fallbackHandler?: (e: MouseEvent) => void | Promise<void>,
 ) => {
   useEffect(() => {
     const el = ref.current
 
     if (!el) return
 
-    const handleClick = (e: MouseEvent) => {
-      tryHandleKhmerAndNonKhmerWordClick(
+    const handleClick = async (e: MouseEvent) => {
+      const handled = tryHandleKhmerAndNonKhmerWordClick(
         e,
-        isKhmerLinksEnabled,
+        isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
         isKhmerWordsHidingEnabled,
         isNonKhmerWordsHidingEnabled,
-        onNavigate,
       )
+
+      if (!handled && fallbackHandler) {
+        await fallbackHandler(e)
+      }
     }
 
     el.addEventListener('click', handleClick)
 
     return () => el.removeEventListener('click', handleClick)
-  }, [ref, isKhmerLinksEnabled, isKhmerWordsHidingEnabled, isNonKhmerWordsHidingEnabled, onNavigate])
+  }, [
+    ref,
+    fallbackHandler,
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
+  ])
 }

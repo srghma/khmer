@@ -1,12 +1,13 @@
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import React from 'react'
+import React, { useMemo } from 'react'
 import type { KhmerWordsMap } from '../../db/dict'
 import type { DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { EnKmHtmlRenderer } from '../EnKmHtmlRenderer'
 import { WiktionaryRenderer } from '../WiktionaryRenderer'
 import { SectionTitle, RenderHtmlColorized, CsvListRendererColorized, CsvListRendererText } from './atoms'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 interface DetailSectionsProps {
   desc: NonEmptyStringTrimmed | undefined //can have km
@@ -23,8 +24,9 @@ interface DetailSectionsProps {
   maybeColorMode: MaybeColorizationMode
   km_map: KhmerWordsMap
   mode: DictionaryLanguage
-  onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
-  isKhmerLinksEnabled: boolean
+  isKhmerLinksEnabled_ifTrue_passOnNavigate:
+    | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
+    | undefined
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
 }
@@ -45,11 +47,18 @@ export const DetailSections = React.memo(
     maybeColorMode,
     km_map,
     mode,
-    onNavigate,
-    isKhmerLinksEnabled,
+    isKhmerLinksEnabled_ifTrue_passOnNavigate,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
   }: DetailSectionsProps) => {
+    const isKhmerLinksEnabled_ifTrue_passOnNavigateKm = useMemo(
+      () =>
+        isKhmerLinksEnabled_ifTrue_passOnNavigate
+          ? (w: TypedKhmerWord) => isKhmerLinksEnabled_ifTrue_passOnNavigate(w, 'km')
+          : undefined,
+      [isKhmerLinksEnabled_ifTrue_passOnNavigate],
+    )
+
     return (
       <>
         {desc && (
@@ -58,12 +67,11 @@ export const DetailSections = React.memo(
             <RenderHtmlColorized
               hideBrokenImages_enable={true}
               html={desc}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
           </div>
         )}
@@ -74,12 +82,11 @@ export const DetailSections = React.memo(
             <RenderHtmlColorized
               hideBrokenImages_enable={true}
               html={desc_en_only}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
           </div>
         )}
@@ -89,12 +96,11 @@ export const DetailSections = React.memo(
             <SectionTitle>English-Khmer</SectionTitle>
             <EnKmHtmlRenderer
               html={en_km_com}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
           </div>
         )}
@@ -105,13 +111,12 @@ export const DetailSections = React.memo(
             {from_csv_variants && (
               <div className="mb-2">
                 <CsvListRendererColorized
-                  isKhmerLinksEnabled={isKhmerLinksEnabled}
+                  isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   items={from_csv_variants}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
-                  onNavigate={onNavigate}
                 />
               </div>
             )}
@@ -121,13 +126,12 @@ export const DetailSections = React.memo(
                   <span className="text-[0.7em] uppercase tracking-wider font-bold text-default-400">Noun forms</span>
                 </div>
                 <CsvListRendererColorized
-                  isKhmerLinksEnabled={isKhmerLinksEnabled}
+                  isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   items={from_csv_noun_forms}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
-                  onNavigate={onNavigate}
                 />
               </>
             )}
@@ -144,12 +148,11 @@ export const DetailSections = React.memo(
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={from_csv_raw_html}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
           </div>
         )}
@@ -160,12 +163,12 @@ export const DetailSections = React.memo(
             <WiktionaryRenderer
               currentMode={mode}
               html={wiktionary}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled_ifTrue_passOnNavigate}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
           </div>
         )}
@@ -176,12 +179,11 @@ export const DetailSections = React.memo(
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={from_russian_wiki}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
           </div>
         )}
@@ -192,24 +194,22 @@ export const DetailSections = React.memo(
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={from_chuon_nath}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
-              onNavigate={onNavigate}
             />
             {from_chuon_nath_translated && (
               <div className="mt-4 pt-4 border-t border-divider">
                 <RenderHtmlColorized
                   hideBrokenImages_enable={false}
                   html={from_chuon_nath_translated}
-                  isKhmerLinksEnabled={isKhmerLinksEnabled}
+                  isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
-                  onNavigate={onNavigate}
                 />
               </div>
             )}

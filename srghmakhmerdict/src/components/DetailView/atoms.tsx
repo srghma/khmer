@@ -6,9 +6,8 @@ import { colorizeHtml } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { colorizeHtml_nonEmptyArray } from './utils'
 import styles from './hide-broken-images.module.css'
-import type { DictionaryLanguage } from '../../types'
-import { useKhmerAndNonKhmerClickListener, useKhmerAndNonKhmerContentStyles } from '../../hooks/useKhmerLinks'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../../hooks/useKhmerLinks'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
   <div className="text-[0.7em] uppercase tracking-wider font-bold text-default-400 mb-[0.75em] border-b border-divider pb-1">
@@ -24,7 +23,7 @@ type RenderHtmlProps = {
 }
 
 export const RenderHtml = React.memo(
-  React.forwardRef<HTMLDivElement, RenderHtmlProps>(({ html, className }, ref) => {
+  ({ html, className, ref }: RenderHtmlProps & { ref: React.RefObject<HTMLDivElement | null> }) => {
     const dangerousHtml = React.useMemo(() => (html ? { __html: html } : undefined), [html])
 
     if (!dangerousHtml) return null
@@ -32,11 +31,11 @@ export const RenderHtml = React.memo(
     return (
       <div
         dangerouslySetInnerHTML={dangerousHtml}
-        ref={ref}
+        ref={ref} // ref comes from props
         className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert ${className}`}
       />
     )
-  }),
+  },
 )
 
 RenderHtml.displayName = 'RenderHtml'
@@ -47,8 +46,7 @@ export const RenderHtmlColorized = React.memo(
     maybeColorMode,
     km_map,
     hideBrokenImages_enable,
-    onNavigate,
-    isKhmerLinksEnabled,
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
   }: {
@@ -56,29 +54,26 @@ export const RenderHtmlColorized = React.memo(
     maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap
     hideBrokenImages_enable: boolean
-    onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
-    isKhmerLinksEnabled: boolean
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
     isKhmerWordsHidingEnabled: boolean
     isNonKhmerWordsHidingEnabled: boolean
   }) => {
     const containerRef = React.useRef<HTMLDivElement>(null)
     const processedHtml = useMemo(
-      () =>
-        maybeColorMode !== 'none' && html && isContainsKhmer(html) ? colorizeHtml(html, maybeColorMode, km_map) : html,
+      () => (maybeColorMode !== 'none' && html ? colorizeHtml(html, maybeColorMode, km_map) : html),
       [html, maybeColorMode, km_map],
     )
 
     const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
-    const khmerContentClass = useKhmerAndNonKhmerContentStyles(
-      isKhmerLinksEnabled,
+    const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
+      !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
       isKhmerWordsHidingEnabled,
       isNonKhmerWordsHidingEnabled,
     )
 
     useKhmerAndNonKhmerClickListener(
       containerRef,
-      onNavigate,
-      isKhmerLinksEnabled,
+      isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
       isKhmerWordsHidingEnabled,
       isNonKhmerWordsHidingEnabled,
     )
@@ -105,13 +100,13 @@ type CsvListRendererHtmlProps = {
 }
 
 export const CsvListRendererHtml = React.memo(
-  React.forwardRef<HTMLUListElement, CsvListRendererHtmlProps>(({ items, ulClassName }, ref) => (
+  ({ items, ulClassName, ref }: CsvListRendererHtmlProps & { ref: React.RefObject<HTMLUListElement | null> }) => (
     <ul ref={ref} className={`list-disc list-inside space-y-1 text-foreground/80 ${ulClassName}`}>
       {items.map((item, i) => (
         <HtmlListItem key={i} html={item} />
       ))}
     </ul>
-  )),
+  ),
 )
 
 CsvListRendererHtml.displayName = 'CsvListRendererHtml'
@@ -121,16 +116,14 @@ export const CsvListRendererColorized = React.memo(
     items,
     maybeColorMode,
     km_map,
-    onNavigate,
-    isKhmerLinksEnabled,
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
   }: {
     items: NonEmptyArray<NonEmptyStringTrimmed> | undefined
     maybeColorMode: MaybeColorizationMode
     km_map: KhmerWordsMap | undefined
-    onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
-    isKhmerLinksEnabled: boolean
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
     isKhmerWordsHidingEnabled: boolean
     isNonKhmerWordsHidingEnabled: boolean
   }) => {
@@ -141,16 +134,15 @@ export const CsvListRendererColorized = React.memo(
       [items, maybeColorMode, km_map],
     )
 
-    const khmerContentClass = useKhmerAndNonKhmerContentStyles(
-      isKhmerLinksEnabled,
+    const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
+      !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
       isKhmerWordsHidingEnabled,
       isNonKhmerWordsHidingEnabled,
     )
 
     useKhmerAndNonKhmerClickListener(
       listRef,
-      onNavigate,
-      isKhmerLinksEnabled,
+      isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
       isKhmerWordsHidingEnabled,
       isNonKhmerWordsHidingEnabled,
     )

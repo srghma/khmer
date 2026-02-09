@@ -1,8 +1,5 @@
-import {
-  type NonEmptyStringTrimmed,
-  String_toNonEmptyString_orUndefined_afterTrim,
-  nonEmptyString_afterTrim,
-} from './non-empty-string-trimmed'
+import { String_toNonEmptyString_orUndefined, type NonEmptyString } from './non-empty-string'
+import { type NonEmptyStringTrimmed, nonEmptyString_afterTrim } from './non-empty-string-trimmed'
 
 /**
  * A generic pure function that parses an HTML string, walks the DOM,
@@ -18,14 +15,14 @@ export const replaceHtmlTextNodesWithMaybeOtherHtml = (
   // In Tauri/Browser, `document` is available.
   tempDiv: HTMLDivElement,
   html: NonEmptyStringTrimmed,
-  transformFn: (text: NonEmptyStringTrimmed) => NonEmptyStringTrimmed,
+  transformFn: (text: NonEmptyString) => NonEmptyString,
 ): NonEmptyStringTrimmed => {
   tempDiv.innerHTML = html
 
   // 2. Recursive function to traverse and process Text Nodes only
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
-      const textContent = node.nodeValue ? String_toNonEmptyString_orUndefined_afterTrim(node.nodeValue) : undefined
+      const textContent = node.nodeValue ? String_toNonEmptyString_orUndefined(node.nodeValue) : undefined
 
       if (textContent) {
         // Run the transformation function provided by the caller

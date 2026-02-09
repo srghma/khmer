@@ -55,14 +55,13 @@ export const AnkiDeckView = React.memo(({ state, mode, language, km_map }: AnkiD
         from_csv_raw_html={detail.from_csv_raw_html}
         from_csv_variants={detail.from_csv_variants}
         from_russian_wiki={detail.from_russian_wiki}
-        isKhmerLinksEnabled={false}
+        isKhmerLinksEnabled_ifTrue_passOnNavigate={undefined}
         isKhmerWordsHidingEnabled={mode === 'DESC_TO_WORD'}
         isNonKhmerWordsHidingEnabled={false}
         km_map={km_map}
         maybeColorMode="none"
         mode={language}
         wiktionary={detail.wiktionary}
-        onNavigate={() => {}}
       />
     )
   }, [defResult, mode, language, km_map])

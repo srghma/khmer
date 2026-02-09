@@ -1,5 +1,5 @@
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { useEffect, useMemo, useRef, type RefObject } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { type DictionaryLanguage } from '../types'
 import styles from './WiktionaryRenderer.module.css'
 import { useAppToast } from '../providers/ToastProvider'
@@ -9,9 +9,10 @@ import { colorizeHtml } from '../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
-import { tryHandleKhmerAndNonKhmerWordClick, useKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
+import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
@@ -27,35 +28,15 @@ export const useWiktionaryContent = (
   }, [html, maybeColorMode, km_map])
 }
 
-export const useWikiLinkInterception = (
-  containerRef: RefObject<HTMLDivElement | null>,
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
+const useWikiLinkHandler = (
+  isKhmerLinksEnabled_ifTrue_passOnNavigate:
+    | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
+    | undefined,
   currentMode: DictionaryLanguage,
-  htmlContent: NonEmptyStringTrimmed,
-  isKhmerLinksEnabled: boolean,
-  isKhmerWordsHidingEnabled: boolean,
-  isNonKhmerWordsHidingEnabled: boolean,
+  toast: ReturnType<typeof useAppToast>,
 ) => {
-  const toast = useAppToast()
-
-  useEffect(() => {
-    const container = containerRef.current
-
-    if (!container) return
-
-    const handleLinkClick = (e: MouseEvent) => {
-      // 1. Custom "Data Attribute" Links (Khmer Words) - Priority
-      const handled = tryHandleKhmerAndNonKhmerWordClick(
-        e,
-        isKhmerLinksEnabled,
-        isKhmerWordsHidingEnabled,
-        isNonKhmerWordsHidingEnabled,
-        onNavigate,
-      )
-
-      if (handled) return
-
-      // 2. Standard Wiki Links (only process if we didn't hit a khmer word above)
+  return useCallback(
+    (e: MouseEvent) => {
       const target = e.target as HTMLElement
       const targetAnchor = target.closest('a')
 
@@ -66,10 +47,16 @@ export const useWikiLinkInterception = (
 
       switch (result.kind) {
         case 'internal': {
-          e.preventDefault()
-          const nextMode = detectModeFromText(result.term) ?? currentMode
+          // TODO: we disable all links (instead of just clicks on colorized khmer word), maybe its bad (but in anki game we want to disable things that disable the game, so...)
+          if (isKhmerLinksEnabled_ifTrue_passOnNavigate) {
+            e.preventDefault()
+            const nextMode = detectModeFromText(result.term) ?? currentMode
 
-          onNavigate(result.term, nextMode)
+            isKhmerLinksEnabled_ifTrue_passOnNavigate?.(result.term, nextMode)
+          } else {
+            targetAnchor.setAttribute('target', '_blank')
+            targetAnchor.setAttribute('rel', 'noopener noreferrer')
+          }
           break
         }
         case 'external': {
@@ -87,32 +74,31 @@ export const useWikiLinkInterception = (
         default:
           assertNever(result)
       }
-    }
-
-    container.addEventListener('click', handleLinkClick)
-
-    return () => container.removeEventListener('click', handleLinkClick)
-  }, [htmlContent, onNavigate, currentMode, toast, isKhmerLinksEnabled])
+    },
+    [isKhmerLinksEnabled_ifTrue_passOnNavigate, currentMode, toast],
+  )
 }
 
 interface WiktionaryRendererProps {
   html: NonEmptyStringTrimmed
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
+  isKhmerLinksEnabled_ifTrue_passOnNavigate:
+    | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
+    | undefined
   currentMode: DictionaryLanguage
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
-  isKhmerLinksEnabled: boolean
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
 }
 
 export const WiktionaryRenderer = ({
   html,
-  onNavigate,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+  isKhmerLinksEnabled_ifTrue_passOnNavigate,
   currentMode,
   km_map,
   maybeColorMode,
-  isKhmerLinksEnabled,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
 }: WiktionaryRendererProps) => {
@@ -121,19 +107,20 @@ export const WiktionaryRenderer = ({
   // 1. Process HTML (Colorization)
   const content = useWiktionaryContent(html, maybeColorMode, km_map)
 
-  // 2. Attach Event Listeners (Navigation)
-  useWikiLinkInterception(
+  const toast = useAppToast()
+
+  const wikiLinkHandler = useWikiLinkHandler(isKhmerLinksEnabled_ifTrue_passOnNavigate, currentMode, toast)
+
+  useKhmerAndNonKhmerClickListener(
     containerRef,
-    onNavigate,
-    currentMode,
-    html,
-    isKhmerLinksEnabled,
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    wikiLinkHandler,
   )
 
-  const srghma_khmer_dict_content_styles = useKhmerAndNonKhmerContentStyles(
-    isKhmerLinksEnabled,
+  const srghma_khmer_dict_content_styles = calculateKhmerAndNonKhmerContentStyles(
+    !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
   )

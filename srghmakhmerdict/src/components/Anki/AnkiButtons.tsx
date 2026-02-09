@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Button, type ButtonProps } from '@heroui/button'
 import { ModalFooter } from '@heroui/modal'
-import { addDays, formatDistanceToNow } from 'date-fns'
 import { Grade } from 'femto-fsrs'
 import type { NextIntervals } from './AnkiStateManager'
 import type { NOfDays } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/n-of-days'
+import { useRelativeInterval } from '../../hooks/useRelativeInterval'
+import { useAnkiPulseStore } from './AnkiPulseContext'
 
 // --- Types & Config ---
 
@@ -29,17 +30,18 @@ interface AnkiRatingButtonProps extends RatingConfig {
 }
 
 const AnkiRatingButton = React.memo(({ rating, label, color, intervalDays, onRate }: AnkiRatingButtonProps) => {
-  // Convert FSRS interval days to a displayable date
-  const dueDate = useMemo(() => addDays(new Date(), intervalDays), [intervalDays])
+  // 1. Get the shared store from context
+  const pulseStore = useAnkiPulseStore()
+
+  // 2. Use the generic hook
+  const relativeTime = useRelativeInterval(pulseStore, intervalDays)
 
   return (
     <div className="flex flex-col gap-1">
       <Button color={color} variant="flat" onPress={() => onRate(rating as unknown as Grade)}>
         {label}
       </Button>
-      <span className="text-[10px] text-center text-default-400 min-h-[1em]">
-        {formatDistanceToNow(dueDate, { addSuffix: true })}
-      </span>
+      <span className="text-[10px] text-center text-default-400 min-h-[1em]">{relativeTime}</span>
     </div>
   )
 })

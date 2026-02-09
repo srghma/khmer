@@ -47,3 +47,54 @@ export function memoizeSync2_LRU<A1, A2, R>(
     return result
   }
 }
+
+export function memoizeSync3_LRU<A1, A2, A3, R>(
+  fn: (a1: A1, a2: A2, a3: A3) => R,
+  keyMaker: (a1: A1, a2: A2, a3: A3) => string,
+  maxSize: number = 20,
+): (a1: A1, a2: A2, a3: A3) => R {
+  const cache = new Map<string, R>()
+
+  return (a1: A1, a2: A2, a3: A3) => {
+    const key = keyMaker(a1, a2, a3)
+
+    if (cache.has(key)) {
+      const value = cache.get(key)!
+      cache.delete(key)
+      cache.set(key, value)
+      return value
+    }
+
+    const result = fn(a1, a2, a3)
+    cache.set(key, result)
+
+    if (cache.size > maxSize) {
+      const oldestKey = cache.keys().next().value
+      if (oldestKey !== undefined) cache.delete(oldestKey)
+    }
+
+    return result
+  }
+}
+
+export function memoizeSync3_Booleans<R>(
+  fn: (a1: boolean, a2: boolean, a3: boolean) => R,
+): (a1: boolean, a2: boolean, a3: boolean) => R {
+  // We only need an array of size 8 for all boolean combinations
+  const cache: (R | undefined)[] = new Array(8)
+
+  return (a1: boolean, a2: boolean, a3: boolean): R => {
+    // Create a key from 0-7 using bitwise operators
+    // a1=true -> 4, a2=true -> 2, a3=true -> 1
+    const key = (a1 ? 4 : 0) | (a2 ? 2 : 0) | (a3 ? 1 : 0)
+
+    const cached = cache[key]
+    if (cached !== undefined) {
+      return cached
+    }
+
+    const result = fn(a1, a2, a3)
+    cache[key] = result
+    return result
+  }
+}

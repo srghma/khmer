@@ -1,8 +1,8 @@
 import { Modal, ModalContent } from '@heroui/modal'
-import { AnkiModalContent, type ReviewDirection } from './Anki/AnkiModalContent'
-import type { DictionaryLanguage } from '../types'
-import type { KhmerWordsMap } from '../db/dict'
-import type { AnkiFlowMode } from './Anki/types'
+import { AnkiModalContent, type ReviewDirection } from './AnkiModalContent'
+import type { DictionaryLanguage } from '../../types'
+import type { KhmerWordsMap } from '../../db/dict'
+import type { AnkiFlowMode } from './types'
 
 // --- Main Modal Component ---
 

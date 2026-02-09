@@ -11,7 +11,7 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { useAppToast } from '../../providers/ToastProvider'
 
 import * as FavDb from '../../db/favorite'
-import { KhmerAnkiModal } from '../Anki'
+import { KhmerAnkiModal } from '../Anki/Anki'
 import type { ReviewDirection } from '../Anki/AnkiModalContent'
 
 import { LoadingState, EmptyState } from './SharedComponents'

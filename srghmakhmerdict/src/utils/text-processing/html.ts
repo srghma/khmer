@@ -4,9 +4,10 @@ import type { KhmerWordsMap } from '../../db/dict'
 import { type ColorizationMode } from './utils'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { yieldTextSegments, colorizeSegments_usingWordCounterRef } from './text'
+import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
 
 export const colorizeHtml = (
-  html: TypedContainsKhmer,
+  html: NonEmptyStringTrimmed,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): TypedContainsKhmer => {
@@ -15,7 +16,7 @@ export const colorizeHtml = (
   const serializedHtml = replaceHtmlTextNodesWithMaybeOtherHtml(
     document.createElement('div'),
     html,
-    (textContent: NonEmptyStringTrimmed): NonEmptyStringTrimmed => {
+    (textContent: NonEmptyString): NonEmptyString => {
       // 1. Get the generator for segments
       const segmentsGenerator = yieldTextSegments(textContent, mode, km_map)
 

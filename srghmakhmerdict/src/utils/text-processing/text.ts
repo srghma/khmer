@@ -27,13 +27,13 @@ import {
 
 const HTML_DETECTION_REGEX = /<[a-z][\s\S]*>/i
 
-const escapeHtml = (unsafe: string): string => {
+const escapeHtml = (unsafe: NonEmptyString): NonEmptyString => {
   return unsafe
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
+    .replace(/'/g, '&#039;') as NonEmptyString
 }
 
 export type TextSegment =
@@ -54,10 +54,6 @@ export function* yieldUniqueKhmerWords(segments: Iterable<TextSegment>): Generat
   }
 }
 
-/**
- * Consumes the generator to maintain backward compatibility if needed,
- * though we will prefer the generator directly in Phase 2.
- */
 export const segmentsToUniqueKhmerWords = (
   segments: Iterable<TextSegment>,
 ): NonEmptySet<TypedKhmerWord> | undefined => {
@@ -72,15 +68,14 @@ export const segmentsToUniqueKhmerWords = (
 
 /**
  * GENERATOR: Yields segments one by one.
- * Replaces the imperative loop and intermediate array pushes.
  */
 export function* yieldTextSegments(
-  text: string,
+  text: NonEmptyString,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): Generator<TextSegment> {
-  // Using capture group to keep delimiters (Khmer blocks)
-  const rawParts = text.split(/([\p{Script=Khmer}]+)/u)
+  // Capture Khmer blocks
+  const rawParts = text.split(/(\p{Script=Khmer}+)/u)
 
   for (const part of rawParts) {
     if (!part) continue
@@ -94,14 +89,16 @@ export function* yieldTextSegments(
 
       yield { t: 'khmer', words }
     } else {
-      // Handle punctuation and whitespace
+      // Logic: Split by whitespace to separate content from formatting
       const subParts = part.split(/(\s+)/)
 
       for (const sub of subParts) {
         if (!sub) continue
         if (/^\s+$/.test(sub)) {
+          // It's whitespace: yield as-is
           yield { t: 'whitespace', v: nonEmptyString(sub) }
         } else {
+          // It's content: yield as Trimmed (e.g. "ые")
           yield { t: 'notKhmer', v: nonEmptyString_afterTrim(sub) }
         }
       }
@@ -128,7 +125,6 @@ export function* yieldColorizedChunks(
       continue
     }
 
-    // Process Khmer words
     for (const w of segment.words) {
       yield renderKhmerWordSpan(w, wordCounter.current, km_map.has(w))
       wordCounter.current++
@@ -136,10 +132,10 @@ export function* yieldColorizedChunks(
   }
 }
 
-// --- Public API (Consuming the Generators) ---
+// --- Public API ---
 
 export const generateTextSegments = (
-  text: NonEmptyStringTrimmed,
+  text: NonEmptyString, // Accept full string (not pre-trimmed)
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyArray<TextSegment> => {
@@ -148,7 +144,6 @@ export const generateTextSegments = (
   }
   const safeText = escapeHtml(text)
 
-  // Consume the generator into an array
   return Array_toNonEmptyArray_orThrow([...yieldTextSegments(safeText, mode, km_map)])
 }
 
@@ -156,18 +151,17 @@ export const colorizeSegments_usingWordCounterRef = (
   segments: Iterable<TextSegment>,
   km_map: KhmerWordsMap,
   wordCounter: { current: number },
-): NonEmptyStringTrimmed => {
+): NonEmptyString => {
   let result = ''
 
-  // Use a simple loop to build the string without intermediate map arrays
   for (const chunk of yieldColorizedChunks(segments, km_map, wordCounter)) {
     result += chunk
   }
 
-  return nonEmptyString_afterTrim(result)
+  return nonEmptyString(result)
 }
 
-export const colorizeSegments = (segments: Iterable<TextSegment>, km_map: KhmerWordsMap): NonEmptyStringTrimmed => {
+export const colorizeSegments = (segments: Iterable<TextSegment>, km_map: KhmerWordsMap): NonEmptyString => {
   return colorizeSegments_usingWordCounterRef(segments, km_map, { current: 0 })
 }
 
@@ -175,8 +169,7 @@ export const colorizeText = (
   text: TypedContainsKhmer,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
-): NonEmptyStringTrimmed => {
-  // Chain: input -> segment generator -> colorize helper
+): NonEmptyString => {
   const segments = yieldTextSegments(escapeHtml(text), mode, km_map)
 
   return colorizeSegments(segments, km_map)
@@ -186,6 +179,6 @@ export const colorizeText_allowUndefined = (
   text: TypedContainsKhmer | undefined,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
-): NonEmptyStringTrimmed | undefined => {
+): NonEmptyString | undefined => {
   return text ? colorizeText(text, mode, km_map) : undefined
 }

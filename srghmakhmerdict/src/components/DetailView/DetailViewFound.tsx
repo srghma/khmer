@@ -155,14 +155,13 @@ export const DetailViewFound = ({
               from_csv_raw_html={data.from_csv_raw_html}
               from_csv_variants={data.from_csv_variants}
               from_russian_wiki={data.from_russian_wiki}
-              isKhmerLinksEnabled={isKhmerLinksEnabled}
+              isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? onNavigate : undefined}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               mode={mode}
               wiktionary={data.wiktionary}
-              onNavigate={onNavigate}
             />
           </CardBody>
         </ReactSelectionPopup>

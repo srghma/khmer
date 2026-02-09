@@ -1,8 +1,8 @@
-import { useRef, useMemo, useEffect, useState } from 'react'
+import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { useSettings } from '../providers/SettingsProvider'
 import styles from './EnKmHtmlRenderer.module.css'
-import type { DictionaryLanguage, EnglishKhmerCom_Images_Mode } from '../types'
+import type { EnglishKhmerCom_Images_Mode } from '../types'
 import { useAppToast } from '../providers/ToastProvider'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import {
@@ -22,9 +22,10 @@ import {
   Set_toNonEmptySet_orUndefined,
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
-import { tryHandleKhmerAndNonKhmerWordClick, useKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
+import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -160,36 +161,11 @@ const useOcrData = (html: NonEmptyStringTrimmed) => {
   return ocrMap
 }
 
-const useImageOrTextInteraction = (
-  ref: React.RefObject<HTMLDivElement | null>,
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
-  isKhmerLinksEnabled: boolean,
-  isKhmerWordsHidingEnabled: boolean,
-  isNonKhmerWordsHidingEnabled: boolean,
-) => {
-  const toast = useAppToast()
-
-  useEffect(() => {
-    const container = ref.current
-
-    if (!container) return
-
-    const handleImageClick = async (e: MouseEvent) => {
-      // 1. Handle Text Navigation (Higher Priority if enabled)
-      const handled = tryHandleKhmerAndNonKhmerWordClick(
-        e,
-        isKhmerLinksEnabled,
-        isKhmerWordsHidingEnabled,
-        isNonKhmerWordsHidingEnabled,
-        onNavigate,
-      )
-
-      if (handled) return
-
-      // 2. Handle Image Click
+const useImageClickHandler = (toast: ReturnType<typeof useAppToast>) => {
+  return useCallback(
+    async (e: MouseEvent) => {
       const target = e.target as HTMLElement
 
-      // Only handle clicks on the Image itself
       if (target.tagName !== 'IMG') return
 
       const img = target as HTMLImageElement
@@ -212,12 +188,9 @@ const useImageOrTextInteraction = (
           'Could not identify this image for translation.' as NonEmptyStringTrimmed,
         )
       }
-    }
-
-    container.addEventListener('click', handleImageClick)
-
-    return () => container.removeEventListener('click', handleImageClick)
-  }, [ref, toast, onNavigate, isKhmerLinksEnabled])
+    },
+    [toast],
+  )
 }
 
 // --- Main Component ---
@@ -226,8 +199,7 @@ export interface EnKmHtmlRendererProps {
   html: NonEmptyStringTrimmed
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
-  onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
-  isKhmerLinksEnabled: boolean
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
 }
@@ -236,8 +208,7 @@ export const EnKmHtmlRenderer = ({
   html,
   km_map,
   maybeColorMode,
-  onNavigate,
-  isKhmerLinksEnabled,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
 }: EnKmHtmlRendererProps) => {
@@ -259,16 +230,20 @@ export const EnKmHtmlRenderer = ({
     return { __html: html_colorized }
   }, [html, ocrMap, km_map, maybeColorMode, imageMode])
 
-  useImageOrTextInteraction(
+  const toast = useAppToast()
+
+  const imageClickHandler = useImageClickHandler(toast)
+
+  useKhmerAndNonKhmerClickListener(
     containerRef,
-    onNavigate,
-    isKhmerLinksEnabled,
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    imageClickHandler,
   )
 
-  const srghma_khmer_dict_content_styles = useKhmerAndNonKhmerContentStyles(
-    isKhmerLinksEnabled,
+  const srghma_khmer_dict_content_styles = calculateKhmerAndNonKhmerContentStyles(
+    !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
   )

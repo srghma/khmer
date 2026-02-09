@@ -2,7 +2,7 @@ import { getUserDb } from './core'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../types'
 import { type NonEmptyMap } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
-import type { FavoriteItem } from './favorite/item'
+import { FavoriteItem_mk, type FavoriteItem } from './favorite/item'
 
 export const removeFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
   const db = await getUserDb()
@@ -39,14 +39,25 @@ export const removeFavoritesMany = async (
 
 export const addFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
   const db = await getUserDb()
-  const timestamp = Date.now()
+  const now = Date.now()
+
+  // 1. Create the default item structure using your pure constructor
+  const item = FavoriteItem_mk(word, language, now)
 
   await db.execute(
     `
 BEGIN;
 
-INSERT INTO favorites (word, language, timestamp)
-VALUES ($1, $2, $3)
+INSERT INTO favorites (
+  word,
+  language,
+  timestamp,
+  stability,
+  difficulty,
+  due,
+  last_review
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT(word, language) DO UPDATE
   SET timestamp = excluded.timestamp;
 
@@ -60,7 +71,7 @@ WHERE rowid NOT IN (
 
 COMMIT;
 `,
-    [word, language, timestamp],
+    [item.word, item.language, item.timestamp, item.stability, item.difficulty, item.due, item.last_review],
   )
 }
 
