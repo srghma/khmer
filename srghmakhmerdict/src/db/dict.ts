@@ -180,7 +180,7 @@ export const get_en_km_com_images_ocr = async (ids: NonEmptySet<ValidNonNegative
 export const getKmWordsDetailShort = async (
   words: NonEmptySet<TypedContainsKhmer>,
 ): Promise<NonEmptyRecord<TypedContainsKhmer, NonEmptyStringTrimmed | null>> => {
-  return invoke('km_for_many__short_description', { words: Array.from(words) })
+  return invoke('km_for_many__short_description__none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getKmWordsDetailShort_Strict = async (
@@ -204,7 +204,7 @@ export const getKmWordsDetailFull_Strict = async (
 export const getEnWordsDetailShort = async (
   words: NonEmptySet<NonEmptyStringTrimmed>,
 ): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed | null>> => {
-  return invoke('en_for_many__short_description', { words: Array.from(words) })
+  return invoke('en_for_many__short_description__none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getEnWordsDetailShort_Strict = async (
@@ -228,13 +228,19 @@ export const getEnWordsDetailFull_Strict = async (
 export const getRuWordsDetailShort = async (
   words: NonEmptySet<NonEmptyStringTrimmed>,
 ): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed | null>> => {
-  return invoke('ru_for_many__short_description', { words: Array.from(words) })
+  return invoke('ru_for_many__short_description__none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getRuWordsDetailShort_Strict = async (
   words: NonEmptySet<NonEmptyStringTrimmed>,
 ): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed>> => {
   return invoke('ru_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
+}
+
+export const getRuWordsDetailFull = async (
+  words: NonEmptySet<NonEmptyStringTrimmed>,
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, WordDetailRu | null>> => {
+  return invoke('ru_for_many__full_details__none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getRuWordsDetailFull_Strict = async (

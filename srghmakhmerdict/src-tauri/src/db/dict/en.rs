@@ -2,7 +2,7 @@ use crate::app_state::AppState;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::{State, command};
-use super::common::WordRow;
+use super::common::{WordRow, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct WordDetailEn {
@@ -137,87 +137,44 @@ pub struct EnWordDetailShortRow {
 }
 
 #[command]
-pub async fn en_for_many__short_description(
+pub async fn en_for_many__short_description__none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<String>>, String> {
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
+    validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
     let sql = format!(
-        "SELECT Word, COALESCE(Desc, en_km_com) as definition
-         FROM en_Dict
-         WHERE Word IN ({})",
-        placeholders.join(",")
+        "SELECT Word, COALESCE(Desc, en_km_com, Desc_en_only) as definition FROM en_Dict WHERE Word IN ({})",
+        get_placeholders(words.len())
     );
 
-    let mut query = sqlx::query_as::<_, EnWordDetailShortRow>(&sql);
+    let rows: Vec<EnWordDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    let mut result: HashMap<String, Option<String>> = HashMap::with_capacity(words.len());
-
-    for row in rows {
-        result.insert(row.word, row.definition);
-    }
-
-    for word in words {
-        result.entry(word).or_insert(None);
-    }
-
-    Ok(result)
+    Ok(to_optional_map(words, rows, |r| r.word.clone(), |r| r.definition))
 }
 
 #[command]
 pub async fn en_for_many__short_description__throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, String>, String> { // yes, not Option bc 100% definition will be returned, bc at least one is not NULL
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
+) -> Result<HashMap<String, String>, String> {
+    validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
     let sql = format!(
-        "SELECT Word, COALESCE(Desc, en_km_com, Desc_en_only) as definition
-         FROM en_Dict
-         WHERE Word IN ({})",
-        placeholders.join(",")
+        "SELECT Word, COALESCE(Desc, en_km_com, Desc_en_only) as definition FROM en_Dict WHERE Word IN ({})",
+        get_placeholders(words.len())
     );
 
-    let mut query = sqlx::query_as::<_, EnWordDetailShortRow>(&sql);
+    let rows: Vec<EnWordDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    let mut result: HashMap<String, String> = HashMap::with_capacity(words.len());
-
-    for row in rows {
-        if let Some(definition) = row.definition {
-            result.insert(row.word, definition);
-        }
-    }
-
-    for word in words {
-        if !result.contains_key(&word) {
-            return Err(format!("Word not found: {}", word));
-        }
-    }
-
-    Ok(result)
+    to_strict_map(
+        words,
+        rows,
+        |r| r.word.clone(),
+        |r| r.definition.expect("Definition must be present"),
+    )
 }
 
 #[command]
@@ -225,45 +182,14 @@ pub async fn en_for_many__full_details__throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, WordDetailEn>, String> {
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
+    validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
+    let sql = format!("SELECT * FROM en_Dict WHERE Word IN ({})", get_placeholders(words.len()));
 
-    let sql = format!(
-        "SELECT * FROM en_Dict WHERE Word IN ({})",
-        placeholders.join(",")
-    );
+    let rows: Vec<WordDetailEnRaw> = fetch_many(&pool, &words, sql).await?;
 
-    let mut query = sqlx::query_as::<_, WordDetailEnRaw>(&sql);
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    // Check if all words are found
-    if rows.len() != words.len() {
-         // This simple check implies no duplicates in 'words'.
-         // If 'words' has duplicates, distinct DB rows might be fewer.
-         // But let's assume unique input or handle strict mapping.
-         // A safer check is to verify each requested word exists.
-    }
-
-    let mut result = HashMap::new();
-    for row in rows {
-        result.insert(row.word.clone(), WordDetailEn::from(row));
-    }
-
-    for word in words {
-        if !result.contains_key(&word) {
-            return Err(format!("Word not found: {}", word));
-        }
-    }
-
-    Ok(result)
+    to_strict_map(words, rows, |r| r.word.clone(), WordDetailEn::from)
 }
 
 
@@ -272,34 +198,12 @@ pub async fn en_for_many__full_details__none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<WordDetailEn>>, String> {
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
+    validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
+    let sql = format!("SELECT * FROM en_Dict WHERE Word IN ({})", get_placeholders(words.len()));
 
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
+    let rows: Vec<WordDetailEnRaw> = fetch_many(&pool, &words, sql).await?;
 
-    let sql = format!(
-        "SELECT * FROM en_Dict WHERE Word IN ({})",
-        placeholders.join(",")
-    );
-
-    let mut query = sqlx::query_as::<_, WordDetailEnRaw>(&sql);
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-    let mut result = HashMap::new();
-
-    for row in rows {
-        result.insert(row.word.clone(), Some(WordDetailEn::from(row)));
-    }
-
-    for word in words {
-        result.entry(word).or_insert(None);
-    }
-
-    Ok(result)
+    Ok(to_optional_map_wrap(words, rows, |r| r.word.clone(), WordDetailEn::from))
 }

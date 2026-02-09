@@ -3,8 +3,6 @@ pub mod en;
 pub mod km;
 pub mod ru;
 
-pub use common::*;
-
 
 use crate::app_state::AppState;
 use tauri::{State, command};

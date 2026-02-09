@@ -2,7 +2,7 @@ use crate::app_state::AppState;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::{State, command};
-use super::common::{WordRow, parse_json_opt};
+use super::common::{WordRow, parse_json_opt, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct KmWord {
@@ -155,82 +155,6 @@ pub async fn search_km_content(
     Ok(rows.into_iter().map(|r| r.word).collect())
 }
 
-#[command]
-pub async fn km_for_many__full_details__throws_if_word_not_found(
-    state: State<'_, AppState>,
-    words: Vec<String>,
-) -> Result<HashMap<String, WordDetailKm>, String> {
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
-
-    let pool = state.get_pool().await?;
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
-    let sql = format!(
-        "SELECT * FROM km_Dict WHERE Word IN ({})",
-        placeholders.join(",")
-    );
-
-    let mut query = sqlx::query_as::<_, WordDetailKmRaw>(&sql);
-
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    let mut result = HashMap::new();
-    for row in rows {
-        result.insert(row.word.clone(), WordDetailKm::from(row));
-    }
-
-    for word in words {
-        if !result.contains_key(&word) {
-             return Err(format!("Word not found: {}", word));
-        }
-    }
-
-    Ok(result)
-}
-
-#[command]
-pub async fn km_for_many__full_details__none_if_word_not_found(
-    state: State<'_, AppState>,
-    words: Vec<String>,
-) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
-
-    let pool = state.get_pool().await?;
-
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
-    let sql = format!(
-        "SELECT * FROM km_Dict WHERE Word IN ({})",
-        placeholders.join(",")
-    );
-
-    let mut query = sqlx::query_as::<_, WordDetailKmRaw>(&sql);
-
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    let mut result = HashMap::new();
-
-    for row in rows {
-        result.insert(row.word.clone(), Some(WordDetailKm::from(row)));
-    }
-
-    for word in words {
-        result.entry(word).or_insert(None);
-    }
-
-    Ok(result)
-}
-
 #[derive(Serialize, sqlx::FromRow)]
 pub struct WordKmWordsDetailShortRow {
     #[sqlx(rename = "Word")]
@@ -239,85 +163,72 @@ pub struct WordKmWordsDetailShortRow {
 }
 
 #[command]
-pub async fn km_for_many__short_description(
+pub async fn km_for_many__short_description__none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<String>>, String> { // for analyzer page
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
+    validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
     let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki) as definition
-         FROM km_Dict
-         WHERE Word IN ({})",
-        placeholders.join(",")
+        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki) as definition FROM km_Dict WHERE Word IN ({})",
+        get_placeholders(words.len())
     );
 
-    let mut query = sqlx::query_as::<_, WordKmWordsDetailShortRow>(&sql);
+    let rows: Vec<WordKmWordsDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    for word in &words {
-        query = query.bind(word);
-    }
-
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
-
-    let mut result: HashMap<String, Option<String>> = HashMap::with_capacity(words.len());
-
-    for row in rows {
-        result.insert(row.word, row.definition);
-    }
-
-    for word in words {
-        result.entry(word).or_insert(None);
-    }
-
-    Ok(result)
+    Ok(to_optional_map(words, rows, |r| r.word.clone(), |r| r.definition))
 }
 
 #[command]
 pub async fn km_for_many__short_description__throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, String>, String> { // yes, bc we have such constraint
-    if words.is_empty() {
-        return Err("List of words should not be empty".to_string());
-    }
+) -> Result<HashMap<String, String>, String> {
+    validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-
-    let placeholders: Vec<String> = words.iter().map(|_| "?".to_string()).collect();
     let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki) as definition
-         FROM km_Dict
-         WHERE Word IN ({})",
-        placeholders.join(",")
+        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki) as definition FROM km_Dict WHERE Word IN ({})",
+        get_placeholders(words.len())
     );
 
-    let mut query = sqlx::query_as::<_, WordKmWordsDetailShortRow>(&sql);
+    let rows: Vec<WordKmWordsDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    for word in &words {
-        query = query.bind(word);
-    }
+    to_strict_map(
+        words,
+        rows,
+        |r| r.word.clone(),
+        |r| r.definition.expect("Definition must be present"),
+    )
+}
 
-    let rows = query.fetch_all(&pool).await.map_err(|e| e.to_string())?;
+#[command]
+pub async fn km_for_many__full_details__none_if_word_not_found(
+    state: State<'_, AppState>,
+    words: Vec<String>,
+) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
+    validate_words_not_empty(&words)?;
 
-    let mut result: HashMap<String, String> = HashMap::with_capacity(words.len());
+    let pool = state.get_pool().await?;
+    let sql = format!("SELECT * FROM km_Dict WHERE Word IN ({})", get_placeholders(words.len()));
 
-    for row in rows {
-        if let Some(definition) = row.definition {
-            result.insert(row.word, definition);
-        }
-    }
+    let rows: Vec<WordDetailKmRaw> = fetch_many(&pool, &words, sql).await?;
 
-    for word in words {
-        if !result.contains_key(&word) {
-            return Err(format!("Word not found: {}", word));
-        }
-    }
+    Ok(to_optional_map_wrap(words, rows, |r| r.word.clone(), WordDetailKm::from))
+}
 
-    Ok(result)
+#[command]
+pub async fn km_for_many__full_details__throws_if_word_not_found(
+    state: State<'_, AppState>,
+    words: Vec<String>,
+) -> Result<HashMap<String, WordDetailKm>, String> {
+    validate_words_not_empty(&words)?;
+
+    let pool = state.get_pool().await?;
+    let sql = format!("SELECT * FROM km_Dict WHERE Word IN ({})", get_placeholders(words.len()));
+
+    let rows: Vec<WordDetailKmRaw> = fetch_many(&pool, &words, sql).await?;
+
+    to_strict_map(words, rows, |r| r.word.clone(), WordDetailKm::from)
 }

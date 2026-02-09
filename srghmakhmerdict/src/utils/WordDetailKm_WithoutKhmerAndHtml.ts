@@ -13,7 +13,7 @@ export type WordDetailKm_WithoutKhmerAndHtml = {
   wiktionary: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
   // from_csv_variants: NonEmptyArray<NonEmptyStringTrimmed> | undefined // fully khmer
   // from_csv_noun_forms: NonEmptyArray<NonEmptyStringTrimmed> | undefined // fully khmer
-  // from_csv_pronunciations: NonEmptyArray<NonEmptyStringTrimmed> | undefined // not neeeded
+  // from_csv_pronunciations: NonEmptyArray<NonEmptyStringTrimmed> | undefined // not needed
   from_csv_raw_html: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
   // from_chuon_nath: NonEmptyStringTrimmed | undefined // fully khmer
   from_chuon_nath_translated: Lazy<TypedWithoutKhmerAndHtml | undefined>
@@ -49,11 +49,11 @@ export const getBestDefinitionHtml = (detail: WordDetailKm): TypedWithoutKhmerAn
   const lazy = wordDetailKm_WithoutKhmerAndHtml_mk(detail)
 
   return (
-    lazy.wiktionary() ||
     lazy.desc() ||
     lazy.en_km_com() ||
     lazy.from_csv_raw_html() ||
-    lazy.from_russian_wiki() ||
+    lazy.wiktionary() || // needs special treatment
+    lazy.from_russian_wiki() || // needs special treatment
     lazy.from_chuon_nath_translated()
   )
 }
