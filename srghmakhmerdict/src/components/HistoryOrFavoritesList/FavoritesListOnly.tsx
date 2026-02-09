@@ -1,32 +1,24 @@
 import React, { useState, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { FaRegTrashAlt, FaGraduationCap } from 'react-icons/fa'
+import { FaRegTrashAlt } from 'react-icons/fa'
 import { Button } from '@heroui/button'
+import { Tooltip } from '@heroui/react'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap } from '../../db/dict'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { useAppToast } from '../../providers/ToastProvider'
-import {
-  strToContainsKhmerOrThrow,
-  type TypedContainsKhmer,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-import * as FavDb from '../../db/favourite'
+
+import * as FavDb from '../../db/favorite'
 import { KhmerAnkiModal } from '../Anki'
-import {
-  Set_toNonEmptySet_orUndefined,
-  type NonEmptySet,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import type { ReviewDirection } from '../Anki/AnkiModalContent'
+
 import { LoadingState, EmptyState } from './SharedComponents'
 import { HistoryItemRow } from './HistoryItemRow'
 import { useListLogic } from './useListLogic'
-import {
-  Map_entriesToArray,
-  Map_entriesMapToArray_unlessUndefined,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
 import { ConfirmAction } from '../ConfirmAction'
-import { favoritesStore } from '../../externalStores/historyAndFavourites'
+import { favoritesStore } from '../../externalStores/historyAndFavorites'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -34,40 +26,45 @@ interface ListPropsCommon {
   maybeColorMode: MaybeColorizationMode
 }
 
-export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, km_map, maybeColorMode }) => {
+export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, km_map, maybeColorMode }) => {
   const toast = useAppToast()
 
   const { items, loading, handleDelete, handleClearAll } = useListLogic(
     FavDb.getFavorites,
     FavDb.removeFavorite,
-    FavDb.deleteAllFavourites,
+    FavDb.deleteAllFavorites,
     'favorites',
     favoritesStore,
   )
 
   const [isAnkiOpen, setIsAnkiOpen] = useState(false)
-  const [ankiDeck, setAnkiDeck] = useState<NonEmptySet<TypedContainsKhmer> | undefined>()
+  const [reviewDirection, setReviewDirection] = useState<ReviewDirection>('KM_TO_ALL')
 
-  const handleOpenAnki = useCallback(() => {
-    if (!km_map || !items) return
+  const handleOpenAnki = useCallback(
+    (direction: ReviewDirection) => {
+      if (!items) return
 
-    // Optimized: Use FlatMap to filter and map in one pass without intermediate arrays
-    const khmerWords = Map_entriesMapToArray_unlessUndefined(
-      items,
-      (word: NonEmptyStringTrimmed, lang: DictionaryLanguage) =>
-        lang === 'km' && km_map.has(word) ? strToContainsKhmerOrThrow(word) : undefined,
-    )
+      // Logic check: ensure there are words for that direction?
+      // For now, simple check for any favorites is likely enough,
+      // or check specific language presence if strictly required.
+      if (items.length === 0) {
+        toast.error('No favorites to review' as NonEmptyStringTrimmed)
 
-    const khmerSet = Set_toNonEmptySet_orUndefined(new Set(khmerWords))
+        return
+      }
 
-    if (!khmerSet) {
-      toast.error('No Khmer words in favorites to review' as NonEmptyStringTrimmed)
+      setReviewDirection(direction)
+      setIsAnkiOpen(true)
+    },
+    [items, toast],
+  )
 
-      return
-    }
-    setAnkiDeck(khmerSet)
-    setIsAnkiOpen(true)
-  }, [items, km_map, toast])
+  const confirmContent = React.useMemo(
+    () => <p className="text-small text-default-500">Are you sure you want to delete all {items?.length} items?</p>,
+    [items?.length],
+  )
+
+  const khmerAnkiModalOnClose = useCallback(() => setIsAnkiOpen(false), [])
 
   if (loading) return <LoadingState />
   if (!items) return <EmptyState type="favorites" />
@@ -77,18 +74,26 @@ export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSel
       <div className="flex-1 overflow-y-auto bg-content1 overflow-x-hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm">
           <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">
-            Favorites ({items.size})
+            Favorites ({items.length})
           </span>
           <div className="flex gap-2">
-            <Button
-              color="secondary"
-              size="sm"
-              startContent={<FaGraduationCap />}
-              variant="flat"
-              onPress={handleOpenAnki}
-            >
-              Anki
-            </Button>
+            <Tooltip content="Guess Khmer from English">
+              <Button isIconOnly color="secondary" size="sm" variant="flat" onPress={() => handleOpenAnki('EN_TO_KM')}>
+                <span className="text-xs font-bold">EN</span>
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Guess Khmer from Russian">
+              <Button isIconOnly color="secondary" size="sm" variant="flat" onPress={() => handleOpenAnki('RU_TO_KM')}>
+                <span className="text-xs font-bold">RU</span>
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Read Khmer, guess meaning">
+              <Button isIconOnly color="secondary" size="sm" variant="flat" onPress={() => handleOpenAnki('KM_TO_ALL')}>
+                <span className="text-xs font-bold">KM</span>
+              </Button>
+            </Tooltip>
             <ConfirmAction
               confirmLabel="Clear All"
               title="Clear Search History?"
@@ -106,13 +111,13 @@ export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSel
               )}
               onConfirm={handleClearAll}
             >
-              <p className="text-small text-default-500">Are you sure you want to delete all {items.size} items?</p>
+              {confirmContent}
             </ConfirmAction>
           </div>
         </div>
 
         <AnimatePresence initial={false} mode="popLayout">
-          {Map_entriesToArray(items, (word, language) => (
+          {items.map(({ word, language }) => (
             <HistoryItemRow
               key={`${word}-${language}`}
               km_map={km_map}
@@ -126,11 +131,16 @@ export const FavouritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSel
         </AnimatePresence>
       </div>
 
-      {km_map && ankiDeck && (
-        <KhmerAnkiModal isOpen={isAnkiOpen} items={ankiDeck} km_map={km_map} onClose={() => setIsAnkiOpen(false)} />
+      {km_map && (
+        <KhmerAnkiModal
+          isOpen={isAnkiOpen}
+          km_map={km_map}
+          reviewDirection={reviewDirection}
+          onClose={khmerAnkiModalOnClose}
+        />
       )}
     </>
   )
 })
 
-FavouritesListOnly.displayName = 'FavouritesListOnly'
+FavoritesListOnly.displayName = 'FavoritesListOnly'

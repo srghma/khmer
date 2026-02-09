@@ -1,99 +1,68 @@
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import clsx from 'clsx'
 import { format } from 'date-fns'
 import React, { useMemo } from 'react'
-import type { WordDetailKm } from '../../db/dict'
-import { State, type Card as FSRSCard } from '@squeakyrobot/fsrs'
 import { Chip } from '@heroui/chip'
-import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import {
-  Map_toNonEmptyMap_orThrow,
-  type NonEmptyMap,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
-import { Map_sortBy, Map_mergeWithRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
-import { getBestDefinitionHtml } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
-import type { TypedWithoutKhmerAndHtml } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-without-khmer-and-html'
+
+import type { FavoriteItem } from '../../db/favorite/favorite-item'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 type CardDetail = {
-  card: FSRSCard
-  detail: WordDetailKm | undefined
-  detailShort: TypedWithoutKhmerAndHtml | undefined
+  item: FavoriteItem
+  // detailShort: string | undefined
   isDue: boolean
+  inferredState: 'New' | 'Review'
 }
 
-export function mergeCardAndDefinitionsAndSortByDueDate(
-  cards: NonEmptyMap<TypedContainsKhmer, FSRSCard>,
-  definitions: NonEmptyRecord<TypedContainsKhmer, WordDetailKm> | undefined,
-): NonEmptyMap<TypedContainsKhmer, CardDetail> {
-  const dateNow = new Date()
-  const card2 = Map_sortBy(cards, (_k: TypedContainsKhmer, v: FSRSCard) => v.due.getTime())
-  const m: Map<TypedContainsKhmer, CardDetail> = Map_mergeWithRecord(
-    card2,
-    definitions || {},
-    (card: FSRSCard, detail: WordDetailKm | undefined) => {
-      const detailShort = detail ? getBestDefinitionHtml(detail) : undefined
-      const isDue = card.due <= dateNow
+export function prepareList(items: FavoriteItem[]): CardDetail[] {
+  const now = Date.now()
 
-      return {
-        card,
-        detail,
-        detailShort,
-        isDue,
-      }
-    },
-  )
-
-  return Map_toNonEmptyMap_orThrow(m)
+  return items.map(item => ({
+    item,
+    // detailShort: undefined, // Add logic to look up definitions if needed
+    isDue: item.due <= now,
+    inferredState: item.last_review === null ? 'New' : 'Review',
+  }))
 }
-
-const StateToString: Record<State, NonEmptyStringTrimmed> = {
-  [State.New]: 'New',
-  [State.Review]: 'Review',
-  [State.Relearning]: 'Relearning',
-  [State.Learning]: 'Learning',
-} as Record<State, NonEmptyStringTrimmed>
 
 export const AnkiList = React.memo(
   ({
-    cards,
-    definitions,
+    items, // Pass the array of FavoriteItem
     selectedWord,
     onSelect,
   }: {
-    cards: NonEmptyMap<TypedContainsKhmer, FSRSCard>
-    definitions: NonEmptyRecord<TypedContainsKhmer, WordDetailKm> | undefined
-    selectedWord: TypedContainsKhmer | undefined
-    onSelect: (word: TypedContainsKhmer) => void
+    items: FavoriteItem[]
+    selectedWord: NonEmptyStringTrimmed | undefined
+    onSelect: (word: NonEmptyStringTrimmed) => void
   }) => {
-    const sortedList = useMemo(() => mergeCardAndDefinitionsAndSortByDueDate(cards, definitions), [cards, definitions])
+    const sortedList = useMemo(() => prepareList(items), [items])
 
     return (
       <div className="w-1/3 min-w-[250px] max-w-[350px] border-r border-divider flex flex-col bg-content2/50">
         <div className="p-4 font-bold text-lg border-b border-divider flex justify-between items-center">
-          <span>Deck ({sortedList.size})</span>
+          <span>Deck ({sortedList.length})</span>
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-2">
-          {Array.from(sortedList).map(([word, card]) => (
+          {sortedList.map(({ item, isDue, inferredState }) => (
             <button
-              key={word}
+              key={item.word}
               className={clsx(
                 'p-3 rounded-lg cursor-pointer transition-all border text-left flex flex-col gap-1',
-                selectedWord === word
+                selectedWord === item.word
                   ? 'bg-primary/10 border-primary shadow-sm'
                   : 'bg-content1 border-transparent hover:border-default-200',
               )}
-              onClick={() => onSelect(word)}
+              onClick={() => onSelect(item.word)}
             >
               <div className="text-small font-medium text-foreground line-clamp-2 leading-tight">
-                {card.detailShort || '(No Definition)'}
+                {item.word}
+                {/* {card.detailShort || '(No Definition)'} */}
               </div>
               <div className="flex justify-between items-center mt-1">
-                <Chip color={card.card.state === State.New ? 'primary' : 'default'} size="sm" variant="flat">
-                  {StateToString[card.card.state]}
+                <Chip color={inferredState === 'New' ? 'primary' : 'default'} size="sm" variant="flat">
+                  {inferredState}
                 </Chip>
-                <span className={clsx('text-[10px]', card.isDue ? 'text-danger font-bold' : 'text-default-400')}>
-                  {card.isDue ? 'Due Now' : format(card.card.due, 'MMM d, HH:mm')}
+                <span className={clsx('text-[10px]', isDue ? 'text-danger font-bold' : 'text-default-400')}>
+                  {isDue ? 'Due Now' : format(item.due, 'MMM d, HH:mm')}
                 </span>
               </div>
             </button>

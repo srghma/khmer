@@ -2,23 +2,24 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
 import { useAppToast } from '../../providers/ToastProvider'
-import {
-  type NonEmptyMap,
-  Map_toNonEmptyMap_orUndefined,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
 import type { ExternalStore } from '../../utils/createExternalStore'
 
-type DbFetchFn = () => Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>
+type DbFetchFn<T> = () => Promise<T[]>
 type DbDeleteFn = (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<boolean>
 type DbClearFn = () => Promise<void>
 
-export function useListLogic(
-  fetchFn: DbFetchFn,
+export function useListLogic<
+  T extends {
+    readonly word: NonEmptyStringTrimmed
+    readonly language: DictionaryLanguage
+  },
+>(
+  fetchFn: DbFetchFn<T>,
   deleteFn: DbDeleteFn,
   clearFn: DbClearFn,
   typeLabel: 'history' | 'favorites',
-  store: ExternalStore<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined>,
+  store: ExternalStore<T[]>,
 ) {
   const toast = useAppToast()
 
@@ -39,7 +40,7 @@ export function useListLogic(
       try {
         const data = await fetchFn()
 
-        if (active) store.set(data)
+        if (active) store.replaceStateWith_emitOnlyIfDifferentRef(data)
       } catch (e: unknown) {
         toast.error(`Failed to load ${typeLabel}` as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       } finally {
@@ -62,12 +63,9 @@ export function useListLogic(
       if (!prevItems) return
 
       // Optimistic Update
-      const nextMap = new Map(prevItems)
+      const nextItems = prevItems.filter(item => !(item.word === word && item.language === language))
 
-      nextMap.delete(word)
-      const nextData = Map_toNonEmptyMap_orUndefined(nextMap)
-
-      store.set(nextData)
+      store.replaceStateWith_emitOnlyIfDifferentRef(nextItems)
 
       try {
         const success = await deleteFn(word, language)
@@ -75,7 +73,7 @@ export function useListLogic(
         if (!success) throw new Error('Action was not successful. Nothing to delete?')
       } catch (e: unknown) {
         // Rollback on error
-        store.set(prevItems)
+        store.replaceStateWith_emitOnlyIfDifferentRef(prevItems)
         toast.error('Failed to delete item' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       }
     },
@@ -86,13 +84,13 @@ export function useListLogic(
   const handleClearAll = useCallback(async () => {
     const prevItems = store.getSnapshot()
 
-    store.set(undefined) // Optimistic clear
+    store.replaceStateWith_emitOnlyIfDifferentRef([]) // Optimistic clear
 
     try {
       await clearFn()
       toast.success('Cleared successfully' as NonEmptyStringTrimmed)
     } catch (e: unknown) {
-      store.set(prevItems) // Rollback
+      store.replaceStateWith_emitOnlyIfDifferentRef(prevItems) // Rollback
       toast.error('Failed to clear items' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
     }
   }, [clearFn, store, toast])

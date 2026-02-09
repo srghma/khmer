@@ -64,3 +64,18 @@ export function NonEmptySet_union_maybeUndefined_onCollisionIgnore<T extends Pro
   if (!second) return first
   return NonEmptySet_union_onCollisionIgnore(first, second, ...rest)
 }
+
+export function NonEmptySet_union_maybeUndefined_onCollisionIgnore_fromIterables<T>(
+  ...iterables: (Iterable<T> | undefined)[]
+): NonEmptySet<T> | undefined {
+  const set = new Set<T>()
+
+  for (const iterable of iterables) {
+    if (!iterable) continue
+    for (const item of iterable) {
+      set.add(item)
+    }
+  }
+
+  return Set_toNonEmptySet_orUndefined(set)
+}

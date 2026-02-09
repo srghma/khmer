@@ -8,10 +8,11 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { TextSegment } from './text'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 
-export type TextSegmentEnhancedKhmerWord = { w: TypedKhmerWord; def?: NonEmptyStringTrimmed }
+export type TextSegmentEnhancedKhmerWord = { w: TypedKhmerWord; def: NonEmptyStringTrimmed }
 export type TextSegmentEnhanced =
-  | { t: 'khmer'; words: NonEmptyArray<TextSegmentEnhancedKhmerWord> }
-  | { t: 'notKhmer'; v: NonEmptyString }
+  | { t: 'khmer'; words: NonEmptyArray<TypedKhmerWord | TextSegmentEnhancedKhmerWord> }
+  | { t: 'notKhmer'; v: NonEmptyStringTrimmed }
+  | { t: 'whitespace'; v: NonEmptyString }
 
 // --- Helper: Enhance Segments ---
 
@@ -20,16 +21,21 @@ export const enhanceSegments = (
   definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null>,
 ): NonEmptyArray<TextSegmentEnhanced> => {
   return Array_toNonEmptyArray_orThrow(
-    segments.map(seg => {
-      if (seg.t === 'notKhmer') {
-        return seg
-      }
+    segments.map((seg): TextSegmentEnhanced => {
+      // 1. Pass through non-Khmer content (notKhmer and whitespace)
+      if (seg.t !== 'khmer') return seg
 
+      // 2. Process Khmer words: Enhance only if a definition exists
       const enhancedWords = Array_toNonEmptyArray_orThrow(
-        seg.words.map(w => ({
-          w,
-          def: definitions[w] ?? undefined,
-        })),
+        seg.words.map((w): TypedKhmerWord | TextSegmentEnhancedKhmerWord => {
+          const def = definitions[w]
+
+          // If we have a non-null definition, return the enhanced object
+          if (def) return { w, def }
+
+          // Otherwise, return the raw TypedKhmerWord to satisfy the union
+          return w
+        }),
       )
 
       return { t: 'khmer', words: enhancedWords }

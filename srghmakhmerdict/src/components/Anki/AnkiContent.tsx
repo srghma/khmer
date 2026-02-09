@@ -1,70 +1,155 @@
-import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Card, CardBody } from '@heroui/card'
-import type { TypedWithoutKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-without-khmer'
+// ==== FILE: srghmakhmerdict/src/components/Anki/AnkiContent.tsx ====
+import React, { useEffect, useRef, useState } from 'react'
+import { Input } from '@heroui/input'
+import { ScrollShadow } from '@heroui/scroll-shadow'
+import clsx from 'clsx'
+import type { DictionaryLanguage } from '../../types'
+import type { AnkiFlowMode } from './types'
+import { KhmerDiff } from './KhmerDiff'
+import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
-const maskKhmerTextInHtml = (html: NonEmptyStringTrimmed): TypedWithoutKhmer => {
-  return html.replace(
-    /[\p{Script=Khmer}]+/gu,
-    '<span class="bg-foreground text-foreground select-none rounded-[2px] px-1 mx-0.5 animate-pulse cursor-help">REDACTED</span>',
-  ) as TypedWithoutKhmer
+interface AnkiContentProps {
+  mode: AnkiFlowMode
+  language: DictionaryLanguage
+  cardWord: string
+  isRevealed: boolean
+  richContent: React.ReactNode // Replaces question/answer strings
 }
 
-export const AnkiContent = React.memo(
-  ({
-    word,
-    definitionHtml,
-    isRevealed,
-  }: {
-    word: TypedContainsKhmer | undefined
-    definitionHtml: NonEmptyStringTrimmed | undefined
-    isRevealed: boolean
-  }) => {
-    if (!word) {
-      return <div className="flex-1 flex items-center justify-center text-default-400">Select a card to start</div>
+export const AnkiContent = React.memo(({ mode, language, cardWord, isRevealed, richContent }: AnkiContentProps) => {
+  const [guess, setGuess] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setGuess('')
+    if (mode === 'DESC_TO_WORD' && !isRevealed) {
+      setTimeout(() => inputRef.current?.focus(), 100)
     }
+  }, [cardWord, mode, isRevealed])
 
-    if (!definitionHtml) {
-      return (
-        <div className="flex-1 flex items-center justify-center text-default-400">Error: no definition word {word}</div>
-      )
-    }
+  const normalizedGuess = guess.trim().toLowerCase()
+  const normalizedCardWord = cardWord.toLowerCase()
+  const isCorrect = normalizedGuess === normalizedCardWord
+  const isKhmerWord = language === 'km' // Simplified assumption for display font
 
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
-        <div className="w-full max-w-2xl flex flex-col gap-8 items-center">
-          {/* Question Side (Definition with Mask) */}
-          <Card className="w-full shadow-md bg-default-50 border border-default-100">
-            <CardBody className="p-6">
-              <div className="text-tiny text-default-400 uppercase tracking-widest mb-2 font-bold">
-                Definition / Context
-              </div>
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: isRevealed ? definitionHtml : maskKhmerTextInHtml(definitionHtml),
-                }}
-                className="prose prose-sm dark:prose-invert max-w-none text-lg leading-relaxed select-none"
-              />
-            </CardBody>
-          </Card>
+  // Prepare types for KhmerDiff safety
+  const validExpected = isKhmerWord ? strToContainsKhmerOrUndefined(cardWord as NonEmptyStringTrimmed) : undefined
+  const validGuess = String_toNonEmptyString_orUndefined_afterTrim(guess)
 
-          {/* Answer Side (Revealed) */}
+  return (
+    <ScrollShadow className="flex-1 flex flex-col p-4 w-full max-w-4xl mx-auto gap-6">
+      {/* ------------------------------------------------------
+          MODE 1: WORD -> DESC
+          Show Word. Reveal -> Show Description
+         ------------------------------------------------------ */}
+      {mode === 'WORD_TO_DESC' && (
+        <>
+          <div className="flex-1 flex items-center justify-center min-h-[20vh]">
+            <div
+              className={clsx(
+                'text-5xl md:text-6xl font-bold text-center',
+                isKhmerWord && 'font-khmer leading-relaxed',
+              )}
+            >
+              {cardWord}
+            </div>
+          </div>
+
           {isRevealed && (
-            <motion.div animate={{ opacity: 1, y: 0 }} className="w-full" initial={{ opacity: 0, y: 20 }}>
-              <Card className="w-full border-primary/20 bg-primary/5">
-                <CardBody className="p-8 flex flex-col items-center text-center">
-                  <div className="text-tiny text-primary/60 uppercase tracking-widest mb-4 font-bold">Answer</div>
-                  <div className="text-6xl font-khmer font-bold text-primary mb-2 leading-relaxed">{word}</div>
-                </CardBody>
-              </Card>
-            </motion.div>
+            <div className="animate-in fade-in slide-in-from-bottom-4 border-t border-divider pt-6">{richContent}</div>
           )}
-        </div>
-      </div>
-    )
-  },
-)
+        </>
+      )}
+
+      {/* ------------------------------------------------------
+          MODE 2: DESC -> WORD
+          Show Description (with hiding). Reveal -> Show Word
+         ------------------------------------------------------ */}
+      {mode === 'DESC_TO_WORD' && (
+        <>
+          {/* Always show description (Rich Content handles hiding internally via props) */}
+          <div className="flex-1 overflow-visible">{richContent}</div>
+
+          {/* Input Area (Hidden when revealed) */}
+          {!isRevealed && (
+            <div className="w-full max-w-sm mx-auto my-4 sticky bottom-0 bg-content1/80 backdrop-blur-md p-4 rounded-xl border border-default-200">
+              <Input
+                ref={inputRef}
+                classNames={{
+                  input: clsx('text-center text-xl font-bold', isKhmerWord && 'font-khmer'),
+                }}
+                color="primary"
+                placeholder="Type the word..."
+                size="lg"
+                value={guess}
+                variant="faded"
+                onKeyDown={e => {
+                  // Optional: Block enter if needed, or allow it to bubble up to reveal
+                  if (e.key === 'Enter') {
+                    // logic to trigger reveal could go here if prop provided
+                  }
+                }}
+                onValueChange={setGuess}
+              />
+            </div>
+          )}
+
+          {/* Answer Reveal */}
+          {isRevealed && (
+            <div className="w-full text-center py-6 bg-content2/50 rounded-xl border border-divider">
+              <div className="text-tiny uppercase tracking-widest text-default-400 mb-2">Answer</div>
+
+              <div
+                className={clsx(
+                  'text-4xl font-bold mb-2',
+                  isCorrect ? 'text-success' : 'text-primary',
+                  isKhmerWord && 'font-khmer',
+                )}
+              >
+                {cardWord}
+              </div>
+
+              {/* Show Diff if user typed something but got it wrong */}
+              {validGuess && !isCorrect && validExpected && (
+                <div className="mt-4 flex flex-col items-center animate-in zoom-in-95">
+                  <div className="text-tiny text-default-400 mb-1">Difference:</div>
+                  <div className="bg-content1 px-6 py-3 rounded-lg border border-default-200 shadow-sm">
+                    <KhmerDiff inDictExpected={validExpected} userProvider={validGuess} />
+                  </div>
+                  <div className="text-xs text-default-400 mt-2 flex gap-3">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-success" /> Correct
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-warning" /> Missing
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-danger" /> Extra
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Fallback for non-Khmer words or simple typo display */}
+              {validGuess && !isCorrect && !validExpected && (
+                <div className="text-danger font-mono mt-2 bg-danger/10 px-4 py-2 rounded-lg inline-block">
+                  You typed: {guess}
+                </div>
+              )}
+
+              {validGuess && isCorrect && (
+                <div className="text-success font-bold mt-2 animate-bounce">Perfect Match!</div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </ScrollShadow>
+  )
+})
 
 AnkiContent.displayName = 'AnkiContent'

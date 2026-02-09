@@ -13,7 +13,7 @@ export type GoogleTtsState =
   | typeof GOOGLE_TTS_SPEAKING
   | { t: 'online'; speak: () => Promise<void> }
 
-const googleSpeakingStore = createExternalStore<boolean>(false, (x: boolean, y: boolean) => x === y)
+const googleSpeakingStore = createExternalStore<boolean>(false)
 
 export function useGoogleTts(word: NonEmptyStringTrimmed | undefined, mode: ToTranslateLanguage): GoogleTtsState {
   const toast = useAppToast()
@@ -27,14 +27,14 @@ export function useGoogleTts(word: NonEmptyStringTrimmed | undefined, mode: ToTr
       throw new Error('useGoogleTts.speak was called while speaking - expected - disable button')
     }
 
-    googleSpeakingStore.set(true)
+    googleSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(true)
     try {
       const result = await executeGoogleTts(word, mode)
       const err = googleTtsResultToError(result)
 
       if (err) toast.error(err.title, err.description)
     } finally {
-      googleSpeakingStore.set(false)
+      googleSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(false)
     }
   }, [word, mode, toast])
 

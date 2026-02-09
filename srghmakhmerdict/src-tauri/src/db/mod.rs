@@ -1,2 +1,2 @@
-pub mod anki;
+// pub mod anki;
 pub mod dict;

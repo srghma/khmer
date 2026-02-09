@@ -11,8 +11,8 @@ import lazyWithPreload from 'react-lazy-with-preload'
 import type { KhmerWordsMap } from '../db/dict'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
-import { HistoryListOnly } from './HistoryOrFavouritesList/HistoryListOnly'
-import { FavouritesListOnly } from './HistoryOrFavouritesList/FavouritesListOnly'
+import { HistoryListOnly } from './HistoryOrFavoritesList/HistoryListOnly'
+import { FavoritesListOnly } from './HistoryOrFavoritesList/FavoritesListOnly'
 import { useNavigation } from '../providers/NavigationProvider'
 
 // --- LAZY IMPORTS ---
@@ -86,7 +86,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   if (activeTab === 'favorites') {
     return (
       <Suspense fallback={ContentFallback}>
-        <FavouritesListOnly km_map={km_map} maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
+        <FavoritesListOnly km_map={km_map} maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
       </Suspense>
     )
   }

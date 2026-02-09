@@ -47,6 +47,7 @@ export const DetailViewFound = ({
   const {
     isKhmerLinksEnabled,
     isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
     fontSize_details,
     khmerFontName,
     setKhmerFontName,
@@ -54,6 +55,7 @@ export const DetailViewFound = ({
     setMaybeColorMode,
     toggleKhmerLinks,
     toggleKhmerWordsHiding,
+    toggleNonKhmerWordsHiding,
     khmerFontFamily,
   } = useSettings()
   const { navigateTo, currentHistoryItem } = useNavigation()
@@ -122,6 +124,7 @@ export const DetailViewFound = ({
         isFav={isFav}
         isKhmerLinksEnabled={isKhmerLinksEnabled}
         isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+        isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
         khmerFontFamily={khmerFontFamily}
         khmerFontName={khmerFontName}
         maybeColorMode={maybeColorMode}
@@ -131,6 +134,7 @@ export const DetailViewFound = ({
         toggleFav={toggleFav}
         toggleKhmerLinks={toggleKhmerLinks}
         toggleKhmerWordsHiding={toggleKhmerWordsHiding}
+        toggleNonKhmerWordsHiding={toggleNonKhmerWordsHiding}
         type="known_word"
         word_displayHtml={data.word_display ?? word}
         word_or_sentence={word}
@@ -153,6 +157,7 @@ export const DetailViewFound = ({
               from_russian_wiki={data.from_russian_wiki}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               mode={mode}

@@ -32,3 +32,12 @@ export const renderKhmerWordSpan = (
 
   return `<span class="${className}" data-navigate-khmer-word="${word}">${word}</span>` as NonEmptyStringTrimmed
 }
+
+/**
+ * Renders a span for non-Khmer text to allow hiding functionality.
+ * We use a specific class 'non-khmer-text' to target it in CSS.
+ */
+export const renderNonKhmerSpan = (text: NonEmptyStringTrimmed): NonEmptyStringTrimmed => {
+  // We mark it with data-non-khmer-text for JS event delegation
+  return `<span class="non-khmer-text" data-non-khmer-text>${text}</span>` as NonEmptyStringTrimmed
+}

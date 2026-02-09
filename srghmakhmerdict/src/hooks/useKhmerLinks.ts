@@ -7,72 +7,86 @@ import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.modul
 import { useEffect } from 'react'
 
 /**
- * Tries to handle a click on a Khmer word.
- *
- * 1. If Hiding Mode is ON and word is hidden -> Reveal it (Modify DOM directly).
- * 2. If Hiding Mode is OFF or word is revealed -> Navigate.
+ * Tries to handle a click on a word (Khmer or Non-Khmer).
  */
-export const tryHandleKhmerWordClick = (
+export const tryHandleKhmerAndNonKhmerWordClick = (
   e: MouseEvent,
   isKhmerLinksEnabled: boolean,
   isKhmerWordsHidingEnabled: boolean,
+  isNonKhmerWordsHidingEnabled: boolean,
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
 ): boolean => {
   const target = e.target as HTMLElement
 
-  // Find the closest Khmer word span
-  const navigateSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
+  // 1. Check for Khmer Word
+  const khmerSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
 
-  if (navigateSpan) {
-    // --- Logic 1: Handle Hiding/Revealing ---
+  if (khmerSpan) {
     if (isKhmerWordsHidingEnabled) {
-      // Check if it is a targetable khmer word (exclude blue label if necessary,
-      // though the CSS usually handles the visual part, we check class logic here too)
-      const isBlueLabel = navigateSpan.classList.contains('khmer--blue-lbl')
-      const isRevealed = navigateSpan.classList.contains('is-revealed')
+      const isBlueLabel = khmerSpan.classList.contains('khmer--blue-lbl')
+      const isRevealed = khmerSpan.classList.contains('is-revealed')
 
       if (!isBlueLabel && !isRevealed) {
-        // REVEAL ACTION
         e.preventDefault()
         e.stopPropagation()
-        navigateSpan.classList.add('is-revealed')
+        khmerSpan.classList.add('is-revealed')
 
-        return true // Handled
+        return true
       }
     }
 
-    // --- Logic 2: Handle Navigation ---
-    if (!isKhmerLinksEnabled) return false
+    if (isKhmerLinksEnabled) {
+      const rawWord = khmerSpan.getAttribute('data-navigate-khmer-word')
+      const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
 
-    const rawWord = navigateSpan.getAttribute('data-navigate-khmer-word')
-    const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(rawWord) : undefined
+      if (word) {
+        e.preventDefault()
+        e.stopPropagation()
+        onNavigate(word, 'km')
 
-    if (word) {
-      e.preventDefault()
-      e.stopPropagation() // Prevent bubbling
-      onNavigate(word, 'km')
+        return true
+      }
+    }
+  }
 
-      return true
+  // 2. Check for Non-Khmer Text (Hiding Only)
+  const nonKhmerSpan = target.closest('[data-non-khmer-text]') as HTMLElement | null
+
+  if (nonKhmerSpan) {
+    if (isNonKhmerWordsHidingEnabled) {
+      const isRevealed = nonKhmerSpan.classList.contains('is-revealed')
+
+      if (!isRevealed) {
+        e.preventDefault()
+        e.stopPropagation()
+        nonKhmerSpan.classList.add('is-revealed')
+
+        return true
+      }
     }
   }
 
   return false
 }
 
-export const useKhmerContentStyles = (isKhmerLinksEnabled: boolean, isKhmerWordsHidingEnabled: boolean) => {
+export const useKhmerAndNonKhmerContentStyles = (
+  isKhmerLinksEnabled: boolean,
+  isKhmerWordsHidingEnabled: boolean,
+  isNonKhmerWordsHidingEnabled: boolean,
+) => {
   const interactive = isKhmerLinksEnabled ? srghma_khmer_dict_content_styles.interactive : ''
-  const hiding = isKhmerWordsHidingEnabled ? srghma_khmer_dict_content_styles.hiding_enabled : ''
+  const hidingKhmer = isKhmerWordsHidingEnabled ? srghma_khmer_dict_content_styles.hiding_enabled : ''
+  const hidingNonKhmer = isNonKhmerWordsHidingEnabled ? srghma_khmer_dict_content_styles.hiding_non_khmer_enabled : ''
 
-  const khmerContentClass = `${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${interactive} ${hiding}`
-
-  return khmerContentClass
+  return `${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${interactive} ${hidingKhmer} ${hidingNonKhmer}`
 }
 
-export const useKhmerClickListener = (
+export const useKhmerAndNonKhmerClickListener = (
   ref: React.RefObject<HTMLElement | null>,
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
   isKhmerLinksEnabled: boolean,
   isKhmerWordsHidingEnabled: boolean,
+  isNonKhmerWordsHidingEnabled: boolean,
 ) => {
   useEffect(() => {
     const el = ref.current
@@ -80,11 +94,17 @@ export const useKhmerClickListener = (
     if (!el) return
 
     const handleClick = (e: MouseEvent) => {
-      tryHandleKhmerWordClick(e, isKhmerLinksEnabled, isKhmerWordsHidingEnabled, onNavigate)
+      tryHandleKhmerAndNonKhmerWordClick(
+        e,
+        isKhmerLinksEnabled,
+        isKhmerWordsHidingEnabled,
+        isNonKhmerWordsHidingEnabled,
+        onNavigate,
+      )
     }
 
     el.addEventListener('click', handleClick)
 
     return () => el.removeEventListener('click', handleClick)
-  }, [ref, isKhmerLinksEnabled, onNavigate])
+  }, [ref, isKhmerLinksEnabled, isKhmerWordsHidingEnabled, isNonKhmerWordsHidingEnabled, onNavigate])
 }

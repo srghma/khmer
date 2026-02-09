@@ -6,7 +6,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { DetailViewActions, type DetailViewActionsProps_Common } from './DetailViewHeaderActions'
 import { Button } from '@heroui/button'
 import { HiArrowLeft } from 'react-icons/hi2'
-import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
+import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 
 interface DetailViewBackButtonProps {
   onPress: () => void

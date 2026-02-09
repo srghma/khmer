@@ -26,6 +26,7 @@ interface DetailSectionsProps {
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   isKhmerLinksEnabled: boolean
   isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
 }
 
 export const DetailSections = React.memo(
@@ -47,6 +48,7 @@ export const DetailSections = React.memo(
     onNavigate,
     isKhmerLinksEnabled,
     isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
   }: DetailSectionsProps) => {
     return (
       <>
@@ -58,6 +60,7 @@ export const DetailSections = React.memo(
               html={desc}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -73,6 +76,7 @@ export const DetailSections = React.memo(
               html={desc_en_only}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -87,6 +91,7 @@ export const DetailSections = React.memo(
               html={en_km_com}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -102,6 +107,7 @@ export const DetailSections = React.memo(
                 <CsvListRendererColorized
                   isKhmerLinksEnabled={isKhmerLinksEnabled}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+                  isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   items={from_csv_variants}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
@@ -117,6 +123,7 @@ export const DetailSections = React.memo(
                 <CsvListRendererColorized
                   isKhmerLinksEnabled={isKhmerLinksEnabled}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+                  isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   items={from_csv_noun_forms}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
@@ -139,6 +146,7 @@ export const DetailSections = React.memo(
               html={from_csv_raw_html}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -154,6 +162,7 @@ export const DetailSections = React.memo(
               html={wiktionary}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -169,6 +178,7 @@ export const DetailSections = React.memo(
               html={from_russian_wiki}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -184,6 +194,7 @@ export const DetailSections = React.memo(
               html={from_chuon_nath}
               isKhmerLinksEnabled={isKhmerLinksEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}
               maybeColorMode={maybeColorMode}
               onNavigate={onNavigate}
@@ -195,6 +206,7 @@ export const DetailSections = React.memo(
                   html={from_chuon_nath_translated}
                   isKhmerLinksEnabled={isKhmerLinksEnabled}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+                  isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
                   onNavigate={onNavigate}

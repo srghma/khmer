@@ -1,10 +1,8 @@
 import { getUserDb } from './core'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../types'
-import {
-  Map_toNonEmptyMap_orUndefined,
-  type NonEmptyMap,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
+import { type NonEmptyMap } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
+import type { FavoriteItem } from './favorite/favorite-item'
 
 export const removeFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
   const db = await getUserDb()
@@ -98,26 +96,23 @@ export const isFavorite = async (word: NonEmptyStringTrimmed, language: Dictiona
   return rows.length > 0
 }
 
-export const getFavorites = async (): Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined> => {
+// export const getFavorites = async (): Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined> => {
+export const getFavorites = async (): Promise<FavoriteItem[]> => {
   const db = await getUserDb()
 
-  interface FavouriteItem {
-    readonly word: NonEmptyStringTrimmed
-    readonly language: DictionaryLanguage
-  }
+  const rows = await db.select<FavoriteItem[]>(
+    `SELECT word, language, timestamp, stability, difficulty, due, last_review
+FROM favorites ORDER BY timestamp DESC`,
+  )
 
-  const rows = await db.select<FavouriteItem[]>('SELECT word, language FROM favorites ORDER BY timestamp DESC')
+  return rows
 
-  const map = new Map<NonEmptyStringTrimmed, DictionaryLanguage>()
-
-  for (const row of rows) {
-    map.set(row.word, row.language)
-  }
-
-  return Map_toNonEmptyMap_orUndefined(map)
+  // const map = new Map<NonEmptyStringTrimmed, DictionaryLanguage>()
+  // for (const row of rows) map.set(row.word, row.language)
+  // return Map_toNonEmptyMap_orUndefined(map)
 }
 
-export const deleteAllFavourites = async (): Promise<void> => {
+export const deleteAllFavorites = async (): Promise<void> => {
   const db = await getUserDb()
 
   await db.execute('DELETE FROM favorites')

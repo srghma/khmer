@@ -10,8 +10,8 @@ import {
   type TypedContainsKhmer,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { useKhmerDefinitions } from '../../hooks/useKhmerDefinitions'
-import { generateTextSegments, segmentsToUniqueKhmerWords, type TextSegment } from '../../utils/text-processing/text'
-import { NonEmptySet_union_maybeUndefined_onCollisionIgnore } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import { generateTextSegments, yieldUniqueKhmerWords, type TextSegment } from '../../utils/text-processing/text'
+import { NonEmptySet_union_maybeUndefined_onCollisionIgnore_fromIterables } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { enhanceSegments, type TextSegmentEnhanced } from '../../utils/text-processing/text-enhanced'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
@@ -68,12 +68,15 @@ export const useKhmerAnalysis = (
       }
     }
 
+    // 1. Generate segment arrays (needed for the UI)
     const segmentsIntlRaw = generateTextSegments(analyzedText_withKhmer, 'segmenter', km_map)
     const segmentsDictRaw = generateTextSegments(analyzedText_withKhmer, 'dictionary', km_map)
 
-    const uniqueWords = NonEmptySet_union_maybeUndefined_onCollisionIgnore(
-      segmentsToUniqueKhmerWords(segmentsIntlRaw),
-      segmentsToUniqueKhmerWords(segmentsDictRaw),
+    // 2. Use generators to extract and merge unique words into one Set in a single pass
+    // This replaces: union(extract(arr1), extract(arr2))
+    const uniqueWords = NonEmptySet_union_maybeUndefined_onCollisionIgnore_fromIterables(
+      yieldUniqueKhmerWords(segmentsIntlRaw),
+      yieldUniqueKhmerWords(segmentsDictRaw),
     )
 
     return {

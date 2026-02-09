@@ -4,12 +4,17 @@
 export interface ExternalStore<T> {
   subscribe: (listener: () => void) => () => void
   getSnapshot: () => T
-  set: (val: T) => void
+  replaceStateWith_emitOnlyIfDifferentRef: (val: T) => void
+  mutateStateUsing_emitUnconditionally: (f: (oldState: T) => T) => void
 }
 
-export function createExternalStore<T>(initial: T, eq: (x: T, y: T) => boolean): ExternalStore<T> {
+export function createExternalStore<T>(initial: T): ExternalStore<T> {
   let state = initial
   const listeners = new Set<() => void>()
+
+  const emit = () => {
+    for (const l of listeners) l()
+  }
 
   return {
     subscribe: (listener: () => void) => {
@@ -20,10 +25,16 @@ export function createExternalStore<T>(initial: T, eq: (x: T, y: T) => boolean):
       }
     },
     getSnapshot: () => state,
-    set: (val: T) => {
-      if (eq(val, state)) return
+    replaceStateWith_emitOnlyIfDifferentRef: (val: T) => {
+      if (Object.is(val, state)) return
       state = val
-      listeners.forEach(l => l())
+      emit()
+    },
+    mutateStateUsing_emitUnconditionally: (f: (oldState: T) => T) => {
+      const new_: T = f(state)
+
+      state = new_
+      emit()
     },
   }
 }

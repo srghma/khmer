@@ -462,3 +462,72 @@ export function Map_sortBy<K, V, B>(primary: ReadonlyMap<K, V>, by: (k: K, v: V)
 
   return result
 }
+
+// export function Map_moveIndexToStart_iterator_based<K, V>(map: ReadonlyMap<K, V>, index: number): Map<K, V> {
+//   if (index < 0) throw new Error('Invalid index: cannot be less than zero')
+//   if (index >= map.size) throw new Error('Invalid index: cannot be more than map size')
+//   if (index === 0) throw new Error('Invalid index: cannot be zero, bc noop')
+//
+//   const result = new Map<K, V>()
+//
+//   let i = 0
+//   let movedEntry: [K, V] | undefined
+//
+//   for (const entry of map) {
+//     if (i === index) {
+//       movedEntry = entry
+//     } else {
+//       result.set(entry[0], entry[1])
+//     }
+//     i++
+//   }
+//
+//   // moved entry must exist because of bounds check
+//   const [k, v] = movedEntry!
+//   const final = new Map<K, V>()
+//   final.set(k, v)
+//
+//   for (const [kk, vv] of result) {
+//     final.set(kk, vv)
+//   }
+//
+//   return final
+// }
+
+export function Map_moveIndexToStart_arrayBased<K, V>(map: ReadonlyMap<K, V>, index: number): Map<K, V> {
+  if (index < 0) throw new Error('Invalid index: cannot be less than zero')
+  if (index >= map.size) throw new Error('Invalid index: cannot be more than map size')
+  if (index === 0) throw new Error('Invalid index: cannot be zero, bc noop')
+
+  const entries = Array.from(map.entries())
+  const [entry] = entries.splice(index, 1)
+
+  return new Map([entry!, ...entries])
+}
+
+// export function Map_moveIndexToStart_mut<K, V>(map: Map<K, V>, index: number): void {
+//   if (index < 0) throw new Error('Invalid index: cannot be less than zero')
+//   if (index >= map.size) throw new Error('Invalid index: cannot be more than map size')
+//   if (index === 0) throw new Error('Invalid index: cannot be zero, bc noop')
+//
+//   let i = 0
+//   let target: [K, V] | undefined
+//
+//   for (const entry of map) {
+//     if (i === index) {
+//       target = entry
+//       break
+//     }
+//     i++
+//   }
+//
+//   const [k, v] = target!
+//   map.delete(k)
+//
+//   const rebuilt = new Map<K, V>()
+//   rebuilt.set(k, v)
+//   for (const e of map) rebuilt.set(e[0], e[1])
+//
+//   map.clear()
+//   for (const e of rebuilt) map.set(e[0], e[1])
+// }

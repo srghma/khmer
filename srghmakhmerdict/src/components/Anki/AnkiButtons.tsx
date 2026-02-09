@@ -1,42 +1,48 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Button, type ButtonProps } from '@heroui/button'
 import { ModalFooter } from '@heroui/modal'
-import { formatDistanceToNow } from 'date-fns'
-import { Rating } from '@squeakyrobot/fsrs'
-import type { ValidDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
+import { addDays, formatDistanceToNow } from 'date-fns'
+import { Grade } from 'femto-fsrs'
+import type { NextIntervals } from './AnkiStateManager'
+import type { NOfDays } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/n-of-days'
 
 // --- Types & Config ---
 
 interface RatingConfig {
-  rating: Rating
+  rating: Grade
   label: string
   color: ButtonProps['color']
 }
 
 const RATINGS: RatingConfig[] = [
-  { rating: Rating.Again, label: 'Again', color: 'danger' },
-  { rating: Rating.Hard, label: 'Hard', color: 'warning' },
-  { rating: Rating.Good, label: 'Good', color: 'success' },
-  { rating: Rating.Easy, label: 'Easy', color: 'primary' },
+  { rating: Grade.AGAIN, label: 'Again', color: 'danger' },
+  { rating: Grade.HARD, label: 'Hard', color: 'warning' },
+  { rating: Grade.GOOD, label: 'Good', color: 'success' },
+  { rating: Grade.EASY, label: 'Easy', color: 'primary' },
 ]
 
 // --- Sub-Component ---
 
 interface AnkiRatingButtonProps extends RatingConfig {
-  interval: ValidDate
-  onRate: (rating: Rating) => void
+  intervalDays: NOfDays
+  onRate: (rating: Grade) => void
 }
 
-const AnkiRatingButton = React.memo(({ rating, label, color, interval, onRate }: AnkiRatingButtonProps) => (
-  <div className="flex flex-col gap-1">
-    <Button color={color} variant="flat" onPress={() => onRate(rating)}>
-      {label}
-    </Button>
-    <span className="text-[10px] text-center text-default-400 min-h-[1em]">
-      {formatDistanceToNow(interval, { addSuffix: true })}
-    </span>
-  </div>
-))
+const AnkiRatingButton = React.memo(({ rating, label, color, intervalDays, onRate }: AnkiRatingButtonProps) => {
+  // Convert FSRS interval days to a displayable date
+  const dueDate = useMemo(() => addDays(new Date(), intervalDays), [intervalDays])
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Button color={color} variant="flat" onPress={() => onRate(rating as unknown as Grade)}>
+        {label}
+      </Button>
+      <span className="text-[10px] text-center text-default-400 min-h-[1em]">
+        {formatDistanceToNow(dueDate, { addSuffix: true })}
+      </span>
+    </div>
+  )
+})
 
 AnkiRatingButton.displayName = 'AnkiRatingButton'
 
@@ -45,9 +51,9 @@ AnkiRatingButton.displayName = 'AnkiRatingButton'
 interface AnkiButtonsProps {
   isRevealed: boolean
   isDisabled: boolean
-  nextIntervals: Record<Rating, ValidDate>
+  nextIntervals: NextIntervals
   onReveal: () => void
-  onRate: (rating: Rating) => void
+  onRate: (rating: Grade) => void
 }
 
 export const AnkiButtons = React.memo(
@@ -70,7 +76,7 @@ export const AnkiButtons = React.memo(
             <AnkiRatingButton
               key={config.rating}
               {...config}
-              interval={nextIntervals?.[config.rating]}
+              intervalDays={nextIntervals?.[config.rating]}
               onRate={onRate}
             />
           ))}

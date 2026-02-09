@@ -262,6 +262,14 @@ const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
   return (
     <div className="h-full flex flex-wrap gap-x-4 gap-y-4 items-start content-start">
       {segments.map((segment, segIdx) => {
+        // 1. Handle Whitespace
+        if (segment.t === 'whitespace') {
+          // Returning raw string or a Fragment with the space string.
+          // Since parent is flex-wrap, this preserves logical spacing if needed.
+          return segment.v
+        }
+
+        // 2. Handle non-Khmer text
         if (segment.t === 'notKhmer') {
           return (
             <span key={segIdx} className="text-base text-default-700 self-center px-1">
@@ -270,7 +278,7 @@ const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
           )
         }
 
-        // For Khmer segments, iterate over words
+        // 3. Handle Khmer segments (Type is now narrowed to exclude whitespace/notKhmer)
         return segment.words.map((word, wordIdx) => {
           const w: TypedKhmerWord = typeof word === 'string' ? word : word.w
           const def: NonEmptyStringTrimmed | undefined = typeof word === 'string' ? undefined : word.def

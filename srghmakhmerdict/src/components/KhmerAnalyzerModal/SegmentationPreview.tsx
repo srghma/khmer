@@ -71,16 +71,18 @@ interface SegmentationPreviewProps {
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
   ({ onKhmerWordClick, segments, maybeColorMode, km_map }) => {
-    // We use a counter, but the heavy lifting is now inside memoized children
     let globalWordIndex = 0
 
     return (
       <div className="rounded-medium px-3 py-4 text-medium leading-relaxed break-words whitespace-pre-wrap min-h-[100px]">
         {segments.map((seg, i) => {
-          if (seg.t === 'notKhmer') {
-            return <NotKhmerPart key={`nk-${i}`} text={seg.v} />
-          }
+          // 1. Handle Whitespace: Render as raw text to preserve pre-wrap behavior
+          if (seg.t === 'whitespace') return seg.v
 
+          // 2. Handle non-Khmer text: Render using the NotKhmerPart component
+          if (seg.t === 'notKhmer') return <NotKhmerPart key={`nk-${i}`} text={seg.v} />
+
+          // 3. Handle Khmer blocks: Map through segmented words
           return seg.words.map((item, j) => {
             const currentIdx = globalWordIndex++
 

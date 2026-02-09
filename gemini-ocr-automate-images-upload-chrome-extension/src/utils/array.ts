@@ -315,3 +315,36 @@ export function Array_partitionByType<V, Config extends Record<string, (v: V) =>
   }
   return result
 }
+
+export function Array_moveIndexToStart<T>(arr: readonly T[], index: number): T[] {
+  if (index < 0) throw new Error('Invalid index: cannot be less than zero')
+  if (index >= arr.length) throw new Error('Invalid index: cannot be more than array')
+  if (index === 0) throw new Error('Invalid index: cannot be zero, bc noop')
+
+  const item = arr[index]!
+  return [item, ...arr.slice(0, index), ...arr.slice(index + 1)]
+}
+
+// export function Array_moveIndexToStart_splice<T>(arr: readonly T[], index: number): T[] {
+//   if (index < 0) throw new Error('Invalid index: cannot be less than zero')
+//   if (index >= arr.length) throw new Error('Invalid index: cannot be more than array')
+//   if (index === 0) throw new Error('Invalid index: cannot be zero, bc noop')
+//
+//   const entries = arr.slice() // clone
+//   const [item] = entries.splice(index, 1)
+//   return [item!, ...entries]
+// }
+
+export function Array_filterMap_undefined_toSet<T, U>(
+  arr: readonly T[],
+  f: (item: T, index: number) => U | undefined,
+): Set<U> {
+  const result = new Set<U>()
+  arr.forEach((item, idx) => {
+    const val = f(item, idx)
+    if (val !== undefined) {
+      result.add(val)
+    }
+  })
+  return result
+}

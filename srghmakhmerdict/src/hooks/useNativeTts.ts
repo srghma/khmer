@@ -9,7 +9,7 @@ const NATIVE_TTS_SPEAKING = { isSpeaking: true } as const
 
 export type NativeTtsState = typeof NATIVE_TTS_SPEAKING | { isSpeaking: false; speak: () => Promise<void> }
 
-const nativeSpeakingStore = createExternalStore<boolean>(false, (x: boolean, y: boolean) => x === y)
+const nativeSpeakingStore = createExternalStore<boolean>(false)
 
 export function useNativeTts(word: NonEmptyStringTrimmed | undefined, lang: BCP47LanguageTagName): NativeTtsState {
   const toast = useAppToast()
@@ -24,7 +24,7 @@ export function useNativeTts(word: NonEmptyStringTrimmed | undefined, lang: BCP4
       throw new Error('useNativeTts.speak was called while speaking - expected - disable button')
     }
 
-    nativeSpeakingStore.set(true)
+    nativeSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(true)
     try {
       const result = await executeNativeTts(word, lang)
 
@@ -34,7 +34,7 @@ export function useNativeTts(word: NonEmptyStringTrimmed | undefined, lang: BCP4
         toast.error(err.title, err.description)
       }
     } finally {
-      nativeSpeakingStore.set(false)
+      nativeSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(false)
     }
   }, [word, lang, toast])
 

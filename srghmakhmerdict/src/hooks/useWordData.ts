@@ -1,13 +1,13 @@
 import { useToggleFavorite } from './useToggleFavorite'
 import { useEffect, useSyncExternalStore, useState } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import * as FavDb from '../db/favourite'
+import * as FavDb from '../db/favorite'
 import * as DictDb from '../db/dict'
 import { type DictionaryLanguage } from '../types'
 import { type WordDetailEnOrRuOrKm } from '../db/dict'
 import { useAppToast } from '../providers/ToastProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { favoritesStore } from '../externalStores/historyAndFavourites'
+import { favoritesStore } from '../externalStores/historyAndFavorites'
 
 const STATE_LOADING = { t: 'loading' } as const
 const STATE_NOT_FOUND = { t: 'not_found' } as const
@@ -36,7 +36,7 @@ export function useWordData(word: NonEmptyStringTrimmed, mode: DictionaryLanguag
 
         if (!active) return
 
-        if (allFavorites === undefined) favoritesStore.set(favs)
+        if (allFavorites === undefined) favoritesStore.replaceStateWith_emitOnlyIfDifferentRef(favs)
 
         if (data) {
           dispatch({ t: 'found', data })

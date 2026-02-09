@@ -22,7 +22,7 @@ import {
   Set_toNonEmptySet_orUndefined,
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
-import { tryHandleKhmerWordClick, useKhmerContentStyles } from '../hooks/useKhmerLinks'
+import { tryHandleKhmerAndNonKhmerWordClick, useKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
@@ -165,6 +165,7 @@ const useImageOrTextInteraction = (
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void,
   isKhmerLinksEnabled: boolean,
   isKhmerWordsHidingEnabled: boolean,
+  isNonKhmerWordsHidingEnabled: boolean,
 ) => {
   const toast = useAppToast()
 
@@ -175,7 +176,13 @@ const useImageOrTextInteraction = (
 
     const handleImageClick = async (e: MouseEvent) => {
       // 1. Handle Text Navigation (Higher Priority if enabled)
-      const handled = tryHandleKhmerWordClick(e, isKhmerLinksEnabled, isKhmerWordsHidingEnabled, onNavigate)
+      const handled = tryHandleKhmerAndNonKhmerWordClick(
+        e,
+        isKhmerLinksEnabled,
+        isKhmerWordsHidingEnabled,
+        isNonKhmerWordsHidingEnabled,
+        onNavigate,
+      )
 
       if (handled) return
 
@@ -222,6 +229,7 @@ export interface EnKmHtmlRendererProps {
   onNavigate: (w: NonEmptyStringTrimmed, m: DictionaryLanguage) => void
   isKhmerLinksEnabled: boolean
   isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
 }
 
 export const EnKmHtmlRenderer = ({
@@ -231,6 +239,7 @@ export const EnKmHtmlRenderer = ({
   onNavigate,
   isKhmerLinksEnabled,
   isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
 }: EnKmHtmlRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const { imageMode } = useSettings() // Consume setting
@@ -250,8 +259,19 @@ export const EnKmHtmlRenderer = ({
     return { __html: html_colorized }
   }, [html, ocrMap, km_map, maybeColorMode, imageMode])
 
-  useImageOrTextInteraction(containerRef, onNavigate, isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
-  const srghma_khmer_dict_content_styles = useKhmerContentStyles(isKhmerLinksEnabled, isKhmerWordsHidingEnabled)
+  useImageOrTextInteraction(
+    containerRef,
+    onNavigate,
+    isKhmerLinksEnabled,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
+  )
+
+  const srghma_khmer_dict_content_styles = useKhmerAndNonKhmerContentStyles(
+    isKhmerLinksEnabled,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
+  )
 
   return (
     <div

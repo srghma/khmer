@@ -69,6 +69,10 @@ export interface SettingsContextType {
   setIsKhmerWordsHidingEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   toggleKhmerWordsHiding: () => void
 
+  isNonKhmerWordsHidingEnabled: boolean
+  setIsNonKhmerWordsHidingEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+  toggleNonKhmerWordsHiding: () => void
+
   khmerFontName: KhmerFontName
   khmerFontFamily: NonEmptyStringTrimmed | undefined
   setKhmerFontName: (v: KhmerFontName | ((prev: KhmerFontName | undefined) => KhmerFontName)) => void
@@ -137,6 +141,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     { defaultValue: false },
   )
 
+  const [isNonKhmerWordsHidingEnabled, setIsNonKhmerWordsHidingEnabled] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__is_non_khmer_words_hiding_enabled',
+    { defaultValue: false },
+  )
+
   // Modal State (Transient - do not persist)
   const [isKhmerTableOpen, setIsKhmerTableOpen] = useState(false)
 
@@ -150,6 +159,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const toggleKhmerWordsHiding = useCallback(() => {
     setIsKhmerWordsHidingEnabled(prev => !prev)
   }, [setIsKhmerWordsHidingEnabled])
+
+  const toggleNonKhmerWordsHiding = useCallback(() => {
+    setIsNonKhmerWordsHidingEnabled(prev => !prev)
+  }, [setIsNonKhmerWordsHidingEnabled])
 
   const value = useMemo(
     () => ({
@@ -183,6 +196,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled ?? false,
       setIsKhmerWordsHidingEnabled,
       toggleKhmerWordsHiding,
+      isNonKhmerWordsHidingEnabled: isNonKhmerWordsHidingEnabled ?? false,
+      setIsNonKhmerWordsHidingEnabled,
+      toggleNonKhmerWordsHiding,
       khmerFontName: khmerFontName ?? 'Default',
       khmerFontFamily: KHMER_FONT_FAMILY[khmerFontName ?? 'Default'],
       setKhmerFontName,
@@ -215,6 +231,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerWordsHidingEnabled,
       setIsKhmerWordsHidingEnabled,
       toggleKhmerWordsHiding,
+      isNonKhmerWordsHidingEnabled,
+      setIsNonKhmerWordsHidingEnabled,
+      toggleNonKhmerWordsHiding,
       khmerFontName,
       setKhmerFontName,
     ],

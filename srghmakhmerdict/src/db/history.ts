@@ -1,10 +1,7 @@
 import { getUserDb } from './core'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../types'
-import {
-  Map_toNonEmptyMap_orUndefined,
-  type NonEmptyMap,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
+import { type NonEmptyMap } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 
 export const addToHistory = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
   const db = await getUserDb()
@@ -33,23 +30,26 @@ COMMIT;
   )
 }
 
-export const getHistory = async (): Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined> => {
-  const db = await getUserDb()
+export interface HistoryItem {
+  readonly word: NonEmptyStringTrimmed
+  readonly language: DictionaryLanguage
+}
 
-  interface HistoryItem {
-    readonly word: NonEmptyStringTrimmed
-    readonly language: DictionaryLanguage
-  }
+// export const getHistory = async (): Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined> => {
+export const getHistory = async (): Promise<HistoryItem[]> => {
+  const db = await getUserDb()
 
   const rows = await db.select<HistoryItem[]>('SELECT word, language FROM history ORDER BY timestamp DESC')
 
-  const map = new Map<NonEmptyStringTrimmed, DictionaryLanguage>()
+  return rows
 
-  for (const row of rows) {
-    map.set(row.word, row.language)
-  }
-
-  return Map_toNonEmptyMap_orUndefined(map)
+  // const map = new Map<NonEmptyStringTrimmed, DictionaryLanguage>()
+  //
+  // for (const row of rows) {
+  //   map.set(row.word, row.language)
+  // }
+  //
+  // return Map_toNonEmptyMap_orUndefined(map)
 }
 
 export const removeHistoryItem = async (

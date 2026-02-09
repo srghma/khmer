@@ -1,6 +1,5 @@
 use crate::app_state::AppState;
 use tauri::Manager;
-use tauri::http::{Response, StatusCode};
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tokio::sync::RwLock;
 
@@ -9,6 +8,7 @@ mod constants;
 mod db;
 mod db_initialize;
 mod image_manager;
+mod protocols;
 pub mod utils;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -24,22 +24,25 @@ pub fn run() {
                     PRIMARY KEY (word, language)
                 );
                 CREATE TABLE IF NOT EXISTS favorites (
+                    -- Primary Identifiers
                     word TEXT NOT NULL,
                     language TEXT NOT NULL,
-                    timestamp INTEGER NOT NULL,
+                    timestamp INTEGER NOT NULL, -- When the favorite was added (creation date)
+
+                    -- FSRS Core State
+                    stability REAL NOT NULL DEFAULT 0,
+                    difficulty REAL NOT NULL DEFAULT 0,
+
+                    -- Scheduling Timestamps
+                    last_review INTEGER, -- NULL if never reviewed (New card)
+                    due INTEGER NOT NULL, -- For New cards, this usually equals 'timestamp' (due immediately)
+
+                    -- Statistics (Metadata)
+                    -- reps INTEGER NOT NULL DEFAULT 0,
+                    -- lapses INTEGER NOT NULL DEFAULT 0,
+                    -- state INTEGER NOT NULL DEFAULT 0, -- 0=New, 1=Learning, 2=Review, 3=Relearning
+
                     PRIMARY KEY (word, language)
-                );
-                CREATE TABLE IF NOT EXISTS anki (
-                    word TEXT PRIMARY KEY,
-                    due INTEGER NOT NULL,
-                    stability REAL NOT NULL,
-                    difficulty REAL NOT NULL,
-                    elapsed_days INTEGER NOT NULL,
-                    scheduled_days INTEGER NOT NULL,
-                    reps INTEGER NOT NULL,
-                    lapses INTEGER NOT NULL,
-                    state INTEGER NOT NULL,
-                    last_review INTEGER
                 );
         ",
         kind: MigrationKind::Up,
@@ -49,83 +52,12 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // 1. REGISTER CUSTOM PROTOCOL with Debug Logging
         .register_uri_scheme_protocol("imglocal", move |ctx, request| {
-            println!("🔎 [imglocal] Request received: {}", request.uri());
-
-            let app_handle = ctx.app_handle();
-            let uri_path = request.uri().path();
-
-            // Clean the path. If URL is imglocal://localhost/1295.webp, path is /1295.webp
-            let filename = uri_path.trim_start_matches('/');
-
-            // Decode URL (handle spaces etc)
-            let decoded_filename = match urlencoding::decode(filename) {
-                Ok(s) => s.to_string(),
-                Err(e) => {
-                    println!(
-                        "❌ [imglocal] Failed to decode filename '{}': {}",
-                        filename, e
-                    );
-                    filename.to_string()
-                }
-            };
-
-            println!("📂 [imglocal] Looking for file: {}", decoded_filename);
-
-            // Resolve directory
-            let app_dir = match app_handle.path().app_local_data_dir() {
-                Ok(dir) => dir,
-                Err(e) => {
-                    println!("❌ [imglocal] Failed to get app_local_data_dir: {}", e);
-                    return Response::builder()
-                        .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(vec![])
-                        .unwrap();
-                }
-            };
-
-            let image_path = app_dir
-                .join(constants::IMAGES_FOLDER_NAME)
-                .join(&decoded_filename);
-
-            println!("📍 [imglocal] Absolute path: {:?}", image_path);
-
-            // Security check
-            let expected_prefix = app_dir.join(constants::IMAGES_FOLDER_NAME);
-            if !image_path.starts_with(&expected_prefix) {
-                println!(
-                    "🚫 [imglocal] Security check failed. Path {:?} is not inside {:?}",
-                    image_path, expected_prefix
-                );
-                return Response::builder()
-                    .status(StatusCode::FORBIDDEN)
-                    .body(vec![])
-                    .unwrap();
-            }
-
-            // Read file
-            match std::fs::read(&image_path) {
-                Ok(data) => {
-                    println!("✅ [imglocal] File found! Size: {} bytes", data.len());
-                    let mime = if image_path.extension().map_or(false, |e| e == "webp") {
-                        "image/webp"
-                    } else {
-                        "application/octet-stream"
-                    };
-
-                    Response::builder()
-                        .header("Content-Type", mime)
-                        .header("Access-Control-Allow-Origin", "*")
-                        .body(data)
-                        .unwrap()
-                }
-                Err(e) => {
-                    println!("❌ [imglocal] File read error for {:?}: {}", image_path, e);
-                    Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .body("Not Found".as_bytes().to_vec())
-                        .unwrap()
-                }
-            }
+            protocols::handle_local_assets(
+                ctx.app_handle(),
+                request,
+                "imglocal",
+                constants::IMAGES_FOLDER_NAME,
+            )
         })
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_tts::init())
@@ -168,8 +100,8 @@ pub fn run() {
             db::dict::get_en_km_com_images_ocr,
             db::dict::get_km_words_detail_short,
             db::dict::get_km_words_detail_full,
-            db::anki::get_all_anki_cards,
-            db::anki::save_anki_cards,
+            // db::anki::get_all_anki_cards,
+            // db::anki::save_anki_cards,
             image_manager::check_offline_images_status,
             image_manager::download_offline_images
         ])

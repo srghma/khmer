@@ -8,7 +8,6 @@ import {
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../../db/dict'
-
 import {
   Array_toNonEmptyArray_orThrow,
   type NonEmptyArray,
@@ -18,21 +17,16 @@ import {
   type NonEmptyString,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
 import { type ColorizationMode } from './utils'
-import { renderKhmerWordSpan } from './word-renderer'
-import {
-  Set_toNonEmptySet_orUndefined,
-  type NonEmptySet,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { renderKhmerWordSpan, renderNonKhmerSpan } from './word-renderer'
 
-////////////////////////////////////////////////////////////////////////
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import {
+  type NonEmptySet,
+  Set_toNonEmptySet_orUndefined,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
 const HTML_DETECTION_REGEX = /<[a-z][\s\S]*>/i
 
-/**
- * Escapes unsafe HTML characters to ensure the text renders literally
- * before we inject our own <span> tags.
- */
 const escapeHtml = (unsafe: string): string => {
   return unsafe
     .replace(/&/g, '&amp;')
@@ -42,111 +36,148 @@ const escapeHtml = (unsafe: string): string => {
     .replace(/'/g, '&#039;')
 }
 
-// --- New Types & Split Functions ---
+export type TextSegment =
+  | { t: 'khmer'; words: NonEmptyArray<TypedKhmerWord> }
+  | { t: 'notKhmer'; v: NonEmptyStringTrimmed }
+  | { t: 'whitespace'; v: NonEmptyString }
 
-export type TextSegment = { t: 'khmer'; words: NonEmptyArray<TypedKhmerWord> } | { t: 'notKhmer'; v: NonEmptyString }
+/**
+ * GENERATOR: Yields Khmer words from an iterable of segments.
+ */
+export function* yieldUniqueKhmerWords(segments: Iterable<TextSegment>): Generator<TypedKhmerWord> {
+  for (const seg of segments) {
+    if (seg.t === 'khmer') {
+      for (const w of seg.words) {
+        yield w
+      }
+    }
+  }
+}
 
+/**
+ * Consumes the generator to maintain backward compatibility if needed,
+ * though we will prefer the generator directly in Phase 2.
+ */
 export const segmentsToUniqueKhmerWords = (
-  segments: NonEmptyArray<TextSegment>,
+  segments: Iterable<TextSegment>,
 ): NonEmptySet<TypedKhmerWord> | undefined => {
   const uniqueWords = new Set<TypedKhmerWord>()
 
-  segments.forEach(seg => {
-    if (seg.t === 'khmer') {
-      seg.words.forEach(w => uniqueWords.add(w))
-    }
-  })
+  for (const w of yieldUniqueKhmerWords(segments)) {
+    uniqueWords.add(w)
+  }
 
   return Set_toNonEmptySet_orUndefined(uniqueWords)
 }
 
 /**
- * Function 1: Parsing / Generation
- * Splits text into segments and performs Khmer segmentation/lookup where applicable.
+ * GENERATOR: Yields segments one by one.
+ * Replaces the imperative loop and intermediate array pushes.
  */
-export const generateTextSegments = (
-  text: TypedContainsKhmer,
+export function* yieldTextSegments(
+  text: string,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
-): NonEmptyArray<TextSegment> => {
-  // 1. Validation
-  if (HTML_DETECTION_REGEX.test(text)) {
-    throw new Error(
-      `Invalid input for colorizeText: HTML tags detected. Use colorizeHtml instead. Input snippet: ${text.substring(0, 50)}...`,
-    )
-  }
-
-  // 2. Escape HTML
-  const safeText = escapeHtml(text)
-
-  // 3. Split by Khmer blocks
-  // Using capturing group () keeps the delimiters (Khmer parts) in the result array
-  const rawParts = safeText.split(/([\p{Script=Khmer}]+)/u)
-
-  const segments: TextSegment[] = []
+): Generator<TextSegment> {
+  // Using capture group to keep delimiters (Khmer blocks)
+  const rawParts = text.split(/([\p{Script=Khmer}]+)/u)
 
   for (const part of rawParts) {
-    if (!part) continue // Skip empty splits
+    if (!part) continue
 
-    // Check if this part is a block of Khmer text
     if (isKhmerWord(part)) {
       const match = part as TypedKhmerWord
-      const words: NonEmptyArray<TypedKhmerWord> =
+      const words =
         mode === 'segmenter'
           ? khmerSentenceToWords_usingSegmenter(match)
           : khmerSentenceToWords_usingDictionary(match, (s: TypedKhmerWord) => s !== match && km_map.has(s))
 
-      segments.push({ t: 'khmer', words })
+      yield { t: 'khmer', words }
     } else {
-      // It's punctuation, spaces, or non-Khmer text
-      segments.push({ t: 'notKhmer', v: nonEmptyString(part) })
+      // Handle punctuation and whitespace
+      const subParts = part.split(/(\s+)/)
+
+      for (const sub of subParts) {
+        if (!sub) continue
+        if (/^\s+$/.test(sub)) {
+          yield { t: 'whitespace', v: nonEmptyString(sub) }
+        } else {
+          yield { t: 'notKhmer', v: nonEmptyString_afterTrim(sub) }
+        }
+      }
     }
   }
-
-  return Array_toNonEmptyArray_orThrow(segments)
 }
 
 /**
- * Function 2: Rendering / Colorizing
- * Takes the parsed segments and converts them into an HTML string with colors.
+ * GENERATOR: Yields rendered HTML strings for each segment.
  */
-export const colorizeSegments = (
-  segments: NonEmptyArray<TextSegment>,
+export function* yieldColorizedChunks(
+  segments: Iterable<TextSegment>,
   km_map: KhmerWordsMap,
-): NonEmptyStringTrimmed => {
-  let wordCounter = 0
+  wordCounter: { current: number },
+): Generator<NonEmptyString> {
+  for (const segment of segments) {
+    if (segment.t === 'whitespace') {
+      yield segment.v
+      continue
+    }
 
-  const html = segments
-    .map(segment => {
-      // 1. Handle non-Khmer text
-      if (segment.t === 'notKhmer') {
-        return segment.v
-      }
+    if (segment.t === 'notKhmer') {
+      yield renderNonKhmerSpan(segment.v)
+      continue
+    }
 
-      // 2. Handle Khmer text (apply colors to words)
-      return segment.words
-        .map(w => {
-          const htmlSegment = renderKhmerWordSpan(w, wordCounter, km_map.has(w))
-
-          wordCounter++
-
-          return htmlSegment
-        })
-        .join('')
-    })
-    .join('')
-
-  return nonEmptyString_afterTrim(html)
+    // Process Khmer words
+    for (const w of segment.words) {
+      yield renderKhmerWordSpan(w, wordCounter.current, km_map.has(w))
+      wordCounter.current++
+    }
+  }
 }
 
-// --- Main Export ---
+// --- Public API (Consuming the Generators) ---
+
+export const generateTextSegments = (
+  text: NonEmptyStringTrimmed,
+  mode: ColorizationMode,
+  km_map: KhmerWordsMap,
+): NonEmptyArray<TextSegment> => {
+  if (HTML_DETECTION_REGEX.test(text)) {
+    throw new Error(`Invalid input: HTML detected.`)
+  }
+  const safeText = escapeHtml(text)
+
+  // Consume the generator into an array
+  return Array_toNonEmptyArray_orThrow([...yieldTextSegments(safeText, mode, km_map)])
+}
+
+export const colorizeSegments_usingWordCounterRef = (
+  segments: Iterable<TextSegment>,
+  km_map: KhmerWordsMap,
+  wordCounter: { current: number },
+): NonEmptyStringTrimmed => {
+  let result = ''
+
+  // Use a simple loop to build the string without intermediate map arrays
+  for (const chunk of yieldColorizedChunks(segments, km_map, wordCounter)) {
+    result += chunk
+  }
+
+  return nonEmptyString_afterTrim(result)
+}
+
+export const colorizeSegments = (segments: Iterable<TextSegment>, km_map: KhmerWordsMap): NonEmptyStringTrimmed => {
+  return colorizeSegments_usingWordCounterRef(segments, km_map, { current: 0 })
+}
 
 export const colorizeText = (
   text: TypedContainsKhmer,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyStringTrimmed => {
-  const segments = generateTextSegments(text, mode, km_map)
+  // Chain: input -> segment generator -> colorize helper
+  const segments = yieldTextSegments(escapeHtml(text), mode, km_map)
 
   return colorizeSegments(segments, km_map)
 }

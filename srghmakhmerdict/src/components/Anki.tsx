@@ -1,9 +1,8 @@
 import { Modal, ModalContent } from '@heroui/modal'
-
-import { type KhmerWordsMap } from '../db/dict'
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
-import { AnkiModalContent } from './Anki/AnkiModalContent'
+import { AnkiModalContent, type ReviewDirection } from './Anki/AnkiModalContent'
+import type { DictionaryLanguage } from '../types'
+import type { KhmerWordsMap } from '../db/dict'
+import type { AnkiFlowMode } from './Anki/types'
 
 // --- Main Modal Component ---
 
@@ -12,20 +11,38 @@ const modalClassNames = {
   base: 'max-w-[95vw] h-[90vh] max-h-[900px]',
 }
 
-export const KhmerAnkiModal = ({
-  isOpen,
-  onClose,
-  items,
-}: {
+interface KhmerAnkiModalProps {
   isOpen: boolean
   onClose: () => void
-  items: NonEmptySet<TypedContainsKhmer>
   km_map: KhmerWordsMap
-}) => {
+  reviewDirection: ReviewDirection
+}
+
+export const KhmerAnkiModal = ({ isOpen, onClose, km_map, reviewDirection }: KhmerAnkiModalProps) => {
+  // Map the ReviewDirection to the internal state configuration
+  let initialLanguage: DictionaryLanguage = 'km'
+  let initialMode: AnkiFlowMode = 'WORD_TO_DESC'
+
+  switch (reviewDirection) {
+    case 'EN_TO_KM':
+      initialLanguage = 'en'
+      initialMode = 'WORD_TO_DESC'
+      break
+    case 'RU_TO_KM':
+      initialLanguage = 'ru'
+      initialMode = 'WORD_TO_DESC'
+      break
+    case 'KM_TO_ALL':
+    default:
+      initialLanguage = 'km'
+      initialMode = 'WORD_TO_DESC'
+      break
+  }
+
   return (
     <Modal backdrop="blur" classNames={modalClassNames} isOpen={isOpen} scrollBehavior="inside" onClose={onClose}>
       <ModalContent>
-        <AnkiModalContent items={items} />
+        <AnkiModalContent initialLanguage={initialLanguage} initialMode={initialMode} km_map={km_map} />
       </ModalContent>
     </Modal>
   )
