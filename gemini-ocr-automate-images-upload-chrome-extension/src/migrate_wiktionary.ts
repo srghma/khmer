@@ -10,8 +10,8 @@ import { ReportStreamer } from './utils/report-streamer.js'
 const CONFIG = {
   MODE: 'ru' as 'en' | 'ru',
   // MODE: 'en' as 'en' | 'ru',
-  WRITE_TO_DB: true,
-  GENERATE_REPORT: false,
+  WRITE_TO_DB: false,
+  GENERATE_REPORT: true,
   VALIDATE_HTML: true,
   STOP_ON_ERROR: true,
   IF_INVALID_HTML_THROW: true,

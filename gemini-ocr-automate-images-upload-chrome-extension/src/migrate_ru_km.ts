@@ -1,13 +1,9 @@
 import { Database } from 'bun:sqlite'
-import {
-  parseDictionaryFile,
-  markdownToHtml,
-  type ParsedPage,
-} from '/home/srghma/projects/khmer/dicts/src/mk_continues_pages.ts'
+import { parseDictionaryFile, markdownToHtml, type ParsedPage } from './mk_continues_pages'
 import {
   strToRussianWordDictionaryIndexOrUndefined,
   type TypedRussianWordDictionaryIndexElement,
-} from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/russian-word-dictionary-index'
+} from './utils/russian-word-dictionary-index'
 import { type NonEmptyArray } from './utils/non-empty-array'
 
 const DB_PATH = '/home/srghma/projects/khmer/khmer_dictionary/assets/dict.db'

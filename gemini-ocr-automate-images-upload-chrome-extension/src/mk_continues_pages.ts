@@ -1,45 +1,35 @@
 #!/usr/bin/env npx tsx
 
-import * as fs from "fs"
-import * as path from "path"
+import * as fs from 'fs'
+import * as path from 'path'
 import {
-  TypedKhmerWordDictionaryIndexElement,
+  type TypedKhmerWordDictionaryIndexElement,
   strToKhmerWordDictionaryIndexOrUndefined,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word-dictionary-index"
-import { colorizeKhmerHtml } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/colorize-html"
-import { ValidNonNegativeInt } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber"
+} from './utils/khmer-word-dictionary-index'
+import { colorizeKhmerHtml } from './utils/khmer-colorize-html'
+import { type ValidNonNegativeInt } from './utils/toNumber'
+import { const_EMPTY, extractPageData } from './utils/page'
+import { strToKhmerWordOrThrow, type TypedKhmerWord } from './utils/khmer-word'
 import {
-  const_EMPTY,
-  extractPageData,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/page"
-import {
-  strToKhmerWordOrThrow,
-  TypedKhmerWord,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
-import {
+  strToRussianWordDictionaryIndexElementOrUndefined,
   strToRussianWordDictionaryIndexOrUndefined,
-  TypedRussianWordDictionaryIndexElement,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/russian-word-dictionary-index"
+  type TypedRussianWordDictionaryIndexElement,
+} from './utils/russian-word-dictionary-index'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
-  NonEmptyStringTrimmed,
+  type NonEmptyStringTrimmed,
   nonEmptyString_afterTrim,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed"
-import {
-  Array_assertNonEmptyArray,
-  NonEmptyArray,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array"
-import { Array_filterMap_undefined } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/array"
-import { NonEmptySet } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set"
+} from './utils/non-empty-string-trimmed'
+import { Array_assertNonEmptyArray, type NonEmptyArray } from './utils/non-empty-array'
+import { Array_filterMap_undefined } from './utils/array'
+import { type NonEmptySet } from './utils/non-empty-set'
+import { validateMarkdownContent, type MarkdownValidationConfig } from './utils/validateMarkdownLine'
 
 // --- Configuration ---
 
-const SPELLCHECKER_DICT_PATH =
-  "/home/srghma/projects/khmer/khmer-spellchecker/dictionary.txt"
-const RU_KM_DICT_PATH =
-  "/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt"
-const KM_RU_DICT_PATH =
-  "/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt"
+const SPELLCHECKER_DICT_PATH = '/home/srghma/projects/khmer/khmer-spellchecker/dictionary.txt'
+const RU_KM_DICT_PATH = '/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt'
+const KM_RU_DICT_PATH = '/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt'
 
 // --- Types ---
 
@@ -64,12 +54,12 @@ export interface GroupedEntry<T> {
 
 export const markdownToHtml = (markdown: string): string =>
   markdown
-    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
-    .replace(/\*([^*]+)\*/g, "<i>$1</i>")
-    .replace(/\$\\diamond\$/g, "◊")
-    .replace(/<>/g, "◊")
-    .replace(/\n/g, "<br>")
-    .replace(/(<br>){3,}/g, "<br><br>")
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/\*([^*]+)\*/g, '<i>$1</i>')
+    .replace(/\$\\diamond\$/g, '◊')
+    .replace(/<>/g, '◊')
+    .replace(/\n/g, '<br>')
+    .replace(/(<br>){3,}/g, '<br><br>')
 
 // --- 1. Extraction Logic ---
 
@@ -81,16 +71,13 @@ function extractHeadwordAndContent<T extends NonEmptyStringTrimmed>(
   const match = line.match(/^\*\*([^*]+)\*\*(.*)$/)
 
   if (!match) {
-    throw new Error(
-      `[${contextInfo}] Line does not start with **Headword**: "${line.substring(0, 20)}..."`,
-    )
+    throw new Error(`[${contextInfo}] Line does not start with **Headword**: "${line.substring(0, 20)}..."`)
   }
 
   const rawHeadword_ = match[1]?.trim()
-  const rawContent = match[2]?.replace(/^,/, "")?.trim()
+  const rawContent = match[2]?.replace(/^,/, '')?.trim()
 
-  if (!rawHeadword_)
-    throw new Error(`[${contextInfo}] Empty headword extracted.`)
+  if (!rawHeadword_) throw new Error(`[${contextInfo}] Empty headword extracted.`)
   if (!rawContent) throw new Error(`[${contextInfo}] Empty content extracted.`)
 
   const rawHeadword = nonEmptyString_afterTrim(rawHeadword_)
@@ -104,8 +91,11 @@ function extractHeadwordAndContent<T extends NonEmptyStringTrimmed>(
 
   const finalContent = String_toNonEmptyString_orUndefined_afterTrim(rawContent)
 
-  if (!finalContent)
-    throw new Error(`[${contextInfo}] Resulting content is empty.`)
+  if (!finalContent) throw new Error(`[${contextInfo}] Resulting content is empty.`)
+
+  // const finalContent_ = strToRussianWordDictionaryIndexElementOrUndefined(finalContent)
+  //
+  // if (!finalContent_) throw new Error(`[${contextInfo}] not RussianWordDictionaryIndex ${finalContent}.`)
 
   return {
     index: validatedHeadword,
@@ -119,45 +109,46 @@ function extractHeadwordAndContent<T extends NonEmptyStringTrimmed>(
 export function parseDictionaryFile<T extends NonEmptyStringTrimmed>(
   filePath: string,
   validator: (s: NonEmptyStringTrimmed) => NonEmptySet<T> | undefined,
+  validationConfig: MarkdownValidationConfig = {
+    checkBold: true,
+    checkBackticks: true,
+    checkItalics: true,
+    checkBrackets: true,
+    // checkParens: true,
+  },
 ): NonEmptyArray<ParsedPage<T>> {
   const fileName = path.basename(filePath)
   console.log(`\n--- Parsing: ${fileName} ---`)
 
   if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`)
 
-  const content = fs.readFileSync(filePath, "utf-8")
+  const content = fs.readFileSync(filePath, 'utf-8')
   const rawPages = extractPageData(content)
   console.log(`    Found ${rawPages.length} raw pages.`)
 
-  const nonEmptyPages = rawPages.filter(
-    (p): p is [ValidNonNegativeInt, NonEmptyStringTrimmed] =>
-      p[1] !== const_EMPTY,
-  )
+  const nonEmptyPages = rawPages.filter((p): p is [ValidNonNegativeInt, NonEmptyStringTrimmed] => p[1] !== const_EMPTY)
 
-  const parsedPages: ParsedPage<T>[] = nonEmptyPages.map(
-    ([pageNum, pageContent]) => {
-      const rawLines = Array_filterMap_undefined(
-        pageContent.split("\n").map((l) => l.trim()),
-        String_toNonEmptyString_orUndefined_afterTrim,
-      )
+  // --- NEW: Validation Step ---
+  validateMarkdownContent(nonEmptyPages, validationConfig)
 
-      const entries = rawLines.map((line) =>
-        extractHeadwordAndContent(line, validator, `Page ${pageNum}`),
-      )
+  const parsedPages: ParsedPage<T>[] = nonEmptyPages.map(([pageNum, pageContent]) => {
+    const rawLines = Array_filterMap_undefined(
+      pageContent.split('\n').map(l => l.trim()),
+      String_toNonEmptyString_orUndefined_afterTrim,
+    )
 
-      Array_assertNonEmptyArray(entries)
-      return [pageNum, entries] as const
-    },
-  )
+    const entries = rawLines.map(line => extractHeadwordAndContent(line, validator, `Page ${pageNum}`))
+
+    Array_assertNonEmptyArray(entries)
+    return [pageNum, entries] as const
+  })
 
   if (parsedPages.length === 0) {
-    throw new Error("No valid pages found after parsing.")
+    throw new Error('No valid pages found after parsing.')
   }
 
   Array_assertNonEmptyArray(parsedPages)
-  console.log(
-    `    Successfully parsed ${parsedPages.length} pages containing entries.`,
-  )
+  console.log(`    Successfully parsed ${parsedPages.length} pages containing entries.`)
 
   return parsedPages
 }
@@ -167,12 +158,12 @@ export function parseDictionaryFile<T extends NonEmptyStringTrimmed>(
 export function validateUniqueHeadwords<T extends NonEmptyStringTrimmed>(
   parsedPages: NonEmptyArray<ParsedPage<T>>,
 ): void {
-  console.log("    Validating headword uniqueness...")
+  console.log('    Validating headword uniqueness...')
   const seen = new Set<T>()
 
   parsedPages.forEach(([pageNum, entries]) => {
     entries.forEach(({ index: headwordSet }) => {
-      headwordSet.forEach((singleHeadword) => {
+      headwordSet.forEach(singleHeadword => {
         if (seen.has(singleHeadword)) {
           console.error(
             // throw new Error(
@@ -183,7 +174,7 @@ export function validateUniqueHeadwords<T extends NonEmptyStringTrimmed>(
       })
     })
   })
-  console.log("    ✅ All headwords are unique.")
+  console.log('    ✅ All headwords are unique.')
 }
 
 /**
@@ -193,7 +184,7 @@ export function validateUniqueHeadwords<T extends NonEmptyStringTrimmed>(
 export function mkGrouped<T extends NonEmptyStringTrimmed>(
   parsedPages: NonEmptyArray<ParsedPage<T>>,
 ): GroupedEntry<T>[] {
-  console.log("    Grouping entries...")
+  console.log('    Grouping entries...')
 
   // We use a Map locally for efficient aggregation, but the function is pure from the outside.
   const groupedMap = new Map<
@@ -209,7 +200,7 @@ export function mkGrouped<T extends NonEmptyStringTrimmed>(
 
   parsedPages.forEach(([pageNum, entries]) => {
     entries.forEach(({ index: headwordList, content }) => {
-      headwordList.forEach((singleHeadword) => {
+      headwordList.forEach(singleHeadword => {
         const existing = groupedMap.get(singleHeadword) ?? {
           headword: singleHeadword,
           allContent: [],
@@ -227,10 +218,6 @@ export function mkGrouped<T extends NonEmptyStringTrimmed>(
   return result
 }
 
-/**
- * 3c. Format and Write
- * Generates the Tabfile content and writes it to disk.
- */
 function writeStarDictFile<T extends NonEmptyStringTrimmed>(
   grouped: GroupedEntry<T>[],
   outputPath: string,
@@ -238,54 +225,53 @@ function writeStarDictFile<T extends NonEmptyStringTrimmed>(
 ): void {
   console.log(`    Generating content for: ${path.basename(outputPath)}`)
 
-  const tabLines = grouped.map((g) => {
-    // 1. Prepare Header (Headword + Duplicate indicator)
+  const tabLines = grouped.map(g => {
+    // Headword
     const colorizedHeadword = colorizeKhmerHtml(g.headword, khmerDict)
-    const duplicateLabel = g.allContent.length > 1 ? " (duplicate)" : ""
-    const headerHtml = `<div style="font-size:1.5em; margin-bottom: 0.5em;">${colorizedHeadword}${duplicateLabel}</div>`
+    const duplicateLabel = g.allContent.length > 1 ? ' <span class="duplicate">(duplicate)</span>' : ''
 
-    // 2. StarDict HTML Format for Definitions
+    // Definitions
     const defs = g.allContent.map((c, i) => {
       let html = markdownToHtml(c)
       html = colorizeKhmerHtml(html, khmerDict)
-      if (g.allContent.length > 1) {
-        return `<div style="margin-bottom:5px;"><b>[${i + 1}]</b> ${html}</div>`
-      }
-      return html
+
+      const index = g.allContent.length > 1 ? `<span class="sense-index">${i + 1}.</span> ` : ''
+
+      return `<dd>${index}${html}</dd>`
     })
 
-    const bodyHtml = defs.join("<hr>")
-    const finalHtml = `${headerHtml}${bodyHtml}`
+    // Dictionary HTML
+    const finalHtml = `<dl>
+<dt>${colorizedHeadword}${duplicateLabel}</dt>
+${defs.join('\n')}
+</dl>`
 
-    // Escape newlines in the single-line tab format
-    return `${g.headword}\t${finalHtml.replace(/\n/g, "<br>")}`
+    return `${g.headword}\t${finalHtml.replace(/\n/g, '<br>')}`
   })
 
-  // Sort alphabetically by headword string
   tabLines.sort((a, b) => a.localeCompare(b))
 
-  fs.writeFileSync(outputPath, tabLines.join("\n"), "utf-8")
+  fs.writeFileSync(outputPath, tabLines.join('\n'), 'utf-8')
   console.log(`    Written to ${outputPath}`)
 }
 
 // --- Main Execution ---
 
 async function main() {
-  console.log("========================================")
-  console.log("STARTING DICTIONARY BUILD")
-  console.log("========================================")
+  console.log('========================================')
+  console.log('STARTING DICTIONARY BUILD')
+  console.log('========================================')
 
   // 1. Load Reference Dict
   console.log(`Loading Spellchecker reference from: ${SPELLCHECKER_DICT_PATH}`)
-  if (!fs.existsSync(SPELLCHECKER_DICT_PATH))
-    throw new Error(`Dictionary file not found: ${SPELLCHECKER_DICT_PATH}`)
+  if (!fs.existsSync(SPELLCHECKER_DICT_PATH)) throw new Error(`Dictionary file not found: ${SPELLCHECKER_DICT_PATH}`)
 
-  const dictContent = fs.readFileSync(SPELLCHECKER_DICT_PATH, "utf-8")
+  const dictContent = fs.readFileSync(SPELLCHECKER_DICT_PATH, 'utf-8')
   const validKhmerWords: Set<TypedKhmerWord> = new Set(
     dictContent
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
       .map(strToKhmerWordOrThrow),
   )
   console.log(`Loaded ${validKhmerWords.size} valid Khmer words.`)
@@ -302,11 +288,7 @@ async function main() {
     )
 
     // No validation for Russian -> Khmer headwords (Russian words) against Khmer dict
-    writeStarDictFile(
-      grouped,
-      RU_KM_DICT_PATH.replace(/\.txt$/, ".tab"),
-      validKhmerWords,
-    )
+    writeStarDictFile(grouped, RU_KM_DICT_PATH.replace(/\.txt$/, '.tab'), validKhmerWords)
   }
 
   // ---------------------------------------------------------
@@ -320,16 +302,12 @@ async function main() {
       ),
     )
 
-    writeStarDictFile(
-      grouped,
-      KM_RU_DICT_PATH.replace(/\.txt$/, ".tab"),
-      validKhmerWords,
-    )
+    writeStarDictFile(grouped, KM_RU_DICT_PATH.replace(/\.txt$/, '.tab'), validKhmerWords)
   }
 
-  console.log("\n========================================")
-  console.log("DONE")
-  console.log("========================================")
+  console.log('\n========================================')
+  console.log('DONE')
+  console.log('========================================')
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

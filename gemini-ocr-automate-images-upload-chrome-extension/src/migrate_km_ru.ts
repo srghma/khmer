@@ -6,23 +6,33 @@ import {
   type GroupedEntry,
   type ParsedPage,
   validateUniqueHeadwords,
-} from '/home/srghma/projects/khmer/dicts/src/mk_continues_pages.ts'
+} from './mk_continues_pages'
 import {
   type TypedKhmerWordDictionaryIndexElement,
   strToKhmerWordDictionaryIndexOrUndefined,
-} from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/khmer-word-dictionary-index'
+} from './utils/khmer-word-dictionary-index'
 import { type NonEmptyArray } from './utils/non-empty-array'
+import { assertIsDefinedAndReturn } from './utils/asserts'
 
 // --- Configuration ---
 
-const DB_PATH = '/home/srghma/projects/khmer/khmer_dictionary/assets/dict.db'
-const KM_RU_DICT_PATH = '/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt'
-
-/**
- * If true, only Khmer words already present in km_en_tbl_Dict will be updated.
- * New Khmer words found in the Russian dictionary will NOT be added as new rows.
- */
-const dontINSERTNewValuesIfWordDoesNotExistInDictButOnlyAddRussianTranslationIfWordIsAlreadyInDict = true
+const CONFIG = {
+  DB_PATH: '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db',
+  KM_RU_DICT_PATH: '/home/srghma/projects/khmer/Кхмерско-русский словарь-Горгониев--content.txt',
+  /**
+   * The database column name where the Russian definitions will be stored.
+   */
+  COLUMN_NAME: 'gorgoniev',
+  /**
+   * If true, sets the configured column to NULL for all rows before starting the migration.
+   */
+  CLEAN_COLUMN_BEFORE_START: true,
+  /**
+   * If true, only Khmer words already present in km_Dict will be updated.
+   * New Khmer words found in the Russian dictionary will NOT be added as new rows.
+   */
+  ONLY_UPDATE_EXISTING: true,
+}
 
 // --- Helpers ---
 
@@ -34,51 +44,64 @@ const sanitizeForStrictSql = (s: string): string =>
     .replace(/ {2,}/g, ' ')
 
 function prepareHtml(g: GroupedEntry<string>): string {
-  const html = g.allContent
-    .map((c, i) => {
-      let h = markdownToHtml(c)
-      return g.allContent.length > 1 ? `<div style="margin-bottom:5px;"><b>[${i + 1}]</b> ${h}</div>` : h
-    })
-    .join('<hr>')
+  // Single definition → return directly
+  if (g.allContent.length === 1) {
+    const h = markdownToHtml(assertIsDefinedAndReturn(g.allContent[0]))
+    return sanitizeForStrictSql(h.replace(/<br>/g, '___BR___')).replace(/___BR___/g, '<br>')
+  }
+
+  // Multiple definitions → use <ol><li>
+  const items = g.allContent.map(c => {
+    const h = markdownToHtml(c)
+    return `<li>${h}</li>`
+  })
+
+  const html = `<ol>
+${items.join('\n')}
+</ol>`
 
   return sanitizeForStrictSql(html.replace(/<br>/g, '___BR___')).replace(/___BR___/g, '<br>')
 }
 
 async function main() {
-  const db = new Database(DB_PATH)
+  const db = new Database(CONFIG.DB_PATH)
 
   // 1. Ensure column exists
-  const info = db.query('PRAGMA table_info(km_en_tbl_Dict)').all() as {
+  const info = db.query('PRAGMA table_info(km_Dict)').all() as {
     name: string
   }[]
 
-  if (!info.some(c => c.name === 'from_russian')) {
-    console.log('➕ Adding column from_russian...')
-    db.run(
-      `ALTER TABLE km_en_tbl_Dict ADD COLUMN from_russian TEXT CHECK("from_russian" != '' AND "from_russian" != "Word" AND "from_russian" = TRIM("from_russian") AND "from_russian" NOT LIKE '%  %' AND "from_russian" NOT LIKE '%' || CHAR(9) || '%' AND "from_russian" NOT LIKE '%' || CHAR(10) || '%')`,
-    )
+  if (!info.some(c => c.name === CONFIG.COLUMN_NAME)) {
+    throw new Error(`The column "${CONFIG.COLUMN_NAME}" does not exist in the table "km_Dict". Please add it first.`)
   }
 
-  // 2. Parse and Group the Russian dictionary content
+  // 2. Optional: Clean existing data
+  if (CONFIG.CLEAN_COLUMN_BEFORE_START) {
+    console.log(`🧹 Cleaning all values in column "${CONFIG.COLUMN_NAME}"...`)
+    db.run(`UPDATE km_Dict SET ${CONFIG.COLUMN_NAME} = NULL`)
+  }
+
+  // 3. Parse and Group the Russian dictionary content
   const dict: NonEmptyArray<ParsedPage<TypedKhmerWordDictionaryIndexElement>> =
-    parseDictionaryFile<TypedKhmerWordDictionaryIndexElement>(KM_RU_DICT_PATH, strToKhmerWordDictionaryIndexOrUndefined)
+    parseDictionaryFile<TypedKhmerWordDictionaryIndexElement>(
+      CONFIG.KM_RU_DICT_PATH,
+      strToKhmerWordDictionaryIndexOrUndefined,
+    )
 
   validateUniqueHeadwords(dict)
 
   const grouped = mkGrouped(dict)
 
-  // 3. Prepare the Query based on the strict insertion policy
-  // If true: we use UPDATE (which does nothing if word is missing)
-  // If false: we use INSERT OR REPLACE (standard upsert)
-  const query = dontINSERTNewValuesIfWordDoesNotExistInDictButOnlyAddRussianTranslationIfWordIsAlreadyInDict
-    ? `UPDATE km_en_tbl_Dict SET from_russian = $desc WHERE Word = $word`
-    : `INSERT INTO km_en_tbl_Dict (Word, from_russian) VALUES ($word, $desc) ON CONFLICT(Word) DO UPDATE SET from_russian = excluded.from_russian`
+  // 4. Prepare the Query
+  const query = CONFIG.ONLY_UPDATE_EXISTING
+    ? `UPDATE km_Dict SET ${CONFIG.COLUMN_NAME} = $desc WHERE Word = $word`
+    : `INSERT INTO km_Dict (Word, ${CONFIG.COLUMN_NAME}) VALUES ($word, $desc) ON CONFLICT(Word) DO UPDATE SET ${CONFIG.COLUMN_NAME} = excluded.${CONFIG.COLUMN_NAME}`
 
   const stmt = db.prepare(query)
 
-  // 4. Execute Migration
+  // 5. Execute Migration
   console.log(
-    `🚀 Starting migration (${dontINSERTNewValuesIfWordDoesNotExistInDictButOnlyAddRussianTranslationIfWordIsAlreadyInDict ? 'Update only' : 'Upsert'})...`,
+    `🚀 Starting migration into column "${CONFIG.COLUMN_NAME}" (${CONFIG.ONLY_UPDATE_EXISTING ? 'Update only' : 'Upsert'})...`,
   )
 
   let processedCount = 0
@@ -100,7 +123,7 @@ async function main() {
   console.log(`   Processed entries in source: ${processedCount}`)
   console.log(`   Rows updated in database:    ${affectedCount}`)
 
-  if (dontINSERTNewValuesIfWordDoesNotExistInDictButOnlyAddRussianTranslationIfWordIsAlreadyInDict) {
+  if (CONFIG.ONLY_UPDATE_EXISTING) {
     console.log(`   Entries skipped (not in DB): ${processedCount - affectedCount}`)
   }
 

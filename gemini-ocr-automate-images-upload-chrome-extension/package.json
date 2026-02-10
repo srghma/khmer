@@ -35,6 +35,7 @@
     "jsonlines": "^0.1.1",
     "khmer-normalize": "^0.0.1",
     "khmer-normalizer": "^1.0.2",
+    "markdown-it": "^14.1.0",
     "p-map": "^7.0.4",
     "p-queue": "^9.1.0",
     "p-wait-for": "^6.0.0",
