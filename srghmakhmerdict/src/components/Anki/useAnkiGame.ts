@@ -7,11 +7,7 @@ import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useAppToast } from '../../providers/ToastProvider'
 import type { DictionaryLanguage } from '../../types'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
-import {
-  allFavorites_filterByLanguageAndSortByDue,
-  getPreviewIntervals,
-  zipQueueWithDescriptions,
-} from './utils'
+import { allFavorites_filterByLanguageAndSortByDue, getPreviewIntervals, zipQueueWithDescriptions } from './utils'
 import { getWordDetailsByModeFull_Strict, type LanguageToDetailMap } from '../../db/dict/index'
 import {
   Array_toNonEmptyArray_orThrow,
@@ -41,48 +37,48 @@ export const AnkiGame_loading = { t: 'loading' } as const
 export type AnkiGameHookReturn<L extends DictionaryLanguage, D extends AnkiDirection> =
   | typeof AnkiGame_loading
   | {
-    t: 'no_more_due_cards_today__nothing_selected'
-    allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
+      t: 'no_more_due_cards_today__nothing_selected'
+      allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
 
-    selectCard: (index: ValidNonNegativeInt) => void // will transition to 'no_more_due_cards_today__selected__front'
-  }
+      selectCard: (index: ValidNonNegativeInt) => void // will transition to 'no_more_due_cards_today__selected__front'
+    }
   | {
-    t: 'no_more_due_cards_today__selected__front'
-    allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
-    fourButtons: Record<Grade, NOfDays>
-    allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt
+      t: 'no_more_due_cards_today__selected__front'
+      allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
+      fourButtons: Record<Grade, NOfDays>
+      allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt
 
-    reveal: () => void
-    selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'no_more_due_cards_today__selected__front'
-  }
+      reveal: () => void
+      selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'no_more_due_cards_today__selected__front'
+    }
   | {
-    t: 'no_more_due_cards_today__selected__back'
-    allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
-    allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt
+      t: 'no_more_due_cards_today__selected__back'
+      allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
+      allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt
 
-    rate: (grade: Grade) => Promise<void>
-    selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'no_more_due_cards_today__selected__front'
-  }
+      rate: (grade: Grade) => Promise<void>
+      selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'no_more_due_cards_today__selected__front'
+    }
   | {
-    t: 'have_due_cards_today__selected__front'
-    allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
-    fourButtons: Record<Grade, NOfDays>
-    nOfCardsDueToday: ValidNonNegativeInt
-    allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt // should be more than 0 and less than allFavorites_filteredByLanguageAndSortedByDue
+      t: 'have_due_cards_today__selected__front'
+      allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
+      fourButtons: Record<Grade, NOfDays>
+      nOfCardsDueToday: ValidNonNegativeInt
+      allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt // should be more than 0 and less than allFavorites_filteredByLanguageAndSortedByDue
 
-    // Actions
-    reveal: () => void
-    selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'have_due_cards_today__selected__front'
-  }
+      // Actions
+      reveal: () => void
+      selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'have_due_cards_today__selected__front'
+    }
   | {
-    t: 'have_due_cards_today__selected__back'
-    allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
-    nOfCardsDueToday: ValidNonNegativeInt
-    allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt
+      t: 'have_due_cards_today__selected__back'
+      allFavorites_filteredByLanguageAndSortedByDue: DirectionToCards<L>[D]
+      nOfCardsDueToday: ValidNonNegativeInt
+      allFavorites_filteredByLanguageAndSortedByDue_selectedCardIndex: ValidNonNegativeInt
 
-    rate: (grade: Grade) => Promise<void>
-    selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'have_due_cards_today__selected__front'
-  }
+      rate: (grade: Grade) => Promise<void>
+      selectOtherCard: (index: ValidNonNegativeInt) => void // will transition to 'have_due_cards_today__selected__front'
+    }
 
 type State<L extends DictionaryLanguage> = {
   selectedIndex: ValidNonNegativeInt
@@ -113,9 +109,9 @@ function reducer<L extends DictionaryLanguage>(state: State<L>, action: Action<L
         ...state,
         descriptions: state.descriptions
           ? (Record_toNonEmptyRecord_orThrow({ ...state.descriptions, ...action.payload } as Record<
-            string,
-            unknown
-          >) as unknown as NonEmptyRecord<NonEmptyStringTrimmed, LanguageToDetailMap[L]>)
+              string,
+              unknown
+            >) as unknown as NonEmptyRecord<NonEmptyStringTrimmed, LanguageToDetailMap[L]>)
           : action.payload,
       }
     default:
@@ -148,6 +144,7 @@ export function useAnkiGame<L extends DictionaryLanguage, D extends AnkiDirectio
     if (direction === 'GUESSING_NON_KHMER') return
 
     const wordsToFetchSet = new Set<NonEmptyStringTrimmed>()
+
     for (const item of nonEmptyFiltered) {
       if (!state.descriptions?.[item.word]) {
         wordsToFetchSet.add(item.word)
@@ -161,12 +158,15 @@ export function useAnkiGame<L extends DictionaryLanguage, D extends AnkiDirectio
     const fetch = async () => {
       try {
         const results = await getWordDetailsByModeFull_Strict(language, missing)
+
         if (active) dispatch({ type: 'ADD_DESCRIPTIONS', payload: results })
       } catch (e) {
         if (active) toast.error('Failed to load descriptions' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
       }
     }
+
     fetch()
+
     return () => {
       active = false
     }
@@ -175,21 +175,18 @@ export function useAnkiGame<L extends DictionaryLanguage, D extends AnkiDirectio
   // 3. Construct Logic
   const canShowCards =
     direction === 'GUESSING_NON_KHMER' ||
-    (direction === 'GUESSING_KHMER' &&
-      nonEmptyFiltered.every(item => state.descriptions?.[item.word] !== undefined))
+    (direction === 'GUESSING_KHMER' && nonEmptyFiltered.every(item => state.descriptions?.[item.word] !== undefined))
 
   if (!canShowCards) return AnkiGame_loading
 
   // Construct the specific list based on direction
   let finalQueue: DirectionToCards<L>[D]
+
   if (direction === 'GUESSING_NON_KHMER') {
     finalQueue = nonEmptyFiltered as unknown as DirectionToCards<L>[D]
   } else {
     // GUESSING_KHMER
-    finalQueue = zipQueueWithDescriptions(
-      nonEmptyFiltered,
-      state.descriptions!,
-    ) as unknown as DirectionToCards<L>[D]
+    finalQueue = zipQueueWithDescriptions(nonEmptyFiltered, state.descriptions!) as unknown as DirectionToCards<L>[D]
   }
 
   const getCard = (item: CardAndDescription<L> | FavoriteItem): FavoriteItem => {
@@ -213,6 +210,7 @@ export function useAnkiGame<L extends DictionaryLanguage, D extends AnkiDirectio
       try {
         await reviewCard(currentCard.word, currentCard.language, grade)
         const updatedData = await getFavorites()
+
         favoritesStore.replaceStateWith_emitOnlyIfDifferentRef(updatedData)
         dispatch({ type: 'RATE_END' })
       } catch (e) {

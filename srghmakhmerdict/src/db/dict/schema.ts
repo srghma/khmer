@@ -13,6 +13,7 @@ export const WordDetailKmSchema = z.strictObject({
   from_chuon_nath: z.optional(NonEmptyStringTrimmedSchema),
   from_chuon_nath_translated: z.optional(NonEmptyStringTrimmedSchema),
   from_russian_wiki: z.optional(NonEmptyStringTrimmedSchema), // html
+  gorgoniev: z.optional(NonEmptyStringTrimmedSchema), // html
   en_km_com: z.optional(NonEmptyStringTrimmedSchema), // html
 })
 
@@ -26,4 +27,30 @@ export const WordDetailEnSchema = z.strictObject({
 export const WordDetailRuSchema = z.strictObject({
   word_display: z.optional(NonEmptyStringTrimmedSchema),
   desc: z.optional(NonEmptyStringTrimmedSchema), // html
+})
+
+export const ShortDefinitionEnSourceSchema = z.enum(['Desc', 'EnKmCom', 'DescEnOnly'])
+export const ShortDefinitionEnSchema = z.strictObject({
+  definition: NonEmptyStringTrimmedSchema,
+  source: ShortDefinitionEnSourceSchema,
+})
+
+export const ShortDefinitionRuSourceSchema = z.enum(['Desc'])
+export const ShortDefinitionRuSchema = z.strictObject({
+  definition: NonEmptyStringTrimmedSchema,
+  source: ShortDefinitionRuSourceSchema,
+})
+
+export const ShortDefinitionKmSourceSchema = z.enum([
+  'FromCsvRawHtml',
+  'EnKmCom',
+  'Desc',
+  'FromChuonNathTranslated',
+  'Wiktionary',
+  'FromRussianWiki',
+  'Gorgoniev',
+])
+export const ShortDefinitionKmSchema = z.strictObject({
+  definition: NonEmptyStringTrimmedSchema,
+  source: ShortDefinitionKmSourceSchema,
 })

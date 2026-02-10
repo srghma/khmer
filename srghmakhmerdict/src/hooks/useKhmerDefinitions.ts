@@ -5,6 +5,7 @@ import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-exte
 import { type KhmerDefCoreAction, startKhmerDefinitionFetch } from './useEnhancedSegments/core'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import type { ShortDefinition } from '../db/dict'
 
 // --- State Shape ---
 
@@ -12,7 +13,7 @@ export type UseKhmerDefinitionsResult =
   | { t: 'idle' }
   | { t: 'loading' }
   | { t: 'request_error'; e: NonEmptyStringTrimmed | undefined }
-  | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, NonEmptyStringTrimmed | null> }
+  | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> }
 
 const UseKhmerDefinitionsResult_idle: UseKhmerDefinitionsResult = { t: 'idle' }
 const UseKhmerDefinitionsResult_loading: UseKhmerDefinitionsResult = { t: 'loading' }

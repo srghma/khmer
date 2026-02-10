@@ -7,6 +7,50 @@ pub struct WordRow {
     pub word: String,
 }
 
+#[repr(i32)]
+#[derive(Serialize, Clone, Copy, Debug, sqlx::Type)]
+pub enum EnShortDefinitionSource {
+    Desc = 1,
+    EnKmCom = 2,
+    DescEnOnly = 3,
+}
+
+#[repr(i32)]
+#[derive(Serialize, Clone, Copy, Debug, sqlx::Type)]
+pub enum RuShortDefinitionSource {
+    Desc = 1,
+}
+
+#[repr(i32)]
+#[derive(Serialize, Clone, Copy, Debug, sqlx::Type)]
+pub enum KmShortDefinitionSource {
+    FromCsvRawHtml = 1,
+    EnKmCom = 2,
+    Desc = 3,
+    FromChuonNathTranslated = 4,
+    Wiktionary = 5,
+    FromRussianWiki = 6,
+    Gorgoniev = 7,
+}
+
+#[derive(Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct ShortDefinitionEn {
+    pub definition: String,
+    pub source: EnShortDefinitionSource,
+}
+
+#[derive(Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct ShortDefinitionRu {
+    pub definition: String,
+    pub source: RuShortDefinitionSource,
+}
+
+#[derive(Serialize, Clone, Debug, sqlx::FromRow)]
+pub struct ShortDefinitionKm {
+    pub definition: String,
+    pub source: KmShortDefinitionSource,
+}
+
 pub fn parse_json_opt(raw: Option<String>) -> Option<Vec<String>> {
     raw.and_then(|s| serde_json::from_str(&s).ok())
 }

@@ -7,7 +7,7 @@ import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-exte
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { WordDetailKmSchema } from './schema'
-import type { KhmerWordsMap, KhmerWordsMapValue, WordDetailKm } from './types'
+import type { KhmerWordsMap, KhmerWordsMapValue, WordDetailKm, ShortDefinitionKm } from './types'
 
 type KhmerWordRow_Raw = { word: NonEmptyStringTrimmed; is_verified: boolean }
 
@@ -41,13 +41,13 @@ export const getWordDetailKm = async (word: NonEmptyStringTrimmed): Promise<Word
 
 export const getKmWordsDetailShort = async (
   words: NonEmptySet<TypedContainsKhmer>,
-): Promise<NonEmptyRecord<TypedContainsKhmer, NonEmptyStringTrimmed | null>> => {
+): Promise<NonEmptyRecord<TypedContainsKhmer, ShortDefinitionKm | null>> => {
   return invoke('km_for_many__short_description__none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getKmWordsDetailShort_Strict = async (
   words: NonEmptySet<TypedContainsKhmer>,
-): Promise<NonEmptyRecord<TypedContainsKhmer, NonEmptyStringTrimmed>> => {
+): Promise<NonEmptyRecord<TypedContainsKhmer, ShortDefinitionKm>> => {
   return invoke('km_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
 }
 

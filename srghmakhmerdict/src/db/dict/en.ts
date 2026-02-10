@@ -5,7 +5,7 @@ import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-exte
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 import { WordDetailEnSchema } from './schema'
-import type { WordDetailEn } from './types'
+import type { WordDetailEn, ShortDefinitionEn } from './types'
 
 export const getEnWords = memoizeAsync0_throwIfInFly(() => invoke<NonEmptyArray<NonEmptyStringTrimmed>>('get_en_words'))
 
@@ -26,13 +26,13 @@ export const getWordDetailEn = async (
 
 export const getEnWordsDetailShort = async (
   words: NonEmptySet<NonEmptyStringTrimmed>,
-): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed | null>> => {
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, ShortDefinitionEn | null>> => {
   return invoke('en_for_many__short_description__none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getEnWordsDetailShort_Strict = async (
   words: NonEmptySet<NonEmptyStringTrimmed>,
-): Promise<NonEmptyRecord<NonEmptyStringTrimmed, NonEmptyStringTrimmed>> => {
+): Promise<NonEmptyRecord<NonEmptyStringTrimmed, ShortDefinitionEn>> => {
   return invoke('en_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
 }
 

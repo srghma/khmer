@@ -51,7 +51,10 @@ export function getPreviewIntervals(item: FavoriteItem): Record<Grade, NOfDays> 
  * Filters the favorites map to find due cards for a specific language.
  * Sorts by 'due' date (overdue first).
  */
-export function allFavorites_filterByLanguageAndSortByDue(allFavorites: readonly FavoriteItem[], language: DictionaryLanguage): readonly FavoriteItem[] {
+export function allFavorites_filterByLanguageAndSortByDue(
+  allFavorites: readonly FavoriteItem[],
+  language: DictionaryLanguage,
+): readonly FavoriteItem[] {
   if (allFavorites.length <= 0) return allFavorites
 
   return sortBy_mutating(
@@ -87,9 +90,7 @@ export function zipQueueWithDescriptions<T>(
 /**
  * Finds words in the queue that are missing from the descriptions record.
  */
-export function getWords(
-  queue: NonEmptyArray<FavoriteItem>,
-): NonEmptySet<NonEmptyStringTrimmed> {
+export function getWords(queue: NonEmptyArray<FavoriteItem>): NonEmptySet<NonEmptyStringTrimmed> {
   const wordsToFetch = new Set<NonEmptyStringTrimmed>()
 
   for (const item of queue) {

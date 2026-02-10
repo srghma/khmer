@@ -2,7 +2,9 @@ use crate::app_state::AppState;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::{State, command};
-use super::common::{WordRow, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
+use super::common::{WordRow, ShortDefinitionRu, RuShortDefinitionSource, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
+
+const RU_SHORT_DESC_SOURCE: &str = "1";
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct WordDetailRu {
@@ -78,8 +80,8 @@ pub async fn search_ru_content(
 pub struct RuWordDetailShortRow {
     #[sqlx(rename = "Word")]
     pub word: String,
-    #[sqlx(rename = "Desc")]
     pub definition: String,
+    pub source: RuShortDefinitionSource,
 }
 
 #[command]
@@ -116,28 +118,36 @@ pub async fn ru_for_many__full_details__none_if_word_not_found(
 pub async fn ru_for_many__short_description__none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, Option<String>>, String> {
+) -> Result<HashMap<String, Option<ShortDefinitionRu>>, String> {
     validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT Word, Desc FROM ru_Dict WHERE Word IN ({})", get_placeholders(words.len()));
+    let sql = format!(
+        "SELECT Word, Desc as definition, {} as source FROM ru_Dict WHERE Word IN ({})",
+        RU_SHORT_DESC_SOURCE,
+        get_placeholders(words.len())
+    );
 
     let rows: Vec<RuWordDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    Ok(to_optional_map_wrap(words, rows, |r| r.word.clone(), |r| r.definition))
+    Ok(to_optional_map(words, rows, |r| r.word.clone(), |r| Some(ShortDefinitionRu { definition: r.definition, source: r.source })))
 }
 
 #[command]
 pub async fn ru_for_many__short_description__throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, String>, String> {
+) -> Result<HashMap<String, ShortDefinitionRu>, String> {
     validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT Word, Desc FROM ru_Dict WHERE Word IN ({})", get_placeholders(words.len()));
+    let sql = format!(
+        "SELECT Word, Desc as definition, {} as source FROM ru_Dict WHERE Word IN ({})",
+        RU_SHORT_DESC_SOURCE,
+        get_placeholders(words.len())
+    );
 
     let rows: Vec<RuWordDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    to_strict_map(words, rows, |r| r.word.clone(), |r| r.definition)
+    to_strict_map(words, rows, |r| r.word.clone(), |r| ShortDefinitionRu { definition: r.definition, source: r.source })
 }

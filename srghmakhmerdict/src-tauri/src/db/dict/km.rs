@@ -2,7 +2,18 @@ use crate::app_state::AppState;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::{State, command};
-use super::common::{WordRow, parse_json_opt, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
+use super::common::{WordRow, ShortDefinitionKm, KmShortDefinitionSource, parse_json_opt, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
+
+const KM_SHORT_DESC_COALESCE: &str = "COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki, gorgoniev)";
+const KM_SHORT_DESC_SOURCE: &str = "(CASE
+    WHEN from_csv_rawHtml IS NOT NULL THEN 1
+    WHEN en_km_com IS NOT NULL THEN 2
+    WHEN Desc IS NOT NULL THEN 3
+    WHEN from_chuon_nath_translated IS NOT NULL THEN 4
+    WHEN wiktionary IS NOT NULL THEN 5
+    WHEN from_russian_wiki IS NOT NULL THEN 6
+    WHEN gorgoniev IS NOT NULL THEN 7
+    ELSE 0 END)";
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct KmWord {
@@ -166,37 +177,42 @@ pub async fn search_km_content(
 pub struct WordKmWordsDetailShortRow {
     #[sqlx(rename = "Word")]
     pub word: String,
-    pub definition: Option<String>,
+    pub definition: String,
+    pub source: KmShortDefinitionSource,
 }
 
 #[command]
 pub async fn km_for_many__short_description__none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, Option<String>>, String> { // for analyzer page
+) -> Result<HashMap<String, Option<ShortDefinitionKm>>, String> { // for analyzer page
     validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
     let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki, gorgoniev) as definition FROM km_Dict WHERE Word IN ({})",
+        "SELECT Word, {} as definition, {} as source FROM km_Dict WHERE Word IN ({})",
+        KM_SHORT_DESC_COALESCE,
+        KM_SHORT_DESC_SOURCE,
         get_placeholders(words.len())
     );
 
     let rows: Vec<WordKmWordsDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    Ok(to_optional_map(words, rows, |r| r.word.clone(), |r| r.definition))
+    Ok(to_optional_map(words, rows, |r| r.word.clone(), |r| Some(ShortDefinitionKm { definition: r.definition, source: r.source })))
 }
 
 #[command]
 pub async fn km_for_many__short_description__throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
-) -> Result<HashMap<String, String>, String> {
+) -> Result<HashMap<String, ShortDefinitionKm>, String> {
     validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
     let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki, gorgoniev) as definition FROM km_Dict WHERE Word IN ({})",
+        "SELECT Word, {} as definition, {} as source FROM km_Dict WHERE Word IN ({})",
+        KM_SHORT_DESC_COALESCE,
+        KM_SHORT_DESC_SOURCE,
         get_placeholders(words.len())
     );
 
@@ -206,7 +222,7 @@ pub async fn km_for_many__short_description__throws_if_word_not_found(
         words,
         rows,
         |r| r.word.clone(),
-        |r| r.definition.expect("Definition must be present"),
+        |r| ShortDefinitionKm { definition: r.definition, source: r.source }
     )
 }
 
