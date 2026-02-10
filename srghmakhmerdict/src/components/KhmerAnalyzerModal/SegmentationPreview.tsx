@@ -1,7 +1,7 @@
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import React, { memo } from 'react'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import type { TextSegment } from '../../utils/text-processing/text'
 import type { TextSegmentEnhanced } from '../../utils/text-processing/text-enhanced'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'

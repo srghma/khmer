@@ -1,5 +1,3 @@
-// Copyright 2023 srghma
-
 export function Record_filterTrueKeys<K extends PropertyKey>(obj: Record<K, boolean>): K[] {
   const result: K[] = []
 

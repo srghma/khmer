@@ -7,7 +7,7 @@ import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { truncateHtmlSafe } from './truncateHtmlSafe'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
@@ -34,18 +34,18 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
     // 1. Resolve Raw Content from candidates
     const rawContent = useMemo(() => {
-      if (res.t !== 'found') return null
+      if (res.t !== 'ready') return null
 
-      const { data } = res
+      const detail: WordDetailEnOrRuOrKm | undefined = res.detail
       const candidates = [
-        data.from_csv_raw_html,
-        data.wiktionary,
-        data.desc,
-        // data.desc_en_only,
-        data.from_russian_wiki,
-        data.en_km_com,
-        data.from_chuon_nath,
-        data.from_chuon_nath_translated,
+        detail.from_csv_raw_html,
+        detail.wiktionary,
+        detail.desc,
+        // detail.desc_en_only,
+        detail.from_russian_wiki,
+        detail.en_km_com,
+        detail.from_chuon_nath,
+        detail.from_chuon_nath_translated,
       ]
 
       return candidates.find(c => c && c.trim().length > 0)

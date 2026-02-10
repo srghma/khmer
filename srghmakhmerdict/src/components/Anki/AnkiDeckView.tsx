@@ -1,31 +1,49 @@
 import React, { useMemo } from 'react'
 import type { AnkiDirection } from './types'
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap, LanguageToDetailMap } from '../../db/dict/index'
 import { AnkiContent } from './AnkiContent'
 import { AnkiButtons } from './AnkiButtons'
 import { DetailSections } from '../DetailView/DetailSections'
-import { useAnkiDefinition } from './useAnkiDefinition'
-import { Spinner } from '@heroui/spinner'
-import type { AnkiGameState } from './useAnkiGame'
 import { getBestDefinitionKhmerFromEn } from '../../utils/WordDetailEn_OnlyKhmerAndWithoutHtml'
 import { getBestDefinitionKhmerFromRu } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
+import type { FavoriteItem } from '../../db/favorite/item'
+import type { Grade } from 'femto-fsrs'
+import type { NOfDays } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/n-of-days'
 
-interface AnkiDeckViewProps {
-  state: AnkiGameState & { t: 'review' }
+interface AnkiDeckViewProps<L extends DictionaryLanguage> {
+  // Data
+  currentCard: FavoriteItem
+  currentDescription: LanguageToDetailMap[L]
+  remainingCount: number
+  nextIntervals: Record<Grade, NOfDays>
+
+  // State
+  isRevealed: boolean
+
+  // Actions
+  onReveal: () => void
+  onRate: (grade: Grade) => void
+
+  // Context
   direction: AnkiDirection
   language: DictionaryLanguage
   km_map: KhmerWordsMap
 }
 
-const loading = <Spinner size="sm" />
-const no_definition_found = <div className="text-default-400 italic">No definition found</div>
 
-export const AnkiDeckView = React.memo(({ state, direction, language, km_map }: AnkiDeckViewProps) => {
-  const { currentCard, isRevealed, nextIntervals, rate, reveal, remainingCount } = state
-
-  // Fetch definition ON DEMAND for current card
-  const defResult = useAnkiDefinition(currentCard.word, language)
+export const AnkiDeckView = React.memo(<L extends DictionaryLanguage>({
+  currentCard,
+  currentDescription,
+  remainingCount,
+  nextIntervals,
+  isRevealed,
+  onReveal,
+  onRate,
+  direction,
+  language,
+  km_map
+}: AnkiDeckViewProps<L>) => {
 
   // 1. Determine if the "Word" (Headword) is hidden or visible on the Front side.
   //    Hidden = We are guessing the Word.
@@ -34,10 +52,7 @@ export const AnkiDeckView = React.memo(({ state, direction, language, km_map }: 
 
   // 2. Prepare the Content
   const { detailContent, frontContent } = useMemo(() => {
-    if (defResult.t === 'loading') return { detailContent: loading, frontContent: loading }
-    if (!defResult.detail) return { detailContent: no_definition_found, frontContent: no_definition_found }
-
-    const detail = defResult.detail
+    const detail = currentDescription as any // Use as any to bypass specific language check for now, can be improved.
 
     // The Back Side (Full Details)
     // If guessing the word (isCardWordHidden), we might want to hide the word in the definition on the FRONT,
@@ -109,7 +124,7 @@ export const AnkiDeckView = React.memo(({ state, direction, language, km_map }: 
     }
 
     return { detailContent: back, frontContent: front }
-  }, [defResult, isCardWordHidden, language, km_map, currentCard.word])
+  }, [currentDescription, isCardWordHidden, language, km_map, currentCard.word])
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -126,8 +141,8 @@ export const AnkiDeckView = React.memo(({ state, direction, language, km_map }: 
         isDisabled={false}
         isRevealed={isRevealed}
         nextIntervals={nextIntervals}
-        onRate={rate}
-        onReveal={reveal}
+        onRate={onRate}
+        onReveal={onReveal}
       />
 
       <div className="absolute top-2 right-2 text-tiny text-default-400 font-mono pointer-events-none">
@@ -135,5 +150,5 @@ export const AnkiDeckView = React.memo(({ state, direction, language, km_map }: 
       </div>
     </div>
   )
-})
-AnkiDeckView.displayName = 'AnkiDeckView'
+}) as <L extends DictionaryLanguage>(props: AnkiDeckViewProps<L>) => React.ReactElement
+// AnkiDeckView.displayName = 'AnkiDeckView'

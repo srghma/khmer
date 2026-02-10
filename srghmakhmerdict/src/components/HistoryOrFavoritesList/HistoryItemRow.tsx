@@ -5,7 +5,7 @@ import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.mo
 // Types & Utils
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { colorizeText } from '../../utils/text-processing/text'
 

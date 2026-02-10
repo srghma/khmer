@@ -6,7 +6,7 @@ import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { useKhmerAnalysis } from '../KhmerAnalyzerModal/useKhmerAnalysis'
 
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 
 import { useSettings } from '../../providers/SettingsProvider'
 import { DetailViewHeader } from './DetailViewHeader'

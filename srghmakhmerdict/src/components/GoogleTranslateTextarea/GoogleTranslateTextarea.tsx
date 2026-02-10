@@ -4,7 +4,7 @@ import { Button, ButtonGroup } from '@heroui/button'
 import { HiTranslate } from 'react-icons/hi'
 
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 

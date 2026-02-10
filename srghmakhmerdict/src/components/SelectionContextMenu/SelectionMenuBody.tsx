@@ -7,7 +7,7 @@ import { FirstNonEmptyShortDetailView } from './FirstNonEmptyShortDetailView'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import { generateTextSegments, type TextSegment } from '../../utils/text-processing/text' // Adjust import path as needed
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'

@@ -2,6 +2,8 @@ import {
   strToWithoutKhmerAndHtml_remove_orUndefined,
   type TypedWithoutKhmerAndHtml,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-without-khmer-and-html'
+import { wiktionary_km__get_short_info__only_en_or_ru_text_without_html } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/wiktionary-short-description-km-extractor'
+import { wiktionary_ru__get_short_info__only_ru_text_without_html } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/wiktionary-short-description-ru-extractor'
 import type { WordDetailKm } from '../db/dict'
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
 import { type Lazy, defer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/lazy'
@@ -29,9 +31,17 @@ export const wordDetailKm_WithoutKhmerAndHtml_mk = (x: WordDetailKm): WordDetail
 
     // Expensive fields -> wrapped in defer (memoized thunks)
     desc: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.desc)),
-    wiktionary: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.wiktionary)),
+    wiktionary: defer(() =>
+      strToWithoutKhmerAndHtml_remove_orUndefined_(
+        undefined_lift(wiktionary_km__get_short_info__only_en_or_ru_text_without_html)(x.wiktionary),
+      ),
+    ),
     from_csv_raw_html: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.from_csv_raw_html)),
-    from_russian_wiki: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.from_russian_wiki)),
+    from_russian_wiki: defer(() =>
+      strToWithoutKhmerAndHtml_remove_orUndefined_(
+        undefined_lift(wiktionary_ru__get_short_info__only_ru_text_without_html)(x.from_russian_wiki),
+      ),
+    ),
     en_km_com: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.en_km_com)),
     from_chuon_nath_translated: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.from_chuon_nath_translated)),
 

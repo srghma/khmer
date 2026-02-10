@@ -59,7 +59,7 @@ const DetailViewImpl = ({
     <DetailViewFound
       backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
       backButton_goBack={backButton_goBack}
-      data={res.data}
+      data={res.detail}
       isFav={res.isFav}
       km_map={km_map}
       mode={mode}

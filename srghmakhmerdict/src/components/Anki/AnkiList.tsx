@@ -11,7 +11,7 @@ export const AnkiList = React.memo(
     onSelect,
     mode,
   }: {
-    items: ReadonlyArray<FavoriteItem>
+    items: ReadonlyArray<{ card: FavoriteItem; description: unknown }>
     selectedWord: NonEmptyStringTrimmed | undefined
     onSelect: (word: NonEmptyStringTrimmed) => void
     mode: AnkiDirection
@@ -20,10 +20,11 @@ export const AnkiList = React.memo(
       <div className="flex-1 overflow-y-auto bg-content1">
         {items.map(item => (
           <AnkiListItem
-            key={item.word}
-            card={item}
+            key={item.card.word}
+            card={item.card}
+            description={item.description}
             direction={mode}
-            isSelected={selectedWord === item.word}
+            isSelected={selectedWord === item.card.word}
             onSelect={card => onSelect(card.word)}
           />
         ))}

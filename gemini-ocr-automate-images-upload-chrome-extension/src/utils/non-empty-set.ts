@@ -1,4 +1,4 @@
-import { Set_union_onCollisionIgnore } from './sets'
+import { Set_map, Set_union_onCollisionIgnore } from './sets'
 import { Option_none, Option_some, type Option } from './types'
 
 export type NonEmptySet<T> = ReadonlySet<T> & {
@@ -42,18 +42,16 @@ export function Set_elementsMaybeUndefined_ifAllNonUndefined_assertNonEmptySet<T
   set: ReadonlySet<T | null | undefined>,
 ): asserts set is NonEmptySet<T> {
   const set_ = Set_elementsMaybeUndefined_ifAllNonUndefined_toNonEmptySet_orUndefined(set)
-
   if (set_ === undefined) throw new Error('set should be non-empty and all elements should not undefined or null')
 }
 
-type NonEmptySet_union_onCollisionIgnoreFn = <T extends PropertyKey>(
+export const NonEmptySet_union_onCollisionIgnore = Set_union_onCollisionIgnore as unknown as <T extends PropertyKey>(
   first: NonEmptySet<T>,
   second: NonEmptySet<T>,
   ...rest: readonly NonEmptySet<T>[]
 ) => NonEmptySet<T>
 
-export const NonEmptySet_union_onCollisionIgnore =
-  Set_union_onCollisionIgnore as unknown as NonEmptySet_union_onCollisionIgnoreFn
+export const NonEmptySet_map = Set_map as unknown as <T, U>(set: NonEmptySet<T>, fn: (x: T) => U) => NonEmptySet<U>
 
 export function NonEmptySet_union_maybeUndefined_onCollisionIgnore<T extends PropertyKey>(
   ...sets: readonly (NonEmptySet<T> | undefined)[]

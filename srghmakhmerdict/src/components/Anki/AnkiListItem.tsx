@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import type { AnkiDirection } from './types'
-import { useWordData } from '../../hooks/useWordData'
 import { getBestDefinitionKhmerFromEn } from '../../utils/WordDetailEn_OnlyKhmerAndWithoutHtml'
 import { getBestDefinitionKhmerFromRu } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
 import { getBestDefinitionHtml } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
@@ -10,16 +9,14 @@ import { type FavoriteItem } from '../../db/favorite/item'
 
 interface AnkiListItemProps {
   card: FavoriteItem
+  description: unknown
   direction: AnkiDirection
   isSelected: boolean
   onSelect: (card: FavoriteItem) => void
 }
 
-export const AnkiListItem = React.memo(({ card, direction, isSelected, onSelect }: AnkiListItemProps) => {
+export const AnkiListItem = React.memo(({ card, description, direction, isSelected, onSelect }: AnkiListItemProps) => {
   const { word, language, due } = card
-
-  const result = useWordData(word, language)
-  const status = result.t
 
   const displayLabel = useMemo(() => {
     // Logic: What is the "Front" of the card?
@@ -35,32 +32,30 @@ export const AnkiListItem = React.memo(({ card, direction, isSelected, onSelect 
     }
 
     // Otherwise, we show the Definition (Khmer translation or HTML def)
-    if (status === 'loading') return <Spinner color="current" size="sm" />
-    if (status === 'not_found') return <span className="text-danger italic">Def missing</span>
+    if (!description) {
+      if (!description) return <Spinner color="current" size="sm" /> // Should likely not happen if mandatory
+    }
 
-    if (status === 'found_en') {
+    if (language === 'en') {
       // Show extracted Khmer
-      const val = getBestDefinitionKhmerFromEn(result.data)
-
+      const val = getBestDefinitionKhmerFromEn(description as any)
       return <span className="font-khmer text-foreground">{val || '...'}</span>
     }
 
-    if (status === 'found_ru') {
+    if (language === 'ru') {
       // Show extracted Khmer
-      const val = getBestDefinitionKhmerFromRu(result.data)
-
+      const val = getBestDefinitionKhmerFromRu(description as any)
       return <span className="font-khmer text-foreground">{val || '...'}</span>
     }
 
-    if (status === 'found_km') {
+    if (language === 'km') {
       // Show Definition (stripped HTML)
-      const val = getBestDefinitionHtml(result.data)
-
+      const val = getBestDefinitionHtml(description as any)
       return <span className="text-sm text-foreground-500 line-clamp-2">{val || '...'}</span>
     }
 
     return word
-  }, [direction, word, language, status, result])
+  }, [direction, word, language, description])
 
   const dueLabel = useMemo(() => {
     const now = Date.now()

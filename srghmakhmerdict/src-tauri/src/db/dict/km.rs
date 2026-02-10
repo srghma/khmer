@@ -36,6 +36,8 @@ pub struct WordDetailKmRaw {
     #[sqlx()]
     pub from_russian_wiki: Option<String>,
     #[sqlx()]
+    pub gorgoniev: Option<String>,
+    #[sqlx()]
     pub en_km_com: Option<String>,
 }
 
@@ -62,6 +64,8 @@ pub struct WordDetailKm {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub from_russian_wiki: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub gorgoniev: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub en_km_com: Option<String>,
 }
 
@@ -78,6 +82,7 @@ impl From<WordDetailKmRaw> for WordDetailKm {
             from_chuon_nath: raw.from_chuon_nath,
             from_chuon_nath_translated: raw.from_chuon_nath_translated,
             from_russian_wiki: raw.from_russian_wiki,
+            gorgoniev: raw.gorgoniev,
             en_km_com: raw.en_km_com,
         }
     }
@@ -98,6 +103,7 @@ pub async fn get_km_words(state: State<'_, AppState>) -> Result<Vec<KmWord>, Str
                 OR from_chuon_nath IS NOT NULL
                 OR from_chuon_nath_translated IS NOT NULL
                 OR from_russian_wiki IS NOT NULL
+                OR gorgoniev IS NOT NULL
                 OR en_km_com IS NOT NULL
             ) AS is_verified
          FROM km_Dict
@@ -139,6 +145,7 @@ pub async fn search_km_content(
             OR Wiktionary LIKE ?
             OR from_chuon_nath LIKE ?
             OR from_russian_wiki LIKE ?
+            OR gorgoniev LIKE ?
             OR from_csv_rawHtml LIKE ?
             OR en_km_com LIKE ?
          ORDER BY LENGTH(Word) ASC LIMIT 50";
@@ -171,7 +178,7 @@ pub async fn km_for_many__short_description__none_if_word_not_found(
 
     let pool = state.get_pool().await?;
     let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki) as definition FROM km_Dict WHERE Word IN ({})",
+        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki, gorgoniev) as definition FROM km_Dict WHERE Word IN ({})",
         get_placeholders(words.len())
     );
 
@@ -189,7 +196,7 @@ pub async fn km_for_many__short_description__throws_if_word_not_found(
 
     let pool = state.get_pool().await?;
     let sql = format!(
-        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki) as definition FROM km_Dict WHERE Word IN ({})",
+        "SELECT Word, COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki, gorgoniev) as definition FROM km_Dict WHERE Word IN ({})",
         get_placeholders(words.len())
     );
 

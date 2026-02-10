@@ -1,7 +1,7 @@
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import React, { useMemo } from 'react'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import type { DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { EnKmHtmlRenderer } from '../EnKmHtmlRenderer'

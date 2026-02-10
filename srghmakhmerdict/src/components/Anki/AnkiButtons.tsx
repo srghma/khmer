@@ -2,7 +2,6 @@ import React from 'react'
 import { Button, type ButtonProps } from '@heroui/button'
 import { ModalFooter } from '@heroui/modal'
 import { Grade } from 'femto-fsrs'
-import type { NextIntervals } from './utils'
 import type { NOfDays } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/n-of-days'
 import { useRelativeInterval } from '../../hooks/useRelativeInterval'
 import { useAnkiPulseStore } from './AnkiPulseContext'
@@ -53,7 +52,7 @@ AnkiRatingButton.displayName = 'AnkiRatingButton'
 interface AnkiButtonsProps {
   isRevealed: boolean
   isDisabled: boolean
-  nextIntervals: NextIntervals
+  nextIntervals: Record<Grade, NOfDays>
   onReveal: () => void
   onRate: (rating: Grade) => void
 }

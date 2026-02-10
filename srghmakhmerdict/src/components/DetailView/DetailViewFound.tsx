@@ -12,7 +12,7 @@ import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
 import { useNavigation } from '../../providers/NavigationProvider'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict'
+import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed

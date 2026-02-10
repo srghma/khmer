@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,

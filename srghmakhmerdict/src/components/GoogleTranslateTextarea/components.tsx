@@ -7,7 +7,7 @@ import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.mo
 
 import { colorizeHtml } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap } from '../../db/dict/index'
 import {
   stringToToTranslateLanguageOrThrow,
   ToTranslateLanguage_codeNameRecord,
