@@ -85,7 +85,7 @@ pub struct RuWordDetailShortRow {
 }
 
 #[command]
-pub async fn ru_for_many__full_details__throws_if_word_not_found(
+pub async fn ru_for_many_full_details_throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, WordDetailRu>, String> {
@@ -100,7 +100,7 @@ pub async fn ru_for_many__full_details__throws_if_word_not_found(
 }
 
 #[command]
-pub async fn ru_for_many__full_details__none_if_word_not_found(
+pub async fn ru_for_many_full_details_none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<WordDetailRu>>, String> {
@@ -115,7 +115,7 @@ pub async fn ru_for_many__full_details__none_if_word_not_found(
 }
 
 #[command]
-pub async fn ru_for_many__short_description__none_if_word_not_found(
+pub async fn ru_for_many_short_description_none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<ShortDefinitionRu>>, String> {
@@ -134,7 +134,7 @@ pub async fn ru_for_many__short_description__none_if_word_not_found(
 }
 
 #[command]
-pub async fn ru_for_many__short_description__throws_if_word_not_found(
+pub async fn ru_for_many_short_description_throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, ShortDefinitionRu>, String> {

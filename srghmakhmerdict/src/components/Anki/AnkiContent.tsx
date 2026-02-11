@@ -15,8 +15,8 @@ interface AnkiContentProps {
   cardWord: string
   isCardWordHidden: boolean // Derived from Direction + Language in DeckView
   isRevealed: boolean
-  frontContent: React.ReactNode
-  richContent: React.ReactNode // The Back side (Full Detail)
+  frontContent: () => React.ReactNode
+  richContent: () => React.ReactNode // The Back side (Full Detail)
 }
 
 export const AnkiContent = React.memo(
@@ -51,7 +51,7 @@ export const AnkiContent = React.memo(
           - If Word Visible: Shows Word
          ------------------------------------------------------ */}
         <div className={clsx('flex-1', !isCardWordHidden && 'flex items-center justify-center min-h-[20vh]')}>
-          {frontContent}
+          {frontContent()}
         </div>
 
         {/* ------------------------------------------------------
@@ -59,7 +59,7 @@ export const AnkiContent = React.memo(
           Reveal -> Show Full Detail
          ------------------------------------------------------ */}
         {!isCardWordHidden && isRevealed && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 border-t border-divider pt-6">{richContent}</div>
+          <div className="animate-in fade-in slide-in-from-bottom-4 border-t border-divider pt-6">{richContent()}</div>
         )}
 
         {/* ------------------------------------------------------
@@ -130,7 +130,7 @@ export const AnkiContent = React.memo(
                 </div>
 
                 {/* Full Details below the answer */}
-                <div className="opacity-80">{richContent}</div>
+                <div className="opacity-80">{richContent()}</div>
               </div>
             )}
           </>

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { FaRegTrashAlt } from 'react-icons/fa'
 import { Button } from '@heroui/button'
-import { Modal, Tooltip } from '@heroui/react'
+import { Modal, ModalContent, Tooltip } from '@heroui/react'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
@@ -16,9 +16,9 @@ import { useListLogic } from './useListLogic'
 import { ConfirmAction } from '../ConfirmAction'
 import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useDictionary } from '../../providers/DictionaryProvider'
-import { AnkiModalContent } from '../Anki/AnkiModalContent'
 import { AnkiPulseProvider } from '../Anki/AnkiPulseContext'
 import { AnkiSettingsProvider } from '../Anki/useAnkiSettings'
+import { AnkiGame } from '../Anki/AnkiGame'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -121,7 +121,9 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
             size="full"
             onClose={handleCloseAnki}
           >
-            <AnkiModalContent />
+            <ModalContent>
+              <AnkiGame />
+            </ModalContent>
           </Modal>
         </AnkiSettingsProvider>
       </AnkiPulseProvider>

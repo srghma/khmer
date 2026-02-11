@@ -1,9 +1,12 @@
+export interface ReactExternalStore<T> {
+  subscribe: (listener: () => void) => () => void
+  getSnapshot: () => T
+}
+
 /**
  * Interface compatible with React's useSyncExternalStore
  */
-export interface ExternalStore<T> {
-  subscribe: (listener: () => void) => () => void
-  getSnapshot: () => T
+export interface ExternalStore<T> extends ReactExternalStore<T> {
   replaceStateWith_emitOnlyIfDifferentRef: (val: T) => void
   mutateStateUsing_emitUnconditionally: (f: (oldState: T) => T) => void
 }

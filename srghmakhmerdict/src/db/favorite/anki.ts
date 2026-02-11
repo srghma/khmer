@@ -17,7 +17,7 @@ export const reviewCard = async (
   word: NonEmptyStringTrimmed,
   language: DictionaryLanguage,
   grade: Grade, // 1=Again, 2=Hard, 3=Good, 4=Easy
-): Promise<void> => {
+): Promise<FavoriteItem> => {
   const db = await getUserDb()
   const now = Date.now()
 
@@ -96,6 +96,15 @@ export const reviewCard = async (
       // nextState,
     ],
   )
+
+  // 4. Return the updated item
+  return {
+    ...current,
+    stability: nextCard.S,
+    difficulty: nextCard.D,
+    last_review: now,
+    due: nextDue,
+  }
 }
 
 // export type FavoriteToAnkiDataNonEmptyMap = NonEmptyMap<NonEmptyStringTrimmed, FavoriteAnkiData>

@@ -19,6 +19,7 @@ interface DetailSectionsProps {
   from_csv_pronunciations: NonEmptyArray<NonEmptyStringTrimmed> | undefined // cannot have km
   wiktionary: NonEmptyStringTrimmed | undefined //can have km
   from_russian_wiki: NonEmptyStringTrimmed | undefined //can have km
+  gorgoniev: NonEmptyStringTrimmed | undefined //can have km
   from_chuon_nath: NonEmptyStringTrimmed | undefined //can have km
   from_chuon_nath_translated: NonEmptyStringTrimmed | undefined // cannot have km
   maybeColorMode: MaybeColorizationMode
@@ -42,6 +43,7 @@ export const DetailSections = React.memo(
     from_csv_pronunciations,
     wiktionary,
     from_russian_wiki,
+    gorgoniev,
     from_chuon_nath,
     from_chuon_nath_translated,
     maybeColorMode,
@@ -179,6 +181,21 @@ export const DetailSections = React.memo(
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={from_russian_wiki}
+              isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
+              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+            />
+          </div>
+        )}
+
+        {gorgoniev && (
+          <div className="mb-6">
+            <SectionTitle>Gorgoniev book</SectionTitle>
+            <RenderHtmlColorized
+              hideBrokenImages_enable={false}
+              html={gorgoniev}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}

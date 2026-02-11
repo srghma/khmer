@@ -56,6 +56,7 @@ export const markdownToHtml = (markdown: string): string =>
   markdown
     .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
     .replace(/\*([^*]+)\*/g, '<i>$1</i>')
+    .replace(/`([^`]+)`/g, '<pre>$1</pre>')
     .replace(/\$\\diamond\$/g, '◊')
     .replace(/<>/g, '◊')
     .replace(/\n/g, '<br>')

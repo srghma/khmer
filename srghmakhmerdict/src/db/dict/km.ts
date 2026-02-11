@@ -42,23 +42,23 @@ export const getWordDetailKm = async (word: NonEmptyStringTrimmed): Promise<Word
 export const getKmWordsDetailShort = async (
   words: NonEmptySet<TypedContainsKhmer>,
 ): Promise<NonEmptyRecord<TypedContainsKhmer, ShortDefinitionKm | null>> => {
-  return invoke('km_for_many__short_description__none_if_word_not_found', { words: Array.from(words) })
+  return invoke('km_for_many_short_description_none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getKmWordsDetailShort_Strict = async (
   words: NonEmptySet<TypedContainsKhmer>,
 ): Promise<NonEmptyRecord<TypedContainsKhmer, ShortDefinitionKm>> => {
-  return invoke('km_for_many__short_description__throws_if_word_not_found', { words: Array.from(words) })
+  return invoke('km_for_many_short_description_throws_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getKmWordsDetailFull = async (
   words: NonEmptySet<TypedContainsKhmer>,
 ): Promise<NonEmptyRecord<TypedContainsKhmer, WordDetailKm | null>> => {
-  return invoke('km_for_many__full_details__none_if_word_not_found', { words: Array.from(words) })
+  return invoke('km_for_many_full_details_none_if_word_not_found', { words: Array.from(words) })
 }
 
 export const getKmWordsDetailFull_Strict = async (
   words: NonEmptySet<TypedContainsKhmer>,
 ): Promise<NonEmptyRecord<TypedContainsKhmer, WordDetailKm>> => {
-  return invoke('km_for_many__full_details__throws_if_word_not_found', { words: Array.from(words) })
+  return invoke('km_for_many_full_details_throws_if_word_not_found', { words: Array.from(words) })
 }

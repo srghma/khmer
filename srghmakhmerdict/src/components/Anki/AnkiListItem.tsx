@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import type { AnkiDirection } from './types'
-import { getBestDefinitionKhmerFromEn } from '../../utils/WordDetailEn_OnlyKhmerAndWithoutHtml'
-import { getBestDefinitionKhmerFromRu } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
-import { getBestDefinitionHtml } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
+import { getBestDefinitionKhmerFromEn_fromShort } from '../../utils/WordDetailEn_OnlyKhmerAndWithoutHtml'
+import { getBestDefinitionKhmerFromRu_fromShort } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
+import { getBestDefinitionHtml_fromShort } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 import { Spinner } from '@heroui/spinner'
 import { type FavoriteItem } from '../../db/favorite/item'
+import type { LanguageToShortDefinitionSum } from '../../db/dict/types'
 
 interface AnkiListItemProps {
   card: FavoriteItem
-  description: unknown
+  description: LanguageToShortDefinitionSum | undefined
   direction: AnkiDirection
   isSelected: boolean
   onSelect: (card: FavoriteItem) => void
@@ -36,21 +37,24 @@ export const AnkiListItem = React.memo(({ card, description, direction, isSelect
       if (!description) return <Spinner color="current" size="sm" /> // Should likely not happen if mandatory
     }
 
-    if (language === 'en') {
+    if (description.t === 'en') {
       // Show extracted Khmer
-      const val = getBestDefinitionKhmerFromEn(description as any)
+      const val = getBestDefinitionKhmerFromEn_fromShort(description.v)
+
       return <span className="font-khmer text-foreground">{val || '...'}</span>
     }
 
-    if (language === 'ru') {
+    if (description.t === 'ru') {
       // Show extracted Khmer
-      const val = getBestDefinitionKhmerFromRu(description as any)
+      const val = getBestDefinitionKhmerFromRu_fromShort(description.v)
+
       return <span className="font-khmer text-foreground">{val || '...'}</span>
     }
 
-    if (language === 'km') {
+    if (description.t === 'km') {
       // Show Definition (stripped HTML)
-      const val = getBestDefinitionHtml(description as any)
+      const val = getBestDefinitionHtml_fromShort(description.v)
+
       return <span className="text-sm text-foreground-500 line-clamp-2">{val || '...'}</span>
     }
 
@@ -66,7 +70,7 @@ export const AnkiListItem = React.memo(({ card, description, direction, isSelect
   }, [due])
 
   return (
-    <div
+    <button
       className={`
         cursor-pointer px-4 py-3 border-b border-divider transition-colors
         ${isSelected ? 'bg-secondary-100 dark:bg-secondary-900/30' : 'hover:bg-default-100'}
@@ -77,7 +81,7 @@ export const AnkiListItem = React.memo(({ card, description, direction, isSelect
         <div className="flex-1 break-words">{displayLabel}</div>
         <div className="shrink-0 flex flex-col items-end">{dueLabel}</div>
       </div>
-    </div>
+    </button>
   )
 })
 

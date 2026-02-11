@@ -2,7 +2,7 @@ import {
   strToOnlyKhmerAndWithoutHtml_remove_orUndefined,
   type TypedOnlyKhmerAndWithoutHtml,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-only-khmer-and-without-html'
-import type { WordDetailRu } from '../db/dict'
+import type { ShortDefinitionRu, WordDetailRu } from '../db/dict'
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
 import { type Lazy, defer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/lazy'
 
@@ -24,4 +24,10 @@ export const getBestDefinitionKhmerFromRu = (detail: WordDetailRu): TypedOnlyKhm
   const lazy = wordDetailRu_OnlyKhmerAndWithoutHtml_mk(detail)
 
   return lazy.desc()
+}
+
+export const getBestDefinitionKhmerFromRu_fromShort = (
+  shortDef: ShortDefinitionRu,
+): TypedOnlyKhmerAndWithoutHtml | undefined => {
+  return strToOnlyKhmerAndWithoutHtml_remove_orUndefined(shortDef.definition)
 }

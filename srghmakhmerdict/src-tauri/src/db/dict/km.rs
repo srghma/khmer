@@ -182,7 +182,7 @@ pub struct WordKmWordsDetailShortRow {
 }
 
 #[command]
-pub async fn km_for_many__short_description__none_if_word_not_found(
+pub async fn km_for_many_short_description_none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<ShortDefinitionKm>>, String> { // for analyzer page
@@ -202,7 +202,7 @@ pub async fn km_for_many__short_description__none_if_word_not_found(
 }
 
 #[command]
-pub async fn km_for_many__short_description__throws_if_word_not_found(
+pub async fn km_for_many_short_description_throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, ShortDefinitionKm>, String> {
@@ -227,7 +227,7 @@ pub async fn km_for_many__short_description__throws_if_word_not_found(
 }
 
 #[command]
-pub async fn km_for_many__full_details__none_if_word_not_found(
+pub async fn km_for_many_full_details_none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
@@ -242,7 +242,7 @@ pub async fn km_for_many__full_details__none_if_word_not_found(
 }
 
 #[command]
-pub async fn km_for_many__full_details__throws_if_word_not_found(
+pub async fn km_for_many_full_details_throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, WordDetailKm>, String> {

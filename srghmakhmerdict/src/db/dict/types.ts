@@ -40,3 +40,8 @@ export type LanguageToShortDefinitionMap = {
   km: ShortDefinitionKm
   ru: ShortDefinitionRu
 }
+
+export type LanguageToShortDefinitionSum =
+  | { t: 'en'; v: ShortDefinitionEn }
+  | { t: 'km'; v: ShortDefinitionKm }
+  | { t: 'ru'; v: ShortDefinitionRu }
