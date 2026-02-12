@@ -6,17 +6,21 @@ import { getBestDefinitionHtml_fromShort } from '../../utils/WordDetailKm_Withou
 import type { ShortDefinitionEn, ShortDefinitionKm, ShortDefinitionRu } from '../../db/dict/types'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../../db/dict'
-import { colorizeHtml } from '../../utils/text-processing/html'
+import type { AnkiGameMode } from './types'
+import { RenderHtmlColorized } from '../DetailView/atoms'
 
-type AnkiListItemProps_ShowMode =
-  // Modes 1, 3, 5: Clue is the Word
-  | { t: 'GUESS_NON_KHMER_km'; v: NonEmptyStringTrimmed }
-  | { t: 'GUESS_KHMER_en'; v: NonEmptyStringTrimmed }
-  | { t: 'GUESS_KHMER_ru'; v: NonEmptyStringTrimmed }
-  // Modes 2, 4, 6: Clue is the cleaned Description
-  | { t: 'GUESS_KHMER_km'; v: ShortDefinitionKm }
-  | { t: 'GUESS_NON_KHMER_en'; v: ShortDefinitionEn }
-  | { t: 'GUESS_NON_KHMER_ru'; v: ShortDefinitionRu }
+export type AnkiListItemProps_ShowMode_Map = {
+  GUESS_NON_KHMER_km: NonEmptyStringTrimmed
+  GUESS_KHMER_en: NonEmptyStringTrimmed
+  GUESS_KHMER_ru: NonEmptyStringTrimmed
+  GUESS_KHMER_km: ShortDefinitionKm
+  GUESS_NON_KHMER_en: ShortDefinitionEn
+  GUESS_NON_KHMER_ru: ShortDefinitionRu
+}
+
+export type AnkiListItemProps_ShowMode = {
+  [K in AnkiGameMode]: { t: K; v: AnkiListItemProps_ShowMode_Map[K] }
+}[AnkiGameMode]
 
 interface AnkiListItemProps_Common {
   card_due: number
@@ -37,10 +41,17 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
     switch (t) {
       // Modes where we show the Word directly
       case 'GUESS_NON_KHMER_km': {
-        // Mode 1: Clue is Word (Km).
-        const html = colorizeHtml(v, 'segmenter', km_map)
-
-        return <span dangerouslySetInnerHTML={{ __html: html }} className="font-bold font-khmer text-foreground" />
+        return (
+          <RenderHtmlColorized
+            hideBrokenImages_enable={false}
+            html={v}
+            isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerWordsHidingEnabled={false}
+            isNonKhmerWordsHidingEnabled={false}
+            km_map={km_map}
+            maybeColorMode="segmenter"
+          />
+        )
       }
       case 'GUESS_KHMER_en':
       case 'GUESS_KHMER_ru':
@@ -50,27 +61,56 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
       case 'GUESS_KHMER_km': {
         // Mode 2: Clue is Desc (Km) -> Show Desc without Khmer Chars.
         const val = getBestDefinitionHtml_fromShort(v)
-        const html = val ? colorizeHtml(val, 'segmenter', km_map) : '...'
 
-        return <span dangerouslySetInnerHTML={{ __html: html }} className="text-sm text-default-600 line-clamp-2" />
+        if (!val) return '...'
+
+        return (
+          <RenderHtmlColorized
+            hideBrokenImages_enable={false}
+            html={val}
+            isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerWordsHidingEnabled={false}
+            isNonKhmerWordsHidingEnabled={false}
+            km_map={km_map}
+            maybeColorMode="segmenter"
+          />
+        )
       }
       case 'GUESS_NON_KHMER_en': {
         // Mode 4: Clue is Desc (En). Remove non-khmer chars -> Shows Khmer Text.
         const val = getBestDefinitionKhmerFromEn_fromShort(v)
 
-        if (!val) return <span className="font-khmer text-primary">...</span>
-        const html = colorizeHtml(val, 'segmenter', km_map)
+        if (!val) return '...'
 
-        return <span dangerouslySetInnerHTML={{ __html: html }} className="font-khmer text-primary" />
+        return (
+          <RenderHtmlColorized
+            hideBrokenImages_enable={false}
+            html={val}
+            isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerWordsHidingEnabled={false}
+            isNonKhmerWordsHidingEnabled={false}
+            km_map={km_map}
+            maybeColorMode="segmenter"
+          />
+        )
       }
       case 'GUESS_NON_KHMER_ru': {
         // Mode 6: Clue is Desc (Ru). Remove non-khmer chars -> Shows Khmer Text.
         const val = getBestDefinitionKhmerFromRu_fromShort(v)
 
-        if (!val) return <span className="font-khmer text-primary">...</span>
-        const html = colorizeHtml(val, 'segmenter', km_map)
+        if (!val) return '...'
 
-        return <span dangerouslySetInnerHTML={{ __html: html }} className="font-khmer text-primary" />
+        return (
+          <RenderHtmlColorized
+            hideBrokenImages_enable={false}
+            html={val}
+            isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerWordsHidingEnabled={false}
+            isNonKhmerWordsHidingEnabled={false}
+            km_map={km_map}
+            maybeColorMode="segmenter"
+          />
+        )
       }
       default:
         return null

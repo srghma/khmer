@@ -58,7 +58,7 @@ export const DetailViewFound = ({
     toggleNonKhmerWordsHiding,
     khmerFontFamily,
   } = useSettings()
-  const { navigateTo, currentHistoryItem } = useNavigation()
+  const { navigateTo, currentNavigationStackItem } = useNavigation()
 
   // // 2. Styling
   // const uiStyle = useMemo(
@@ -89,23 +89,23 @@ export const DetailViewFound = ({
 
   const handleOpenSearch = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
-      if (!currentHistoryItem) return
+      if (!currentNavigationStackItem) return
       if (!selectedText) return
-      const targetMode = detectModeFromText(selectedText) ?? currentHistoryItem.mode
+      const targetMode = detectModeFromText(selectedText) ?? currentNavigationStackItem.mode
 
       navigateTo(selectedText, targetMode)
       window.getSelection()?.removeAllRanges()
     },
-    [navigateTo, currentHistoryItem],
+    [navigateTo, currentNavigationStackItem],
   )
 
   const renderPopupContent = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
-      if (!currentHistoryItem || !km_map) return null
+      if (!currentNavigationStackItem || !km_map) return null
 
       return (
         <SelectionMenuBody
-          currentMode={currentHistoryItem.mode}
+          currentMode={currentNavigationStackItem.mode}
           km_map={km_map}
           selectedText={selectedText}
           onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
@@ -113,7 +113,7 @@ export const DetailViewFound = ({
         />
       )
     },
-    [currentHistoryItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
+    [currentNavigationStackItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
   )
 
   return (

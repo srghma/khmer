@@ -40,7 +40,7 @@ function App() {
   const handleOpenAnki = useCallback(() => setIsAnkiOpen(true), [])
   const handleCloseAnki = useCallback(() => setIsAnkiOpen(false), [])
 
-  const { currentHistoryItem, resetNavigationAndSetCurrentTo, clearSelection } = useNavigation()
+  const { currentNavigationStackItem, resetNavigationAndSetCurrentTo, clearSelection } = useNavigation()
 
   const {
     isRegex,
@@ -90,9 +90,9 @@ function App() {
   const divClassName = useMemo(
     () =>
       `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${
-        currentHistoryItem ? 'hidden md:flex' : 'w-full'
+        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
-    [currentHistoryItem],
+    [currentNavigationStackItem],
   )
 
   // --- Memoized Render Prop ---
@@ -114,9 +114,9 @@ function App() {
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
       {/* Khmer Analyzer Modal */}
-      {khmerAnalyzerModalText_setToOpen && currentHistoryItem && (
+      {khmerAnalyzerModalText_setToOpen && currentNavigationStackItem && (
         <KhmerAnalyzerModal
-          currentMode={currentHistoryItem.mode}
+          currentMode={currentNavigationStackItem.mode}
           km_map={dictData.km_map}
           maybeColorMode={maybeColorMode}
           textAndOpen={khmerAnalyzerModalText_setToOpen}
@@ -156,7 +156,7 @@ function App() {
         km_map={dictData.km_map}
         maybeColorMode={maybeColorMode}
         searchQuery={searchQuery}
-        selectedWord={currentHistoryItem}
+        selectedWord={currentNavigationStackItem}
         setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
         onBack={clearSelection}
         onNavigate={resetNavigationAndSetCurrentTo}

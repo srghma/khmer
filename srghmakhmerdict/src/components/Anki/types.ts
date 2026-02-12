@@ -19,3 +19,10 @@ export function stringToAnkiDirectionOrUndefined(value: string): AnkiDirection |
 export function stringToAnkiDirectionOrThrow(value: string): AnkiDirection {
   return stringToEnumOrThrow(value, ANKI_DIRECTIONS, 'AnkiDirection')
 }
+export type AnkiGameMode =
+  | 'GUESS_NON_KHMER_km'
+  | 'GUESS_KHMER_en'
+  | 'GUESS_KHMER_ru'
+  | 'GUESS_KHMER_km'
+  | 'GUESS_NON_KHMER_en'
+  | 'GUESS_NON_KHMER_ru'

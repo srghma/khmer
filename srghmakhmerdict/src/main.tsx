@@ -9,6 +9,8 @@ import App from './App'
 import { initializeDictionaryData } from './initDictionary'
 import { DictionaryProvider } from './providers/DictionaryProvider'
 import { GlobalErrorBoundary } from './components/ErrorBoundary'
+import { FavoritesProvider } from './providers/FavoritesProvider'
+import { HistoryProvider } from './providers/HistoryProvider'
 
 // Start the 2-stage initialization immediately
 const initPromise = initializeDictionaryData()
@@ -20,11 +22,15 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       {/* Pass the promise that resolves when DB is ready */}
       <GlobalErrorBoundary>
         <DictionaryProvider initPromise={initPromise}>
-          <NavigationProvider>
-            <SettingsProvider>
-              <App />
-            </SettingsProvider>
-          </NavigationProvider>
+          <FavoritesProvider>
+            <HistoryProvider>
+              <NavigationProvider>
+                <SettingsProvider>
+                  <App />
+                </SettingsProvider>
+              </NavigationProvider>
+            </HistoryProvider>
+          </FavoritesProvider>
         </DictionaryProvider>
       </GlobalErrorBoundary>
     </HeroUIProvider>

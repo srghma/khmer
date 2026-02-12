@@ -31,7 +31,7 @@ const ANIM_SNAP_BACK = { x: 0, transition: { type: 'spring', stiffness: 400, dam
 const DRAG_CONSTRAINTS = { left: -1000, right: 0 } as const
 const TOUCH_STYLE: React.CSSProperties = { touchAction: 'pan-y' } as const
 
-interface HistoryItemRowProps {
+interface HistoryOrFavoriteItemRowProps {
   word: NonEmptyStringTrimmed
   language: DictionaryLanguage
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -41,7 +41,7 @@ interface HistoryItemRowProps {
   renderRightAction?: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => React.ReactNode
 }
 
-export const HistoryItemRow = React.memo<HistoryItemRowProps>(
+export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps>(
   ({ word, language, onSelect, onDelete, km_map, maybeColorMode, renderRightAction }) => {
     const controls = useAnimation()
 
@@ -107,4 +107,4 @@ export const HistoryItemRow = React.memo<HistoryItemRowProps>(
   },
 )
 
-HistoryItemRow.displayName = 'HistoryItemRow'
+HistoryOrFavoriteItemRow.displayName = 'HistoryOrFavoriteItemRow'

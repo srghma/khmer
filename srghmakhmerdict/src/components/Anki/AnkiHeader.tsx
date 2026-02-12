@@ -47,6 +47,12 @@ const TabItemContent = memo(function TabItemContent({
   )
 })
 
+const tabsClassNames = {
+  tabList: 'gap-0 p-0',
+  tab: 'h-12 px-2',
+  cursor: 'bg-secondary',
+}
+
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
     activeDict,
@@ -111,10 +117,10 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
       () => (
         <div className="flex flex-col items-center justify-center font-black uppercase text-secondary text-xs">
           <span>Guessing</span>
-          <span>{isGuessingKhmer ? 'Khmer' : 'Meaning'}</span>
+          <span>{isGuessingKhmer ? 'Khmer' : { en: 'English', ru: 'Russian', km: 'En/Ru' }[activeDict]}</span>
         </div>
       ),
-      [isGuessingKhmer],
+      [isGuessingKhmer, activeDict],
     )
 
     return (
@@ -123,11 +129,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
           <Tabs
             fullWidth
             aria-label="Anki Dictionary Tabs"
-            classNames={{
-              tabList: 'gap-0 p-0',
-              tab: 'h-12 px-2',
-              cursor: 'bg-secondary',
-            }}
+            classNames={tabsClassNames}
             color="secondary"
             radius="sm"
             selectedKey={activeDict}

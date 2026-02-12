@@ -11,6 +11,7 @@ const DetailFetcher_loading = (
     <Spinner size="sm" />
   </div>
 )
+
 const DetailFetcher_not_found = <div className="text-danger text-center p-4">Failed to load definition</div>
 
 export const DetailFetcher = React.memo(
@@ -18,12 +19,14 @@ export const DetailFetcher = React.memo(
     language,
     word,
     km_map,
-    hideKhmer,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
   }: {
     language: DictionaryLanguage
     word: NonEmptyStringTrimmed
     km_map: KhmerWordsMap
-    hideKhmer: boolean
+    isKhmerWordsHidingEnabled: boolean
+    isNonKhmerWordsHidingEnabled: boolean
   }) => {
     const result = useWordDefinition(word, language)
 
@@ -46,10 +49,10 @@ export const DetailFetcher = React.memo(
         from_russian_wiki={d.from_russian_wiki}
         gorgoniev={d.gorgoniev}
         isKhmerLinksEnabled_ifTrue_passOnNavigate={undefined}
-        isKhmerWordsHidingEnabled={hideKhmer}
-        isNonKhmerWordsHidingEnabled={false}
+        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+        isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
         km_map={km_map}
-        maybeColorMode="none"
+        maybeColorMode="segmenter"
         mode={language}
         wiktionary={d.wiktionary}
       />

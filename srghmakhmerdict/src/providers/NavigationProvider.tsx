@@ -1,17 +1,17 @@
 import { createContext, useContext, useState, useCallback, type ReactNode, useMemo, useEffect, useRef } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../types'
-import { addToHistory } from '../db/history'
 import { useAppToast } from './ToastProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
+import { useHistory } from './HistoryProvider'
 
-interface HistoryItem {
+interface NavigationStackItem {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
 }
 
 interface NavigationContextType {
-  currentHistoryItem: HistoryItem | undefined
+  currentNavigationStackItem: NavigationStackItem | undefined
   canGoBack: boolean
   /** Pushes a new word onto the stack (used for internal links/search) */
   navigateTo: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -26,51 +26,51 @@ interface NavigationContextType {
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined)
 
 export const NavigationProvider = ({ children }: { children: ReactNode }) => {
-  const [history, setHistory] = useState<HistoryItem[]>([])
-  const [currentHistoryItem, setCurrentHistoryItem] = useState<HistoryItem | undefined>(undefined)
+  const { addToHistory } = useHistory()
+  // Internal Stack for "Back" functionality within the app (e.g. following links)
+  const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([])
+  const [currentNavigationStackItem, setCurrentNavigationStackItem] = useState<NavigationStackItem | undefined>(undefined)
 
   // Refs to access latest state inside event listeners without re-binding
-  const historyRef = useRef(history)
-  const currentHistoryItemRef = useRef(currentHistoryItem)
+  const navigationStackRef = useRef(navigationStack)
+  const currentNavigationStackItemRef = useRef(currentNavigationStackItem)
 
   useEffect(() => {
-    historyRef.current = history
-  }, [history])
+    navigationStackRef.current = navigationStack
+  }, [navigationStack])
 
   useEffect(() => {
-    currentHistoryItemRef.current = currentHistoryItem
-  }, [currentHistoryItem])
+    currentNavigationStackItemRef.current = currentNavigationStackItem
+  }, [currentNavigationStackItem])
 
   // --- Internal State Logic ---
 
   // Performed when 'popstate' fires (Hardware Back) OR when 'goBack' (UI Back) triggers history.back()
   const toast = useAppToast()
   const performInternalPop = useCallback(() => {
-    const currentHist = historyRef.current
-    const currentHI = currentHistoryItemRef.current
+    const currentStack = navigationStackRef.current
+    const currentItem = currentNavigationStackItemRef.current
 
     // Case 1: Stack has items (Internal navigation A -> B)
-    if (currentHist.length > 0) {
-      setHistory(prev => {
-        const newHistory = [...prev]
-        const previousItem = newHistory.pop()
+    if (currentStack.length > 0) {
+      const newStack = [...currentStack]
+      const previousItem = newStack.pop()
 
-        if (previousItem) {
-          setCurrentHistoryItem(previousItem)
-
-          return newHistory
-        }
-
-        return []
-      })
-
+      if (previousItem) {
+        setNavigationStack(newStack)
+        setCurrentNavigationStackItem(previousItem)
+      } else {
+        // Fallback: Clear everything if stack was somehow empty/invalid
+        setNavigationStack([])
+        setCurrentNavigationStackItem(undefined)
+      }
       return
     }
 
     // Case 2: Stack is empty but Detail View is open (Sidebar -> Detail)
-    if (currentHI) {
-      setCurrentHistoryItem(undefined)
-      setHistory([])
+    if (currentItem) {
+      setCurrentNavigationStackItem(undefined)
+      setNavigationStack([])
     }
   }, [])
 
@@ -91,48 +91,49 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [performInternalPop])
 
+  // --- Sync with Persistent History ---
+  useEffect(() => {
+    if (currentNavigationStackItem) {
+      addToHistory(currentNavigationStackItem.word, currentNavigationStackItem.mode).catch(e => {
+        toast.error('Error adding to history' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+      })
+    }
+  }, [currentNavigationStackItem, addToHistory, toast])
+
   // --- Public API ---
 
   // 1. Navigate (Push to history)
   const navigateTo = useCallback(
     async (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
-      if (currentHistoryItem) {
-        if (currentHistoryItem.word === word && currentHistoryItem.mode === mode) return
+      // Prevent duplicate navigation
+      if (currentNavigationStackItem?.word === word && currentNavigationStackItem?.mode === mode) return
 
-        // Push current word to internal stack
-        try {
-          await addToHistory(currentHistoryItem.word, currentHistoryItem.mode)
-        } catch (e: unknown) {
-          toast.error('Error addToHistory' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
-
-          return
-        }
-        setHistory(prev => [...prev, currentHistoryItem])
+      // If we have a current item, push it to stack before navigating
+      if (currentNavigationStackItem) {
+        setNavigationStack(prev => [...prev, currentNavigationStackItem])
       }
-      setCurrentHistoryItem({ word, mode })
+
+      setCurrentNavigationStackItem({ word, mode })
 
       // Push to Browser History to enable System Back Button
       window.history.pushState({ type: 'internal' }, '', '')
     },
-    [currentHistoryItem, toast],
+    [currentNavigationStackItem],
   )
 
   // 2. Reset (Sidebar click)
   const resetNavigationAndSetCurrentTo = useCallback((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
-    // If we are transitioning from "List View" (null) to "Detail View", push a history state.
-    // If we are already in "Detail View" and just clicking another sidebar item,
-    // we REPLACE the state (so we don't build an infinite back stack for sidebar clicks),
-    // or we can choose to PUSH if we want sidebar clicks to be back-navigable too.
-    // Standard Master-Detail pattern usually replaces detail view.
-    if (currentHistoryItemRef.current === null) {
+    // If we are currently showing NOTHING (e.g. initial load or cleared selection),
+    // we PUSH state so the back button works to return to "nothing".
+    // Otherwise, we REPLACE state to avoid building up a huge stack of sidebar clicks.
+    if (!currentNavigationStackItemRef.current) {
       window.history.pushState({ type: 'root' }, '', '')
     } else {
-      // Optional: use replaceState if you don't want sidebar navigation to pile up history
       window.history.replaceState({ type: 'root' }, '', '')
     }
 
-    setHistory([])
-    setCurrentHistoryItem({ word, mode })
+    setNavigationStack([])
+    setCurrentNavigationStackItem({ word, mode })
   }, [])
 
   // 3. Go Back (Trigger System Back)
@@ -148,22 +149,22 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     // For the "X" button, we force clear.
     // Note: This leaves "forward" history in the browser if the user had navigated deep.
     // This is generally acceptable for a "Close" action.
-    setHistory([])
-    setCurrentHistoryItem(undefined)
+    setNavigationStack([])
+    setCurrentNavigationStackItem(undefined)
   }, [])
 
-  const canGoBack = history.length > 0
+  const canGoBack = navigationStack.length > 0
 
   const value = useMemo(
     () => ({
-      currentHistoryItem,
+      currentNavigationStackItem,
       canGoBack,
       navigateTo,
       resetNavigationAndSetCurrentTo,
       goBack,
       clearSelection,
     }),
-    [currentHistoryItem, canGoBack, navigateTo, resetNavigationAndSetCurrentTo, goBack, clearSelection],
+    [currentNavigationStackItem, canGoBack, navigateTo, resetNavigationAndSetCurrentTo, goBack, clearSelection],
   )
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>

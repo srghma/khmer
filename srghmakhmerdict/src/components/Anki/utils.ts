@@ -48,7 +48,11 @@ function calculate_isNotNew(
 ): NOfDays {
   const daysSinceReview = (now_milliseconds - item_last_review) / getOneDayInMs
 
-  return numberToNOfDays_orThrow_mk(deck.gradeCard({ D: item_difficulty, S: item_stability }, daysSinceReview, grade).I)
+  const graded = deck.gradeCard({ D: item_difficulty, S: item_stability }, daysSinceReview, grade)
+
+  console.log('before', { grade, item_difficulty, item_stability, daysSinceReview })
+  console.log('after', graded)
+  return numberToNOfDays_orThrow_mk(graded.I)
 }
 
 /**

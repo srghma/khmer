@@ -8,14 +8,12 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { type DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
-import * as FavDb from '../../db/favorite'
-
-import { LoadingState, EmptyState } from './SharedComponents'
-import { HistoryItemRow } from './HistoryItemRow'
+import { EmptyState } from './SharedComponents'
+import { HistoryOrFavoriteItemRow } from './HistoryOrFavoriteItemRow'
 import { useListLogic } from './useListLogic'
 import { ConfirmAction } from '../ConfirmAction'
-import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -30,21 +28,17 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({
 }: ListPropsCommon) {
   const dictData = useDictionary()
 
-  const { items, loading, handleDelete, handleClearAll } = useListLogic(
-    FavDb.getFavorites,
-    FavDb.removeFavorite,
-    FavDb.deleteAllFavorites,
-    'favorites',
-    favoritesStore,
-  )
+  const { favorites: items, loading, removeFavorite, deleteAllFavorites } = useFavorites()
+
+  const { handleDelete, handleClearAll } = useListLogic(removeFavorite, deleteAllFavorites)
 
   const confirmContent = React.useMemo(
     () => <p className="text-small text-default-500">Are you sure you want to delete all {items?.length} items?</p>,
     [items?.length],
   )
 
-  if (loading) return <LoadingState />
-  if (!items) return <EmptyState type="favorites" />
+  if (loading) return <div className="p-4 text-center">Loading...</div>
+  if (!items || items.length === 0) return <EmptyState type="favorites" />
 
   return (
     <>
@@ -90,7 +84,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({
 
         <AnimatePresence initial={false} mode="popLayout">
           {items.map(({ word, language }) => (
-            <HistoryItemRow
+            <HistoryOrFavoriteItemRow
               key={`${word}-${language}`}
               km_map={dictData.km_map}
               language={language}

@@ -98,3 +98,45 @@ export function memoizeSync3_Booleans<R>(
     return result
   }
 }
+
+export function memoizeSync1_Boolean<R>(
+  fn: (a1: boolean) => R,
+): (a1: boolean) => R {
+  let trueValue: R | undefined
+  let falseValue: R | undefined
+
+  return (a1: boolean): R => {
+    if (a1) {
+      if (trueValue !== undefined) return trueValue
+      return (trueValue = fn(true))
+    }
+    if (falseValue !== undefined) return falseValue
+    return (falseValue = fn(false))
+  }
+}
+
+export function memoizeSync2_Boolean<R>(
+  fn: (a1: boolean, a2: boolean) => R,
+): (a1: boolean, a2: boolean) => R {
+  let tt: R | undefined
+  let tf: R | undefined
+  let ft: R | undefined
+  let ff: R | undefined
+
+  return (a1: boolean, a2: boolean): R => {
+    if (a1) {
+      if (a2) {
+        if (tt !== undefined) return tt
+        return (tt = fn(true, true))
+      }
+      if (tf !== undefined) return tf
+      return (tf = fn(true, false))
+    }
+    if (a2) {
+      if (ft !== undefined) return ft
+      return (ft = fn(false, true))
+    }
+    if (ff !== undefined) return ff
+    return (ff = fn(false, false))
+  }
+}

@@ -34,7 +34,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
     // 1. Resolve Raw Content from candidates
     const rawContent = useMemo(() => {
-      if (res.t !== 'ready') return null
+      if (res.t !== 'found') return null
 
       const detail: WordDetailEnOrRuOrKm | undefined = res.detail
       const candidates = [

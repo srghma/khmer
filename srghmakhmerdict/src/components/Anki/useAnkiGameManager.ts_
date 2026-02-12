@@ -6,9 +6,6 @@ import type { ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chr
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useAnkiPulseStore } from './AnkiPulseContext'
 import { useAppToast } from '../../providers/ToastProvider'
-import { reviewCard } from '../../db/favorite/anki'
-import { getFavorites } from '../../db/favorite'
-import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
 import {
   init,
@@ -29,7 +26,7 @@ import {
   have_due_cards_today__selected__front__tick,
   have_due_cards_today__selected__back__selectOtherCard,
   have_due_cards_today__selected__back__rate,
-} from './AnkiGameManager'
+} from './AnkiGameManager.ts_'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 export const AnkiGame_loading = { t: 'loading' } as const
@@ -37,36 +34,36 @@ export const AnkiGame_loading = { t: 'loading' } as const
 export type AnkiGameHookResult<T> =
   | typeof AnkiGame_loading
   | {
-      t: AnkiGameState_NoMore_Nothing<T>['t']
-      state: AnkiGameState_NoMore_Nothing<T>
-      selectCard: (index: ValidNonNegativeInt) => void
-    }
+    t: AnkiGameState_NoMore_Nothing<T>['t']
+    state: AnkiGameState_NoMore_Nothing<T>
+    selectCard: (index: ValidNonNegativeInt) => void
+  }
   | {
-      t: AnkiGameState_NoMore_Selected_Front<T>['t']
-      state: AnkiGameState_NoMore_Selected_Front<T>
-      reveal: () => void
-      selectOtherCard: (index: ValidNonNegativeInt) => void
-      tick: () => void
-    }
+    t: AnkiGameState_NoMore_Selected_Front<T>['t']
+    state: AnkiGameState_NoMore_Selected_Front<T>
+    reveal: () => void
+    selectOtherCard: (index: ValidNonNegativeInt) => void
+    tick: () => void
+  }
   | {
-      t: AnkiGameState_NoMore_Selected_Back<T>['t']
-      state: AnkiGameState_NoMore_Selected_Back<T>
-      rate: ((grade: Grade) => Promise<void>) | undefined // undefined = is loading
-      selectOtherCard: (index: ValidNonNegativeInt) => void
-    }
+    t: AnkiGameState_NoMore_Selected_Back<T>['t']
+    state: AnkiGameState_NoMore_Selected_Back<T>
+    rate: ((grade: Grade) => Promise<void>) | undefined // undefined = is loading
+    selectOtherCard: (index: ValidNonNegativeInt) => void
+  }
   | {
-      t: AnkiGameState_Have_Selected_Front<T>['t']
-      state: AnkiGameState_Have_Selected_Front<T>
-      reveal: () => void
-      selectOtherCard: (index: ValidNonNegativeInt) => void
-      tick: () => void
-    }
+    t: AnkiGameState_Have_Selected_Front<T>['t']
+    state: AnkiGameState_Have_Selected_Front<T>
+    reveal: () => void
+    selectOtherCard: (index: ValidNonNegativeInt) => void
+    tick: () => void
+  }
   | {
-      t: AnkiGameState_Have_Selected_Back<T>['t']
-      state: AnkiGameState_Have_Selected_Back<T>
-      rate: ((grade: Grade) => Promise<void>) | undefined // undefined = is loading
-      selectOtherCard: (index: ValidNonNegativeInt) => void
-    }
+    t: AnkiGameState_Have_Selected_Back<T>['t']
+    state: AnkiGameState_Have_Selected_Back<T>
+    rate: ((grade: Grade) => Promise<void>) | undefined // undefined = is loading
+    selectOtherCard: (index: ValidNonNegativeInt) => void
+  }
 
 type Action<T> =
   | { type: 'RESET'; rawItems: NonEmptyArray<T>; now: number; getCard: (item: T) => FavoriteItem }
@@ -77,12 +74,12 @@ type Action<T> =
   | { type: 'RATE_START' }
   | { type: 'RATE_FAIL' }
   | {
-      type: 'RATE_SUCCESS'
-      newCard: FavoriteItem
-      setItemCard: (item: T, newCard: FavoriteItem) => T
-      now: number
-      getCard: (item: T) => FavoriteItem
-    }
+    type: 'RATE_SUCCESS'
+    newCard: FavoriteItem
+    setItemCard: (item: T, newCard: FavoriteItem) => T
+    now: number
+    getCard: (item: T) => FavoriteItem
+  }
 
 type HookState<T> = {
   game: AnkiGameState<T>
@@ -210,6 +207,8 @@ function reducer<T>(state: HookState<T>, action: Action<T>): HookState<T> {
   }
 }
 
+import { useFavorites } from '../../providers/FavoritesProvider'
+
 export function useAnkiGameManager<T>(
   rawItems: NonEmptyArray<T>,
   getCard: (item: T) => FavoriteItem,
@@ -218,6 +217,7 @@ export function useAnkiGameManager<T>(
   const pulseStore = useAnkiPulseStore()
   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot)
   const toast = useAppToast()
+  const { reviewCard } = useFavorites()
 
   const [state, dispatch] = useReducer(reducer, undefined, () => ({
     game: init(rawItems, now, getCard),
@@ -252,16 +252,12 @@ export function useAnkiGameManager<T>(
           now,
           getCard,
         })
-
-        const updatedData = await getFavorites()
-
-        favoritesStore.replaceStateWith_emitOnlyIfDifferentRef(updatedData)
       } catch (e) {
         toast.error('Failed to rate' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
         dispatch({ type: 'RATE_FAIL' })
       }
     },
-    [isProcessingRate, getCard, setItemCard, now, toast],
+    [isProcessingRate, getCard, setItemCard, now, toast, reviewCard],
   )
 
   return useMemo(() => {

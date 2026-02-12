@@ -6,13 +6,13 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { type DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap } from '../../db/dict/index'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import * as HistoryDb from '../../db/history'
-import { LoadingState, EmptyState } from './SharedComponents'
-import { HistoryItemRow } from './HistoryItemRow'
+
+import { EmptyState } from './SharedComponents'
+import { HistoryOrFavoriteItemRow } from './HistoryOrFavoriteItemRow'
 import { useListLogic } from './useListLogic'
 import { ConfirmAction } from '../ConfirmAction'
-import { historyStore } from '../../externalStores/historyAndFavorites'
 import { FavoriteToggleButton } from './FavoriteToggleButton'
+import { useHistory } from '../../providers/HistoryProvider'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -21,13 +21,9 @@ interface ListPropsCommon {
 }
 
 export const HistoryListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, km_map, maybeColorMode }) => {
-  const { items, loading, handleDelete, handleClearAll } = useListLogic(
-    HistoryDb.getHistory,
-    HistoryDb.removeHistoryItem,
-    HistoryDb.deleteAllHistory,
-    'history',
-    historyStore,
-  )
+  const { history: items, loading, removeHistoryItem, deleteAllHistory } = useHistory()
+
+  const { handleDelete, handleClearAll } = useListLogic(removeHistoryItem, deleteAllHistory)
 
   const renderRightAction = useCallback(
     (w: NonEmptyStringTrimmed, l: DictionaryLanguage) => <FavoriteToggleButton mode={l} word={w} />,
@@ -35,13 +31,13 @@ export const HistoryListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect
   )
 
   const confirmContent = React.useMemo(
-    () => <p className="text-small text-default-500">Are you sure you want to delete all {items.length} items?</p>,
-    [items.length],
+    () => <p className="text-small text-default-500">Are you sure you want to delete all {items?.length} items?</p>,
+    [items?.length],
   )
 
-  if (loading) return <LoadingState />
+  if (loading) return <div className="p-4 text-center">Loading...</div>
   // If items is undefined, the NonEmptyMap is empty
-  if (!items) return <EmptyState type="history" />
+  if (!items || items.length === 0) return <EmptyState type="history" />
 
   return (
     <div className="flex-1 overflow-y-auto bg-content1 overflow-x-hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
@@ -72,7 +68,7 @@ export const HistoryListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect
 
       <AnimatePresence initial={false} mode="popLayout">
         {items.map(({ word, language }) => (
-          <HistoryItemRow
+          <HistoryOrFavoriteItemRow
             key={`${word}-${language}`}
             km_map={km_map}
             language={language}
