@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react'
+import React from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { FaRegTrashAlt } from 'react-icons/fa'
 import { Button } from '@heroui/button'
-import { Modal, ModalContent, Tooltip } from '@heroui/react'
+import { Tooltip } from '@heroui/react'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
@@ -16,22 +16,18 @@ import { useListLogic } from './useListLogic'
 import { ConfirmAction } from '../ConfirmAction'
 import { favoritesStore } from '../../externalStores/historyAndFavorites'
 import { useDictionary } from '../../providers/DictionaryProvider'
-import { AnkiPulseProvider } from '../Anki/AnkiPulseContext'
-import { AnkiSettingsProvider } from '../Anki/useAnkiSettings'
-import { AnkiGame } from '../Anki/AnkiGame'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   maybeColorMode: MaybeColorizationMode
+  handleOpenAnki: () => void
 }
 
-const ankiModalClassNames = {
-  // body: 'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
-  header: 'mt-[env(safe-area-inset-top)]',
-  closeButton: 'mt-[env(safe-area-inset-top)]',
-}
-
-export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSelect, maybeColorMode }) => {
+export const FavoritesListOnly = React.memo(function FavoritesListOnly({
+  onSelect,
+  maybeColorMode,
+  handleOpenAnki,
+}: ListPropsCommon) {
   const dictData = useDictionary()
 
   const { items, loading, handleDelete, handleClearAll } = useListLogic(
@@ -42,15 +38,10 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
     favoritesStore,
   )
 
-  const [isAnkiOpen, setIsAnkiOpen] = useState(false)
-  const handleOpenAnki = useCallback(() => setIsAnkiOpen(true), [])
-
   const confirmContent = React.useMemo(
     () => <p className="text-small text-default-500">Are you sure you want to delete all {items?.length} items?</p>,
     [items?.length],
   )
-
-  const handleCloseAnki = useCallback(() => setIsAnkiOpen(false), [])
 
   if (loading) return <LoadingState />
   if (!items) return <EmptyState type="favorites" />
@@ -111,22 +102,6 @@ export const FavoritesListOnly: React.FC<ListPropsCommon> = React.memo(({ onSele
           ))}
         </AnimatePresence>
       </div>
-
-      <AnkiPulseProvider>
-        <AnkiSettingsProvider>
-          <Modal
-            classNames={ankiModalClassNames}
-            isOpen={isAnkiOpen}
-            scrollBehavior="inside"
-            size="full"
-            onClose={handleCloseAnki}
-          >
-            <ModalContent>
-              <AnkiGame />
-            </ModalContent>
-          </Modal>
-        </AnkiSettingsProvider>
-      </AnkiPulseProvider>
     </>
   )
 })

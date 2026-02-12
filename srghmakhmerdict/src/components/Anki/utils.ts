@@ -5,10 +5,11 @@ import {
   type NOfDays,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/n-of-days'
 import type { FavoriteItem } from '../../db/favorite/item'
-import type { DictionaryLanguage } from '../../types'
+import { DICTIONARY_LANGUAGES, type DictionaryLanguage } from '../../types'
 import { ascNumber } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/sort'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import {
+  Array_groupByKeys_toNonEmptyArrays,
   Array_toNonEmptyArray_orThrow,
   Array_toNonEmptyArray_orUndefined,
   NonEmptyArray_collectToSet,
@@ -17,7 +18,10 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import {
+  Record_toNonEmptyRecord_unsafe,
+  type NonEmptyRecord,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { formatDistance } from 'date-fns/formatDistance'
 
 export function FavoriteItem_isDueToday(item: FavoriteItem, now_milliseconds: number): boolean {
@@ -107,6 +111,22 @@ export function allFavorites_filterByLanguage(
   language: DictionaryLanguage,
 ): NonEmptyArray<FavoriteItem> | undefined {
   return Array_toNonEmptyArray_orUndefined(allFavorites.filter(x => x.language === language))
+}
+
+export function allFavorites_split_sorted(
+  allFavorites: NonEmptyArray<FavoriteItem>,
+): NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined> {
+  // 1. Group by language
+  const grouped = Array_groupByKeys_toNonEmptyArrays(allFavorites, DICTIONARY_LANGUAGES, item => item.language)
+
+  // 2. Sort each group by due date
+  for (const lang of DICTIONARY_LANGUAGES) {
+    const group = grouped[lang]
+
+    if (group) grouped[lang] = hasFavorites_sortByDue_todayIsTop(group, x => x)
+  }
+
+  return Record_toNonEmptyRecord_unsafe(grouped)
 }
 
 export function hasFavorites_sortByDue_todayIsTop<T>(

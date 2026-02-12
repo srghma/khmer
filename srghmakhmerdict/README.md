@@ -41,3 +41,18 @@ there should at some point a component, it bifurcates in two, one is using useAn
 then they pass data to another component + required getCard etc that joins bifurcations and calls manager inside
 
 the joining component should be stupid, it should not know what is stored in the list, all funcs to handle list items are passed into the component
+
+# UI
+
+expected to repeat App.tsx
+
+- in big view - 1 layer, on left header + list, right details
+- mobile - two pages: first is header + list, then if item is selected - details (also visible the back button)
+
+header should contain buttons in this order en km ru, mode switch, n of due text
+
+icons should be visibly changed if tab is disabled (it means there is no items)
+
+also fix the due time in the item of the list , rn I see only text "Due" and it is not on the right of item
+
+also there is a gray rectangle around show answer button - there should be no rectangle

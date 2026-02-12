@@ -1,3 +1,4 @@
+import { Array_groupByKeys } from './array'
 import { Set_toNonEmptySet_orThrow, type NonEmptySet } from './non-empty-set'
 import { sortBy_immutable } from './sort'
 import { Option_none, Option_some, type Option } from './types'
@@ -60,4 +61,15 @@ export function NonEmptyArray_collectToSet<A, B>(queue: NonEmptyArray<A>, f: (a:
   const s = new Set<B>()
   for (const item of queue) s.add(f(item))
   return Set_toNonEmptySet_orThrow(s)
+}
+
+export function Array_groupByKeys_toNonEmptyArrays<V, K extends string>(
+  xs: readonly V[],
+  keys: readonly K[],
+  getKey: (v: V) => K,
+): Record<K, NonEmptyArray<V> | undefined> {
+  const buckets = Array_groupByKeys(xs, keys, getKey)
+  const result = {} as Record<K, NonEmptyArray<V> | undefined>
+  for (const key of keys) result[key] = Array_toNonEmptyArray_orUndefined(buckets[key])
+  return result
 }

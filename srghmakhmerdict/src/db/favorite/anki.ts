@@ -1,31 +1,61 @@
 import { getUserDb } from '../core'
-import { createDeck, Grade } from 'femto-fsrs' // Assuming you saved the file there
+import { createDeck, Grade } from 'femto-fsrs'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../../types'
 import type { FavoriteItem } from './item'
 
-// Initialize the FSRS algorithm (Default parameters)
+// Initialize the FSRS algorithm
 export const deck = createDeck()
 
 export const getOneDayInMs = 24 * 60 * 60 * 1000
 
-/**
- * Handle a user reviewing a card.
- * Uses functional patterns to calculate the next state immutably.
- */
-export const reviewCard = async (
-  word: NonEmptyStringTrimmed,
-  language: DictionaryLanguage,
-  grade: Grade, // 1=Again, 2=Hard, 3=Good, 4=Easy
-): Promise<FavoriteItem> => {
-  const db = await getUserDb()
-  const now = Date.now()
+export type FavoriteItemUpdates = Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review' | 'due'>
 
-  // 1. Fetch current state
-  const rows = await db.select<FavoriteItem[]>('SELECT * FROM favorites WHERE word = $1 AND language = $2', [
-    word,
-    language,
-  ])
+/**
+ * Pure function: Calculates the next state of a card based on the grade and current time.
+ * This determines the "optimistic" data without touching the database.
+ */
+export const calculateReviewUpdates = (
+  item: Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review'>,
+  grade: Grade,
+  now: number,
+): FavoriteItemUpdates => {
+  const isNew = item.last_review === null
+
+  // Calculate next FSRS parameters
+  const nextCard = (() => {
+    if (isNew) {
+      // Branch A: New Card
+      return deck.newCard(grade)
+    } else {
+      // Branch B: Existing Card
+      const daysSinceReview = (now - item.last_review) / getOneDayInMs
+      return deck.gradeCard(
+        { D: item.difficulty, S: item.stability },
+        daysSinceReview,
+        grade,
+      )
+    }
+  })()
+
+  // Calculate next due date
+  const nextDue = now + nextCard.I * getOneDayInMs
+
+  return {
+    stability: nextCard.S,
+    difficulty: nextCard.D,
+    last_review: now,
+    due: nextDue,
+  }
+}
+
+export async function getCurrent(word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<FavoriteItem> {
+  const db = await getUserDb()
+
+  const rows = await db.select<FavoriteItem[]>(
+    'SELECT * FROM favorites WHERE word = $1 AND language = $2',
+    [word, language],
+  )
 
   // Validation
   const current = (() => {
@@ -38,40 +68,15 @@ export const reviewCard = async (
     return c
   })()
 
-  // 2. Calculate next state using femto-fsrs (Pure calculation via IIFE)
-  const { nextCard /*, nextState, lapseIncrement */ } = (() => {
-    const isNew = current.last_review === null // || current.state === 0
+  return current
+}
 
-    // Branch A: New Card
-    if (isNew) {
-      return {
-        nextCard: deck.newCard(grade),
-        // nextState: grade === Grade.AGAIN ? 1 : 2 // Simple state logic: Again->Learning, else->Review
-        // lapseIncrement: 0
-      }
-    }
-
-    // Branch B: Existing Card
-    const daysSinceReview = (now - current.last_review) / getOneDayInMs
-
-    // Logic for State transitions (Future)
-    // const nextState = (() => {
-    //   if (grade === Grade.AGAIN) return 3 // Relearning
-    //   if (current.state === 3 && grade >= Grade.GOOD) return 2 // Back to Review
-    //   if (current.state === 1 && grade >= Grade.GOOD) return 2 // Graduate to Review
-    //   return current.state
-    // })()
-
-    return {
-      nextCard: deck.gradeCard({ D: current.difficulty, S: current.stability }, daysSinceReview, grade),
-      // nextState,
-      // lapseIncrement: grade === Grade.AGAIN ? 1 : 0
-    }
-  })()
-
-  // 3. Update DB
-  // We calculate 'due' by adding Interval (I) days to NOW
-  const nextDue = now + nextCard.I * getOneDayInMs
+export async function reviewCardImplementation(
+  word: NonEmptyStringTrimmed,
+  language: DictionaryLanguage,
+  updates: FavoriteItemUpdates,
+): Promise<void> {
+  const db = await getUserDb()
 
   await db.execute(
     `
@@ -82,49 +87,35 @@ export const reviewCard = async (
       due = $6
     WHERE word = $1 AND language = $2
     `,
-    // -- reps = reps + 1,
-    // -- lapses = lapses + $7,
-    // -- state = $8
     [
       word,
       language,
-      nextCard.S,
-      nextCard.D,
-      now,
-      nextDue,
-      // lapseIncrement,
-      // nextState,
+      updates.stability,
+      updates.difficulty,
+      updates.last_review,
+      updates.due,
     ],
   )
-
-  // 4. Return the updated item
-  return {
-    ...current,
-    stability: nextCard.S,
-    difficulty: nextCard.D,
-    last_review: now,
-    due: nextDue,
-  }
 }
 
-// export type FavoriteToAnkiDataNonEmptyMap = NonEmptyMap<NonEmptyStringTrimmed, FavoriteAnkiData>
+/**
+ * Impure function: retrieval and database update.
+ */
+export const reviewCard = async (
+  word: NonEmptyStringTrimmed,
+  language: DictionaryLanguage,
+  grade: Grade,
+): Promise<FavoriteItem> => {
+  const now = Date.now()
 
-// export const getFavoritesWithAnkiDataFor = async (
-//   language: DictionaryLanguage,
-//   // ): Promise<FavoriteToAnkiDataNonEmptyMap | undefined> => {
-// ): Promise<FavoriteAnkiData[]> => {
-//   const db = await getUserDb()
-//
-//   // Select all columns
-//   const rows = await db.select<FavoriteAnkiData[]>('SELECT * FROM favorites WHERE language = $1 ORDER BY due ASC', [
-//     language,
-//   ])
-//
-//   return rows
-//
-//   // const map = new Map<NonEmptyStringTrimmed, FavoriteAnkiData>()
-//   //
-//   // for (const row of rows) map.set(row.word, row)
-//   //
-//   // return Map_toNonEmptyMap_orUndefined(map)
-// }
+  const current = await getCurrent(word, language)
+
+  const updates = calculateReviewUpdates(current, grade, now)
+
+  await reviewCardImplementation(word, language, updates)
+
+  return {
+    ...current,
+    ...updates,
+  }
+}

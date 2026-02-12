@@ -1,6 +1,5 @@
 import React from 'react'
 import { Button, type ButtonProps } from '@heroui/button'
-import { ModalFooter } from '@heroui/modal'
 import { Grade } from 'femto-fsrs'
 import type { FourButtons } from './utils'
 
@@ -47,11 +46,11 @@ interface AnkiRevealButtonProps {
 }
 
 export const AnkiRevealButton = React.memo(({ disabled, onReveal }: AnkiRevealButtonProps) => (
-  <ModalFooter className="border-t border-divider bg-content2/30 p-4 justify-center">
+  <div className="p-4 flex justify-center">
     <Button className="font-bold px-12" color="primary" isDisabled={disabled} size="lg" onPress={onReveal}>
       Show Answer
     </Button>
-  </ModalFooter>
+  </div>
 ))
 AnkiRevealButton.displayName = 'AnkiRevealButton'
 
@@ -63,7 +62,7 @@ interface AnkiRatingButtonsProps {
 }
 
 export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButtonsProps) => (
-  <ModalFooter className="border-t border-divider bg-content2/30 p-4 justify-center">
+  <div className="p-4 flex justify-center">
     <div className="grid grid-cols-4 gap-4 w-full max-w-3xl">
       {RATINGS.map(config => (
         <AnkiRatingButton
@@ -74,6 +73,6 @@ export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButt
         />
       ))}
     </div>
-  </ModalFooter>
+  </div>
 ))
 AnkiRatingButtons.displayName = 'AnkiRatingButtons'

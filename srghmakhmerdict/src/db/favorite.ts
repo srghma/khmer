@@ -75,23 +75,14 @@ COMMIT;
   )
 }
 
-/**
- * Atomic Toggle Logic
- * 1. Tries to delete the row using existing removeFavorite.
- * 2. If no row was deleted (it didn't exist), it inserts it using addFavorite.
- * 3. Returns true if it ended up being inserted (now a favorite), false otherwise.
- */
+
 export const toggleFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
-  // 1. Try to remove it first
   const wasRemoved = await removeFavorite(word, language)
 
   if (wasRemoved) {
-    // It existed and was removed, so it's no longer a favorite.
     return false
   }
 
-  // 2. If it wasn't removed, it didn't exist, so we add it.
-  // addFavorite already contains the INSERT logic and the 1000-item cleanup.
   await addFavorite(word, language)
 
   return true
@@ -107,7 +98,6 @@ export const isFavorite = async (word: NonEmptyStringTrimmed, language: Dictiona
   return rows.length > 0
 }
 
-// export const getFavorites = async (): Promise<NonEmptyMap<NonEmptyStringTrimmed, DictionaryLanguage> | undefined> => {
 export const getFavorites = async (): Promise<FavoriteItem[]> => {
   const db = await getUserDb()
 

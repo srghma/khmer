@@ -195,7 +195,7 @@ export const AnkiGameSession_GuessingKhmer = React.memo(({ language, km_map, dir
 
   const getDescription = useCallback(
     (item: CardAndDescription<DictionaryLanguage>): LanguageToShortDefinitionSum => {
-      return { t: language, v: item.description } as any
+      return { t: language, v: item.description } as LanguageToShortDefinitionSum
     },
     [language],
   )

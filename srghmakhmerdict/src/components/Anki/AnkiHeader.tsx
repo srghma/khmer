@@ -1,6 +1,5 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 import { Tabs, Tab } from '@heroui/tabs'
-import { Switch } from '@heroui/switch'
 import { cn } from '@heroui/theme'
 import { stringToDictionaryLanguageOrThrow, type DictionaryLanguage } from '../../types'
 import { type AnkiDirection } from './types'
@@ -14,19 +13,44 @@ interface AnkiHeaderProps {
   onDictChange: (lang: DictionaryLanguage) => void
   direction: AnkiDirection
   onDirectionChange: (mode: AnkiDirection) => void
-  count: number
-  isEnTabDisabled: boolean
-  isRuTabDisabled: boolean
-  isKhTabDisabled: boolean
+  en_dueCount_today: number
+  ru_dueCount_today: number
+  kh_dueCount_today: number
+  en_dueCount_total: number
+  ru_dueCount_total: number
+  kh_dueCount_total: number
 }
 
-const switchClassNames = {
-  base: cn(
-    'inline-flex flex-row-reverse w-full max-w-md bg-content1 hover:bg-content2 items-center',
-    'justify-between cursor-pointer rounded-lg gap-2 p-2 border-2 border-transparent',
-    'data-[selected=true]:border-secondary',
-  ),
-}
+/**
+ * Wraps the icon and counts to apply a "disabled" visual effect
+ */
+const TabItemContent = memo(
+  function TabItemContent({
+    icon,
+    today,
+    total,
+    isDisabled,
+  }: {
+    icon: React.ReactNode
+    today: number
+    total: number
+    isDisabled: boolean
+  }) {
+    return (
+      <div className={cn('flex items-center gap-2 transition-all duration-200', isDisabled && 'grayscale opacity-30')}>
+        <div className={cn('transition-all', isDisabled && 'scale-90')}>{icon}</div>
+        {total > 0 && (
+          <span className={cn(
+            "text-[10px] font-mono font-black tabular-nums px-1 rounded-sm",
+
+          )}>
+            {today}/{total}
+          </span>
+        )}
+      </div>
+    )
+  },
+)
 
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
@@ -34,52 +58,68 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     onDictChange,
     direction,
     onDirectionChange,
-    count,
-    isEnTabDisabled,
-    isRuTabDisabled,
-    isKhTabDisabled,
+    en_dueCount_today,
+    ru_dueCount_today,
+    kh_dueCount_today,
+    en_dueCount_total,
+    ru_dueCount_total,
+    kh_dueCount_total,
   }) => {
     const isGuessingKhmer = direction === 'GUESSING_KHMER'
 
-    const tabs_onSelectionChange = (k: React.Key) =>
-      onDictChange(stringToDictionaryLanguageOrThrow(unknown_shouldBeStringOrThrow(k)))
+    const tabs_onSelectionChange = (k: React.Key) => {
+      const keyStr = unknown_shouldBeStringOrThrow(k)
+      if (keyStr === 'toggle') {
+        onDirectionChange(isGuessingKhmer ? 'GUESSING_NON_KHMER' : 'GUESSING_KHMER')
+        return
+      }
+      onDictChange(stringToDictionaryLanguageOrThrow(keyStr))
+    }
 
-    const switch_onValueChange = (isSelected: boolean) =>
-      onDirectionChange(isSelected ? 'GUESSING_KHMER' : 'GUESSING_NON_KHMER')
+    const title_en = useMemo(
+      () => <TabItemContent icon={tab_title_en} isDisabled={en_dueCount_total === 0} today={en_dueCount_today} total={en_dueCount_total} />,
+      [en_dueCount_today, en_dueCount_total],
+    )
+    const title_km = useMemo(
+      () => <TabItemContent icon={tab_title_km} isDisabled={kh_dueCount_total === 0} today={kh_dueCount_today} total={kh_dueCount_total} />,
+      [kh_dueCount_today, kh_dueCount_total],
+    )
+    const title_ru = useMemo(
+      () => <TabItemContent icon={tab_title_ru} isDisabled={ru_dueCount_total === 0} today={ru_dueCount_today} total={ru_dueCount_total} />,
+      [ru_dueCount_today, ru_dueCount_total],
+    )
+
+    const toggleTitle = useMemo(() => (
+      <div className="flex flex-col items-center justify-center font-black uppercase text-secondary text-xs">
+        <span>Guessing</span>
+        <span>
+          {isGuessingKhmer ? 'Khmer' : 'Meaning'}
+        </span>
+      </div>
+    ), [isGuessingKhmer])
 
     return (
-      <div className="flex flex-col bg-background/80 backdrop-blur-md sticky top-0 z-20 border-b border-divider pb-2">
-        <div className="px-2 pt-2">
+      <div className="flex flex-col bg-background/95 backdrop-blur-md sticky top-0 z-20 border-b border-divider shrink-0">
+        <div className="px-1 pt-1">
           <Tabs
             fullWidth
             aria-label="Anki Dictionary Tabs"
             color="secondary"
-            radius="none"
+            radius="sm"
             selectedKey={activeDict}
             variant="underlined"
+            classNames={{
+              tabList: "gap-0 p-0",
+              tab: "h-12 px-2",
+              cursor: "bg-secondary",
+            }}
             onSelectionChange={tabs_onSelectionChange}
           >
-            <Tab key="en" title={tab_title_en} disabled={isEnTabDisabled} />
-            <Tab key="km" title={tab_title_km} disabled={isKhTabDisabled} />
-            <Tab key="ru" title={tab_title_ru} disabled={isRuTabDisabled} />
+            <Tab key="en" disabled={en_dueCount_total === 0} title={title_en} />
+            <Tab key="km" disabled={kh_dueCount_total === 0} title={title_km} />
+            <Tab key="ru" disabled={ru_dueCount_total === 0} title={title_ru} />
+            <Tab key="toggle" title={toggleTitle} className="ml-auto" />
           </Tabs>
-        </div>
-
-        <div className="px-4 mt-2 flex items-center justify-between">
-          <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">Due: {count}</span>
-          <Switch
-            classNames={switchClassNames}
-            color="secondary"
-            isSelected={isGuessingKhmer}
-            size="sm"
-            onValueChange={switch_onValueChange}
-          >
-            <div className="flex flex-col gap-1">
-              <p className="text-tiny text-default-500 uppercase font-bold">
-                {isGuessingKhmer ? 'Guessing Khmer' : 'Guessing Meaning/Word'}
-              </p>
-            </div>
-          </Switch>
         </div>
       </div>
     )

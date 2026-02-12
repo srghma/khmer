@@ -36,10 +36,11 @@ interface SidebarContentProps {
   searchQuery: NonEmptyStringTrimmed | undefined
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
+  handleOpenAnki: () => void
 }
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
-  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode } = props
+  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode, handleOpenAnki } = props
 
   const { resetNavigationAndSetCurrentTo } = useNavigation()
 
@@ -86,7 +87,11 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   if (activeTab === 'favorites') {
     return (
       <Suspense fallback={ContentFallback}>
-        <FavoritesListOnly maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
+        <FavoritesListOnly
+          handleOpenAnki={handleOpenAnki}
+          maybeColorMode={maybeColorMode}
+          onSelect={resetNavigationAndSetCurrentTo}
+        />
       </Suspense>
     )
   }
