@@ -30,11 +30,8 @@ export const calculateReviewUpdates = (
     } else {
       // Branch B: Existing Card
       const daysSinceReview = (now - item.last_review) / getOneDayInMs
-      return deck.gradeCard(
-        { D: item.difficulty, S: item.stability },
-        daysSinceReview,
-        grade,
-      )
+
+      return deck.gradeCard({ D: item.difficulty, S: item.stability }, daysSinceReview, grade)
     }
   })()
 
@@ -52,10 +49,10 @@ export const calculateReviewUpdates = (
 export async function getCurrent(word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<FavoriteItem> {
   const db = await getUserDb()
 
-  const rows = await db.select<FavoriteItem[]>(
-    'SELECT * FROM favorites WHERE word = $1 AND language = $2',
-    [word, language],
-  )
+  const rows = await db.select<FavoriteItem[]>('SELECT * FROM favorites WHERE word = $1 AND language = $2', [
+    word,
+    language,
+  ])
 
   // Validation
   const current = (() => {
@@ -87,14 +84,7 @@ export async function reviewCardImplementation(
       due = $6
     WHERE word = $1 AND language = $2
     `,
-    [
-      word,
-      language,
-      updates.stability,
-      updates.difficulty,
-      updates.last_review,
-      updates.due,
-    ],
+    [word, language, updates.stability, updates.difficulty, updates.last_review, updates.due],
   )
 }
 

@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useCallback, type ReactNode, useMemo, useEffect, useRef } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../types'
+import { addToHistory } from '../db/history'
+import { useAppToast } from './ToastProvider'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 interface HistoryItem {
   word: NonEmptyStringTrimmed
@@ -41,6 +44,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   // --- Internal State Logic ---
 
   // Performed when 'popstate' fires (Hardware Back) OR when 'goBack' (UI Back) triggers history.back()
+  const toast = useAppToast()
   const performInternalPop = useCallback(() => {
     const currentHist = historyRef.current
     const currentHI = currentHistoryItemRef.current
@@ -91,11 +95,18 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
 
   // 1. Navigate (Push to history)
   const navigateTo = useCallback(
-    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
+    async (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
       if (currentHistoryItem) {
         if (currentHistoryItem.word === word && currentHistoryItem.mode === mode) return
 
         // Push current word to internal stack
+        try {
+          await addToHistory(currentHistoryItem.word, currentHistoryItem.mode)
+        } catch (e: unknown) {
+          toast.error('Error addToHistory' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+
+          return
+        }
         setHistory(prev => [...prev, currentHistoryItem])
       }
       setCurrentHistoryItem({ word, mode })
@@ -103,7 +114,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
       // Push to Browser History to enable System Back Button
       window.history.pushState({ type: 'internal' }, '', '')
     },
-    [currentHistoryItem],
+    [currentHistoryItem, toast],
   )
 
   // 2. Reset (Sidebar click)

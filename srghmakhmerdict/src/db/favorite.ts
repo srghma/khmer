@@ -75,7 +75,6 @@ COMMIT;
   )
 }
 
-
 export const toggleFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
   const wasRemoved = await removeFavorite(word, language)
 

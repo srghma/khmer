@@ -45,12 +45,17 @@ interface AnkiRevealButtonProps {
   onReveal: () => void
 }
 
+// REMOVED THE WRAPPER DIV WITH PADDING
 export const AnkiRevealButton = React.memo(({ disabled, onReveal }: AnkiRevealButtonProps) => (
-  <div className="p-4 flex justify-center">
-    <Button className="font-bold px-12" color="primary" isDisabled={disabled} size="lg" onPress={onReveal}>
-      Show Answer
-    </Button>
-  </div>
+  <Button
+    className="font-bold px-12 w-full md:w-auto"
+    color="primary"
+    isDisabled={disabled}
+    size="lg"
+    onPress={onReveal}
+  >
+    Show Answer
+  </Button>
 ))
 AnkiRevealButton.displayName = 'AnkiRevealButton'
 
@@ -62,8 +67,8 @@ interface AnkiRatingButtonsProps {
 }
 
 export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButtonsProps) => (
-  <div className="p-4 flex justify-center">
-    <div className="grid grid-cols-4 gap-4 w-full max-w-3xl">
+  <div className="p-4 flex justify-center w-full">
+    <div className="grid grid-cols-4 gap-2 md:gap-4 w-full max-w-3xl">
       {RATINGS.map(config => (
         <AnkiRatingButton
           key={config.rating}
