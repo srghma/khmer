@@ -4,17 +4,15 @@ import {
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../types'
-import { useNavigation } from '../providers/NavigationProvider'
 import type { KhmerWordsMap } from '../db/dict'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { useSettings } from '../providers/SettingsProvider'
 import { DetailView } from './DetailView'
+import { useLocation } from 'wouter'
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
-  onBack: () => void // Legacy prop for 'closing' the panel entirely
-  onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void // Legacy
   searchQuery: NonEmptyStringTrimmed | undefined
   km_map: KhmerWordsMap
   setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
@@ -36,18 +34,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   setKhmerAnalyzerModalText_setToOpen,
 }) => {
   // Use the global navigation hooks
-  const { navigateTo, goBack, clearSelection, canGoBack } = useNavigation()
-
-  // Logic:
-  // - If we have history, Back button -> goBack()
-  // - If no history (e.g. came from sidebar), Back button -> clearSelection() (Close Panel on Mobile)
-  const backButton_goBack = useCallback(() => {
-    if (canGoBack) {
-      goBack()
-    } else {
-      clearSelection()
-    }
-  }, [canGoBack, goBack, clearSelection])
+  const [location, setLocation] = useLocation()
 
   const { highlightInDetails } = useSettings()
 
@@ -55,6 +42,23 @@ export const RightPanel: React.FC<RightPanelProps> = ({
     () => (highlightInDetails && searchQuery ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
     [searchQuery, highlightInDetails],
   )
+
+  const onNavigate = useCallback(
+    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => setLocation(`/${mode}/${encodeURIComponent(word)}`),
+    [setLocation],
+  )
+
+  const canGoBack = location !== '/' && location !== '/en' && location !== '/ru' && location !== '/km'
+
+  const backButton_goBack = useCallback(() => {
+    if (canGoBack) {
+      window.history.back()
+    } else {
+      const langMatch = location.match(/^\/(en|ru|km)/)
+
+      setLocation(langMatch ? `/${langMatch[1]}` : '/en')
+    }
+  }, [location])
 
   if (!selectedWord) return NoSelectedWord
 
@@ -69,7 +73,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         mode={selectedWord.mode}
         setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
         word={selectedWord.word}
-        onNavigate={navigateTo}
+        onNavigate={onNavigate}
       />
     </div>
   )

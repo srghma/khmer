@@ -9,7 +9,7 @@ import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopu
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { useSettings } from '../../providers/SettingsProvider'
 import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
-import { useNavigation } from '../../providers/NavigationProvider'
+import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
@@ -45,8 +45,7 @@ export const AnkiCardDetailView = React.memo(
       toggleNonKhmerWordsHiding,
       khmerFontFamily,
     } = useSettings()
-
-    const { navigateTo } = useNavigation()
+    const [, setLocation] = useLocation()
 
     // 2. Styling
     const detailsStyle = useMemo(
@@ -62,40 +61,15 @@ export const AnkiCardDetailView = React.memo(
     // For Anki, "Open Search" means close Anki and navigate in main app
     const handleOpenSearch = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
-        // 1. Close Anki Modal
-        onExit()
-
-        // 2. Navigate in Main App
+        // 1. Navigate in Main App (Push Detail View on top of Anki)
         const targetMode = detectModeFromText(selectedText) ?? mode
 
-        navigateTo(selectedText, targetMode)
+        setLocation(`/${targetMode}/${encodeURIComponent(selectedText)}`)
 
         window.getSelection()?.removeAllRanges()
       },
-      [onExit, navigateTo, mode],
+      [onExit, setLocation, mode],
     )
-
-    // For Anki, we don't have a "Khmer Analyzer Modal" that sits on top of Anki easily?
-    // Or we can simple open the analyzer modal.
-    // `App.tsx` has `khmerAnalyzerModalText_setToOpen`.
-    // If we want to open it, we need to set that state in App.tsx.
-    // But `AnkiGame` is inside `App.tsx`.
-    // We can pass `setKhmerAnalyzerModalText_setToOpen` to `AnkiGame` -> ... -> `AnkiCardDetailView`.
-    // Or, for simplicity now, we can just treat "Analyzer" same as Search if Analyzer is not strictly required inside Anki modal.
-    // BUT the user said: "clicking on open search onClosePopupAndOpenSearch should close anki modal and open definition in main app"
-    // The user didn't explicitly say about Analyzer.
-    // However, `SelectionMenuBody` demands `onClosePopupAndKhmerAnalyzerModal`.
-    // If undefined, the button won't show.
-
-    // Let's pass `undefined` for `onClosePopupAndKhmerAnalyzerModal` for now to keep it simple,
-    // OR we can implement it if `App.tsx` passes the setter.
-    // Given `App.tsx` structure, we can pass `setKhmerAnalyzerModalText_setToOpen`.
-    // Use `useNavigation` context? No, it's state in App.
-
-    // Wait, `RightPanel` receives `setKhmerAnalyzerModalText_setToOpen`.
-    // I should probably threading it down if I want the Analyzer button.
-    // For now, I will leave it undefined (button hidden) to avoid excessive prop drilling unless requested.
-    // The user request was specific about "open search".
 
     const renderPopupContent = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
@@ -117,16 +91,7 @@ export const AnkiCardDetailView = React.memo(
     return (
       <Card className="flex flex-col h-full w-full border-none rounded-none bg-background shadow-none">
         <DetailViewHeader
-          backButton_desktopOnlyStyles_showButton={true} // Always show back button in Anki header? Or only mobile?
-          // In AnkiPlayArea mobile header was: <div className="flex md:hidden ...">
-          // But now we are replacing that with this Header.
-          // In Desktop Anki, do we want a back button?
-          // `AnkiPlayArea` `onBack` clears selection.
-          // Yes, we probably want to go back to list.
-          // `backButton_desktopOnlyStyles_showButton` means "show even on desktop"?
-          // DetailView header usually shows back button only on mobile if sidebar is present.
-          // In Anki, "Back" means "Clear Selection".
-          // Let's say yes, show it.
+          backButton_desktopOnlyStyles_showButton={true}
           backButton_goBack={onBack}
           isKhmerLinksEnabled={isKhmerLinksEnabled}
           isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}

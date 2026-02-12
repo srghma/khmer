@@ -10,11 +10,10 @@ import { useAppToast } from '../providers/ToastProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 interface DeepLinkHandlerProps {
-  setActiveTab: (tab: DictionaryLanguage) => void
   resetNavigation: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }
 
-export const useDeepLinkHandler = ({ setActiveTab, resetNavigation }: DeepLinkHandlerProps) => {
+export const useDeepLinkHandler = ({ resetNavigation }: DeepLinkHandlerProps) => {
   const toast = useAppToast()
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export const useDeepLinkHandler = ({ setActiveTab, resetNavigation }: DeepLinkHa
           const targetMode: DictionaryLanguage = detectModeFromText(word) ?? 'en'
 
           // Execute navigation actions
-          setActiveTab(targetMode)
           resetNavigation(word, targetMode)
 
           toast.success('Deep Link' as NonEmptyStringTrimmed, `Navigating to "${word}"` as NonEmptyStringTrimmed)
@@ -59,5 +57,5 @@ export const useDeepLinkHandler = ({ setActiveTab, resetNavigation }: DeepLinkHa
     return () => {
       unlistenPromise.then(unlisten => unlisten())
     }
-  }, [setActiveTab, resetNavigation, toast])
+  }, [resetNavigation, toast])
 }

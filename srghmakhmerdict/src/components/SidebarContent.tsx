@@ -13,7 +13,7 @@ import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { HistoryListOnly } from './HistoryOrFavoritesList/HistoryListOnly'
 import { FavoritesListOnly } from './HistoryOrFavoritesList/FavoritesListOnly'
-import { useNavigation } from '../providers/NavigationProvider'
+import { useLocation } from 'wouter'
 
 // --- LAZY IMPORTS ---
 const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
@@ -36,25 +36,24 @@ interface SidebarContentProps {
   searchQuery: NonEmptyStringTrimmed | undefined
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
-  handleOpenAnki: () => void
 }
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
-  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode, handleOpenAnki } = props
+  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode } = props
 
-  const { resetNavigationAndSetCurrentTo } = useNavigation()
+  const [, setLocation] = useLocation()
 
   const handleWordClickKm = useCallback(
-    (w: NonEmptyStringTrimmed) => resetNavigationAndSetCurrentTo(w, 'km'),
-    [resetNavigationAndSetCurrentTo],
+    (w: NonEmptyStringTrimmed) => setLocation(`/km/${encodeURIComponent(w)}`),
+    [setLocation],
   )
   const handleWordClickEn = useCallback(
-    (w: NonEmptyStringTrimmed) => resetNavigationAndSetCurrentTo(w, 'en'),
-    [resetNavigationAndSetCurrentTo],
+    (w: NonEmptyStringTrimmed) => setLocation(`/en/${encodeURIComponent(w)}`),
+    [setLocation],
   )
   const handleWordClickRu = useCallback(
-    (w: NonEmptyStringTrimmed) => resetNavigationAndSetCurrentTo(w, 'ru'),
-    [resetNavigationAndSetCurrentTo],
+    (w: NonEmptyStringTrimmed) => setLocation(`/ru/${encodeURIComponent(w)}`),
+    [setLocation],
   )
 
   usePreloadOnIdle([WordListKhmer, SettingsView])
@@ -79,7 +78,11 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   if (activeTab === 'history') {
     return (
       <Suspense fallback={ContentFallback}>
-        <HistoryListOnly km_map={km_map} maybeColorMode={maybeColorMode} onSelect={resetNavigationAndSetCurrentTo} />
+        <HistoryListOnly
+          km_map={km_map}
+          maybeColorMode={maybeColorMode}
+          onSelect={(w, m) => setLocation(`/history/${m}/${encodeURIComponent(w)}`)}
+        />
       </Suspense>
     )
   }
@@ -88,9 +91,8 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
     return (
       <Suspense fallback={ContentFallback}>
         <FavoritesListOnly
-          handleOpenAnki={handleOpenAnki}
           maybeColorMode={maybeColorMode}
-          onSelect={resetNavigationAndSetCurrentTo}
+          onSelect={(w, m) => setLocation(`/favorites/${m}/${encodeURIComponent(w)}`)}
         />
       </Suspense>
     )

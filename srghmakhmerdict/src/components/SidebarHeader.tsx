@@ -4,10 +4,10 @@ import { GoHistory, GoStar, GoGear } from 'react-icons/go'
 import { SearchBar } from './SearchBar'
 import { stringToAppTabOrThrow, type AppTab } from '../types'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useLocation } from 'wouter'
 
 interface SidebarHeaderProps {
   activeTab: AppTab
-  onTabChange: (key: AppTab) => void
   onSearch: (q: NonEmptyStringTrimmed | undefined) => void
   searchInitialValue: NonEmptyStringTrimmed | undefined
   resultCount: number
@@ -24,14 +24,16 @@ const tab_title_favorites = <GoStar className="text-lg" />
 const tab_title_settings = <GoGear className="text-lg" />
 
 export const SidebarHeader = memo<SidebarHeaderProps>(
-  ({ activeTab, onTabChange, onSearch, resultCount, isRegex, showSearchBar, searchInitialValue }) => {
+  ({ activeTab, onSearch, resultCount, isRegex, showSearchBar, searchInitialValue }) => {
+    const [, setLocation] = useLocation()
+
     const handleTabChange = useCallback(
       (key: React.Key) => {
         if (!key) throw new Error('expected string')
         if (typeof key !== 'string') throw new Error('expected string')
-        onTabChange(stringToAppTabOrThrow(key))
+        setLocation(`/${stringToAppTabOrThrow(key)}`)
       },
-      [onTabChange],
+      [setLocation],
     )
 
     return (

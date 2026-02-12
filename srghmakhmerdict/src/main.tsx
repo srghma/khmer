@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { HeroUIProvider } from '@heroui/system'
 import { GlobalToastProvider } from './providers/ToastProvider'
-import { NavigationProvider } from './providers/NavigationProvider'
 import { SettingsProvider } from './providers/SettingsProvider'
 
 import App from './App'
@@ -11,28 +10,31 @@ import { DictionaryProvider } from './providers/DictionaryProvider'
 import { GlobalErrorBoundary } from './components/ErrorBoundary'
 import { FavoritesProvider } from './providers/FavoritesProvider'
 import { HistoryProvider } from './providers/HistoryProvider'
+import { useHashLocation } from 'wouter/use-hash-location'
+
+import { Router } from 'wouter'
 
 // Start the 2-stage initialization immediately
 const initPromise = initializeDictionaryData()
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <HeroUIProvider>
-      <GlobalToastProvider />
-      {/* Pass the promise that resolves when DB is ready */}
-      <GlobalErrorBoundary>
-        <DictionaryProvider initPromise={initPromise}>
-          <FavoritesProvider>
-            <HistoryProvider>
-              <NavigationProvider>
+    <Router hook={useHashLocation}>
+      <HeroUIProvider>
+        <GlobalToastProvider />
+        {/* Pass the promise that resolves when DB is ready */}
+        <GlobalErrorBoundary>
+          <DictionaryProvider initPromise={initPromise}>
+            <FavoritesProvider>
+              <HistoryProvider>
                 <SettingsProvider>
                   <App />
                 </SettingsProvider>
-              </NavigationProvider>
-            </HistoryProvider>
-          </FavoritesProvider>
-        </DictionaryProvider>
-      </GlobalErrorBoundary>
-    </HeroUIProvider>
+              </HistoryProvider>
+            </FavoritesProvider>
+          </DictionaryProvider>
+        </GlobalErrorBoundary>
+      </HeroUIProvider>
+    </Router>
   </React.StrictMode>,
 )

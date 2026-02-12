@@ -9,10 +9,11 @@ import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopu
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { useSettings } from '../../providers/SettingsProvider'
 import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
-import { useNavigation } from '../../providers/NavigationProvider'
+import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
 import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
+import { useAppMainView } from '../../hooks/useAppMainView'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -58,7 +59,15 @@ export const DetailViewFound = ({
     toggleNonKhmerWordsHiding,
     khmerFontFamily,
   } = useSettings()
-  const { navigateTo, currentNavigationStackItem } = useNavigation()
+  const [, setLocation] = useLocation()
+  const currentView = useAppMainView()
+
+  const currentNavigationStackItem =
+    currentView.type === 'history' || currentView.type === 'favorites' || currentView.type === 'dashboard'
+      ? currentView.word
+        ? { word: currentView.word, mode: currentView.mode }
+        : undefined
+      : undefined
 
   // // 2. Styling
   // const uiStyle = useMemo(
@@ -93,10 +102,10 @@ export const DetailViewFound = ({
       if (!selectedText) return
       const targetMode = detectModeFromText(selectedText) ?? currentNavigationStackItem.mode
 
-      navigateTo(selectedText, targetMode)
+      setLocation(`/${targetMode}/${encodeURIComponent(selectedText)}`)
       window.getSelection()?.removeAllRanges()
     },
-    [navigateTo, currentNavigationStackItem],
+    [setLocation, currentNavigationStackItem],
   )
 
   const renderPopupContent = useCallback(

@@ -11,7 +11,7 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 interface AnkiListContentProps {
   data: GameModeAndData
-  selectedId: NonEmptyStringTrimmed
+  selectedId: NonEmptyStringTrimmed | undefined
   onSelect: (id: NonEmptyStringTrimmed) => void
   km_map: KhmerWordsMap
 }

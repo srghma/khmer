@@ -76,19 +76,21 @@ export const HistoryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return runMutation(async () => {
         // Optimistic: Add to top, remove duplicates
         const newItem: HistoryItem = { word, language }
-        const prevState = history
 
         setHistory(prev => [newItem, ...prev.filter(item => !(item.word === word && item.language === language))])
 
         try {
           await addToHistoryDb(word, language)
         } catch (e) {
-          setHistory(prevState)
+          // Rollback on error
+          const actualHistory = await getHistoryDb()
+
+          setHistory(actualHistory)
           throw e
         }
       })
     },
-    [history, runMutation],
+    [runMutation],
   )
 
   const removeHistoryItem = useCallback(

@@ -1,60 +1,9 @@
 import { getUserDb } from '../core'
-import { createDeck, Grade } from 'femto-fsrs'
+import { Grade } from 'femto-fsrs'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../../types'
 import type { FavoriteItem } from './item'
-
-// Initialize the FSRS algorithm
-export const deck = createDeck()
-
-export const getOneDayInMs = 24 * 60 * 60 * 1000
-
-export type FavoriteItemUpdates = Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review' | 'due'>
-
-/**
- * Pure function: Calculates the next state of a card based on the grade and current time.
- * This determines the "optimistic" data without touching the database.
- */
-export const calculateReviewUpdates = (
-  item: Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review'>,
-  grade: Grade,
-  now: number,
-): FavoriteItemUpdates => {
-  const isNew = item.last_review === null
-
-  // Calculate next FSRS parameters
-  const nextCard = (() => {
-    if (isNew) {
-      // Branch A: New Card
-      return deck.newCard(grade)
-    } else {
-      // Branch B: Existing Card
-      const daysSinceReview = (now - item.last_review) / getOneDayInMs
-
-      return deck.gradeCard({ D: item.difficulty, S: item.stability }, daysSinceReview, grade)
-    }
-  })()
-
-  // Calculate next due date
-  // For Again (1) and Hard (2), we want short learning steps (1 min, 3 min)
-  // regardless of FSRS calc for now.
-  let nextDue: number
-
-  if (grade === Grade.AGAIN) {
-    nextDue = now + 1 * 60 * 1000 // 1 minute
-  } else if (grade === Grade.HARD) {
-    nextDue = now + 3 * 60 * 1000 // 3 minutes
-  } else {
-    nextDue = now + nextCard.I * getOneDayInMs
-  }
-
-  return {
-    stability: nextCard.S,
-    difficulty: nextCard.D,
-    last_review: now,
-    due: nextDue,
-  }
-}
+import { reviewCard_calculateReviewUpdates } from '../../components/Anki/utils'
 
 export async function getCurrent(word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<FavoriteItem> {
   const db = await getUserDb()
@@ -81,7 +30,7 @@ export async function getCurrent(word: NonEmptyStringTrimmed, language: Dictiona
 export async function reviewCardImplementation(
   word: NonEmptyStringTrimmed,
   language: DictionaryLanguage,
-  updates: FavoriteItemUpdates,
+  updates: Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review' | 'due'>,
 ): Promise<void> {
   const db = await getUserDb()
 
@@ -110,7 +59,7 @@ export const reviewCard = async (
 
   const current = await getCurrent(word, language)
 
-  const updates = calculateReviewUpdates(current, grade, now)
+  const updates = reviewCard_calculateReviewUpdates(current, grade, now)
 
   await reviewCardImplementation(word, language, updates)
 

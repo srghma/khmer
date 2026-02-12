@@ -19,7 +19,7 @@ export const FavoriteToggleButton = memo(
     const toggleFav = useCallback(async () => {
       try {
         await toggleFavorite(word, mode)
-      } catch (e) {
+      } catch (_e) {
         // Toast is handled in provider
       }
     }, [toggleFavorite, word, mode])

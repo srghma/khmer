@@ -15,17 +15,14 @@ import { ConfirmAction } from '../ConfirmAction'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { useFavorites } from '../../providers/FavoritesProvider'
 
+import { Link } from 'wouter'
+
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   maybeColorMode: MaybeColorizationMode
-  handleOpenAnki: () => void
 }
 
-export const FavoritesListOnly = React.memo(function FavoritesListOnly({
-  onSelect,
-  maybeColorMode,
-  handleOpenAnki,
-}: ListPropsCommon) {
+export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelect, maybeColorMode }: ListPropsCommon) {
   const dictData = useDictionary()
 
   const { favorites: items, loading, removeFavorite, deleteAllFavorites } = useFavorites()
@@ -51,11 +48,12 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({
             <Tooltip content="Open anki">
               <Button
                 isIconOnly
+                as={Link}
                 color="secondary"
+                href="/anki"
                 isDisabled={items.length === 0}
                 size="sm"
                 variant="flat"
-                onPress={handleOpenAnki}
               >
                 <span className="text-xs font-bold">Anki</span>
               </Button>

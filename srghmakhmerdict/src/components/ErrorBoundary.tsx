@@ -27,8 +27,8 @@ export class GlobalErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo)
+  public override componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
+    // console.error('Uncaught error:', error, errorInfo)
   }
 
   private handleReload = () => {

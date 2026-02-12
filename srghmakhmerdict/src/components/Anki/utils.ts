@@ -1,5 +1,4 @@
-import { Grade } from 'femto-fsrs'
-import { deck, getOneDayInMs } from '../../db/favorite/anki'
+import { createDeck, Grade } from 'femto-fsrs'
 import {
   numberToNOfDays_orThrow_mk,
   type NOfDays,
@@ -50,9 +49,6 @@ function calculate_isNotNew(
 
   const graded = deck.gradeCard({ D: item_difficulty, S: item_stability }, daysSinceReview, grade)
 
-  console.log('before', { grade, item_difficulty, item_stability, daysSinceReview })
-  console.log('after', graded)
-
   return numberToNOfDays_orThrow_mk(graded.I)
 }
 
@@ -60,6 +56,8 @@ function calculate_isNotNew(
 const AGAIN_INTERVAL_DAYS = 1 / (24 * 60)
 // 3 minutes in days
 const HARD_INTERVAL_DAYS = 3 / (24 * 60)
+// 10 minutes in days
+const GOOD_INTERVAL_DAYS = 10 / (24 * 60)
 
 /**
  * Calculates the hypothetical interval (in days) for each rating button.
@@ -73,9 +71,14 @@ export function getPreviewIntervals(item: FavoriteItem, now_milliseconds: number
     if (grade === Grade.AGAIN) return numberToNOfDays_orThrow_mk(AGAIN_INTERVAL_DAYS)
     if (grade === Grade.HARD) return numberToNOfDays_orThrow_mk(HARD_INTERVAL_DAYS)
 
-    return isNew
-      ? calculate_isNew(grade)
-      : calculate_isNotNew(grade, item.last_review, item.difficulty, item.stability, now_milliseconds)
+    if (isNew) {
+      // by logic of anki, if card is being reviewed first time (I see it and click on 1 of 4 buttons first time) AND I click on GOOD then I should see it today 1 more time
+      if (grade === Grade.GOOD) return numberToNOfDays_orThrow_mk(GOOD_INTERVAL_DAYS)
+
+      return calculate_isNew(grade)
+    }
+
+    return calculate_isNotNew(grade, item.last_review, item.difficulty, item.stability, now_milliseconds)
   }
 
   const output: Record<Grade, NOfDays> = {
@@ -131,8 +134,6 @@ export function mkFourButtons<T>(item: T, now: number, getCard: (item: T) => Fav
 
   const map = (grade: Grade): ButtonData => {
     const days = intervals[grade]
-
-    console.log('mkFourButtons', { grade, days, getOneDayInMs, now })
 
     return {
       intervalDays: days,
@@ -211,4 +212,54 @@ export function zipQueueWithDescriptions<T>(
  */
 export function getWords(queue: NonEmptyArray<FavoriteItem>): NonEmptySet<NonEmptyStringTrimmed> {
   return NonEmptyArray_collectToSet(queue, x => x.word)
+}
+
+export const getOneDayInMs = 24 * 60 * 60 * 1000
+
+// Initialize the FSRS algorithm
+export const deck = createDeck()
+
+/**
+ * Pure function: Calculates the next state of a card based on the grade and current time.
+ * This determines the "optimistic" data without touching the database.
+ */
+export const reviewCard_calculateReviewUpdates = (
+  item: Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review'>,
+  grade: Grade,
+  now: number,
+): Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review' | 'due'> => {
+  const isNew = item.last_review === null
+
+  // Calculate next FSRS parameters
+  const nextCard = (() => {
+    if (isNew) {
+      // Branch A: New Card
+      return deck.newCard(grade)
+    } else {
+      // Branch B: Existing Card
+      const daysSinceReview = (now - item.last_review) / getOneDayInMs
+
+      return deck.gradeCard({ D: item.difficulty, S: item.stability }, daysSinceReview, grade)
+    }
+  })()
+
+  // Calculate next due date
+  // For Again (1) and Hard (2), we want short learning steps (1 min, 3 min)
+  // regardless of FSRS calc for now.
+  let nextDue: number
+
+  if (grade === Grade.AGAIN) {
+    nextDue = now + 1 * 60 * 1000 // 1 minute
+  } else if (grade === Grade.HARD) {
+    nextDue = now + 3 * 60 * 1000 // 3 minutes
+  } else {
+    nextDue = now + nextCard.I * getOneDayInMs
+  }
+
+  return {
+    stability: nextCard.S,
+    difficulty: nextCard.D,
+    last_review: now,
+    due: nextDue,
+  }
 }

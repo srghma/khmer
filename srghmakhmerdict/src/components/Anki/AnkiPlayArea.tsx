@@ -95,7 +95,11 @@ export const AnkiPlayArea = React.memo(function AnkiPlayArea({
       </div>
 
       <div className="flex-none bg-background/95 backdrop-blur-md border-t border-divider px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex justify-center z-20 sticky bottom-0">
-        {!isRevealed ? <AnkiRevealButton onReveal={onReveal} /> : <AnkiRatingButtons buttons={buttons} onRate={onRate} />}
+        {!isRevealed ? (
+          <AnkiRevealButton onReveal={onReveal} />
+        ) : (
+          <AnkiRatingButtons buttons={buttons} onRate={onRate} />
+        )}
       </div>
     </div>
   )

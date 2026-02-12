@@ -1,15 +1,9 @@
-import React, { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useMemo, useState, useSyncExternalStore, useEffect } from 'react'
 import { Spinner } from '@heroui/spinner'
 import { Grade } from 'femto-fsrs'
 import { useAnkiSettings } from './useAnkiSettings'
 import { useAnkiCurrentDirection } from './useAnkiCurrentDirection'
-import {
-  GameModeAndData_NonEmptyArray_findItemByWord,
-  GameModeAndData_NonEmptyArray_first,
-  GameModeAndDataItem_getCard,
-  useAnkiGameInitialData,
-  type GameModeAndDataItem,
-} from './useAnkiGameManagerInitialData'
+import { GameModeAndData_NonEmptyArray_findItemByWord, useAnkiGameInitialData } from './useAnkiGameManagerInitialData'
 import { useFavorites } from '../../providers/FavoritesProvider'
 import {
   Array_isNonEmptyArray,
@@ -21,9 +15,12 @@ import type { DictionaryLanguage } from '../../types'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { AnkiHeader } from './AnkiHeader'
 import { AnkiListContent } from './AnkiListContent'
-import { AnkiPlayArea, type GameState } from './AnkiPlayArea'
+import { AnkiPlayArea } from './AnkiPlayArea'
 import { allFavorites_split_sorted } from './utils'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { useLocation } from 'wouter'
+import { useAnkiRoute } from './useAnkiRoute'
+
 import { memoizeSync1_Boolean } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useAnkiPulseStore } from './AnkiPulseContext'
@@ -33,6 +30,44 @@ const LoadingSpinner = (
     <Spinner size="lg" />
   </div>
 )
+
+const NoFavoritesView = (
+  <div className="flex h-full items-center justify-center">
+    <p>No favorites found. Add some words to favorites to start learning.</p>
+  </div>
+)
+
+const CardNotFoundView = (
+  <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
+    <span className="text-4xl">❓</span>
+    <p>Card not found</p>
+  </div>
+)
+
+const SelectCardToStartView = (
+  <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
+    <span className="text-4xl">🎴</span>
+    <p>Select a card to start</p>
+  </div>
+)
+
+const SessionFinishedView = React.memo(function SessionFinishedView({ onExit }: { onExit: () => void }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center text-default-400 gap-4 p-8 text-center animate-in fade-in zoom-in duration-300">
+      <span className="text-6xl">🎉</span>
+      <div>
+        <h2 className="text-2xl font-bold text-foreground">Session Complete!</h2>
+        <p className="mt-2 text-lg">You&apos;ve reviewed all due cards for now.</p>
+      </div>
+      <button
+        className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
+        onClick={onExit}
+      >
+        Back to Dashboard
+      </button>
+    </div>
+  )
+})
 
 const getSidebarClassName = memoizeSync1_Boolean(
   (hasSelectedItem: boolean) =>
@@ -69,82 +104,137 @@ const useCountOfSplitted = (splitted: NonEmptyRecord<DictionaryLanguage, NonEmpt
 const AnkiGameStep2 = React.memo(function AnkiGameStep2({
   allFavorites_splitted,
   currentLanguage_favoriteItems,
-  onExit,
+  language,
 }: {
   allFavorites_splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined>
   currentLanguage_favoriteItems: NonEmptyArray<FavoriteItem>
-  onExit: () => void
+  language: DictionaryLanguage
 }) {
-  const { language, setLanguage } = useAnkiSettings()
+  // Navigation Integration
+  const { urlLanguage, selectedId, isSessionFinished } = useAnkiRoute()
+  const [, setLocation] = useLocation()
+
+  const routeLanguage = urlLanguage || 'en'
+
   const [currentLanguage_direction, currentLanguage_setDirection] = useAnkiCurrentDirection()
-  const initialData = useAnkiGameInitialData(language, currentLanguage_direction, currentLanguage_favoriteItems)
+  const initialData = useAnkiGameInitialData(routeLanguage, currentLanguage_direction, currentLanguage_favoriteItems)
 
   const { km_map } = useDictionary()
-
   const pulseStore = useAnkiPulseStore()
   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot)
 
-  const [gameState, setGameState] = useState<GameState>({
-    selectedId: undefined,
-    isRevealed: false,
-  })
+  // Local state only for 'Revealed' toggle
+  const [isRevealed, setIsRevealed] = useState(false)
+
+  // Reset revealed state when card changes
+  useEffect(() => {
+    setIsRevealed(false)
+  }, [selectedId])
 
   // Memoize counts to prevent re-calculation on every render
   const counts = useCountOfSplitted(allFavorites_splitted)
 
-  const handleSelect = useCallback((id: NonEmptyStringTrimmed) => {
-    setGameState({ selectedId: id, isRevealed: false })
-  }, [])
+  const handleDictChange = useCallback(
+    (lang: DictionaryLanguage) => {
+      // When changing language, we typically want to clear selection or at least start at the base for that language
+      setLocation(`/${lang}`)
+    },
+    [setLocation],
+  )
+
+  const handleSelect = useCallback(
+    (id: NonEmptyStringTrimmed) => {
+      setLocation(`/${language}/${encodeURIComponent(id)}`)
+    },
+    [setLocation, language],
+  )
 
   const handleClearSelection = useCallback(() => {
-    // TODO: should not unselect but only on mobile view should go back to list
-    setGameState(prev => ({ ...prev, selectedId: undefined }))
-  }, [])
-
-  const selectedItemData: GameModeAndDataItem | undefined = useMemo(() => {
-    if (initialData === 'loading') return undefined
-    if (!gameState.selectedId) {
-      return GameModeAndData_NonEmptyArray_first(initialData)
-    }
-
-    return GameModeAndData_NonEmptyArray_findItemByWord(gameState.selectedId, initialData)
-  }, [initialData, gameState.selectedId])
+    setLocation(`/${language}`)
+  }, [setLocation, language])
 
   const { reviewCard } = useFavorites()
 
   const handleRate = useCallback(
-    async (rating: Grade) => {
-      if (!selectedItemData || initialData === 'loading') return
+    async (wordToRate: NonEmptyStringTrimmed, rating: Grade) => {
+      if (initialData === 'loading') return
 
-      const card = GameModeAndDataItem_getCard(selectedItemData)
-
-      await reviewCard(card.word, card.language, rating)
+      await reviewCard(wordToRate, language, rating)
 
       // Find next due item
       const nextDueItem = initialData.v.find(item => {
         const itemCard = 'card' in item ? item.card : item
 
-        return itemCard.word !== card.word && itemCard.due <= now
+        return itemCard.word !== wordToRate && itemCard.due <= now
       })
 
       if (nextDueItem) {
         const nextCard = 'card' in nextDueItem ? nextDueItem.card : nextDueItem
         const nextWord = nextCard.word
 
-        setGameState({ selectedId: nextWord, isRevealed: false })
+        setLocation(`/${language}/${encodeURIComponent(nextWord)}`)
       } else {
-        setGameState({ selectedId: undefined, isRevealed: false })
+        setLocation(`/${language}/finished`)
       }
     },
-    [selectedItemData, initialData, reviewCard, now],
+    [initialData, reviewCard, now, setLocation, language],
   )
 
   const handleReveal = useCallback(() => {
-    setGameState(prev => ({ ...prev, isRevealed: true }))
+    setIsRevealed(true)
   }, [])
 
-  const sidebarClassName = getSidebarClassName(!!gameState.selectedId)
-  const rightPanelClassName = getRightPanelClassName(!!gameState.selectedId)
+  const handleExit = useCallback(() => {
+    // Use ~/ to navigate to absolute path, breaking out of the nested /anki route
+    setLocation(`~/${language}`)
+  }, [setLocation, language])
+
+  const sidebarClassName = useMemo(
+    () => getSidebarClassName(!!selectedId || !!isSessionFinished),
+    [selectedId, isSessionFinished],
+  )
+  const rightPanelClassName = useMemo(
+    () => getRightPanelClassName(!!selectedId || !!isSessionFinished),
+    [selectedId, isSessionFinished],
+  )
+
+  const itemData = useMemo(() => {
+    if (!selectedId || initialData === 'loading') return undefined
+
+    return GameModeAndData_NonEmptyArray_findItemByWord(selectedId, initialData)
+  }, [selectedId, initialData])
+
+  const rightPanelContent = useMemo(() => {
+    if (isSessionFinished) return <SessionFinishedView onExit={handleExit} />
+
+    if (selectedId) {
+      if (!itemData) return CardNotFoundView
+
+      return (
+        <AnkiPlayArea
+          isRevealed={isRevealed}
+          itemData={itemData}
+          km_map={km_map}
+          onBack={handleClearSelection}
+          onExit={handleExit}
+          onRate={rating => handleRate(selectedId, rating)}
+          onReveal={handleReveal}
+        />
+      )
+    }
+
+    return SelectCardToStartView
+  }, [
+    isSessionFinished,
+    handleExit,
+    selectedId,
+    itemData,
+    isRevealed,
+    km_map,
+    handleClearSelection,
+    handleRate,
+    handleReveal,
+  ])
 
   return (
     <div className="flex h-full w-full md:h-full bg-background overflow-hidden font-inter text-foreground h-[100dvh]">
@@ -158,55 +248,38 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
           kh_dueCount_total={counts.kh_dueCount_total}
           ru_dueCount_today={counts.ru_dueCount_today}
           ru_dueCount_total={counts.ru_dueCount_total}
-          onDictChange={setLanguage}
+          onDictChange={handleDictChange}
           onDirectionChange={currentLanguage_setDirection}
-          onExit={onExit}
+          onExit={handleExit}
         />
 
         <div className="flex-1 flex overflow-hidden relative bg-background">
-          {initialData === 'loading' || !selectedItemData ? (
+          {initialData === 'loading' ? (
             LoadingSpinner
           ) : (
-            <AnkiListContent
-              data={initialData}
-              km_map={km_map}
-              selectedId={GameModeAndDataItem_getCard(selectedItemData).word}
-              onSelect={handleSelect}
-            />
+            <AnkiListContent data={initialData} km_map={km_map} selectedId={selectedId} onSelect={handleSelect} />
           )}
         </div>
       </div>
 
-      <div className={rightPanelClassName}>
-        {selectedItemData && initialData !== 'loading' ? (
-          <AnkiPlayArea
-            isRevealed={gameState.isRevealed}
-            itemData={selectedItemData}
-            km_map={km_map}
-            onBack={handleClearSelection}
-            onExit={onExit}
-            onRate={handleRate}
-            onReveal={handleReveal}
-          />
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-            <span className="text-4xl">🎴</span>
-            <p>Select a card to start</p>
-          </div>
-        )}
-      </div>
+      <div className={rightPanelClassName}>{rightPanelContent}</div>
     </div>
   )
 })
 
-const noFavorites = (
-  <div className="flex h-full items-center justify-center">
-    <p>No favorites found. Add some words to favorites to start learning.</p>
-  </div>
-)
+export const AnkiGame = React.memo(function AnkiGame() {
+  const { urlLanguage } = useAnkiRoute()
+  const [, setLocation] = useLocation()
 
-export const AnkiGame = React.memo(({ onExit }: { onExit: () => void }) => {
-  const { language, setLanguage } = useAnkiSettings()
+  const { language: settingsLanguage, setLanguage } = useAnkiSettings()
+  const language = urlLanguage || settingsLanguage || 'en'
+
+  // Sync AnkiSettings language with the URL language
+  useEffect(() => {
+    if (urlLanguage && urlLanguage !== settingsLanguage) {
+      setLanguage(urlLanguage)
+    }
+  }, [urlLanguage, settingsLanguage, setLanguage])
 
   const { favorites: allFavorites, loading } = useFavorites()
 
@@ -217,12 +290,11 @@ export const AnkiGame = React.memo(({ onExit }: { onExit: () => void }) => {
   }, [allFavorites])
 
   if (loading) return LoadingSpinner
-
   if (!allFavorites_splitted || !Array_isNonEmptyArray(allFavorites)) {
-    return noFavorites
+    return NoFavoritesView
   }
 
-  const currentLanguage_favoriteItems: NonEmptyArray<FavoriteItem> | undefined = allFavorites_splitted[language]
+  const currentLanguage_favoriteItems = allFavorites_splitted[language]
 
   if (!currentLanguage_favoriteItems) {
     const nextLang = getBestAvailableLanguage(allFavorites_splitted)
@@ -231,7 +303,9 @@ export const AnkiGame = React.memo(({ onExit }: { onExit: () => void }) => {
       throw new Error('impossible: best language is current language, but current doesnt have items?')
     }
 
-    setLanguage(nextLang)
+    // Use navigation to do a "hard" redirect to the best available language
+    // This syncs the URL and prevents the "Card not found -> redirect back" loop
+    setLocation(`/${nextLang}`)
 
     return LoadingSpinner
   }
@@ -239,10 +313,9 @@ export const AnkiGame = React.memo(({ onExit }: { onExit: () => void }) => {
   return (
     <div className="fixed inset-0 z-[100] bg-background">
       <AnkiGameStep2
-        key={language}
         allFavorites_splitted={allFavorites_splitted}
         currentLanguage_favoriteItems={currentLanguage_favoriteItems}
-        onExit={onExit}
+        language={language}
       />
     </div>
   )
