@@ -42,7 +42,7 @@ const getSidebarClassName = memoizeSync1_Boolean(
 
 const getRightPanelClassName = memoizeSync1_Boolean(
   (hasSelectedItem: boolean) =>
-    `flex-1 flex flex-col bg-content1 relative overflow-hidden transition-all ${!hasSelectedItem ? 'hidden md:flex' : 'flex'
+    `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${!hasSelectedItem ? 'hidden md:flex' : 'flex'
     }`,
 )
 
@@ -69,9 +69,11 @@ const useCountOfSplitted = (splitted: NonEmptyRecord<DictionaryLanguage, NonEmpt
 const AnkiGameStep2 = React.memo(function AnkiGameStep2({
   allFavorites_splitted,
   currentLanguage_favoriteItems,
+  onExit,
 }: {
   allFavorites_splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined>
   currentLanguage_favoriteItems: NonEmptyArray<FavoriteItem>
+  onExit: () => void
 }) {
   const { language, setLanguage } = useAnkiSettings()
   const [currentLanguage_direction, currentLanguage_setDirection] = useAnkiCurrentDirection()
@@ -115,17 +117,20 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
       if (!selectedItemData || initialData === 'loading') return
 
       const card = GameModeAndDataItem_getCard(selectedItemData)
+
       await reviewCard(card.word, card.language, rating)
 
       // Find next due item
       const nextDueItem = initialData.v.find(item => {
         const itemCard = 'card' in item ? item.card : item
+
         return itemCard.word !== card.word && itemCard.due <= now
       })
 
       if (nextDueItem) {
         const nextCard = 'card' in nextDueItem ? nextDueItem.card : nextDueItem
         const nextWord = nextCard.word
+
         setGameState({ selectedId: nextWord, isRevealed: false })
       } else {
         setGameState({ selectedId: undefined, isRevealed: false })
@@ -142,7 +147,7 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
   const rightPanelClassName = getRightPanelClassName(!!gameState.selectedId)
 
   return (
-    <div className="flex h-full w-full bg-content1 overflow-hidden font-inter text-foreground">
+    <div className="flex h-full w-full md:h-full bg-background overflow-hidden font-inter text-foreground h-[100dvh]">
       <div className={sidebarClassName}>
         <AnkiHeader
           activeDict={language}
@@ -155,13 +160,19 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
           ru_dueCount_total={counts.ru_dueCount_total}
           onDictChange={setLanguage}
           onDirectionChange={currentLanguage_setDirection}
+          onExit={onExit}
         />
 
-        <div className="flex-1 flex overflow-hidden relative bg-content1">
+        <div className="flex-1 flex overflow-hidden relative bg-background">
           {initialData === 'loading' || !selectedItemData ? (
             LoadingSpinner
           ) : (
-            <AnkiListContent data={initialData} km_map={km_map} selectedId={GameModeAndDataItem_getCard(selectedItemData).word} onSelect={handleSelect} />
+            <AnkiListContent
+              data={initialData}
+              km_map={km_map}
+              selectedId={GameModeAndDataItem_getCard(selectedItemData).word}
+              onSelect={handleSelect}
+            />
           )}
         </div>
       </div>
@@ -173,6 +184,7 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
             itemData={selectedItemData}
             km_map={km_map}
             onBack={handleClearSelection}
+            onExit={onExit}
             onRate={handleRate}
             onReveal={handleReveal}
           />
@@ -193,7 +205,7 @@ const noFavorites = (
   </div>
 )
 
-export const AnkiGame = React.memo(() => {
+export const AnkiGame = React.memo(({ onExit }: { onExit: () => void }) => {
   const { language, setLanguage } = useAnkiSettings()
 
   const { favorites: allFavorites, loading } = useFavorites()
@@ -225,11 +237,14 @@ export const AnkiGame = React.memo(() => {
   }
 
   return (
-    <AnkiGameStep2
-      key={language}
-      allFavorites_splitted={allFavorites_splitted}
-      currentLanguage_favoriteItems={currentLanguage_favoriteItems}
-    />
+    <div className="fixed inset-0 z-[100] bg-background">
+      <AnkiGameStep2
+        key={language}
+        allFavorites_splitted={allFavorites_splitted}
+        currentLanguage_favoriteItems={currentLanguage_favoriteItems}
+        onExit={onExit}
+      />
+    </div>
   )
 })
 

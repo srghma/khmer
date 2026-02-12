@@ -27,7 +27,7 @@ import { NonKhmerHideToggleIcon } from '../Icons/NonKhmerHideToggleIcon'
 /**
  * 1. WORD HIDING TOGGLE
  */
-interface KhmerWordsHidingActionProps {
+export interface KhmerWordsHidingActionProps {
   isEnabled: boolean
   onToggle: () => void
 }
@@ -52,7 +52,7 @@ KhmerWordsHidingAction.displayName = 'KhmerWordsHidingAction'
 /**
  * 1. WORD HIDING TOGGLE
  */
-interface NonKhmerWordsHidingActionProps {
+export interface NonKhmerWordsHidingActionProps {
   isEnabled: boolean
   onToggle: () => void
 }
@@ -77,7 +77,7 @@ NonKhmerWordsHidingAction.displayName = 'NonKhmerWordsHidingAction'
 /**
  * 2. LINKS TOGGLE
  */
-interface KhmerLinksActionProps {
+export interface KhmerLinksActionProps {
   isEnabled: boolean
   isDisabled: boolean
   onToggle: () => void
@@ -104,7 +104,7 @@ KhmerLinksAction.displayName = 'KhmerLinksAction'
 /**
  * 3. FONT SELECTION DROPDOWN
  */
-interface KhmerFontActionProps {
+export interface KhmerFontActionProps {
   khmerFontName: KhmerFontName
   onChange: (v: KhmerFontName) => void
 }
@@ -151,7 +151,7 @@ KhmerFontAction.displayName = 'KhmerFontAction'
 /**
  * 4. COLORIZATION DROPDOWN
  */
-interface ColorizationActionProps {
+export interface ColorizationActionProps {
   colorMode: MaybeColorizationMode
   onChange: (v: MaybeColorizationMode) => void
 }
@@ -242,11 +242,27 @@ export interface DetailViewActionsProps_KnownWord extends DetailViewActionsProps
   toggleNonKhmerWordsHiding: () => void
 }
 
+export interface DetailViewActionsProps_AnkiGame extends DetailViewActionsProps_Common {
+  type: 'anki_game'
+  // Colorization
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (v: MaybeColorizationMode) => void
+  // Khmer Words Hiding
+  isKhmerWordsHidingEnabled: boolean
+  toggleKhmerWordsHiding: () => void
+  // Non Khmer Words Hiding
+  isNonKhmerWordsHidingEnabled: boolean
+  toggleNonKhmerWordsHiding: () => void
+}
+
 export interface DetailViewActionsProps_SentenceAnalyzer extends DetailViewActionsProps_Common {
   type: 'sentence_analyzer'
 }
 
-export type DetailViewActionsProps = DetailViewActionsProps_KnownWord | DetailViewActionsProps_SentenceAnalyzer
+export type DetailViewActionsProps =
+  | DetailViewActionsProps_KnownWord
+  | DetailViewActionsProps_SentenceAnalyzer
+  | DetailViewActionsProps_AnkiGame
 
 export const DetailViewActions = memo((props: DetailViewActionsProps) => {
   const {
@@ -259,32 +275,47 @@ export const DetailViewActions = memo((props: DetailViewActionsProps) => {
     setKhmerFontName,
   } = props
 
-  const isKnownWordType = type === 'known_word'
+  if (type === 'sentence_analyzer') {
+    return (
+      <div className="flex gap-1 shrink-0">
+        <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
+        <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
+        <NativeSpeechAction
+          mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
+          word={word_or_sentence}
+        />
+        <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+      </div>
+    )
+  }
+
+  // Now props is narrowed to KnownWord | AnkiGame
+  const {
+    maybeColorMode,
+    setMaybeColorMode,
+    isKhmerWordsHidingEnabled,
+    toggleKhmerWordsHiding,
+    isNonKhmerWordsHidingEnabled,
+    toggleNonKhmerWordsHiding,
+  } = props
 
   return (
     <div className="flex gap-1 shrink-0">
-      {isKnownWordType && (
-        <>
-          <KhmerWordsHidingAction isEnabled={props.isKhmerWordsHidingEnabled} onToggle={props.toggleKhmerWordsHiding} />
-          <NonKhmerWordsHidingAction
-            isEnabled={props.isNonKhmerWordsHidingEnabled}
-            onToggle={props.toggleNonKhmerWordsHiding}
-          />
-        </>
-      )}
+      <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
+      <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
       <KhmerLinksAction
-        isDisabled={isKnownWordType ? props.maybeColorMode === 'none' : false}
+        isDisabled={maybeColorMode === 'none'}
         isEnabled={isKhmerLinksEnabled}
         onToggle={toggleKhmerLinks}
       />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
-      {isKnownWordType && <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />}
+      <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
       <NativeSpeechAction
         mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
-      {isKnownWordType && <FavoriteAction isFav={props.isFav} onToggle={props.toggleFav} />}
+      {type === 'known_word' && <FavoriteAction isFav={props.isFav} onToggle={props.toggleFav} />}
     </div>
   )
 })

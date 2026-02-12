@@ -4,7 +4,9 @@ import { Spinner } from '@heroui/spinner'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { DetailSections } from '../DetailView/DetailSections'
-import { useWordDefinition } from '../../hooks/useWordDefinition'
+import { useWordData } from '../../hooks/useWordData'
+import { AnkiCardDetailView } from './AnkiCardDetailView'
+import { useSettings } from '../../providers/SettingsProvider'
 
 const DetailFetcher_loading = (
   <div className="flex justify-center p-4">
@@ -21,19 +23,30 @@ export const DetailFetcher = React.memo(
     km_map,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isRevealed,
+    onExit,
+    onBack,
   }: {
     language: DictionaryLanguage
     word: NonEmptyStringTrimmed
     km_map: KhmerWordsMap
     isKhmerWordsHidingEnabled: boolean
     isNonKhmerWordsHidingEnabled: boolean
+    isRevealed: boolean
+    onExit: () => void
+    onBack: () => void
   }) => {
-    const result = useWordDefinition(word, language)
+    const result = useWordData(word, language)
+    const { maybeColorMode } = useSettings()
 
     if (result.t === 'loading') return DetailFetcher_loading
     if (result.t === 'not_found') return DetailFetcher_not_found
 
     const d: WordDetailEnOrRuOrKm = result.detail
+
+    if (isRevealed) {
+      return <AnkiCardDetailView data={d} km_map={km_map} mode={language} word={word} onBack={onBack} onExit={onExit} />
+    }
 
     return (
       <DetailSections
@@ -52,7 +65,7 @@ export const DetailFetcher = React.memo(
         isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
         isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
         km_map={km_map}
-        maybeColorMode="segmenter"
+        maybeColorMode={maybeColorMode}
         mode={language}
         wiktionary={d.wiktionary}
       />

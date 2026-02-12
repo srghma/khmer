@@ -21,6 +21,9 @@ interface NavigationContextType {
   goBack: () => void
   /** Clears everything (closes the detail view) */
   clearSelection: () => void
+  isAnkiOpen: boolean
+  openAnki: () => void
+  closeAnki: () => void
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined)
@@ -29,11 +32,15 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   const { addToHistory } = useHistory()
   // Internal Stack for "Back" functionality within the app (e.g. following links)
   const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([])
-  const [currentNavigationStackItem, setCurrentNavigationStackItem] = useState<NavigationStackItem | undefined>(undefined)
+  const [currentNavigationStackItem, setCurrentNavigationStackItem] = useState<NavigationStackItem | undefined>(
+    undefined,
+  )
+  const [isAnkiOpen, setIsAnkiOpen] = useState(false)
 
   // Refs to access latest state inside event listeners without re-binding
   const navigationStackRef = useRef(navigationStack)
   const currentNavigationStackItemRef = useRef(currentNavigationStackItem)
+  const isAnkiOpenRef = useRef(isAnkiOpen)
 
   useEffect(() => {
     navigationStackRef.current = navigationStack
@@ -42,12 +49,21 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     currentNavigationStackItemRef.current = currentNavigationStackItem
   }, [currentNavigationStackItem])
+  useEffect(() => {
+    isAnkiOpenRef.current = isAnkiOpen
+  }, [isAnkiOpen])
 
   // --- Internal State Logic ---
 
   // Performed when 'popstate' fires (Hardware Back) OR when 'goBack' (UI Back) triggers history.back()
   const toast = useAppToast()
   const performInternalPop = useCallback(() => {
+    if (isAnkiOpenRef.current) {
+      setIsAnkiOpen(false)
+
+      return
+    }
+
     const currentStack = navigationStackRef.current
     const currentItem = currentNavigationStackItemRef.current
 
@@ -64,6 +80,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
         setNavigationStack([])
         setCurrentNavigationStackItem(undefined)
       }
+
       return
     }
 
@@ -153,6 +170,17 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     setCurrentNavigationStackItem(undefined)
   }, [])
 
+  const openAnki = useCallback(() => {
+    setIsAnkiOpen(true)
+    window.history.pushState({ type: 'anki' }, '', '')
+  }, [])
+
+  const closeAnki = useCallback(() => {
+    if (isAnkiOpenRef.current) {
+      window.history.back()
+    }
+  }, [])
+
   const canGoBack = navigationStack.length > 0
 
   const value = useMemo(
@@ -163,8 +191,21 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
       resetNavigationAndSetCurrentTo,
       goBack,
       clearSelection,
+      isAnkiOpen,
+      openAnki,
+      closeAnki,
     }),
-    [currentNavigationStackItem, canGoBack, navigateTo, resetNavigationAndSetCurrentTo, goBack, clearSelection],
+    [
+      currentNavigationStackItem,
+      canGoBack,
+      navigateTo,
+      resetNavigationAndSetCurrentTo,
+      goBack,
+      clearSelection,
+      isAnkiOpen,
+      openAnki,
+      closeAnki,
+    ],
   )
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>

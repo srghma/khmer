@@ -55,30 +55,45 @@ export interface DetailViewHeaderProps_KnownWord extends DetailViewHeaderProps_C
   toggleNonKhmerWordsHiding: () => void
 }
 
+export interface DetailViewHeaderProps_AnkiGame extends DetailViewHeaderProps_Common {
+  type: 'anki_game'
+  phonetic: NonEmptyStringTrimmed | undefined
+  khmerFontFamily: NonEmptyStringTrimmed | undefined
+  word_displayHtml: NonEmptyStringTrimmed
+
+  // Colorization
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (v: MaybeColorizationMode) => void
+  // Khmer Words Hiding
+  isKhmerWordsHidingEnabled: boolean
+  toggleKhmerWordsHiding: () => void
+
+  isNonKhmerWordsHidingEnabled: boolean
+  toggleNonKhmerWordsHiding: () => void
+}
+
 export interface DetailViewHeaderProps_SentenceAnalyzer extends DetailViewHeaderProps_Common {
   type: 'sentence_analyzer'
   header: React.ReactNode
 }
 
-export type DetailViewHeaderProps = DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_SentenceAnalyzer
+export type DetailViewHeaderProps =
+  | DetailViewHeaderProps_KnownWord
+  | DetailViewHeaderProps_SentenceAnalyzer
+  | DetailViewHeaderProps_AnkiGame
 
-const DetailViewHeaderImpl = (props: DetailViewHeaderProps) => {
-  const { type } = props
-
-  const isKnownWord = type === 'known_word'
-
-  const khmerFontFamily = isKnownWord ? props.khmerFontFamily : undefined
-  const word_displayHtml = isKnownWord ? props.word_displayHtml : undefined
+const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame) => {
+  const { khmerFontFamily, word_displayHtml, phonetic, word_or_sentence__language } = props
 
   const h1Style = useMemo(
-    () => (props.word_or_sentence__language === 'km' && khmerFontFamily ? { fontFamily: khmerFontFamily } : undefined),
-    [props.word_or_sentence__language, type, khmerFontFamily],
+    () => (word_or_sentence__language === 'km' && khmerFontFamily ? { fontFamily: khmerFontFamily } : undefined),
+    [word_or_sentence__language, khmerFontFamily],
   )
 
   const h1Html = useMemo(() => (word_displayHtml ? { __html: word_displayHtml } : undefined), [word_displayHtml])
 
   return (
-    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider">
+    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
       {props.backButton_goBack && (
         <DetailViewBackButton
           desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
@@ -87,30 +102,49 @@ const DetailViewHeaderImpl = (props: DetailViewHeaderProps) => {
       )}
 
       <div className="flex-1">
-        {isKnownWord ? (
-          <>
-            <div className="flex items-center gap-3 flex-wrap">
-              {h1Html && (
-                <h1 dangerouslySetInnerHTML={h1Html} className="font-bold text-foreground font-khmer" style={h1Style} />
-              )}
-              {props.phonetic && (
-                <Chip className="font-mono" color="secondary" size="sm" variant="flat">
-                  /{props.phonetic}/
-                </Chip>
-              )}
-            </div>
-            <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest">
-              {props.word_or_sentence__language} Dictionary
-            </div>
-          </>
-        ) : (
-          props.header
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          {h1Html && (
+            <h1 dangerouslySetInnerHTML={h1Html} className="font-bold text-foreground font-khmer" style={h1Style} />
+          )}
+          {phonetic && (
+            <Chip className="font-mono" color="secondary" size="sm" variant="flat">
+              /{phonetic}/
+            </Chip>
+          )}
+        </div>
+        <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest">
+          {word_or_sentence__language} Dictionary
+        </div>
       </div>
 
       <DetailViewActions {...props} />
     </CardHeader>
   )
+}
+
+const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer) => {
+  return (
+    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
+      {props.backButton_goBack && (
+        <DetailViewBackButton
+          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
+          onPress={props.backButton_goBack}
+        />
+      )}
+      <div className="flex-1">{props.header}</div>
+      <DetailViewActions {...props} />
+    </CardHeader>
+  )
+}
+
+const DetailViewHeaderImpl = (props: DetailViewHeaderProps) => {
+  switch (props.type) {
+    case 'sentence_analyzer':
+      return <DetailViewHeaderSentence {...props} />
+    case 'known_word':
+    case 'anki_game':
+      return <DetailViewHeaderWord {...props} />
+  }
 }
 
 export const DetailViewHeader = React.memo(DetailViewHeaderImpl)

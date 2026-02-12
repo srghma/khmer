@@ -66,7 +66,7 @@ export const HistoryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     })
 
     // Update the mutex to wait for this new mutation, catching errors to ensure the chain continues
-    mutex.current = resultPromise.catch(() => { })
+    mutex.current = resultPromise.catch(() => {})
 
     return resultPromise
   }, [])

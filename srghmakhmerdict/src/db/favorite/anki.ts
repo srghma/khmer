@@ -36,7 +36,17 @@ export const calculateReviewUpdates = (
   })()
 
   // Calculate next due date
-  const nextDue = now + nextCard.I * getOneDayInMs
+  // For Again (1) and Hard (2), we want short learning steps (1 min, 3 min)
+  // regardless of FSRS calc for now.
+  let nextDue: number
+
+  if (grade === Grade.AGAIN) {
+    nextDue = now + 1 * 60 * 1000 // 1 minute
+  } else if (grade === Grade.HARD) {
+    nextDue = now + 3 * 60 * 1000 // 3 minutes
+  } else {
+    nextDue = now + nextCard.I * getOneDayInMs
+  }
 
   return {
     stability: nextCard.S,

@@ -21,26 +21,22 @@ import { useDictionary } from './providers/DictionaryProvider'
 import { KhmerAnalyzerModal } from './components/KhmerAnalyzerModal/KhmerAnalyzerModal'
 import { KhmerComplexTableModal } from './components/KhmerComplexTableModal/KhmerComplexTableModal'
 import { useDeepLinkHandler } from './hooks/useDeepLinkHandler'
-import { Modal, ModalContent } from '@heroui/react'
 import { AnkiGame } from './components/Anki/AnkiGame'
 import { AnkiPulseProvider } from './components/Anki/AnkiPulseContext'
 import { AnkiSettingsProvider } from './components/Anki/useAnkiSettings'
-
-const ankiModalClassNames = {
-  // body: 'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
-  header: 'mt-[env(safe-area-inset-top)]',
-  closeButton: 'mt-[env(safe-area-inset-top)]',
-}
 
 function App() {
   const { theme } = useTheme()
   const dictData = useDictionary()
 
-  const [isAnkiOpen, setIsAnkiOpen] = useState(false)
-  const handleOpenAnki = useCallback(() => setIsAnkiOpen(true), [])
-  const handleCloseAnki = useCallback(() => setIsAnkiOpen(false), [])
-
-  const { currentNavigationStackItem, resetNavigationAndSetCurrentTo, clearSelection } = useNavigation()
+  const {
+    currentNavigationStackItem,
+    resetNavigationAndSetCurrentTo,
+    clearSelection,
+    isAnkiOpen,
+    openAnki,
+    closeAnki,
+  } = useNavigation()
 
   const {
     isRegex,
@@ -111,10 +107,20 @@ function App() {
     [resetNavigationAndSetCurrentTo],
   )
 
+  if (isAnkiOpen) {
+    return (
+      <AnkiPulseProvider>
+        <AnkiSettingsProvider>
+          <AnkiGame onExit={closeAnki} />
+        </AnkiSettingsProvider>
+      </AnkiPulseProvider>
+    )
+  }
+
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
       {/* Khmer Analyzer Modal */}
-      {khmerAnalyzerModalText_setToOpen && currentNavigationStackItem && (
+      {khmerAnalyzerModalText_setToOpen && currentNavigationStackItem ? (
         <KhmerAnalyzerModal
           currentMode={currentNavigationStackItem.mode}
           km_map={dictData.km_map}
@@ -123,7 +129,7 @@ function App() {
           onClose={khmerAnalyzerModal_onClose}
           onNavigate={handleKhmerAnalyzerWordSelect}
         />
-      )}
+      ) : null}
 
       <div className={divClassName}>
         <SidebarHeader
@@ -140,7 +146,7 @@ function App() {
           <SidebarContent
             activeTab={activeTab}
             contentMatches={contentMatches}
-            handleOpenAnki={handleOpenAnki}
+            handleOpenAnki={openAnki}
             highlightInList={highlightInList}
             isSearching={isSearching}
             km_map={dictData.km_map}
@@ -165,22 +171,6 @@ function App() {
       {dictData.km_map && (
         <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />
       )}
-
-      <Modal
-        classNames={ankiModalClassNames}
-        isOpen={isAnkiOpen}
-        scrollBehavior="inside"
-        size="full"
-        onClose={handleCloseAnki}
-      >
-        <AnkiPulseProvider>
-          <AnkiSettingsProvider>
-            <ModalContent>
-              <AnkiGame />
-            </ModalContent>
-          </AnkiSettingsProvider>
-        </AnkiPulseProvider>
-      </Modal>
     </div>
   )
 }

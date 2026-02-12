@@ -22,7 +22,7 @@ import {
   Record_toNonEmptyRecord_unsafe,
   type NonEmptyRecord,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import { formatDistance } from 'date-fns/formatDistance'
+// import { formatDistance } from 'date-fns/formatDistance'
 
 export function FavoriteItem_isDueToday(item: FavoriteItem, now_milliseconds: number): boolean {
   return item.due <= now_milliseconds
@@ -52,8 +52,14 @@ function calculate_isNotNew(
 
   console.log('before', { grade, item_difficulty, item_stability, daysSinceReview })
   console.log('after', graded)
+
   return numberToNOfDays_orThrow_mk(graded.I)
 }
+
+// 1 minute in days
+const AGAIN_INTERVAL_DAYS = 1 / (24 * 60)
+// 3 minutes in days
+const HARD_INTERVAL_DAYS = 3 / (24 * 60)
 
 /**
  * Calculates the hypothetical interval (in days) for each rating button.
@@ -63,6 +69,10 @@ export function getPreviewIntervals(item: FavoriteItem, now_milliseconds: number
   const isNew = item.last_review === null
 
   const calculate = (grade: Grade): NOfDays => {
+    // Traditional Anki: Has a "learning mode" where failed cards (Again) are reshown in minutes (1m, 10m, etc.) during the same session
+    if (grade === Grade.AGAIN) return numberToNOfDays_orThrow_mk(AGAIN_INTERVAL_DAYS)
+    if (grade === Grade.HARD) return numberToNOfDays_orThrow_mk(HARD_INTERVAL_DAYS)
+
     return isNew
       ? calculate_isNew(grade)
       : calculate_isNotNew(grade, item.last_review, item.difficulty, item.stability, now_milliseconds)
@@ -85,16 +95,49 @@ export type ButtonData = {
 
 export type FourButtons = NonEmptyRecord<Grade, ButtonData>
 
+/**
+ * Format interval like KoalaCards: "Very Soon", "X minutes", "X hours", "X days", "X months"
+ */
+function KoalaCards_formatInterval(milliseconds: number): string {
+  const minutes = Math.floor(milliseconds / (60 * 1000))
+
+  if (minutes < 5) {
+    return 'Very Soon'
+  }
+
+  if (minutes < 60) {
+    return `${minutes} min${minutes === 1 ? '' : 's'}`
+  }
+
+  if (minutes < 24 * 60) {
+    const hours = Math.floor(minutes / 60)
+
+    return `${hours} hr${hours === 1 ? '' : 's'}`
+  }
+
+  if (minutes < 30 * 24 * 60) {
+    const days = Math.floor(minutes / (24 * 60))
+
+    return `${days} day${days === 1 ? '' : 's'}`
+  }
+
+  const months = Math.floor(minutes / (30 * 24 * 60))
+
+  return `${months} mo${months === 1 ? '' : 's'}`
+}
+
 export function mkFourButtons<T>(item: T, now: number, getCard: (item: T) => FavoriteItem): FourButtons {
   const intervals = getPreviewIntervals(getCard(item), now)
 
   const map = (grade: Grade): ButtonData => {
     const days = intervals[grade]
-    const targetTimestamp = now + days * getOneDayInMs
+
+    console.log('mkFourButtons', { grade, days, getOneDayInMs, now })
 
     return {
       intervalDays: days,
-      label: formatDistance(targetTimestamp, now, { addSuffix: true }),
+      // label: formatDistance(now + days * getOneDayInMs, now, { addSuffix: true }),
+      label: KoalaCards_formatInterval(days * getOneDayInMs),
     }
   }
 

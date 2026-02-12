@@ -6,6 +6,8 @@ import { type GameModeAndData } from './useAnkiGameManagerInitialData'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useAnkiPulseStore } from './AnkiPulseContext'
+import { useSettings } from '../../providers/SettingsProvider'
+import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 interface AnkiListContentProps {
   data: GameModeAndData
@@ -26,6 +28,7 @@ const AnkiListContentItem = React.memo(function AnkiListContentItem({
   now,
   t,
   v,
+  maybeColorMode,
   onSelect,
 }: {
   id: NonEmptyStringTrimmed
@@ -33,6 +36,7 @@ const AnkiListContentItem = React.memo(function AnkiListContentItem({
   isSelected: boolean
   km_map: KhmerWordsMap
   now: number
+  maybeColorMode: MaybeColorizationMode
   onSelect: (id: NonEmptyStringTrimmed) => void
 } & AnkiListItemProps_ShowMode) {
   const handleSelect = useCallback(() => onSelect(id), [onSelect, id])
@@ -43,6 +47,7 @@ const AnkiListContentItem = React.memo(function AnkiListContentItem({
         card_due={due}
         isSelected={isSelected}
         km_map={km_map}
+        maybeColorMode={maybeColorMode}
         now={now}
         t={t}
         v={v as any}
@@ -60,6 +65,7 @@ export const AnkiListContent = React.memo(function AnkiListContent({
 }: AnkiListContentProps) {
   const pulseStore = useAnkiPulseStore()
   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot)
+  const { maybeColorMode } = useSettings()
 
   const listItems = useMemo(() => {
     switch (data.t) {
@@ -73,6 +79,7 @@ export const AnkiListContent = React.memo(function AnkiListContent({
             id={item.word}
             isSelected={selectedId === item.word}
             km_map={km_map}
+            maybeColorMode={maybeColorMode}
             now={now}
             t={data.t}
             v={item.word}
@@ -89,6 +96,7 @@ export const AnkiListContent = React.memo(function AnkiListContent({
             id={card.word}
             isSelected={selectedId === card.word}
             km_map={km_map}
+            maybeColorMode={maybeColorMode}
             now={now}
             t={data.t}
             v={description as any}
@@ -98,7 +106,7 @@ export const AnkiListContent = React.memo(function AnkiListContent({
       default:
         assertNever(data)
     }
-  }, [data, selectedId, now, onSelect, km_map])
+  }, [data, selectedId, now, onSelect, km_map, maybeColorMode])
 
   return (
     <div key={data.t} className="flex-1 overflow-y-auto w-full pb-[calc(1rem+env(safe-area-inset-bottom))]">

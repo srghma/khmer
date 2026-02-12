@@ -62,19 +62,20 @@ export function GameModeAndData_NonEmptyArray_findItemByWord(
   data: GameModeAndData,
 ): GameModeAndDataItem {
   const v = GameModeAndData_NonEmptyArray_findItemByWord_impl(word, data.t, data.v) as any
+
   if (!v) {
     throw new Error(`Item with word "${word}" not found in data ${JSON.stringify(data)}`)
   }
+
   return {
     t: data.t,
     v,
   }
 }
 
-export function GameModeAndData_NonEmptyArray_first(
-  data: GameModeAndData,
-): GameModeAndDataItem {
+export function GameModeAndData_NonEmptyArray_first(data: GameModeAndData): GameModeAndDataItem {
   const v = data.v[0] as any
+
   return {
     t: data.t,
     v,

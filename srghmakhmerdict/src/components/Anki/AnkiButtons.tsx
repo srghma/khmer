@@ -12,10 +12,10 @@ interface RatingConfig {
 }
 
 const RATINGS: RatingConfig[] = [
-  { rating: Grade.AGAIN, label: 'Again', color: 'danger' },
-  { rating: Grade.HARD, label: 'Hard', color: 'warning' },
-  { rating: Grade.GOOD, label: 'Good', color: 'success' },
-  { rating: Grade.EASY, label: 'Easy', color: 'primary' },
+  { rating: Grade.AGAIN, label: '😵 Again', color: 'danger' },
+  { rating: Grade.HARD, label: '😐 Hard', color: 'warning' },
+  { rating: Grade.GOOD, label: '😊 Good', color: 'success' },
+  { rating: Grade.EASY, label: '😎 Easy', color: 'primary' },
 ]
 
 // --- Sub-Component ---
@@ -67,7 +67,7 @@ interface AnkiRatingButtonsProps {
 }
 
 export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButtonsProps) => (
-  <div className="p-4 flex justify-center w-full">
+  <div className="flex justify-center w-full">
     <div className="grid grid-cols-4 gap-2 md:gap-4 w-full max-w-3xl">
       {RATINGS.map(config => (
         <AnkiRatingButton

@@ -117,7 +117,7 @@ export const DetailViewFound = ({
   )
 
   return (
-    <Card className="h-full w-full border-none rounded-none bg-background shadow-none">
+    <Card className="flex flex-col h-full w-full border-none rounded-none bg-background shadow-none">
       <DetailViewHeader
         backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
         backButton_goBack={backButton_goBack}

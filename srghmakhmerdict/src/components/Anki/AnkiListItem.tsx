@@ -8,6 +8,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { KhmerWordsMap } from '../../db/dict'
 import type { AnkiGameMode } from './types'
 import { RenderHtmlColorized } from '../DetailView/atoms'
+import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 export type AnkiListItemProps_ShowMode_Map = {
   GUESS_NON_KHMER_km: NonEmptyStringTrimmed
@@ -28,12 +29,13 @@ interface AnkiListItemProps_Common {
   isSelected: boolean
   onSelect: () => void
   km_map: KhmerWordsMap
+  maybeColorMode: MaybeColorizationMode
 }
 
 export type AnkiListItemProps = AnkiListItemProps_Common & AnkiListItemProps_ShowMode
 
 export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItemProps) {
-  const { card_due, isSelected, onSelect, now, t, v, km_map } = props
+  const { card_due, isSelected, onSelect, now, t, v, km_map, maybeColorMode } = props
 
   const isDue = card_due <= now
 
@@ -49,7 +51,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
             km_map={km_map}
-            maybeColorMode="segmenter"
+            maybeColorMode={maybeColorMode}
           />
         )
       }
@@ -72,7 +74,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
             km_map={km_map}
-            maybeColorMode="segmenter"
+            maybeColorMode={maybeColorMode}
           />
         )
       }
@@ -90,7 +92,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
             km_map={km_map}
-            maybeColorMode="segmenter"
+            maybeColorMode={maybeColorMode}
           />
         )
       }
@@ -108,14 +110,14 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
             km_map={km_map}
-            maybeColorMode="segmenter"
+            maybeColorMode={maybeColorMode}
           />
         )
       }
       default:
         return null
     }
-  }, [t, v, km_map])
+  }, [t, v, km_map, maybeColorMode])
 
   const dueLabel = useMemo(() => {
     const distance = formatDistance(card_due, now, { addSuffix: false })
