@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, memo } from 'react'
-import { ModalHeader, ModalBody } from '@heroui/modal'
 import { Spinner } from '@heroui/spinner'
 import {
   nonEmptyString_afterTrim,
@@ -126,10 +125,10 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
   const handleCloseDeck = useCallback(() => setSelectedDeck(null), [])
 
   return (
-    <>
-      <ModalHeader className="flex gap-4 items-center justify-between pr-10">
-        <div className="flex gap-4 items-center">
-          <span className="text-xl">Khmer Consonant-Vowel Matrix</span>
+    <div className="flex flex-col h-full bg-default-50 overflow-hidden">
+      <div className="flex shrink-0 items-center justify-between p-6 bg-content1 border-b border-divider">
+        <div className="flex gap-4 items-center flex-wrap">
+          <span className="text-xl font-bold">Khmer Consonant-Vowel Matrix</span>
           {graphemeIndex && (
             <div className="text-sm font-normal text-default-500 flex gap-4 border-l border-divider pl-4">
               <span>
@@ -142,10 +141,10 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
             </div>
           )}
         </div>
-      </ModalHeader>
+      </div>
 
-      <ModalBody className="bg-default-50">
-        <div className="h-full overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6">
           {!graphemeIndex ? (
             <div className="h-[50vh] flex flex-col items-center justify-center gap-4">
               <Spinner size="lg" />
@@ -205,10 +204,10 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
             </div>
           )}
         </div>
-      </ModalBody>
+      </div>
 
       {/* Deck Modal rendered conditionally */}
       {selectedDeck && <WordDeckModal data={selectedDeck} onClose={handleCloseDeck} />}
-    </>
+    </div>
   )
 }

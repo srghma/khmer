@@ -14,7 +14,6 @@ import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
 import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { useAppMainView } from '../../hooks/useAppMainView'
-import { useKhmerAnalyzer } from '../../providers/KhmerAnalyzerProvider'
 import { useDictionary } from '../../providers/DictionaryProvider'
 
 interface DetailViewFoundProps {
@@ -60,7 +59,6 @@ export const DetailViewFound = ({
   const { km_map } = useDictionary()
   const [, setLocation] = useLocation()
   const currentView = useAppMainView()
-  const { openKhmerAnalyzer } = useKhmerAnalyzer()
 
   const currentNavigationStackItem =
     currentView.type === 'history' || currentView.type === 'favorites' || currentView.type === 'dashboard'
@@ -91,9 +89,9 @@ export const DetailViewFound = ({
   const handleOpenKhmerAnalyzer = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
       window.getSelection()?.removeAllRanges()
-      openKhmerAnalyzer(selectedText, mode)
+      setLocation(`/khmer_analyzer/${encodeURIComponent(selectedText)}`)
     },
-    [openKhmerAnalyzer, mode],
+    [setLocation],
   )
 
   const handleOpenSearch = useCallback(

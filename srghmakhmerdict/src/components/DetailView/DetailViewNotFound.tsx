@@ -11,7 +11,7 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { DetailViewHeader } from './DetailViewHeader'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { GoogleTranslateTextarea } from '../GoogleTranslateTextarea/GoogleTranslateTextarea'
-import { KhmerAnalysisResults } from '../KhmerAnalyzerModal/KhmerAnalyzerContent'
+import { KhmerAnalysisResults } from '../KhmerAnalyzerView'
 import { truncateString } from '../../utils/truncateString'
 
 interface DetailViewNotFoundProps {

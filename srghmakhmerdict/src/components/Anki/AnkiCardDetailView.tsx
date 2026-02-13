@@ -16,7 +16,6 @@ import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
 import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopup'
 import { type AnkiGameMode } from './types'
-import { useKhmerAnalyzer } from '../../providers/KhmerAnalyzerProvider'
 import { KhmerDiff } from './KhmerDiff'
 import { getBestDefinitionEnOrRuFromKm } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 import { Input } from '@heroui/input'
@@ -66,7 +65,6 @@ export const AnkiCardDetailView = React.memo(
       khmerFontFamily,
     } = useSettings()
     const [, setLocation] = useLocation()
-    const { openKhmerAnalyzer } = useKhmerAnalyzer()
 
     const toggleAutoFocusAnswer = useCallback(
       () => setIsAutoFocusAnswerEnabled(prev => !prev),
@@ -116,9 +114,9 @@ export const AnkiCardDetailView = React.memo(
     const handleOpenKhmerAnalyzer = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
         window.getSelection()?.removeAllRanges()
-        openKhmerAnalyzer(selectedText, mode)
+        setLocation(`/khmer_analyzer/${encodeURIComponent(selectedText)}`)
       },
-      [openKhmerAnalyzer, mode],
+      [setLocation],
     )
 
     const renderPopupContent = useCallback(

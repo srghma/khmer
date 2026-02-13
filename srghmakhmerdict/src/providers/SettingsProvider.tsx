@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, type ReactNode, useCallback } from 'react'
+import { createContext, useContext, useMemo, type ReactNode, useCallback } from 'react'
 import { useLocalStorageState } from 'ahooks'
 import { type EnglishKhmerCom_Images_Mode } from '../types'
 import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } from '../utils/text-processing/utils'
@@ -47,11 +47,6 @@ export interface SettingsContextType {
   filters: DictFilterSettings
   setFilters: (v: DictFilterSettings | ((prev: DictFilterSettings | undefined) => DictFilterSettings)) => void
 
-  // UI State (Modals triggered from Settings)
-  isKhmerTableOpen: boolean
-  setIsKhmerTableOpen: (v: boolean) => void
-  onOpenKhmerTable: () => void
-  onCloseKhmerTable: () => void
 
   // Image Mode
   imageMode: EnglishKhmerCom_Images_Mode
@@ -157,11 +152,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: 'disabled',
   })
 
-  // Modal State (Transient - do not persist)
-  const [isKhmerTableOpen, setIsKhmerTableOpen] = useState(false)
-
-  const onOpenKhmerTable = useCallback(() => setIsKhmerTableOpen(true), [])
-  const onCloseKhmerTable = useCallback(() => setIsKhmerTableOpen(false), [])
 
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
@@ -193,10 +183,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setFontSize_details,
       filters: filters ?? DEFAULT_FILTERS,
       setFilters,
-      isKhmerTableOpen,
-      setIsKhmerTableOpen,
-      onOpenKhmerTable,
-      onCloseKhmerTable,
       imageMode: imageMode ?? 'online',
       setImageMode,
       maybeColorMode: maybeColorMode ?? 'segmenter',
@@ -231,13 +217,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setFontSize_details,
       filters,
       setFilters,
-      isKhmerTableOpen,
       imageMode,
       setImageMode,
       maybeColorMode,
       setMaybeColorMode,
-      onOpenKhmerTable,
-      onCloseKhmerTable,
       isKhmerLinksEnabled,
       setIsKhmerLinksEnabled,
       toggleKhmerLinks,

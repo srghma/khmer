@@ -15,6 +15,9 @@ export type AppMainView =
   | typeof AppMainView__history_list
   | typeof AppMainView__favorites_list
   | typeof AppMainView__settings
+  | { type: 'about' }
+  | { type: 'khmer-analyzer'; text?: NonEmptyStringTrimmed }
+  | { type: 'khmer-complex-table' }
 
 export const useAppMainView = () => {
   const [location] = useLocation()
@@ -26,6 +29,16 @@ export const useAppMainView = () => {
     if (location === '/history') return AppMainView__history_list
     if (location === '/favorites') return AppMainView__favorites_list
     if (location === '/settings') return AppMainView__settings
+    if (location === '/about') return { type: 'about' }
+    if (location === '/khmer_complex_table') return { type: 'khmer-complex-table' }
+
+    const analyzerMatch = location.match(/^\/khmer_analyzer(?:\/(.+))?$/)
+
+    if (analyzerMatch) {
+      const text = analyzerMatch[1] ? (decodeURIComponent(analyzerMatch[1]) as NonEmptyStringTrimmed) : undefined
+
+      return { type: 'khmer-analyzer', text }
+    }
 
     // 2. Explicit Detail routes: /{history,favorites}/{en,ru,km}/:word
     const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/(.+)$/)
@@ -70,6 +83,9 @@ export const useAppActiveTab = () => {
       case 'favorites-list':
         return 'favorites'
       case 'settings':
+      case 'about':
+      case 'khmer-analyzer':
+      case 'khmer-complex-table':
         return 'settings'
       case 'dashboard':
         return currentView.mode

@@ -11,7 +11,6 @@ import { GlobalErrorBoundary } from './components/ErrorBoundary'
 import { FavoritesProvider } from './providers/FavoritesProvider'
 import { HistoryProvider } from './providers/HistoryProvider'
 import { useHashLocation } from 'wouter/use-hash-location'
-import { KhmerAnalyzerProvider } from './providers/KhmerAnalyzerProvider'
 
 import { Router } from 'wouter'
 
@@ -26,9 +25,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
             <FavoritesProvider>
               <HistoryProvider>
                 <SettingsProvider>
-                  <KhmerAnalyzerProvider>
-                    <App />
-                  </KhmerAnalyzerProvider>
+                  <App />
                 </SettingsProvider>
               </HistoryProvider>
             </FavoritesProvider>

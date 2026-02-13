@@ -3,10 +3,13 @@ import { Switch } from '@heroui/switch'
 import { Button } from '@heroui/button'
 import { Select, SelectItem } from '@heroui/select'
 import { ThemeSwitch } from './theme-switch'
-import { GoDash, GoPlus, GoTable } from 'react-icons/go'
+import { GoDash, GoPlus, GoTable, GoInfo } from 'react-icons/go'
+import { FaDollarSign, FaSearchPlus } from 'react-icons/fa'
+import { SiGooglepay } from 'react-icons/si'
 import { useSettings, type DictFilterSettings, type DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
 import { SettingsEnKmOfflineImagesControl } from './SettingsEnKmOfflineImagesControl'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import { useLocation } from 'wouter'
 
 const DictFilterSettings_Km_ModeOptions = [
   { key: 'all', label: 'Show All' },
@@ -67,8 +70,9 @@ export const SettingsView: React.FC = memo(() => {
     setHighlightInList,
     highlightInDetails,
     setHighlightInDetails,
-    onOpenKhmerTable,
   } = useSettings()
+
+  const [, setLocation] = useLocation()
 
   const updateKm = useCallback(
     (key: keyof DictFilterSettings['km'], val: string) =>
@@ -107,15 +111,54 @@ export const SettingsView: React.FC = memo(() => {
         {/* Tools Group */}
         <div className="flex flex-col gap-3 p-3 rounded-medium bg-primary-50/50 border border-primary-100 dark:bg-primary-900/10 dark:border-primary-900/30">
           <span className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Tools</span>
-          <Button
-            className="w-full justify-start font-medium"
-            color="primary"
-            startContent={<GoTable />}
-            variant="flat"
-            onPress={onOpenKhmerTable}
-          >
-            Open Khmer Complex Table
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              className="w-full justify-start font-medium"
+              color="primary"
+              startContent={<GoTable />}
+              variant="flat"
+              onPress={() => setLocation('/khmer_complex_table')}
+            >
+              Open Khmer Complex Table
+            </Button>
+            <Button
+              className="w-full justify-start font-medium"
+              color="primary"
+              startContent={<FaSearchPlus />}
+              variant="flat"
+              onPress={() => setLocation('/khmer_analyzer')}
+            >
+              Open Khmer Analyzer
+            </Button>
+          </div>
+        </div>
+
+        {/* About & Support Group */}
+        <div className="flex flex-col gap-3 p-3 rounded-medium bg-warning-50/50 border border-warning-100 dark:bg-warning-900/10 dark:border-warning-900/30">
+          <span className="text-xs font-semibold text-warning-600 uppercase tracking-wider">Project</span>
+          <div className="flex flex-col gap-2">
+            <Button
+              className="w-full justify-start font-medium"
+              color="warning"
+              startContent={<GoInfo />}
+              variant="flat"
+              onPress={() => setLocation('/about')}
+            >
+              About Khmer Dictionary
+            </Button>
+            <Button
+              className="w-full justify-start font-medium"
+              color="warning"
+              endContent={<SiGooglepay className="text-xl" />}
+              startContent={<FaDollarSign />}
+              variant="flat"
+              onPress={() => {
+                alert('Google Pay donation integration would go here (requires native plugin setup).')
+              }}
+            >
+              Donate
+            </Button>
+          </div>
         </div>
 
         {/* Search Settings Group */}
@@ -131,9 +174,8 @@ export const SettingsView: React.FC = memo(() => {
               {(['starts_with', 'includes', 'regex'] as const).map(mode => (
                 <Button
                   key={mode}
-                  className={`text-[10px] h-8 min-w-0 ${
-                    searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
-                  }`}
+                  className={`text-[10px] h-8 min-w-0 ${searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
+                    }`}
                   size="sm"
                   variant={searchMode === mode ? 'flat' : 'light'}
                   onPress={() => setSearchMode(mode)}

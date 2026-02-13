@@ -7,27 +7,24 @@ import { SidebarHeader } from './components/SidebarHeader'
 import { SidebarContent } from './components/SidebarContent'
 import { RightPanel } from './components/RightPanel'
 import { useDictionary } from './providers/DictionaryProvider'
-import { KhmerComplexTableModal } from './components/KhmerComplexTableModal/KhmerComplexTableModal'
+import { AboutView } from './components/AboutView'
+import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
+import { KhmerComplexTableView } from './components/KhmerComplexTableView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 
-function useCurrentNavigationStackItem() {
+export function AppMain() {
+  useAddToHistoryEffect()
   const currentView = useAppMainView()
+  const dictData = useDictionary()
 
-  return useMemo(() => {
+  const currentNavigationStackItem = useMemo(() => {
     if (currentView.type === 'history' || currentView.type === 'favorites' || currentView.type === 'dashboard') {
       return currentView.word ? { word: currentView.word, mode: currentView.mode } : undefined
     }
 
     return undefined
   }, [currentView])
-}
-
-export function AppMain() {
-  useAddToHistoryEffect()
-  const dictData = useDictionary()
-
-  const currentNavigationStackItem = useCurrentNavigationStackItem()
 
   const {
     searchMode,
@@ -35,8 +32,6 @@ export function AppMain() {
     highlightInList,
     fontSize_ui,
     filters,
-    isKhmerTableOpen,
-    onCloseKhmerTable,
     maybeColorMode,
   } = useSettings()
   const activeTab = useAppActiveTab()
@@ -57,8 +52,7 @@ export function AppMain() {
 
   const divClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${
-        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
   )
@@ -91,11 +85,43 @@ export function AppMain() {
         </div>
       </div>
 
-      <RightPanel maybeColorMode={maybeColorMode} searchQuery={searchQuery} selectedWord={currentNavigationStackItem} />
-
-      {dictData.km_map && (
-        <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />
-      )}
+      {(() => {
+        switch (currentView.type) {
+          case 'about':
+            return (
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
+                <AboutView />
+              </div>
+            )
+          case 'khmer-analyzer':
+            return (
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
+                <KhmerAnalyzerView initialText={currentView.text} />
+              </div>
+            )
+          case 'khmer-complex-table':
+            return (
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
+                <KhmerComplexTableView />
+              </div>
+            )
+          case 'history':
+          case 'favorites':
+          case 'dashboard':
+          case 'history-list':
+          case 'favorites-list':
+          case 'settings':
+            return (
+              <RightPanel
+                maybeColorMode={maybeColorMode}
+                searchQuery={searchQuery}
+                selectedWord={currentNavigationStackItem}
+              />
+            )
+          default:
+            return null
+        }
+      })()}
     </div>
   )
 }
