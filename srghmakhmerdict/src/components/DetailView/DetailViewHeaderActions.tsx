@@ -1,10 +1,9 @@
 import { useCallback, useMemo, memo } from 'react'
-import { MdTextFields } from 'react-icons/md'
+import { MdTextFields, MdCenterFocusStrong, MdCenterFocusWeak } from 'react-icons/md'
 import { IoColorPalette } from 'react-icons/io5'
 import { TbLink, TbLinkOff } from 'react-icons/tb'
 import { GoStarFill, GoStar } from 'react-icons/go'
 import { Button } from '@heroui/button'
-import { Tooltip } from '@heroui/tooltip'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
 import type { SharedSelection } from '@heroui/system'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -23,6 +22,8 @@ import { GoogleSpeechAction } from './Tooltips/GoogleSpeechAction'
 import { NativeSpeechAction } from './Tooltips/NativeSpeechAction'
 import { KhmerHideToggleIcon } from '../Icons/KhmerHideToggleIcon'
 import { NonKhmerHideToggleIcon } from '../Icons/NonKhmerHideToggleIcon'
+import { AutoReadAction } from './DetailViewHeaderActions/AutoReadAction'
+import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
 
 /**
  * 1. WORD HIDING TOGGLE
@@ -34,7 +35,7 @@ export interface KhmerWordsHidingActionProps {
 
 export const KhmerWordsHidingAction = memo(({ isEnabled, onToggle }: KhmerWordsHidingActionProps) => {
   return (
-    <Tooltip closeDelay={0} content={isEnabled ? 'Hide khmer words' : 'Show khmer words'}>
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? 'Hide khmer words' : 'Show khmer words'}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -44,7 +45,7 @@ export const KhmerWordsHidingAction = memo(({ isEnabled, onToggle }: KhmerWordsH
       >
         <KhmerHideToggleIcon isEnabled={isEnabled} />
       </Button>
-    </Tooltip>
+    </TooltipMobileFriendly>
   )
 })
 KhmerWordsHidingAction.displayName = 'KhmerWordsHidingAction'
@@ -59,7 +60,7 @@ export interface NonKhmerWordsHidingActionProps {
 
 export const NonKhmerWordsHidingAction = memo(({ isEnabled, onToggle }: NonKhmerWordsHidingActionProps) => {
   return (
-    <Tooltip closeDelay={0} content={isEnabled ? 'Hide non khmer words' : 'Show non khmer words'}>
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? 'Hide non khmer words' : 'Show non khmer words'}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -69,7 +70,7 @@ export const NonKhmerWordsHidingAction = memo(({ isEnabled, onToggle }: NonKhmer
       >
         <NonKhmerHideToggleIcon isEnabled={isEnabled} />
       </Button>
-    </Tooltip>
+    </TooltipMobileFriendly>
   )
 })
 NonKhmerWordsHidingAction.displayName = 'NonKhmerWordsHidingAction'
@@ -85,7 +86,7 @@ export interface KhmerLinksActionProps {
 
 export const KhmerLinksAction = memo(({ isEnabled, isDisabled, onToggle }: KhmerLinksActionProps) => {
   return (
-    <Tooltip closeDelay={0} content={isEnabled ? 'Disable word links' : 'Enable word links'}>
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? 'Disable word links' : 'Enable word links'}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -96,7 +97,7 @@ export const KhmerLinksAction = memo(({ isEnabled, isDisabled, onToggle }: Khmer
       >
         {isEnabled ? <TbLink className="h-6 w-6" /> : <TbLinkOff className="h-6 w-6" />}
       </Button>
-    </Tooltip>
+    </TooltipMobileFriendly>
   )
 })
 KhmerLinksAction.displayName = 'KhmerLinksAction'
@@ -125,9 +126,9 @@ export const KhmerFontAction = memo(({ khmerFontName, onChange }: KhmerFontActio
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly className="text-default-900" radius="full" variant="light">
-          <Tooltip closeDelay={0} content="Khmer Font">
+          <TooltipMobileFriendly closeDelay={0} content="Khmer Font">
             <MdTextFields className={`h-6 w-6 ${khmerFontName !== 'Default' ? 'text-primary' : 'text-default-500'}`} />
-          </Tooltip>
+          </TooltipMobileFriendly>
         </Button>
       </DropdownTrigger>
       <DropdownMenu
@@ -172,9 +173,9 @@ export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationAct
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly radius="full" variant="light">
-          <Tooltip closeDelay={0} content="Colorization Settings">
+          <TooltipMobileFriendly closeDelay={0} content="Colorization Settings">
             <IoColorPalette className={`h-6 w-6 ${colorMode !== 'none' ? 'text-primary' : 'text-default-500'}`} />
-          </Tooltip>
+          </TooltipMobileFriendly>
         </Button>
       </DropdownTrigger>
       <DropdownMenu
@@ -197,7 +198,7 @@ ColorizationAction.displayName = 'ColorizationAction'
  * 7. FAVORITE TOGGLE
  */
 export const FavoriteAction = memo(({ isFav, onToggle }: { isFav: boolean; onToggle: () => void }) => (
-  <Tooltip closeDelay={0} content={isFav ? 'Remove Favorite' : 'Add Favorite'}>
+  <TooltipMobileFriendly closeDelay={0} content={isFav ? 'Remove Favorite' : 'Add Favorite'}>
     <Button
       isIconOnly
       className={isFav ? 'text-warning' : 'text-default-400'}
@@ -208,13 +209,41 @@ export const FavoriteAction = memo(({ isFav, onToggle }: { isFav: boolean; onTog
     >
       {isFav ? <GoStarFill className="h-6 w-6" /> : <GoStar className="h-6 w-6" />}
     </Button>
-  </Tooltip>
+  </TooltipMobileFriendly>
 ))
 FavoriteAction.displayName = 'FavoriteAction'
 
 /**
- * MAIN CONTAINER COMPONENT
+ * 8. AUTOFOCUS ANSWER TOGGLE
  */
+export interface AutoFocusAnswerActionProps {
+  isEnabled: boolean
+  onToggle: () => void
+}
+
+export const AutoFocusAnswerAction = memo(({ isEnabled, onToggle }: AutoFocusAnswerActionProps) => {
+  return (
+    <TooltipMobileFriendly
+      closeDelay={0}
+      content={
+        isEnabled
+          ? 'Autofocus Answer: ON (input will be focused automatically)'
+          : 'Autofocus Answer: OFF (input will NOT be focused automatically)'
+      }
+    >
+      <Button
+        isIconOnly
+        className={isEnabled ? 'text-primary' : 'text-default-500'}
+        radius="full"
+        variant="light"
+        onPress={onToggle}
+      >
+        {isEnabled ? <MdCenterFocusStrong className="h-6 w-6" /> : <MdCenterFocusWeak className="h-6 w-6" />}
+      </Button>
+    </TooltipMobileFriendly>
+  )
+})
+AutoFocusAnswerAction.displayName = 'AutoFocusAnswerAction'
 export interface DetailViewActionsProps_Common {
   word_or_sentence: NonEmptyStringTrimmed
   word_or_sentence__language: DictionaryLanguage
@@ -253,6 +282,9 @@ export interface DetailViewActionsProps_AnkiGame_Back extends DetailViewActionsP
   // Non Khmer Words Hiding
   isNonKhmerWordsHidingEnabled: boolean
   toggleNonKhmerWordsHiding: () => void
+  // Autofocus
+  isAutoFocusAnswerEnabled: boolean
+  toggleAutoFocusAnswer: () => void
 }
 
 export interface DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown extends DetailViewActionsProps_Common {
@@ -260,6 +292,16 @@ export interface DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
   // Colorization
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
+  // Autofocus
+  isAutoFocusAnswerEnabled: boolean
+  toggleAutoFocusAnswer: () => void
+}
+
+export interface DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown extends DetailViewActionsProps_Common {
+  type: 'anki_game_front_and_khmer_words_are_not_shown'
+  // Autofocus
+  isAutoFocusAnswerEnabled: boolean
+  toggleAutoFocusAnswer: () => void
 }
 
 export interface DetailViewActionsProps_SentenceAnalyzer extends DetailViewActionsProps_Common {
@@ -271,9 +313,18 @@ export type DetailViewActionsProps =
   | DetailViewActionsProps_SentenceAnalyzer
   | DetailViewActionsProps_AnkiGame_Back
   | DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
+  | DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
 const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_SentenceAnalyzer) => {
-  const { isKhmerLinksEnabled, toggleKhmerLinks, khmerFontName, setKhmerFontName, word_or_sentence, word_or_sentence__language } = props
+  const {
+    isKhmerLinksEnabled,
+    toggleKhmerLinks,
+    khmerFontName,
+    setKhmerFontName,
+    word_or_sentence,
+    word_or_sentence__language,
+  } = props
+
   return (
     <div className="flex gap-1 shrink-0">
       <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
@@ -283,19 +334,37 @@ const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_Se
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+      <AutoReadAction />
     </div>
   )
 })
+
 DetailViewActionsSentenceAnalyzer.displayName = 'DetailViewActionsSentenceAnalyzer'
 
-const DetailViewActionsAnkiFrontShown = memo((props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
-  return (
-    <div className="flex gap-1 shrink-0">
-      <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />
-    </div>
-  )
-})
+const DetailViewActionsAnkiFrontShown = memo(
+  (props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
+    return (
+      <div className="flex gap-1 shrink-0">
+        <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />
+        <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
+      </div>
+    )
+  },
+)
+
 DetailViewActionsAnkiFrontShown.displayName = 'DetailViewActionsAnkiFrontShown'
+
+const DetailViewActionsAnkiFrontNotShown = memo(
+  (props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
+    return (
+      <div className="flex gap-1 shrink-0">
+        <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
+      </div>
+    )
+  },
+)
+
+DetailViewActionsAnkiFrontNotShown.displayName = 'DetailViewActionsAnkiFrontNotShown'
 
 const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord) => {
   const {
@@ -331,10 +400,12 @@ const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+      <AutoReadAction />
       <FavoriteAction isFav={isFav} onToggle={toggleFav} />
     </div>
   )
 })
+
 DetailViewActionsKnownWord.displayName = 'DetailViewActionsKnownWord'
 
 const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_Back) => {
@@ -369,9 +440,12 @@ const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_B
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+      <AutoReadAction />
+      <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
     </div>
   )
 })
+
 DetailViewActionsAnkiBack.displayName = 'DetailViewActionsAnkiBack'
 
 export const DetailViewActions = memo((props: DetailViewActionsProps) => {
@@ -380,6 +454,8 @@ export const DetailViewActions = memo((props: DetailViewActionsProps) => {
       return <DetailViewActionsSentenceAnalyzer {...props} />
     case 'anki_game_front_and_khmer_words_are_shown':
       return <DetailViewActionsAnkiFrontShown {...props} />
+    case 'anki_game_front_and_khmer_words_are_not_shown':
+      return <DetailViewActionsAnkiFrontNotShown {...props} />
     case 'known_word':
       return <DetailViewActionsKnownWord {...props} />
     case 'anki_game_back':

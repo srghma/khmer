@@ -7,7 +7,6 @@ import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.mo
 
 import { colorizeHtml } from '../../utils/text-processing/html'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import type { KhmerWordsMap } from '../../db/dict/index'
 import {
   stringToToTranslateLanguageOrThrow,
   ToTranslateLanguage_codeNameRecord,
@@ -21,6 +20,7 @@ import { GoogleSpeechAction } from '../DetailView/Tooltips/GoogleSpeechAction'
 import { NativeSpeechAction } from '../DetailView/Tooltips/NativeSpeechAction'
 import type { TranslateResultSuccess } from '../../utils/googleTranslate/googleTranslate'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { useDictionary } from '../../providers/DictionaryProvider'
 
 // --- Atomic Components ---
 
@@ -72,10 +72,10 @@ interface ResultDisplayProps {
   result: TranslateResultSuccess
   targetLang: ToTranslateLanguage
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap
 }
 
-export const ResultDisplay = memo(({ result, targetLang, maybeColorMode, km_map }: ResultDisplayProps) => {
+export const ResultDisplay = memo(({ result, targetLang, maybeColorMode }: ResultDisplayProps) => {
+  const { km_map } = useDictionary()
   const resultHtml = useMemo(() => {
     if (!result.text) return undefined
     if (targetLang !== 'km' || maybeColorMode === 'none') return { __html: result.text }

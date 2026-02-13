@@ -1,13 +1,15 @@
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
 import { stringToDictionaryLanguageOrThrow, type DictionaryLanguage } from '../../types'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  nonEmptyString_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useAnkiSettings } from './useAnkiSettings'
 
 export interface AnkiRouteParams {
   urlLanguage: DictionaryLanguage
   selectedId: NonEmptyStringTrimmed | undefined
-  isSessionFinished: boolean
 }
 
 export const useAnkiRoute = (): AnkiRouteParams => {
@@ -43,14 +45,11 @@ export const useAnkiRoute = (): AnkiRouteParams => {
       urlLanguage = settingsLanguage
     }
 
-    const isSessionFinished = cardIdStr === 'finished'
-    const selectedId =
-      cardIdStr && !isSessionFinished ? (decodeURIComponent(cardIdStr) as NonEmptyStringTrimmed) : undefined
+    const selectedId = cardIdStr ? nonEmptyString_afterTrim(decodeURIComponent(cardIdStr)) : undefined
 
     return {
       urlLanguage,
       selectedId,
-      isSessionFinished,
     }
   }, [location, settingsLanguage])
 }

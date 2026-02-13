@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict/index'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -15,6 +14,7 @@ import { NonEmptySet_union_maybeUndefined_onCollisionIgnore_fromIterables } from
 import { enhanceSegments, type TextSegmentEnhanced } from '../../utils/text-processing/text-enhanced'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import { useDictionary } from '../../providers/DictionaryProvider'
 
 export const KhmerAnalysisResult__empty_text = { t: 'empty_text' } as const
 
@@ -51,8 +51,8 @@ export type KhmerAnalysisResult =
 export const useKhmerAnalysis = (
   analyzedText: string,
   initialText_language_fallback: DictionaryLanguage,
-  km_map: KhmerWordsMap,
 ): KhmerAnalysisResult => {
+  const { km_map } = useDictionary()
   const phase1 = useMemo(() => {
     const analyzedText_nonEmptyTrimmed = String_toNonEmptyString_orUndefined_afterTrim(analyzedText)
 

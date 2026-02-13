@@ -21,12 +21,7 @@ import {
   Record_toNonEmptyRecord_unsafe,
   type NonEmptyRecord,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import {
-  INTERVAL_MS_AGAIN,
-  INTERVAL_MS_HARD,
-  INTERVAL_MS_GOOD_NEW,
-  getOneDayInMs,
-} from './constants'
+import { INTERVAL_MS_AGAIN, INTERVAL_MS_HARD, INTERVAL_MS_GOOD_NEW, getOneDayInMs } from './constants'
 // import { formatDistance } from 'date-fns/formatDistance'
 
 // Initialize the FSRS algorithm
@@ -49,10 +44,12 @@ export function calculateNextStep(
 
   // 1. Calculate FSRS parameters (D, S)
   let nextCard
+
   if (isNew) {
     nextCard = deck.newCard(grade)
   } else {
     const daysSinceReview = (now - item.last_review) / getOneDayInMs
+
     nextCard = deck.gradeCard({ D: item.difficulty, S: item.stability }, daysSinceReview, grade)
   }
 
@@ -85,6 +82,7 @@ export function calculateNextStep(
 export function getPreviewIntervals(item: FavoriteItem, now: number): NonEmptyRecord<Grade, NOfDays> {
   const calculate = (grade: Grade): NOfDays => {
     const { intervalMs } = calculateNextStep(item, grade, now)
+
     // Convert back to "Days" float for the NOfDays type
     return numberToNOfDays_orThrow_mk(intervalMs / getOneDayInMs)
   }

@@ -10,6 +10,7 @@ import { isCharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenGeneralData, type GeneralChar } from '../utils/flattenGeneralData'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import type { SearchMode } from '../providers/SettingsProvider'
 
 type L12SidebarGeneral_activeL1 = GeneralChar | '*'
 
@@ -26,8 +27,9 @@ interface WordListGeneralProps {
   readonly data: ProcessDataOutput<GeneralChar>
   readonly onWordClick: (word: NonEmptyStringTrimmed) => void
   readonly searchQuery: NonEmptyStringTrimmed | undefined
-  readonly highlightMatch: boolean | undefined
+  readonly highlightMatch: boolean
   readonly contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
+  readonly searchMode: SearchMode
 }
 
 const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
@@ -36,6 +38,7 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
   searchQuery,
   highlightMatch,
   contentMatches,
+  searchMode,
 }) => {
   const [activeL1, setActiveL1] = useState<GeneralChar | '*'>(assertIsDefinedAndReturn(data.groups[0]?.letter ?? '*'))
 
@@ -50,6 +53,7 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
     exactMatchIndex,
     searchQuery,
     highlightMatch,
+    searchMode,
   })
 
   // 3. Header Spy Logic

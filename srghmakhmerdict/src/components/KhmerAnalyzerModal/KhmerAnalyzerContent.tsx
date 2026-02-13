@@ -3,7 +3,6 @@ import { ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 import { GoogleTranslateTextarea } from '../GoogleTranslateTextarea/GoogleTranslateTextarea'
 
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict/index'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
@@ -21,7 +20,6 @@ interface KhmerAnalyzerContentProps {
   text: NonEmptyStringTrimmed
   currentMode: DictionaryLanguage
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap
   onNavigate: (word: NonEmptyStringTrimmed) => void
 }
 
@@ -62,11 +60,10 @@ export function HeaderTogglerOfSegmenter({
 
 interface KhmerAnalysisResultsProps {
   res: KhmerAnalysisResult
-  km_map: KhmerWordsMap
   onKhmerWordClick: ((word: TypedKhmerWord) => void) | undefined
 }
 
-export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res, km_map, onKhmerWordClick }) => {
+export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res, onKhmerWordClick }) => {
   // 1. Handling Empty or No Khmer States
   if (res.t === 'empty_text') {
     return <div className="py-10 text-center text-default-400 italic">Enter some text to start analysis</div>
@@ -105,12 +102,7 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res,
         title="Word Segmentation"
       >
         {segments => (
-          <SegmentationPreview
-            km_map={km_map}
-            maybeColorMode="dictionary"
-            segments={segments}
-            onKhmerWordClick={onKhmerWordClick}
-          />
+          <SegmentationPreview maybeColorMode="dictionary" segments={segments} onKhmerWordClick={onKhmerWordClick} />
         )}
       </HeaderTogglerOfSegmenter>
 
@@ -131,13 +123,12 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
   text: initialText,
   currentMode,
   maybeColorMode,
-  km_map,
   onNavigate,
 }) => {
   const [analyzedText, setAnalyzedText] = useState<string>(initialText)
 
   // Logic is now isolated inside the content
-  const res = useKhmerAnalysis(analyzedText, currentMode, km_map)
+  const res = useKhmerAnalysis(analyzedText, currentMode)
 
   return (
     <ModalContent>
@@ -148,7 +139,6 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
       <ModalBody className="py-6 gap-8 overflow-y-auto">
         <GoogleTranslateTextarea
           defaultTargetLang="en"
-          km_map={km_map}
           labelPlacement="outside"
           maxRows={10} // Increased slightly to accommodate translation text growth
           maybeColorMode={maybeColorMode}
@@ -160,7 +150,7 @@ export const KhmerAnalyzerContent: React.FC<KhmerAnalyzerContentProps> = ({
           onValueChange={setAnalyzedText}
         />
 
-        <KhmerAnalysisResults km_map={km_map} res={res} onKhmerWordClick={onNavigate} />
+        <KhmerAnalysisResults res={res} onKhmerWordClick={onNavigate} />
       </ModalBody>
     </ModalContent>
   )

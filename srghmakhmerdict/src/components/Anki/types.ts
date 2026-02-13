@@ -21,18 +21,22 @@ export function stringToAnkiDirectionOrThrow(value: string): AnkiDirection {
   return stringToEnumOrThrow(value, ANKI_DIRECTIONS, 'AnkiDirection')
 }
 export type AnkiGameMode =
-  | 'km:GUESS_NON_KHMER'
-  | 'en:GUESS_KHMER'
-  | 'ru:GUESS_KHMER'
-  | 'km:GUESS_KHMER'
-  | 'en:GUESS_NON_KHMER'
-  | 'ru:GUESS_NON_KHMER'
+  | 'km:GUESSING_NON_KHMER'
+  | 'en:GUESSING_KHMER'
+  | 'ru:GUESSING_KHMER'
+  | 'km:GUESSING_KHMER'
+  | 'en:GUESSING_NON_KHMER'
+  | 'ru:GUESSING_NON_KHMER'
 
-export function languageAndDirectionToAnkiGameMode(language: DictionaryLanguage, direction: AnkiDirection): AnkiGameMode {
+export function languageAndDirectionToAnkiGameMode(
+  language: DictionaryLanguage,
+  direction: AnkiDirection,
+): AnkiGameMode {
   return `${language}:${direction}` as AnkiGameMode
 }
 
 export function ankiGameModeToLanguageAndDirection(mode: AnkiGameMode): [DictionaryLanguage, AnkiDirection] {
   const [language, direction] = mode.split(':') as [DictionaryLanguage, AnkiDirection]
+
   return [language, direction]
 }

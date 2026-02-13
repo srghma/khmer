@@ -9,10 +9,10 @@ import { type AnkiDirection } from './types'
 // Reusing icons/titles from SidebarHeader
 import { tab_title_en, tab_title_km, tab_title_ru } from '../SidebarHeader'
 import { unknown_shouldBeStringOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string'
+import { useAnkiNavigation } from './useAnkiNavigation'
 
 interface AnkiHeaderProps {
   activeDict: DictionaryLanguage
-  onDictChange: (lang: DictionaryLanguage) => void
   direction: AnkiDirection
   onDirectionChange: (mode: AnkiDirection) => void
   en_dueCount_today: number
@@ -59,7 +59,6 @@ const tabsClassNames = {
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
     activeDict,
-    onDictChange,
     direction,
     onDirectionChange,
     en_dueCount_today,
@@ -70,6 +69,8 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     kh_dueCount_total,
     onExit,
   }) => {
+    const { navigateToLanguage } = useAnkiNavigation()
+
     const isGuessingKhmer = direction === 'GUESSING_KHMER'
 
     const tabs_onSelectionChange = (k: React.Key) => {
@@ -80,7 +81,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
 
         return
       }
-      onDictChange(stringToDictionaryLanguageOrThrow(keyStr))
+      navigateToLanguage(stringToDictionaryLanguageOrThrow(keyStr))
     }
 
     const title_en = useMemo(

@@ -5,13 +5,14 @@ import { SearchBar } from './SearchBar'
 import { stringToAppTabOrThrow, type AppTab } from '../types'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useLocation } from 'wouter'
+import type { SearchMode } from '../providers/SettingsProvider'
 
 interface SidebarHeaderProps {
   activeTab: AppTab
   onSearch: (q: NonEmptyStringTrimmed | undefined) => void
   searchInitialValue: NonEmptyStringTrimmed | undefined
   resultCount: number
-  isRegex: boolean
+  searchMode: SearchMode
   showSearchBar: boolean
 }
 
@@ -24,7 +25,7 @@ const tab_title_favorites = <GoStar className="text-lg" />
 const tab_title_settings = <GoGear className="text-lg" />
 
 export const SidebarHeader = memo<SidebarHeaderProps>(
-  ({ activeTab, onSearch, resultCount, isRegex, showSearchBar, searchInitialValue }) => {
+  ({ activeTab, onSearch, resultCount, searchMode, showSearchBar, searchInitialValue }) => {
     const [, setLocation] = useLocation()
 
     const handleTabChange = useCallback(
@@ -62,7 +63,7 @@ export const SidebarHeader = memo<SidebarHeaderProps>(
             activeTab={activeTab}
             count={resultCount}
             initialValue={searchInitialValue}
-            isRegex={isRegex}
+            searchMode={searchMode}
             onSearch={onSearch}
           />
         )}

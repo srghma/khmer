@@ -4,34 +4,44 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-only-khmer-and-without-html'
 import type { ShortDefinitionEn, WordDetailEn } from '../db/dict'
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
-import { type Lazy, defer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/lazy'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
-export type WordDetailEn_OnlyKhmerAndWithoutHtml = {
-  desc: Lazy<TypedOnlyKhmerAndWithoutHtml | undefined> // Main definition, extracting Khmer parts
-  en_km_com: Lazy<TypedOnlyKhmerAndWithoutHtml | undefined> // html
-}
+type Processor<K extends keyof WordDetailEn> = (x: WordDetailEn[K]) => TypedOnlyKhmerAndWithoutHtml | undefined
 
 const strToOnlyKhmerAndWithoutHtml_remove_orUndefined_ = undefined_lift(strToOnlyKhmerAndWithoutHtml_remove_orUndefined)
 
-export const wordDetailEn_OnlyKhmerAndWithoutHtml_mk = (x: WordDetailEn): WordDetailEn_OnlyKhmerAndWithoutHtml => {
-  return {
-    desc: defer(() => strToOnlyKhmerAndWithoutHtml_remove_orUndefined_(x.desc)),
-    en_km_com: defer(() => strToOnlyKhmerAndWithoutHtml_remove_orUndefined_(x.en_km_com)),
-  }
+export const processors: { [K in keyof WordDetailEn]-?: Processor<K> } = {
+  word_display: () => undefined,
+  desc: x => strToOnlyKhmerAndWithoutHtml_remove_orUndefined_(x),
+  desc_en_only: () => undefined, // Skip sources that are explicitly English-only
+  en_km_com: x => strToOnlyKhmerAndWithoutHtml_remove_orUndefined_(x),
 }
 
-export const getBestDefinitionKhmerFromEn = (detail: WordDetailEn): TypedOnlyKhmerAndWithoutHtml | undefined => {
-  const lazy = wordDetailEn_OnlyKhmerAndWithoutHtml_mk(detail)
+export const getBestDefinitionKhmerFromEn = (
+  detail: WordDetailEn,
+): { t: ShortDefinitionEn['source']; v: TypedOnlyKhmerAndWithoutHtml } | undefined => {
+  const desc = processors.desc(detail.desc)
 
-  return lazy.desc() || lazy.en_km_com()
+  if (desc) return { t: 'Desc', v: desc }
+
+  const en_km_com = processors.en_km_com(detail.en_km_com)
+
+  if (en_km_com) return { t: 'EnKmCom', v: en_km_com }
+
+  return undefined
 }
 
 export const getBestDefinitionKhmerFromEn_fromShort = (
   shortDef: ShortDefinitionEn,
 ): TypedOnlyKhmerAndWithoutHtml | undefined => {
-  // Skip sources that are explicitly English-only
-  if (shortDef.source === 'DescEnOnly') return undefined
-
-  // Process the definition string to extract only Khmer parts and remove HTML
-  return strToOnlyKhmerAndWithoutHtml_remove_orUndefined(shortDef.definition)
+  switch (shortDef.source) {
+    case 'DescEnOnly':
+      return processors.desc_en_only(shortDef.definition)
+    case 'EnKmCom':
+      return processors.en_km_com(shortDef.definition)
+    case 'Desc':
+      return processors.desc(shortDef.definition)
+    default:
+      return assertNever(shortDef.source)
+  }
 }

@@ -7,17 +7,17 @@ import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
+import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { truncateHtmlSafe } from './truncateHtmlSafe'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { ColorizationMode } from '../../utils/text-processing/utils'
+import { useDictionary } from '../../providers/DictionaryProvider'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 interface FirstNonEmptyShortDetailViewProps {
-  word: NonEmptyStringTrimmed
+  selectedText: NonEmptyStringTrimmed
   mode: DictionaryLanguage
-  km_map: KhmerWordsMap
-  fallback: React.ReactNode
   colorizationMode: ColorizationMode
 }
 
@@ -29,12 +29,49 @@ export const Loading = (
 )
 
 export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailViewProps> = React.memo(
-  ({ word, mode, km_map, colorizationMode, fallback }) => {
-    const res = useWordData(word, mode)
+  ({ selectedText, mode, colorizationMode }) => {
+    const { km_map, en, ru } = useDictionary()
+
+    const fallback = useMemo(() => {
+      const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
+      const known = km_map.has(selectedText)
+
+      return (
+        <span className="font-medium group-hover:text-primary transition-colors">
+          {known ? 'Open' : 'Search'} &quot;{truncatedText}&quot;
+        </span>
+      )
+    }, [selectedText, km_map])
+
+    const res = useWordData(selectedText, mode)
 
     // 1. Resolve Raw Content from candidates
     const rawContent = useMemo(() => {
-      if (res.t !== 'found') return null
+      if (res.t === 'loading') return null
+      if (res.t === 'not_found') {
+        switch (mode) {
+          case 'km':
+            if (km_map.has(selectedText)) {
+              throw new Error('Khmer word is in db, but was not found using request, Impossible')
+            }
+
+            return
+          case 'en':
+            if (en.includes(selectedText)) {
+              throw new Error('English word is in db, but was not found using request, Impossible')
+            }
+
+            return
+          case 'ru':
+            if (ru.includes(selectedText)) {
+              throw new Error('Russian word is in db, but was not found using request, Impossible')
+            }
+
+            return
+          default:
+            assertNever(mode)
+        }
+      }
 
       const detail: WordDetailEnOrRuOrKm | undefined = res.detail
       const candidates = [
@@ -48,7 +85,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
         detail.from_chuon_nath_translated,
       ]
 
-      return candidates.find(c => c && c.trim().length > 0)
+      return candidates.find(c => c && c.length > 0)
     }, [res])
 
     // 2. Process Content (Truncate -> Colorize)

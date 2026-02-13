@@ -3,7 +3,6 @@ import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { Spinner } from '@heroui/spinner'
 
 import { type DictionaryLanguage } from '../types'
-import type { KhmerWordsMap } from '../db/dict'
 
 import { DetailViewFound } from './DetailView/DetailViewFound'
 import { DetailViewNotFound } from './DetailView/DetailViewNotFound'
@@ -16,8 +15,6 @@ interface DetailViewProps {
   highlightMatch: NonEmptyStringTrimmed | undefined
   backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
-  km_map: KhmerWordsMap
-  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
 }
 
 const DetailViewImpl = ({
@@ -25,9 +22,7 @@ const DetailViewImpl = ({
   mode,
   onNavigate,
   backButton_goBack,
-  km_map,
   backButton_desktopOnlyStyles_showButton,
-  setKhmerAnalyzerModalText_setToOpen,
 }: DetailViewProps) => {
   const res = useWordData(word, mode)
 
@@ -46,7 +41,6 @@ const DetailViewImpl = ({
       <DetailViewNotFound
         backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
         backButton_goBack={backButton_goBack}
-        km_map={km_map}
         mode={mode}
         word={word}
         onNavigate={onNavigate}
@@ -61,9 +55,7 @@ const DetailViewImpl = ({
       backButton_goBack={backButton_goBack}
       data={res.detail}
       isFav={res.isFav}
-      km_map={km_map}
       mode={mode}
-      setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
       toggleFav={res.toggleFav}
       word={word}
       onNavigate={onNavigate}

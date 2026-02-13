@@ -4,30 +4,35 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-only-khmer-and-without-html'
 import type { ShortDefinitionRu, WordDetailRu } from '../db/dict'
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
-import { type Lazy, defer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/lazy'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
-export type WordDetailRu_OnlyKhmerAndWithoutHtml = {
-  desc: Lazy<TypedOnlyKhmerAndWithoutHtml | undefined>
-}
+type Processor<K extends keyof WordDetailRu> = (x: WordDetailRu[K]) => TypedOnlyKhmerAndWithoutHtml | undefined
 
 const strToOnlyKhmerAndWithoutHtml_remove_orUndefined_ = undefined_lift(strToOnlyKhmerAndWithoutHtml_remove_orUndefined)
 
-export const wordDetailRu_OnlyKhmerAndWithoutHtml_mk = (x: WordDetailRu): WordDetailRu_OnlyKhmerAndWithoutHtml => {
-  return {
-    // Expensive fields -> wrapped in defer
-    desc: defer(() => strToOnlyKhmerAndWithoutHtml_remove_orUndefined_(x.desc)),
-  }
+export const processors: { [K in keyof WordDetailRu]-?: Processor<K> } = {
+  word_display: () => undefined,
+  desc: x => strToOnlyKhmerAndWithoutHtml_remove_orUndefined_(x),
 }
 
 // Helper to pick the best Khmer translation from the DB object
-export const getBestDefinitionKhmerFromRu = (detail: WordDetailRu): TypedOnlyKhmerAndWithoutHtml | undefined => {
-  const lazy = wordDetailRu_OnlyKhmerAndWithoutHtml_mk(detail)
+export const getBestDefinitionKhmerFromRu = (
+  detail: WordDetailRu,
+): { t: ShortDefinitionRu['source']; v: TypedOnlyKhmerAndWithoutHtml } | undefined => {
+  const desc = processors.desc(detail.desc)
 
-  return lazy.desc()
+  if (desc) return { t: 'Desc', v: desc }
+
+  return undefined
 }
 
 export const getBestDefinitionKhmerFromRu_fromShort = (
   shortDef: ShortDefinitionRu,
 ): TypedOnlyKhmerAndWithoutHtml | undefined => {
-  return strToOnlyKhmerAndWithoutHtml_remove_orUndefined(shortDef.definition)
+  switch (shortDef.source) {
+    case 'Desc':
+      return processors.desc(shortDef.definition)
+    default:
+      return assertNever(shortDef.source)
+  }
 }

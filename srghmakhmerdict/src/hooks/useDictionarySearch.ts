@@ -15,7 +15,7 @@ import { isDictionaryLanguage, stringToDictionaryLanguageOrThrow, type AppTab, t
 import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import { useAppToast } from '../providers/ToastProvider'
-import type { DictFilterSettings_Km_Mode } from '../providers/SettingsProvider'
+import type { DictFilterSettings_Km_Mode, SearchMode } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
 import { useDebounce } from 'use-debounce'
 import type { DictData } from '../initDictionary'
@@ -76,19 +76,32 @@ function* filterDictionaryWords(
     return
   }
 
-  if (query.isRegex) {
-    const regex = query.v
+  const { t, v } = query
 
-    for (const word of source) {
-      if (regex.test(word)) yield word
-    }
-  } else {
-    // We expect query.v to be lowercased by the caller for performance
-    const q = query.v
+  switch (t) {
+    case 'regex': {
+      for (const word of source) {
+        if (v.test(word)) yield word
+      }
 
-    for (const word of source) {
-      if (word.toLowerCase().includes(q)) yield word
+      return
     }
+    case 'starts_with': {
+      for (const word of source) {
+        if (word.toLowerCase().startsWith(v)) yield word
+      }
+
+      return
+    }
+    case 'includes': {
+      for (const word of source) {
+        if (word.toLowerCase().includes(v)) yield word
+      }
+
+      return
+    }
+    default:
+      assertNever(t)
   }
 }
 
@@ -113,7 +126,7 @@ function* getKhmerSourceIterator(
 interface UseDictionarySearchProps {
   activeTab: AppTab
   mode: DictFilterSettings_Km_Mode
-  isRegex: boolean
+  searchMode: SearchMode
   searchInContent: boolean
 }
 
@@ -233,14 +246,7 @@ function searchReducer(state: SearchState, action: SearchAction): SearchState {
 
 // --- Hook ---
 
-interface UseDictionarySearchProps {
-  activeTab: AppTab
-  mode: DictFilterSettings_Km_Mode
-  isRegex: boolean
-  searchInContent: boolean
-}
-
-export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent }: UseDictionarySearchProps) {
+export function useDictionarySearch({ activeTab, mode, searchMode, searchInContent }: UseDictionarySearchProps) {
   const toast = useAppToast()
   const dictData = useDictionary()
 
@@ -312,7 +318,7 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
       if (!debouncedQuery) return
 
       // Step B: Validate Query
-      const queryResult = makeFilterQueryWithCache(debouncedQuery, isRegex)
+      const queryResult = makeFilterQueryWithCache(debouncedQuery, searchMode)
 
       if (queryResult.t === 'error') {
         dispatch({ type: 'SET_REGEX_ERROR', error: queryResult.v })
@@ -362,7 +368,7 @@ export function useDictionarySearch({ activeTab, mode, isRegex, searchInContent 
       // Note: We don't explicitly dispatch 'RESET' or 'STOP' here to prevent flashing,
       // subsequent effects will handle state transitions.
     }
-  }, [debouncedQuery, activeTab, dictData, mode, isRegex])
+  }, [debouncedQuery, activeTab, dictData, mode, searchMode])
 
   // Derived result count
   const totalResultCount = state.dictMatchCount + (state.contentMatches?.length ?? 0)

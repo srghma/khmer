@@ -15,12 +15,16 @@ export interface AnkiSettingsContextType {
 
   direction_km: AnkiDirection
   setDirection_km: (v: AnkiDirection | ((prev: AnkiDirection | undefined) => AnkiDirection)) => void
+
+  isAutoFocusAnswerEnabled: boolean
+  setIsAutoFocusAnswerEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
 }
 
 const AnkiSettingsContext = createContext<AnkiSettingsContextType | undefined>(undefined)
 
 const defaultLanguage = 'km'
 const defaultDirection: AnkiDirection = 'GUESSING_KHMER'
+const defaultIsAutoFocusAnswerEnabled = true
 
 export const AnkiSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useLocalStorageState<DictionaryLanguage>('srghmakhmerdict__anki_language', {
@@ -40,6 +44,13 @@ export const AnkiSettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: defaultDirection,
   })
 
+  const [isAutoFocusAnswerEnabled, setIsAutoFocusAnswerEnabled] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__anki_is_autofocus_answer_enabled',
+    {
+      defaultValue: defaultIsAutoFocusAnswerEnabled,
+    },
+  )
+
   const value = useMemo(
     () => ({
       language: language ?? defaultLanguage,
@@ -50,6 +61,8 @@ export const AnkiSettingsProvider = ({ children }: { children: ReactNode }) => {
       setDirection_ru,
       direction_km: direction_km ?? defaultDirection,
       setDirection_km,
+      isAutoFocusAnswerEnabled: isAutoFocusAnswerEnabled ?? defaultIsAutoFocusAnswerEnabled,
+      setIsAutoFocusAnswerEnabled,
     }),
     [
       language,
@@ -60,6 +73,8 @@ export const AnkiSettingsProvider = ({ children }: { children: ReactNode }) => {
       setDirection_ru,
       direction_km,
       setDirection_km,
+      isAutoFocusAnswerEnabled,
+      setIsAutoFocusAnswerEnabled,
     ],
   )
 

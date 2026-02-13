@@ -7,10 +7,12 @@ import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { SearchMode } from '../providers/SettingsProvider'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 interface SearchBarProps {
   onSearch: (query: NonEmptyStringTrimmed | undefined) => void
-  isRegex: boolean
+  searchMode: SearchMode
   count: number | undefined
   initialValue: NonEmptyStringTrimmed | undefined
   /**
@@ -37,7 +39,7 @@ const getLangHint = (tab: AppTab): DictionaryLanguage => {
   }
 }
 
-export const SearchBar = memo(({ onSearch, isRegex, count, initialValue, activeTab }: SearchBarProps) => {
+export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, activeTab }: SearchBarProps) => {
   const [localValue, setLocalValue] = useState<string>(initialValue ?? '')
 
   // Use the library to debounce the value (updates 300ms after localValue changes)
@@ -69,6 +71,8 @@ export const SearchBar = memo(({ onSearch, isRegex, count, initialValue, activeT
 
   const langHint = getLangHint(activeTab)
 
+  const isRegex = searchMode === 'regex'
+
   // Memoize attributes that passed down to the native input element
   const nativeInputAttributes = useMemo(
     () =>
@@ -83,13 +87,26 @@ export const SearchBar = memo(({ onSearch, isRegex, count, initialValue, activeT
     [langHint, isRegex],
   )
 
+  const placeholder = useMemo(() => {
+    switch (searchMode) {
+      case 'regex':
+        return 'Search with regex...'
+      case 'starts_with':
+        return 'Search words starting with...'
+      case 'includes':
+        return 'Search words including...'
+      default:
+        assertNever(searchMode)
+    }
+  }, [searchMode])
+
   return (
     <Input
       // Spread native attributes top-level so the library forwards them to the input
       {...nativeInputAttributes}
       isClearable
       endContent={endContent}
-      placeholder={isRegex ? 'Search with regex...' : 'Search words...'}
+      placeholder={placeholder}
       radius="none"
       size="sm"
       startContent={startContent}

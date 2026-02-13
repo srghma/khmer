@@ -14,6 +14,7 @@ import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-ex
 import { HistoryListOnly } from './HistoryOrFavoritesList/HistoryListOnly'
 import { FavoritesListOnly } from './HistoryOrFavoritesList/FavoritesListOnly'
 import { useLocation } from 'wouter'
+import type { SearchMode } from '../providers/SettingsProvider'
 
 // --- LAZY IMPORTS ---
 const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
@@ -36,10 +37,11 @@ interface SidebarContentProps {
   searchQuery: NonEmptyStringTrimmed | undefined
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
+  searchMode: SearchMode
 }
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
-  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode } = props
+  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode, searchMode } = props
 
   const [, setLocation] = useLocation()
 
@@ -118,6 +120,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
                   contentMatches={props.contentMatches}
                   data={resultData.data}
                   highlightMatch={props.highlightInList}
+                  searchMode={searchMode}
                   searchQuery={props.searchQuery}
                   onWordClick={handleWordClickKm}
                 />
@@ -128,6 +131,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
                   contentMatches={props.contentMatches}
                   data={resultData.data}
                   highlightMatch={props.highlightInList}
+                  searchMode={searchMode}
                   searchQuery={props.searchQuery}
                   onWordClick={handleWordClickEn}
                 />
@@ -138,6 +142,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
                   contentMatches={props.contentMatches}
                   data={resultData.data}
                   highlightMatch={props.highlightInList}
+                  searchMode={searchMode}
                   searchQuery={props.searchQuery}
                   onWordClick={handleWordClickRu}
                 />

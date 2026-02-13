@@ -6,6 +6,10 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 
 // --- Types ---
 
+export type AutoReadMode = 'disabled' | 'google_then_native' | 'google_only' | 'native_only'
+
+export type SearchMode = 'starts_with' | 'includes' | 'regex'
+
 export type DictFilterSettings_Km_Mode = 'all' | 'only_verified'
 
 export interface DictFilterSettings {
@@ -24,8 +28,8 @@ const DEFAULT_FILTERS: DictFilterSettings = {
 
 export interface SettingsContextType {
   // Search Settings
-  isRegex: boolean
-  setIsRegex: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+  searchMode: SearchMode
+  setSearchMode: (v: SearchMode | ((prev: SearchMode | undefined) => SearchMode)) => void
   searchInContent: boolean
   setSearchInContent: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   highlightInList: boolean
@@ -76,6 +80,9 @@ export interface SettingsContextType {
   khmerFontName: KhmerFontName
   khmerFontFamily: NonEmptyStringTrimmed | undefined
   setKhmerFontName: (v: KhmerFontName | ((prev: KhmerFontName | undefined) => KhmerFontName)) => void
+
+  autoReadMode: AutoReadMode
+  setAutoReadMode: (v: AutoReadMode | ((prev: AutoReadMode | undefined) => AutoReadMode)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -84,8 +91,8 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   // Search State
-  const [isRegex, setIsRegex] = useLocalStorageState<boolean>('srghmakhmerdict__is_regex', {
-    defaultValue: false,
+  const [searchMode, setSearchMode] = useLocalStorageState<SearchMode>('srghmakhmerdict__search_mode_v2', {
+    defaultValue: 'starts_with',
   })
 
   const [searchInContent, setSearchInContent] = useLocalStorageState<boolean>('srghmakhmerdict__search_in_content', {
@@ -146,6 +153,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     { defaultValue: false },
   )
 
+  const [autoReadMode, setAutoReadMode] = useLocalStorageState<AutoReadMode>('srghmakhmerdict__auto_read_mode', {
+    defaultValue: 'disabled',
+  })
+
   // Modal State (Transient - do not persist)
   const [isKhmerTableOpen, setIsKhmerTableOpen] = useState(false)
 
@@ -168,8 +179,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       // We use `?? defaultValue` here to satisfy TypeScript in case useLocalStorageState returns undefined temporarily,
       // though ahooks handles defaultValue well.
-      isRegex: isRegex ?? false,
-      setIsRegex,
+      searchMode: searchMode ?? 'starts_with',
+      setSearchMode,
       searchInContent: searchInContent ?? false,
       setSearchInContent,
       highlightInList: highlightInList ?? true,
@@ -202,10 +213,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       khmerFontName: khmerFontName ?? 'Default',
       khmerFontFamily: KHMER_FONT_FAMILY[khmerFontName ?? 'Default'],
       setKhmerFontName,
+      autoReadMode: autoReadMode ?? 'disabled',
+      setAutoReadMode,
     }),
     [
-      isRegex,
-      setIsRegex,
+      searchMode,
+      setSearchMode,
       searchInContent,
       setSearchInContent,
       highlightInList,
@@ -236,6 +249,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       toggleNonKhmerWordsHiding,
       khmerFontName,
       setKhmerFontName,
+      autoReadMode,
+      setAutoReadMode,
     ],
   )
 

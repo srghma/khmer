@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Tooltip } from '@heroui/tooltip'
+import { TooltipMobileFriendly } from './TooltipMobileFriendly'
 import { clsx } from 'clsx'
 
 // Utils & Logic
@@ -201,7 +201,7 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
       const text = token.v
 
       return (
-        <Tooltip
+        <TooltipMobileFriendly
           content={
             <div className="px-1 py-2 max-w-[100px]">
               <div className="font-bold text-small mb-1">{def.name}</div>
@@ -215,7 +215,7 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
               {def.desc_en}
             </div>
           </div>
-        </Tooltip>
+        </TooltipMobileFriendly>
       )
     }
 

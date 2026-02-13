@@ -67,9 +67,11 @@ export interface DetailViewHeaderProps_AnkiGame_Back extends DetailViewHeaderPro
   // Khmer Words Hiding
   isKhmerWordsHidingEnabled: boolean
   toggleKhmerWordsHiding: () => void
-
   isNonKhmerWordsHidingEnabled: boolean
   toggleNonKhmerWordsHiding: () => void
+  // Autofocus
+  isAutoFocusAnswerEnabled: boolean
+  toggleAutoFocusAnswer: () => void
 }
 
 export interface DetailViewHeaderProps_SentenceAnalyzer extends DetailViewHeaderProps_Common {
@@ -83,11 +85,17 @@ export interface DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown 
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
   header: NonEmptyStringTrimmed
+  // Autofocus
+  isAutoFocusAnswerEnabled: boolean
+  toggleAutoFocusAnswer: () => void
 }
 
 export interface DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown extends DetailViewHeaderProps_Common {
   type: 'anki_game_front_and_khmer_words_are_not_shown'
   header: NonEmptyStringTrimmed
+  // Autofocus
+  isAutoFocusAnswerEnabled: boolean
+  toggleAutoFocusAnswer: () => void
 }
 
 export type DetailViewHeaderProps =
@@ -108,7 +116,7 @@ const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailVie
   const h1Html = useMemo(() => (word_displayHtml ? { __html: word_displayHtml } : undefined), [word_displayHtml])
 
   return (
-    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
+    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
       {props.backButton_goBack && (
         <DetailViewBackButton
           desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
@@ -139,7 +147,7 @@ const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailVie
 
 const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer) => {
   return (
-    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
+    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
       {props.backButton_goBack && (
         <DetailViewBackButton
           desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
@@ -154,7 +162,13 @@ const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer)
 
 const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
   return (
-    <CardHeader className="flex justify-between items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
+    <CardHeader className="flex justify-between items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
+      {props.backButton_goBack && (
+        <DetailViewBackButton
+          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
+          onPress={props.backButton_goBack}
+        />
+      )}
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
       </div>
@@ -165,8 +179,17 @@ const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Kh
 
 const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
   return (
-    <CardHeader className="flex shrink-0 items-center px-6 py-4 border-b border-divider bg-content1/50 backdrop-blur-md z-10 sticky top-0 pt-[calc(1rem+env(safe-area-inset-top))] md:pt-4">
-      <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
+    <CardHeader className="flex shrink-0 items-center px-6 py-4 border-b border-divider bg-content1/50 backdrop-blur-md z-10 sticky top-0 pt-[calc(env(safe-area-inset-top))]">
+      {props.backButton_goBack && (
+        <DetailViewBackButton
+          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
+          onPress={props.backButton_goBack}
+        />
+      )}
+      <div className="flex-1">
+        <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
+      </div>
+      <DetailViewActions {...props} />
     </CardHeader>
   )
 }

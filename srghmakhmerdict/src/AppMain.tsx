@@ -1,8 +1,5 @@
-import { useState, useCallback, useMemo } from 'react'
-import {
-  String_toNonEmptyString_orUndefined_afterTrim,
-  type NonEmptyStringTrimmed,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useMemo } from 'react'
+import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useSettings } from './providers/SettingsProvider'
 import { isAppTabNonLanguage } from './types'
 import { useDictionarySearch } from './hooks/useDictionarySearch'
@@ -10,9 +7,7 @@ import { SidebarHeader } from './components/SidebarHeader'
 import { SidebarContent } from './components/SidebarContent'
 import { RightPanel } from './components/RightPanel'
 import { useDictionary } from './providers/DictionaryProvider'
-import { KhmerAnalyzerModal } from './components/KhmerAnalyzerModal/KhmerAnalyzerModal'
 import { KhmerComplexTableModal } from './components/KhmerComplexTableModal/KhmerComplexTableModal'
-import { useLocation } from 'wouter'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 
@@ -29,15 +24,13 @@ function useCurrentNavigationStackItem() {
 }
 
 export function AppMain() {
-  const [_, setLocation] = useLocation()
-
   useAddToHistoryEffect()
   const dictData = useDictionary()
 
   const currentNavigationStackItem = useCurrentNavigationStackItem()
 
   const {
-    isRegex,
+    searchMode,
     searchInContent,
     highlightInList,
     fontSize_ui,
@@ -51,7 +44,7 @@ export function AppMain() {
   const { onSearch, searchQuery, contentMatches, resultData, resultCount, isSearching } = useDictionarySearch({
     activeTab,
     mode: filters.km.mode,
-    isRegex,
+    searchMode,
     searchInContent,
   })
 
@@ -70,40 +63,14 @@ export function AppMain() {
     [currentNavigationStackItem],
   )
 
-  const [khmerAnalyzerModalText_setToOpen, setKhmerAnalyzerModalText_setToOpen] = useState<
-    NonEmptyStringTrimmed | undefined
-  >()
-
-  const khmerAnalyzerModal_onClose = useCallback(() => setKhmerAnalyzerModalText_setToOpen(undefined), [])
-
-  const handleKhmerAnalyzerWordSelect = useCallback(
-    (word: NonEmptyStringTrimmed) => {
-      setKhmerAnalyzerModalText_setToOpen(undefined)
-      setLocation(`/km/${encodeURIComponent(word)}`)
-    },
-    [setLocation],
-  )
-
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
-      {/* Khmer Analyzer Modal */}
-      {khmerAnalyzerModalText_setToOpen && currentNavigationStackItem ? (
-        <KhmerAnalyzerModal
-          currentMode={currentNavigationStackItem.mode}
-          km_map={dictData.km_map}
-          maybeColorMode={maybeColorMode}
-          textAndOpen={khmerAnalyzerModalText_setToOpen}
-          onClose={khmerAnalyzerModal_onClose}
-          onNavigate={handleKhmerAnalyzerWordSelect}
-        />
-      ) : null}
-
       <div className={divClassName}>
         <SidebarHeader
           activeTab={activeTab}
-          isRegex={isRegex}
           resultCount={resultCount}
           searchInitialValue={undefined}
+          searchMode={searchMode}
           showSearchBar={!isAppTabNonLanguage(activeTab)}
           onSearch={onSearch}
         />
@@ -118,18 +85,13 @@ export function AppMain() {
             loading={dictData === undefined}
             maybeColorMode="segmenter"
             resultData={resultData}
+            searchMode={searchMode}
             searchQuery={safeSearchQuery}
           />
         </div>
       </div>
 
-      <RightPanel
-        km_map={dictData.km_map}
-        maybeColorMode={maybeColorMode}
-        searchQuery={searchQuery}
-        selectedWord={currentNavigationStackItem}
-        setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
-      />
+      <RightPanel maybeColorMode={maybeColorMode} searchQuery={searchQuery} selectedWord={currentNavigationStackItem} />
 
       {dictData.km_map && (
         <KhmerComplexTableModal isOpen={isKhmerTableOpen} wordsMap={dictData.km_map} onClose={onCloseKhmerTable} />

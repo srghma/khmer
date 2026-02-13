@@ -4,7 +4,6 @@ import {
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../types'
-import type { KhmerWordsMap } from '../db/dict'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { useSettings } from '../providers/SettingsProvider'
 import { DetailView } from './DetailView'
@@ -14,8 +13,6 @@ interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
   searchQuery: NonEmptyStringTrimmed | undefined
-  km_map: KhmerWordsMap
-  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
 }
 
 const NoSelectedWord = (
@@ -27,12 +24,7 @@ const NoSelectedWord = (
   </div>
 )
 
-export const RightPanel: React.FC<RightPanelProps> = ({
-  selectedWord,
-  searchQuery,
-  km_map,
-  setKhmerAnalyzerModalText_setToOpen,
-}) => {
+export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, searchQuery }) => {
   // Use the global navigation hooks
   const [location, setLocation] = useLocation()
 
@@ -69,9 +61,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         backButton_desktopOnlyStyles_showButton={canGoBack}
         backButton_goBack={backButton_goBack}
         highlightMatch={highlightMatch}
-        km_map={km_map}
         mode={selectedWord.mode}
-        setKhmerAnalyzerModalText_setToOpen={setKhmerAnalyzerModalText_setToOpen}
         word={selectedWord.word}
         onNavigate={onNavigate}
       />

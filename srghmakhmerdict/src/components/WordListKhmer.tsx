@@ -12,13 +12,15 @@ import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../utils/
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenKhmerData } from '../utils/flattenKhmerData'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import type { SearchMode } from '../providers/SettingsProvider'
 
 interface WordListKhmerProps {
   readonly data: ProcessDataOutputKhmer
   readonly onWordClick: (word: NonEmptyStringTrimmed) => void
   readonly searchQuery: NonEmptyStringTrimmed | undefined
-  readonly highlightMatch: boolean | undefined
+  readonly highlightMatch: boolean
   readonly contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
+  readonly searchMode: SearchMode
 }
 
 export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
@@ -27,6 +29,7 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   searchQuery,
   highlightMatch,
   contentMatches,
+  searchMode,
 }: WordListKhmerProps) => {
   // Memoize lengths for sidebar (kept here as it's specific to Sidebar UI prop)
   const lengthsData = useMemo(() => makeShortInfoAboutLengths(data), [data])
@@ -47,6 +50,7 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
     exactMatchIndex,
     searchQuery,
     highlightMatch,
+    searchMode,
   })
 
   // 3. Header Spy Logic

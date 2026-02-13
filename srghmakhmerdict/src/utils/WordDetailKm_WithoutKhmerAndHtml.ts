@@ -6,101 +6,89 @@ import { wiktionary_km__get_short_info__only_en_or_ru_text_without_html } from '
 import { wiktionary_ru__get_short_info__only_ru_text_without_html } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/wiktionary-short-description-ru-extractor'
 import type { ShortDefinitionKm, WordDetailKm } from '../db/dict'
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
-import { type Lazy, defer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/lazy'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
-export type WordDetailKm_WithoutKhmerAndHtml = {
-  // word: NonEmptyStringTrimmed // contains khmer, not needed
-  desc: Lazy<TypedWithoutKhmerAndHtml | undefined>
-  // phonetic: NonEmptyStringTrimmed | undefined // not needed
-  wiktionary: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
-  // from_csv_variants: NonEmptyArray<NonEmptyStringTrimmed> | undefined // fully khmer
-  // from_csv_noun_forms: NonEmptyArray<NonEmptyStringTrimmed> | undefined // fully khmer
-  // from_csv_pronunciations: NonEmptyArray<NonEmptyStringTrimmed> | undefined // not needed
-  from_csv_raw_html: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
-  // from_chuon_nath: NonEmptyStringTrimmed | undefined // fully khmer
-  from_chuon_nath_translated: Lazy<TypedWithoutKhmerAndHtml | undefined>
-  from_russian_wiki: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
-  gorgoniev: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
-  en_km_com: Lazy<TypedWithoutKhmerAndHtml | undefined> // html
-}
+type Processor<K extends keyof WordDetailKm> = (x: WordDetailKm[K]) => TypedWithoutKhmerAndHtml | undefined
 
 const strToWithoutKhmerAndHtml_remove_orUndefined_ = undefined_lift(strToWithoutKhmerAndHtml_remove_orUndefined)
 
-export const wordDetailKm_WithoutKhmerAndHtml_mk = (x: WordDetailKm): WordDetailKm_WithoutKhmerAndHtml => {
-  return {
-    // word: x.word,
-
-    // Expensive fields -> wrapped in defer (memoized thunks)
-    desc: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.desc)),
-    wiktionary: defer(() =>
-      strToWithoutKhmerAndHtml_remove_orUndefined_(
-        undefined_lift(wiktionary_km__get_short_info__only_en_or_ru_text_without_html)(x.wiktionary),
-      ),
+export const processors: { [K in keyof WordDetailKm]-?: Processor<K> } = {
+  desc: x => strToWithoutKhmerAndHtml_remove_orUndefined_(x),
+  phonetic: () => undefined,
+  wiktionary: x =>
+    strToWithoutKhmerAndHtml_remove_orUndefined_(
+      undefined_lift(wiktionary_km__get_short_info__only_en_or_ru_text_without_html)(x),
     ),
-    from_csv_raw_html: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.from_csv_raw_html)),
-    from_russian_wiki: defer(() =>
-      strToWithoutKhmerAndHtml_remove_orUndefined_(
-        undefined_lift(wiktionary_ru__get_short_info__only_ru_text_without_html)(x.from_russian_wiki),
-      ),
+  from_csv_variants: () => undefined,
+  from_csv_noun_forms: () => undefined,
+  from_csv_pronunciations: () => undefined,
+  from_csv_raw_html: x => strToWithoutKhmerAndHtml_remove_orUndefined_(x),
+  from_chuon_nath: () => undefined,
+  from_chuon_nath_translated: x => strToWithoutKhmerAndHtml_remove_orUndefined_(x),
+  from_russian_wiki: x =>
+    strToWithoutKhmerAndHtml_remove_orUndefined_(
+      undefined_lift(wiktionary_ru__get_short_info__only_ru_text_without_html)(x),
     ),
-    gorgoniev: defer(() => {
-      if (!x.from_russian_wiki) return
+  gorgoniev: x => {
+    if (x === undefined) return undefined
+    const ipaTag = 'pre' as NonEmptyStringTrimmed
 
-      const ipaTag = 'pre' as NonEmptyStringTrimmed
-
-      return strToWithoutKhmerAndHtml_remove_orUndefined(x.from_russian_wiki, [ipaTag])
-    }),
-    en_km_com: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.en_km_com)),
-    from_chuon_nath_translated: defer(() => strToWithoutKhmerAndHtml_remove_orUndefined_(x.from_chuon_nath_translated)),
-
-    // Cheap fields -> passed directly
-    // phonetic: x.phonetic,
-    // from_csv_variants: x.from_csv_variants,
-    // from_csv_noun_forms: x.from_csv_noun_forms,
-    // from_csv_pronunciations: x.from_csv_pronunciations,
-  }
+    return strToWithoutKhmerAndHtml_remove_orUndefined(x, [ipaTag])
+  },
+  en_km_com: x => strToWithoutKhmerAndHtml_remove_orUndefined_(x),
 }
 
 // Helper to pick the best HTML source from the DB object
-// Because of Lazy, the first valid result prevents subsequent HTML processing.
-export const getBestDefinitionHtml = (detail: WordDetailKm): TypedWithoutKhmerAndHtml | undefined => {
-  const lazy = wordDetailKm_WithoutKhmerAndHtml_mk(detail)
+export const getBestDefinitionEnOrRuFromKm = (
+  detail: WordDetailKm,
+): { t: ShortDefinitionKm['source']; v: TypedWithoutKhmerAndHtml } | undefined => {
+  const desc = processors.desc(detail.desc)
 
-  return (
-    lazy.desc() ||
-    lazy.en_km_com() ||
-    lazy.from_csv_raw_html() ||
-    lazy.wiktionary() || // needs special treatment
-    lazy.from_russian_wiki() || // needs special treatment
-    lazy.from_chuon_nath_translated()
-  )
+  if (desc) return { t: 'Desc', v: desc }
+
+  const en_km_com = processors.en_km_com(detail.en_km_com)
+
+  if (en_km_com) return { t: 'EnKmCom', v: en_km_com }
+
+  const from_csv_raw_html = processors.from_csv_raw_html(detail.from_csv_raw_html)
+
+  if (from_csv_raw_html) return { t: 'FromCsvRawHtml', v: from_csv_raw_html }
+
+  const wiktionary = processors.wiktionary(detail.wiktionary)
+
+  if (wiktionary) return { t: 'Wiktionary', v: wiktionary }
+
+  const from_russian_wiki = processors.from_russian_wiki(detail.from_russian_wiki)
+
+  if (from_russian_wiki) return { t: 'FromRussianWiki', v: from_russian_wiki }
+
+  const from_chuon_nath_translated = processors.from_chuon_nath_translated(detail.from_chuon_nath_translated)
+
+  if (from_chuon_nath_translated) return { t: 'FromChuonNathTranslated', v: from_chuon_nath_translated }
+
+  return undefined
 }
 
-export const getBestDefinitionHtml_fromShort = (shortDef: ShortDefinitionKm): TypedWithoutKhmerAndHtml | undefined => {
-  const { definition, source } = shortDef
-
-  switch (source) {
+export const getBestDefinitionEnOrRuFromKm_fromShort = (
+  shortDef: ShortDefinitionKm,
+): TypedWithoutKhmerAndHtml | undefined => {
+  switch (shortDef.source) {
     case 'Wiktionary':
-      return undefined_lift(strToWithoutKhmerAndHtml_remove_orUndefined)(
-        undefined_lift(wiktionary_km__get_short_info__only_en_or_ru_text_without_html)(definition),
-      )
+      return processors.wiktionary(shortDef.definition)
     case 'FromRussianWiki':
-      return undefined_lift(strToWithoutKhmerAndHtml_remove_orUndefined)(
-        wiktionary_ru__get_short_info__only_ru_text_without_html(definition),
-      )
-    case 'Gorgoniev': {
-      const ipaTag = 'pre' as NonEmptyStringTrimmed
-
-      return strToWithoutKhmerAndHtml_remove_orUndefined(definition, [ipaTag])
-    }
+      return processors.from_russian_wiki(shortDef.definition)
+    case 'Gorgoniev':
+      return processors.gorgoniev(shortDef.definition)
     case 'FromCsvRawHtml':
+      return processors.from_csv_raw_html(shortDef.definition)
     case 'EnKmCom':
+      return processors.en_km_com(shortDef.definition)
     case 'Desc':
+      return processors.desc(shortDef.definition)
     case 'FromChuonNathTranslated':
-      return strToWithoutKhmerAndHtml_remove_orUndefined(definition)
+      return processors.from_chuon_nath_translated(shortDef.definition)
     default:
-      assertNever(source)
+      assertNever(shortDef.source)
   }
 }

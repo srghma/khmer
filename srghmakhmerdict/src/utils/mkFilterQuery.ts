@@ -4,23 +4,27 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { memoizeSync2_LRU } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
 import { unknown_to_errorMessage } from './errorMessage'
+import type { SearchMode } from '../providers/SettingsProvider'
 
-export type FilterQuery = { isRegex: true; v: RegExp } | { isRegex: false; v: NonEmptyStringTrimmed }
+export type FilterQuery =
+  | { t: 'regex'; v: RegExp }
+  | { t: 'starts_with'; v: NonEmptyStringTrimmed }
+  | { t: 'includes'; v: NonEmptyStringTrimmed }
 
 export type MakeFilterQueryResult = { t: 'empty' } | { t: 'ok'; v: FilterQuery } | { t: 'error'; v: string }
 
 export const MakeFilterQueryResult_EMPTY = { t: 'empty' } as const
 
-export function makeFilterQuery(debouncedQuery: string, isRegex: boolean): MakeFilterQueryResult {
+export function makeFilterQuery(debouncedQuery: string, searchMode: SearchMode): MakeFilterQueryResult {
   const debouncedQuery_ = String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery)
 
   if (!debouncedQuery_) return MakeFilterQueryResult_EMPTY
 
-  if (isRegex) {
+  if (searchMode === 'regex') {
     try {
       return {
         t: 'ok',
-        v: { isRegex: true, v: new RegExp(debouncedQuery, 'i') },
+        v: { t: 'regex', v: new RegExp(debouncedQuery, 'i') },
       }
     } catch (e: unknown) {
       return {
@@ -36,9 +40,9 @@ export function makeFilterQuery(debouncedQuery: string, isRegex: boolean): MakeF
 
   return {
     t: 'ok',
-    v: { isRegex: false, v },
+    v: { t: searchMode, v },
   }
 }
 
 export const mkMakeFilterQuery_memoized = () =>
-  memoizeSync2_LRU(makeFilterQuery, (query: string, isRegex: boolean) => `${query}__${isRegex ? 'R' : 'S'}`)
+  memoizeSync2_LRU(makeFilterQuery, (query: string, searchMode: SearchMode) => `${query}__${searchMode}`)

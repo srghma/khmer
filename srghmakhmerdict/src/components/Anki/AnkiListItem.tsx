@@ -2,21 +2,19 @@ import React, { useMemo } from 'react'
 import { formatDistance } from 'date-fns'
 import { getBestDefinitionKhmerFromEn_fromShort } from '../../utils/WordDetailEn_OnlyKhmerAndWithoutHtml'
 import { getBestDefinitionKhmerFromRu_fromShort } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
-import { getBestDefinitionHtml_fromShort } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
+import { getBestDefinitionEnOrRuFromKm_fromShort } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 import type { ShortDefinitionEn, ShortDefinitionKm, ShortDefinitionRu } from '../../db/dict/types'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { KhmerWordsMap } from '../../db/dict'
 import type { AnkiGameMode } from './types'
 import { RenderHtmlColorized } from '../DetailView/atoms'
-import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 export type AnkiListItemProps_ShowMode_Map = {
-  'km:GUESS_NON_KHMER': NonEmptyStringTrimmed
-  'en:GUESS_KHMER': NonEmptyStringTrimmed
-  'ru:GUESS_KHMER': NonEmptyStringTrimmed
-  'km:GUESS_KHMER': ShortDefinitionKm
-  'en:GUESS_NON_KHMER': ShortDefinitionEn
-  'ru:GUESS_NON_KHMER': ShortDefinitionRu
+  'km:GUESSING_NON_KHMER': NonEmptyStringTrimmed
+  'en:GUESSING_KHMER': NonEmptyStringTrimmed
+  'ru:GUESSING_KHMER': NonEmptyStringTrimmed
+  'km:GUESSING_KHMER': ShortDefinitionKm
+  'en:GUESSING_NON_KHMER': ShortDefinitionEn
+  'ru:GUESSING_NON_KHMER': ShortDefinitionRu
 }
 
 export type AnkiListItemProps_ShowMode = {
@@ -28,14 +26,12 @@ interface AnkiListItemProps_Common {
   now: number
   isSelected: boolean
   onSelect: () => void
-  km_map: KhmerWordsMap
-  maybeColorMode: MaybeColorizationMode
 }
 
 export type AnkiListItemProps = AnkiListItemProps_Common & AnkiListItemProps_ShowMode
 
 export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItemProps) {
-  const { card_due, isSelected, onSelect, now, t, v, km_map, maybeColorMode } = props
+  const { card_due, isSelected, onSelect, now, t, v } = props
 
   const isDue = card_due <= now
   const notDueButWillSeeIn2MinutesOrLess = card_due <= now + 2 * 60000
@@ -44,7 +40,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
   const displayLabel = useMemo(() => {
     switch (t) {
       // Modes where we show the Word directly
-      case 'km:GUESS_NON_KHMER': {
+      case 'km:GUESSING_NON_KHMER': {
         return (
           <RenderHtmlColorized
             hideBrokenImages_enable={false}
@@ -52,19 +48,17 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
-            km_map={km_map}
-            maybeColorMode={maybeColorMode}
           />
         )
       }
-      case 'en:GUESS_KHMER':
-      case 'ru:GUESS_KHMER':
+      case 'en:GUESSING_KHMER':
+      case 'ru:GUESSING_KHMER':
         return <span className="font-bold text-foreground">{v}</span>
 
       // Modes where we process the Description
-      case 'km:GUESS_KHMER': {
+      case 'km:GUESSING_KHMER': {
         // Mode 2: Clue is Desc (Km) -> Show Desc without Khmer Chars.
-        const val = getBestDefinitionHtml_fromShort(v)
+        const val = getBestDefinitionEnOrRuFromKm_fromShort(v)
 
         if (!val) return '...'
 
@@ -75,12 +69,10 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
-            km_map={km_map}
-            maybeColorMode={maybeColorMode}
           />
         )
       }
-      case 'en:GUESS_NON_KHMER': {
+      case 'en:GUESSING_NON_KHMER': {
         // Mode 4: Clue is Desc (En). Remove non-khmer chars -> Shows Khmer Text.
         const val = getBestDefinitionKhmerFromEn_fromShort(v)
 
@@ -93,12 +85,10 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
-            km_map={km_map}
-            maybeColorMode={maybeColorMode}
           />
         )
       }
-      case 'ru:GUESS_NON_KHMER': {
+      case 'ru:GUESSING_NON_KHMER': {
         // Mode 6: Clue is Desc (Ru). Remove non-khmer chars -> Shows Khmer Text.
         const val = getBestDefinitionKhmerFromRu_fromShort(v)
 
@@ -111,15 +101,13 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
-            km_map={km_map}
-            maybeColorMode={maybeColorMode}
           />
         )
       }
       default:
         return null
     }
-  }, [t, v, km_map, maybeColorMode])
+  }, [t, v])
 
   const dueLabel = useMemo(() => {
     const distance = formatDistance(card_due, now, { addSuffix: false })
@@ -128,7 +116,13 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
     // We append - if due.
 
     const text = isDue ? `-${distance}` : distance
-    const colorClass = isDue ? 'text-danger' : notDueButWillSeeIn2MinutesOrLess ? 'text-warning' : notDueButWillSeeIn5MinutesOrLess ? 'text-secondary' : 'text-primary' // Red vs Blue
+    const colorClass = isDue
+      ? 'text-danger'
+      : notDueButWillSeeIn2MinutesOrLess
+        ? 'text-warning'
+        : notDueButWillSeeIn5MinutesOrLess
+          ? 'text-secondary'
+          : 'text-primary' // Red vs Blue
 
     return (
       <div className="flex flex-col items-end gap-0.5 ml-auto shrink-0 pl-2">

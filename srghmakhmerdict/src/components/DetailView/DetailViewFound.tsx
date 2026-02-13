@@ -12,16 +12,16 @@ import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
 import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
+import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { useAppMainView } from '../../hooks/useAppMainView'
+import { useKhmerAnalyzer } from '../../providers/KhmerAnalyzerProvider'
+import { useDictionary } from '../../providers/DictionaryProvider'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
   data: WordDetailEnOrRuOrKm
   mode: DictionaryLanguage
-  km_map: KhmerWordsMap
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
-  setKhmerAnalyzerModalText_setToOpen: (v: NonEmptyStringTrimmed) => void
 
   // Logic Props
   isFav: boolean
@@ -36,9 +36,7 @@ export const DetailViewFound = ({
   word,
   data,
   mode,
-  km_map,
   onNavigate,
-  setKhmerAnalyzerModalText_setToOpen,
   isFav,
   toggleFav,
   backButton_goBack,
@@ -59,8 +57,10 @@ export const DetailViewFound = ({
     toggleNonKhmerWordsHiding,
     khmerFontFamily,
   } = useSettings()
+  const { km_map } = useDictionary()
   const [, setLocation] = useLocation()
   const currentView = useAppMainView()
+  const { openKhmerAnalyzer } = useKhmerAnalyzer()
 
   const currentNavigationStackItem =
     currentView.type === 'history' || currentView.type === 'favorites' || currentView.type === 'dashboard'
@@ -91,9 +91,9 @@ export const DetailViewFound = ({
   const handleOpenKhmerAnalyzer = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
       window.getSelection()?.removeAllRanges()
-      setKhmerAnalyzerModalText_setToOpen(selectedText)
+      openKhmerAnalyzer(selectedText, mode)
     },
-    [setKhmerAnalyzerModalText_setToOpen],
+    [openKhmerAnalyzer, mode],
   )
 
   const handleOpenSearch = useCallback(
@@ -110,12 +110,11 @@ export const DetailViewFound = ({
 
   const renderPopupContent = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
-      if (!currentNavigationStackItem || !km_map) return null
+      if (!currentNavigationStackItem) return null
 
       return (
         <SelectionMenuBody
           currentMode={currentNavigationStackItem.mode}
-          km_map={km_map}
           selectedText={selectedText}
           onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
           onClosePopupAndOpenSearch={() => handleOpenSearch(selectedText)}

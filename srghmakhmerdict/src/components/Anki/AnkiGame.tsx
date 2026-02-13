@@ -9,7 +9,6 @@ import {
   type NonEmptyArray,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { getBestAvailableLanguage } from '../../utils/getBestAvailableLanguage'
-import type { FavoriteItem } from '../../db/favorite/item'
 import type { DictionaryLanguage } from '../../types'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { AnkiHeader } from './AnkiHeader'
@@ -20,9 +19,12 @@ import { useDictionary } from '../../providers/DictionaryProvider'
 import { useAnkiNavigation } from './useAnkiNavigation'
 
 import { memoizeSync1_Boolean } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
-import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { FavoriteItem } from '../../db/favorite/item'
+import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useAnkiPulseStore } from './AnkiPulseContext'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+
+import { useAppToast } from '../../providers/ToastProvider'
 
 const LoadingSpinner = (
   <div className="flex h-full w-full items-center justify-center">
@@ -49,24 +51,6 @@ const SelectCardToStartView = (
     <p>Select a card to start</p>
   </div>
 )
-
-const SessionFinishedView = React.memo(function SessionFinishedView({ onExit }: { onExit: () => void }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center text-default-400 gap-4 p-8 text-center animate-in fade-in zoom-in duration-300">
-      <span className="text-6xl">🎉</span>
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Session Complete!</h2>
-        <p className="mt-2 text-lg">You&apos;ve reviewed all due cards for now.</p>
-      </div>
-      <button
-        className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
-        onClick={onExit}
-      >
-        Back to Dashboard
-      </button>
-    </div>
-  )
-})
 
 const getSidebarClassName = memoizeSync1_Boolean(
   (hasSelectedItem: boolean) =>
@@ -104,30 +88,18 @@ const useCountOfSplitted = (splitted: NonEmptyRecord<DictionaryLanguage, NonEmpt
 
 interface AnkiGameStep2Props {
   allFavorites_splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined>
-  language: DictionaryLanguage
-  selectedId: NonEmptyStringTrimmed | undefined
-  isSessionFinished: boolean
-  navigateToLanguage: (lang: DictionaryLanguage) => void
-  navigateToWord: (word: NonEmptyStringTrimmed) => void
-  navigateToFinished: () => void
-  exitAnki: () => void
 }
 
-const AnkiGameStep2 = React.memo(function AnkiGameStep2({
-  allFavorites_splitted,
-  language,
-  selectedId,
-  isSessionFinished,
-  navigateToLanguage,
-  navigateToWord,
-  navigateToFinished,
-  exitAnki,
-}: AnkiGameStep2Props) {
-  const currentLanguage_favoriteItems = assertIsDefinedAndReturn(allFavorites_splitted[language])
+const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted }: AnkiGameStep2Props) {
+  // useAnkiAutoRedirect(allFavorites_splitted)
+
+  const { urlLanguage, selectedId, navigateToWord, navigateToLanguage, exitAnki } = useAnkiNavigation()
+
+  const currentLanguage_favoriteItems = assertIsDefinedAndReturn(allFavorites_splitted[urlLanguage])
 
   const [currentLanguage_direction, currentLanguage_setDirection] = useAnkiCurrentDirection()
 
-  const initialData = useAnkiGameInitialData(language, currentLanguage_direction, currentLanguage_favoriteItems)
+  const initialData = useAnkiGameInitialData(urlLanguage, currentLanguage_direction, currentLanguage_favoriteItems)
 
   const { km_map } = useDictionary()
   const pulseStore = useAnkiPulseStore()
@@ -144,35 +116,15 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
   // Memoize counts to prevent re-calculation on every render
   const counts = useCountOfSplitted(allFavorites_splitted)
 
-  const handleDictChange = useCallback(
-    (lang: DictionaryLanguage) => {
-      // Use push for language change
-      navigateToLanguage(lang)
-    },
-    [navigateToLanguage],
-  )
-
-  const handleSelect = useCallback(
-    (id: NonEmptyStringTrimmed) => {
-      // Use replace for clicking item in list
-      navigateToWord(id)
-    },
-    [navigateToWord],
-  )
-
-  const handleClearSelection = useCallback(() => {
-    // Going back from card to list - technically same language root
-    // passed language is the current language
-    navigateToLanguage(language)
-  }, [navigateToLanguage, language])
-
   const { reviewCard } = useFavorites()
+
+  const toast = useAppToast()
 
   const handleRate = useCallback(
     async (wordToRate: NonEmptyStringTrimmed, rating: Grade) => {
       if (initialData === 'loading') return
 
-      await reviewCard(wordToRate, language, rating)
+      await reviewCard(wordToRate, urlLanguage, rating)
 
       // Find next due item
       const nextDueItem = initialData.v.find(item => {
@@ -187,24 +139,20 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
 
         navigateToWord(nextWord)
       } else {
-        navigateToFinished()
+        console.log('Session finished!')
+        toast.success('Session finished!' as NonEmptyStringTrimmed)
+        navigateToLanguage(urlLanguage)
       }
     },
-    [initialData, reviewCard, now, navigateToWord, navigateToFinished, language],
+    [initialData, reviewCard, now, navigateToWord, navigateToLanguage, urlLanguage, toast],
   )
 
   const handleReveal = useCallback(() => {
     setIsRevealed(true)
   }, [])
 
-  const sidebarClassName = useMemo(
-    () => getSidebarClassName(!!selectedId || !!isSessionFinished),
-    [selectedId, isSessionFinished],
-  )
-  const rightPanelClassName = useMemo(
-    () => getRightPanelClassName(!!selectedId || !!isSessionFinished),
-    [selectedId, isSessionFinished],
-  )
+  const sidebarClassName = useMemo(() => getSidebarClassName(!!selectedId), [selectedId])
+  const rightPanelClassName = useMemo(() => getRightPanelClassName(!!selectedId), [selectedId])
 
   const itemData = useMemo(() => {
     if (!selectedId || initialData === 'loading') return undefined
@@ -213,8 +161,6 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
   }, [selectedId, initialData])
 
   const rightPanelContent = useMemo(() => {
-    if (isSessionFinished) return <SessionFinishedView onExit={exitAnki} />
-
     if (selectedId) {
       if (!itemData) return CardNotFoundView
 
@@ -222,8 +168,6 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
         <AnkiPlayArea
           isRevealed={isRevealed}
           itemData={itemData}
-          km_map={km_map}
-          onBack={handleClearSelection}
           onRate={rating => handleRate(selectedId, rating)}
           onReveal={handleReveal}
         />
@@ -231,23 +175,13 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
     }
 
     return SelectCardToStartView
-  }, [
-    isSessionFinished,
-    exitAnki,
-    selectedId,
-    itemData,
-    isRevealed,
-    km_map,
-    handleClearSelection,
-    handleRate,
-    handleReveal,
-  ])
+  }, [exitAnki, selectedId, itemData, isRevealed, km_map, handleRate, handleReveal])
 
   return (
     <div className="flex h-full w-full md:h-full bg-background overflow-hidden font-inter text-foreground h-[100dvh]">
       <div className={sidebarClassName}>
         <AnkiHeader
-          activeDict={language}
+          activeDict={urlLanguage}
           direction={currentLanguage_direction}
           en_dueCount_today={counts.en_dueCount_today}
           en_dueCount_total={counts.en_dueCount_total}
@@ -255,17 +189,12 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
           kh_dueCount_total={counts.kh_dueCount_total}
           ru_dueCount_today={counts.ru_dueCount_today}
           ru_dueCount_total={counts.ru_dueCount_total}
-          onDictChange={handleDictChange}
           onDirectionChange={currentLanguage_setDirection}
           onExit={exitAnki}
         />
 
         <div className="flex-1 flex overflow-hidden relative bg-background">
-          {initialData === 'loading' ? (
-            LoadingSpinner
-          ) : (
-            <AnkiListContent data={initialData} km_map={km_map} selectedId={selectedId} onSelect={handleSelect} />
-          )}
+          {initialData === 'loading' ? LoadingSpinner : <AnkiListContent data={initialData} selectedId={selectedId} />}
         </div>
       </div>
 
@@ -275,18 +204,20 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({
 })
 
 const AnkiGameInner = React.memo(function AnkiGameInner(props: AnkiGameStep2Props) {
-  const { allFavorites_splitted, language, navigateToLanguage } = props
-  const currentLanguage_favoriteItems = allFavorites_splitted[language]
+  const { allFavorites_splitted } = props
+  const { urlLanguage, navigateToLanguage } = useAnkiNavigation()
+
+  const currentLanguage_favoriteItems = allFavorites_splitted[urlLanguage]
 
   useEffect(() => {
     if (!currentLanguage_favoriteItems) {
       const nextLang = getBestAvailableLanguage(allFavorites_splitted)
 
-      if (nextLang !== language) {
+      if (nextLang !== urlLanguage) {
         navigateToLanguage(nextLang)
       }
     }
-  }, [currentLanguage_favoriteItems, allFavorites_splitted, language, navigateToLanguage])
+  }, [currentLanguage_favoriteItems, allFavorites_splitted, urlLanguage, navigateToLanguage])
 
   if (!currentLanguage_favoriteItems) {
     return LoadingSpinner
@@ -304,16 +235,6 @@ export const AnkiGame = React.memo(function AnkiGame() {
     return allFavorites_split_sorted(allFavorites)
   }, [allFavorites])
 
-  const {
-    urlLanguage,
-    selectedId,
-    isSessionFinished,
-    navigateToLanguage,
-    navigateToWord,
-    navigateToFinished,
-    exitAnki,
-  } = useAnkiNavigation(allFavorites_splitted)
-
   if (loading) return LoadingSpinner
   if (!allFavorites_splitted || !Array_isNonEmptyArray(allFavorites)) {
     return NoFavoritesView
@@ -321,16 +242,7 @@ export const AnkiGame = React.memo(function AnkiGame() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-background">
-      <AnkiGameInner
-        allFavorites_splitted={allFavorites_splitted}
-        exitAnki={exitAnki}
-        isSessionFinished={isSessionFinished}
-        language={urlLanguage}
-        navigateToFinished={navigateToFinished}
-        navigateToLanguage={navigateToLanguage}
-        navigateToWord={navigateToWord}
-        selectedId={selectedId}
-      />
+      <AnkiGameInner allFavorites_splitted={allFavorites_splitted} />
     </div>
   )
 })

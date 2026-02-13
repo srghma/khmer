@@ -2,14 +2,21 @@ import { useRef, useEffect, useCallback } from 'react'
 import { type VirtualizedListHandle } from '../components/VirtualizedList'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { renderWordMatch } from '../components/WordList.utils'
+import type { SearchMode } from '../providers/SettingsProvider'
 
 interface UseWordListCommonProps {
   exactMatchIndex: number
   searchQuery: NonEmptyStringTrimmed | undefined
-  highlightMatch: boolean | undefined
+  highlightMatch: boolean
+  searchMode: SearchMode
 }
 
-export function useWordListCommon({ exactMatchIndex, searchQuery, highlightMatch }: UseWordListCommonProps) {
+export function useWordListCommon({
+  exactMatchIndex,
+  searchQuery,
+  highlightMatch,
+  searchMode,
+}: UseWordListCommonProps) {
   const listRef = useRef<VirtualizedListHandle>(null)
 
   // 1. Auto-scroll to exact match
@@ -22,8 +29,8 @@ export function useWordListCommon({ exactMatchIndex, searchQuery, highlightMatch
   // 2. Memoized Item Renderer
   // We explicitly type the function to match VirtualizedList expectations
   const renderWordItem = useCallback(
-    (w: NonEmptyStringTrimmed) => renderWordMatch(w, searchQuery, highlightMatch),
-    [searchQuery, highlightMatch],
+    (w: NonEmptyStringTrimmed) => renderWordMatch(w, searchQuery, highlightMatch, searchMode),
+    [searchQuery, highlightMatch, searchMode],
   )
 
   // 3. Helper to scroll to specific index safely

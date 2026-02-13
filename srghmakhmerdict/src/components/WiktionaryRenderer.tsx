@@ -4,21 +4,20 @@ import { type DictionaryLanguage } from '../types'
 import styles from './WiktionaryRenderer.module.css'
 import { useAppToast } from '../providers/ToastProvider'
 import { detectModeFromText } from '../utils/detectModeFromText'
-import type { KhmerWordsMap } from '../db/dict'
 import { colorizeHtml } from '../utils/text-processing/html'
-import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { useSettings } from '../providers/SettingsProvider'
+import { useDictionary } from '../providers/DictionaryProvider'
 
-export const useWiktionaryContent = (
-  html: NonEmptyStringTrimmed,
-  maybeColorMode: MaybeColorizationMode,
-  km_map: KhmerWordsMap,
-) => {
+export const useWiktionaryContent = (html: NonEmptyStringTrimmed) => {
+  const { km_map } = useDictionary()
+  const { maybeColorMode } = useSettings()
+
   return useMemo(() => {
     if (maybeColorMode === 'none') return { __html: html }
 
@@ -86,8 +85,6 @@ interface WiktionaryRendererProps {
     | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
     | undefined
   currentMode: DictionaryLanguage
-  km_map: KhmerWordsMap
-  maybeColorMode: MaybeColorizationMode
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
 }
@@ -97,15 +94,13 @@ export const WiktionaryRenderer = ({
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
   isKhmerLinksEnabled_ifTrue_passOnNavigate,
   currentMode,
-  km_map,
-  maybeColorMode,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // 1. Process HTML (Colorization)
-  const content = useWiktionaryContent(html, maybeColorMode, km_map)
+  const content = useWiktionaryContent(html)
 
   const toast = useAppToast()
 

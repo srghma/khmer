@@ -24,12 +24,12 @@ export type CardAndDescription<L extends DictionaryLanguage> = {
 // ru tab - guess non-khmer - if list we need to show ShortDescription without non-khmer chars, in details we need to show FullDescription without non-khmer chars
 
 export type GameModeAndDataItem_Map = {
-  'km:GUESS_NON_KHMER': FavoriteItem
-  'en:GUESS_KHMER': FavoriteItem
-  'ru:GUESS_KHMER': FavoriteItem
-  'km:GUESS_KHMER': CardAndDescription<'km'>
-  'en:GUESS_NON_KHMER': CardAndDescription<'en'>
-  'ru:GUESS_NON_KHMER': CardAndDescription<'ru'>
+  'km:GUESSING_NON_KHMER': FavoriteItem
+  'en:GUESSING_KHMER': FavoriteItem
+  'ru:GUESSING_KHMER': FavoriteItem
+  'km:GUESSING_KHMER': CardAndDescription<'km'>
+  'en:GUESSING_NON_KHMER': CardAndDescription<'en'>
+  'ru:GUESSING_NON_KHMER': CardAndDescription<'ru'>
 }
 
 export type GameModeAndData = {
@@ -46,13 +46,13 @@ export function GameModeAndData_NonEmptyArray_findItemByWord_impl<M extends Anki
   data: NonEmptyArray<GameModeAndDataItem_Map[M]>,
 ): GameModeAndDataItem_Map[M] | undefined {
   switch (mode) {
-    case 'km:GUESS_NON_KHMER':
-    case 'en:GUESS_KHMER':
-    case 'ru:GUESS_KHMER':
+    case 'km:GUESSING_NON_KHMER':
+    case 'en:GUESSING_KHMER':
+    case 'ru:GUESSING_KHMER':
       return (data as any).find((item: any) => item.word === word)
-    case 'km:GUESS_KHMER':
-    case 'en:GUESS_NON_KHMER':
-    case 'ru:GUESS_NON_KHMER':
+    case 'km:GUESSING_KHMER':
+    case 'en:GUESSING_NON_KHMER':
+    case 'ru:GUESSING_NON_KHMER':
       return (data as any).find((item: any) => item.card.word === word)
   }
 }
@@ -84,13 +84,13 @@ export function GameModeAndData_NonEmptyArray_first(data: GameModeAndData): Game
 
 export function GameModeAndDataItem_getCard(item: GameModeAndDataItem): FavoriteItem {
   switch (item.t) {
-    case 'km:GUESS_NON_KHMER':
-    case 'en:GUESS_KHMER':
-    case 'ru:GUESS_KHMER':
+    case 'km:GUESSING_NON_KHMER':
+    case 'en:GUESSING_KHMER':
+    case 'ru:GUESSING_KHMER':
       return item.v
-    case 'km:GUESS_KHMER':
-    case 'en:GUESS_NON_KHMER':
-    case 'ru:GUESS_NON_KHMER':
+    case 'km:GUESSING_KHMER':
+    case 'en:GUESSING_NON_KHMER':
+    case 'ru:GUESSING_NON_KHMER':
       return item.v.card
   }
 }
@@ -107,24 +107,28 @@ export function useAnkiGameInitialData(
   // 1. Handle Sync Modes (1, 3, 5) immediately via Memo
   // This prevents a "loading" flash for modes that already have all the data they need.
   const syncResult = useMemo<GameModeAndData | undefined>(() => {
-    console.log('[Anki InitialData] Computing syncResult', { language, direction, itemCount: items.length })
+    // console.log('[Anki InitialData] Computing syncResult', { language, direction, itemCount: items.length })
     // Mode 1: KM Dict -> Guess En/Ru (Show Word)
     if (language === 'km' && direction === 'GUESSING_NON_KHMER') {
-      console.log('[Anki InitialData] Sync mode: km:GUESS_NON_KHMER')
-      return { t: 'km:GUESS_NON_KHMER', v: items }
+      // console.log('[Anki InitialData] Sync mode: km:GUESSING_NON_KHMER')
+
+      return { t: 'km:GUESSING_NON_KHMER', v: items }
     }
     // Mode 3: EN Dict -> Guess Km (Show Word)
     if (language === 'en' && direction === 'GUESSING_KHMER') {
-      console.log('[Anki InitialData] Sync mode: en:GUESS_KHMER')
-      return { t: 'en:GUESS_KHMER', v: items }
+      // console.log('[Anki InitialData] Sync mode: en:GUESSING_KHMER')
+
+      return { t: 'en:GUESSING_KHMER', v: items }
     }
     // Mode 5: RU Dict -> Guess Km (Show Word)
     if (language === 'ru' && direction === 'GUESSING_KHMER') {
-      console.log('[Anki InitialData] Sync mode: ru:GUESS_KHMER')
-      return { t: 'ru:GUESS_KHMER', v: items }
+      // console.log('[Anki InitialData] Sync mode: ru:GUESSING_KHMER')
+
+      return { t: 'ru:GUESSING_KHMER', v: items }
     }
 
-    console.log('[Anki InitialData] No sync mode matched, will use async')
+    // console.log('[Anki InitialData] No sync mode matched, will use async')
+
     return undefined
   }, [language, direction, items])
 
@@ -147,7 +151,8 @@ export function useAnkiGameInitialData(
     })
   }
 
-  const asyncResult = asyncState.requestId === languageAndDirectionToAnkiGameMode(language, direction) ? asyncState.result : 'loading'
+  const asyncResult =
+    asyncState.requestId === languageAndDirectionToAnkiGameMode(language, direction) ? asyncState.result : 'loading'
 
   useEffect(() => {
     // If we have a sync result, do nothing (or reset async state)
@@ -156,25 +161,28 @@ export function useAnkiGameInitialData(
     let active = true
 
     const fetchDescriptions = async () => {
-      console.log('[Anki InitialData] Starting async fetch', { language, direction, itemCount: items.length })
+      // console.log('[Anki InitialData] Starting async fetch', { language, direction, itemCount: items.length })
       // No need to setAsyncState('loading') here as it's already reset during render if requestId changed
       const words = getWords(items)
-      console.log('[Anki InitialData] Words to fetch:', Array.from(words))
+
+      // console.log('[Anki InitialData] Words to fetch:', Array.from(words))
       try {
         // Mode 2: KM Dict -> Guess Km (Show Description)
         if (language === 'km' && direction === 'GUESSING_KHMER') {
-          console.log('[Anki InitialData] Async mode: km:GUESS_KHMER, fetching descriptions...')
+          // console.log('[Anki InitialData] Async mode: km:GUESS_KHMER, fetching descriptions...')
           const descs = await getWordDetailsByModeShort_Strict('km', words)
-          console.log('[Anki InitialData] Descriptions fetched:', Object.keys(descs))
+
+          // console.log('[Anki InitialData] Descriptions fetched:', Object.keys(descs))
 
           if (active) {
-            console.log('[Anki InitialData] Zipping queue with descriptions...')
+            // console.log('[Anki InitialData] Zipping queue with descriptions...')
             const zipped = zipQueueWithDescriptions(items, descs)
-            console.log('[Anki InitialData] Zipped successfully, count:', zipped.length)
+
+            // console.log('[Anki InitialData] Zipped successfully, count:', zipped.length)
             setAsyncState({
               requestId: languageAndDirectionToAnkiGameMode(language, direction),
               result: {
-                t: 'km:GUESS_KHMER',
+                t: 'km:GUESSING_KHMER',
                 v: zipped,
               },
             })
@@ -182,18 +190,20 @@ export function useAnkiGameInitialData(
         }
         // Mode 4: EN Dict -> Guess En (Show Description/Translation)
         else if (language === 'en' && direction === 'GUESSING_NON_KHMER') {
-          console.log('[Anki InitialData] Async mode: en:GUESS_NON_KHMER, fetching descriptions...')
+          // console.log('[Anki InitialData] Async mode: en:GUESS_NON_KHMER, fetching descriptions...')
           const descs = await getWordDetailsByModeShort_Strict('en', words)
-          console.log('[Anki InitialData] Descriptions fetched:', Object.keys(descs))
+
+          // console.log('[Anki InitialData] Descriptions fetched:', Object.keys(descs))
 
           if (active) {
-            console.log('[Anki InitialData] Zipping queue with descriptions...')
+            // console.log('[Anki InitialData] Zipping queue with descriptions...')
             const zipped = zipQueueWithDescriptions(items, descs)
-            console.log('[Anki InitialData] Zipped successfully, count:', zipped.length)
+
+            // console.log('[Anki InitialData] Zipped successfully, count:', zipped.length)
             setAsyncState({
               requestId: languageAndDirectionToAnkiGameMode(language, direction),
               result: {
-                t: 'en:GUESS_NON_KHMER',
+                t: 'en:GUESSING_NON_KHMER',
                 v: zipped,
               },
             })
@@ -201,24 +211,26 @@ export function useAnkiGameInitialData(
         }
         // Mode 6: RU Dict -> Guess Ru (Show Description/Translation)
         else if (language === 'ru' && direction === 'GUESSING_NON_KHMER') {
-          console.log('[Anki InitialData] Async mode: ru:GUESS_NON_KHMER, fetching descriptions...')
+          // console.log('[Anki InitialData] Async mode: ru:GUESS_NON_KHMER, fetching descriptions...')
           const descs = await getWordDetailsByModeShort_Strict('ru', words)
-          console.log('[Anki InitialData] Descriptions fetched:', Object.keys(descs))
+
+          // console.log('[Anki InitialData] Descriptions fetched:', Object.keys(descs))
 
           if (active) {
-            console.log('[Anki InitialData] Zipping queue with descriptions...')
+            // console.log('[Anki InitialData] Zipping queue with descriptions...')
             const zipped = zipQueueWithDescriptions(items, descs)
-            console.log('[Anki InitialData] Zipped successfully, count:', zipped.length)
+
+            // console.log('[Anki InitialData] Zipped successfully, count:', zipped.length)
             setAsyncState({
               requestId: languageAndDirectionToAnkiGameMode(language, direction),
               result: {
-                t: 'ru:GUESS_NON_KHMER',
+                t: 'ru:GUESSING_NON_KHMER',
                 v: zipped,
               },
             })
           }
         }
-        console.log('[Anki InitialData] Async fetch completed successfully')
+        // console.log('[Anki InitialData] Async fetch completed successfully')
       } catch (e) {
         console.error('[Anki InitialData] Error during async fetch:', e)
         if (active) {

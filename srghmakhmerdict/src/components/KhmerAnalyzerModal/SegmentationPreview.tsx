@@ -8,6 +8,7 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { KhmerWordUnit } from './KhmerWordUnit'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
+import { useDictionary } from '../../providers/DictionaryProvider'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
   <span className="align-top mt-1 inline-block text-foreground/80">{text}</span>
@@ -66,11 +67,11 @@ interface SegmentationPreviewProps {
   segments: NonEmptyArray<TextSegment | TextSegmentEnhanced>
   onKhmerWordClick: ((v: TypedKhmerWord) => void) | undefined
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
-  ({ onKhmerWordClick, segments, maybeColorMode, km_map }) => {
+  ({ onKhmerWordClick, segments, maybeColorMode }) => {
+    const { km_map } = useDictionary()
     let globalWordIndex = 0
 
     return (

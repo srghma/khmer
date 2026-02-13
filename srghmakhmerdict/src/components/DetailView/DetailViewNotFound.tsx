@@ -6,7 +6,6 @@ import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import { useKhmerAnalysis } from '../KhmerAnalyzerModal/useKhmerAnalysis'
 
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict/index'
 
 import { useSettings } from '../../providers/SettingsProvider'
 import { DetailViewHeader } from './DetailViewHeader'
@@ -18,7 +17,6 @@ import { truncateString } from '../../utils/truncateString'
 interface DetailViewNotFoundProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
-  km_map: KhmerWordsMap
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
@@ -27,14 +25,13 @@ interface DetailViewNotFoundProps {
 export const DetailViewNotFound = ({
   word,
   mode,
-  km_map,
   onNavigate,
   backButton_goBack,
   backButton_desktopOnlyStyles_showButton,
 }: DetailViewNotFoundProps) => {
   const [analyzedText, setAnalyzedText] = useState<string>(word)
   // 1. Analyze the unknown text
-  const res = useKhmerAnalysis(analyzedText, mode, km_map)
+  const res = useKhmerAnalysis(analyzedText, mode)
 
   const {
     isKhmerLinksEnabled,
@@ -99,7 +96,6 @@ export const DetailViewNotFound = ({
       <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <GoogleTranslateTextarea
           defaultTargetLang="en"
-          km_map={km_map}
           labelPlacement="outside"
           maxRows={10} // Increased slightly to accommodate translation text growth
           maybeColorMode={maybeColorMode}
@@ -111,7 +107,7 @@ export const DetailViewNotFound = ({
           onValueChange={setAnalyzedText}
         />
 
-        <KhmerAnalysisResults km_map={km_map} res={res} onKhmerWordClick={handleKhmerWordClick} />
+        <KhmerAnalysisResults res={res} onKhmerWordClick={handleKhmerWordClick} />
       </ScrollShadow>
     </Card>
   )

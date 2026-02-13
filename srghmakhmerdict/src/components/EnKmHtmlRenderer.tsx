@@ -11,12 +11,11 @@ import {
   type ValidNonNegativeInt,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
 import { memoizeAsync1Lru } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
-import { get_en_km_com_images_ocr, type KhmerWordsMap } from '../db/dict'
+import { get_en_km_com_images_ocr } from '../db/dict'
 import {
   nonEmptyString_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { type MaybeColorizationMode } from '../utils/text-processing/utils'
 import { colorizeHtml } from '../utils/text-processing/html'
 import {
   Set_toNonEmptySet_orUndefined,
@@ -26,6 +25,7 @@ import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyle
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { useDictionary } from '../providers/DictionaryProvider'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -197,8 +197,6 @@ const useImageClickHandler = (toast: ReturnType<typeof useAppToast>) => {
 
 export interface EnKmHtmlRendererProps {
   html: NonEmptyStringTrimmed
-  km_map: KhmerWordsMap
-  maybeColorMode: MaybeColorizationMode
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
@@ -206,14 +204,13 @@ export interface EnKmHtmlRendererProps {
 
 export const EnKmHtmlRenderer = ({
   html,
-  km_map,
-  maybeColorMode,
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
 }: EnKmHtmlRendererProps) => {
+  const { imageMode, maybeColorMode } = useSettings()
+  const { km_map } = useDictionary()
   const containerRef = useRef<HTMLDivElement>(null)
-  const { imageMode } = useSettings() // Consume setting
   const ocrMap = useOcrData(html)
 
   const finalHtml = useMemo(() => {

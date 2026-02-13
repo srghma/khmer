@@ -3,7 +3,6 @@ import { Modal, ModalContent, ModalHeader, ModalBody } from '@heroui/modal'
 import { Skeleton } from '@heroui/skeleton'
 
 import type { DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict/index'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
@@ -54,7 +53,6 @@ interface KhmerAnalyzerModalProps {
   textAndOpen: NonEmptyStringTrimmed | undefined
   currentMode: DictionaryLanguage
   maybeColorMode: MaybeColorizationMode
-  km_map: KhmerWordsMap
   onClose: () => void
   onNavigate: (word: NonEmptyStringTrimmed) => void
 }
@@ -73,7 +71,6 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
   onClose,
   currentMode,
   maybeColorMode,
-  km_map,
   onNavigate,
 }) => {
   usePreloadOnIdle([KhmerAnalyzerContent])
@@ -93,7 +90,6 @@ const KhmerAnalyzerModalImpl: React.FC<KhmerAnalyzerModalProps> = ({
         <Suspense fallback={<KhmerAnalyzerSkeleton />}>
           <KhmerAnalyzerContent
             currentMode={currentMode}
-            km_map={km_map}
             maybeColorMode={maybeColorMode}
             text={textAndOpen}
             onNavigate={onNavigate}

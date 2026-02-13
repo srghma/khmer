@@ -4,7 +4,6 @@ import { Button, ButtonGroup } from '@heroui/button'
 import { HiTranslate } from 'react-icons/hi'
 
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-import type { KhmerWordsMap } from '../../db/dict/index'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 
@@ -67,12 +66,11 @@ GoogleTranslateEndContent.displayName = 'GoogleTranslateEndContent'
 interface GoogleTranslateBottomContentProps {
   state: GoogleTranslationState
   targetLang: ToTranslateLanguage
-  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
 }
 
 const GoogleTranslateBottomContent = memo(
-  ({ state, targetLang, km_map, maybeColorMode }: GoogleTranslateBottomContentProps) => {
+  ({ state, targetLang, maybeColorMode }: GoogleTranslateBottomContentProps) => {
     if (state.t === 'idle') return null
 
     // We construct the error object here, inside the child render.
@@ -88,7 +86,7 @@ const GoogleTranslateBottomContent = memo(
 
     return (
       <div className="flex flex-col gap-3 pt-2">
-        <ResultDisplay km_map={km_map} maybeColorMode={maybeColorMode} result={result} targetLang={targetLang} />
+        <ResultDisplay maybeColorMode={maybeColorMode} result={result} targetLang={targetLang} />
       </div>
     )
   },
@@ -105,7 +103,6 @@ interface GoogleTranslateTextareaProps extends Pick<
   'classNames' | 'labelPlacement' | 'maxRows' | 'minRows' | 'placeholder' | 'variant' | 'onValueChange'
 > {
   defaultTargetLang: ToTranslateLanguage
-  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
   value_toShowInTextArea: string
   value_toShowInBottom: NonEmptyStringTrimmed | undefined
@@ -117,7 +114,6 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
   value_toShowInBottom,
   onValueChange,
   defaultTargetLang,
-  km_map,
   maybeColorMode,
   classNames,
   ...props
@@ -164,12 +160,7 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
         onValueChange={onValueChange}
         {...props}
       />
-      <GoogleTranslateBottomContent
-        km_map={km_map}
-        maybeColorMode={maybeColorMode}
-        state={state}
-        targetLang={targetLang}
-      />
+      <GoogleTranslateBottomContent maybeColorMode={maybeColorMode} state={state} targetLang={targetLang} />
     </>
   )
 }

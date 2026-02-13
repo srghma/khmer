@@ -2,7 +2,7 @@ import React, { type Dispatch, type SetStateAction } from 'react'
 import type { DictionaryLanguage } from '../../types'
 import { Spinner } from '@heroui/spinner'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
+import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { useWordData } from '../../hooks/useWordData'
 import { AnkiCardDetailView } from './AnkiCardDetailView'
 import { type AnkiGameMode } from './types'
@@ -19,11 +19,9 @@ export const DetailFetcher = React.memo(
   ({
     language,
     word,
-    km_map,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isRevealed,
-    onBack,
     ankiGameMode,
     userAnswer,
     setUserAnswer,
@@ -31,11 +29,9 @@ export const DetailFetcher = React.memo(
   }: {
     language: DictionaryLanguage
     word: NonEmptyStringTrimmed
-    km_map: KhmerWordsMap
     isKhmerWordsHidingEnabled: boolean
     isNonKhmerWordsHidingEnabled: boolean
     isRevealed: boolean
-    onBack: () => void
     ankiGameMode: AnkiGameMode
     userAnswer: string
     setUserAnswer: Dispatch<SetStateAction<string>>
@@ -55,12 +51,10 @@ export const DetailFetcher = React.memo(
         isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
         isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
         isRevealed={isRevealed}
-        km_map={km_map}
         mode={language}
         setUserAnswer={setUserAnswer}
         userAnswer={userAnswer}
         word={word}
-        onBack={onBack}
         onReveal={onReveal}
       />
     )

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use tauri::{State, command};
 use super::common::{WordRow, ShortDefinitionEn, EnShortDefinitionSource, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
 
+// TODO: make COALESCE fields provided by user
 const EN_SHORT_DESC_COALESCE: &str = "COALESCE(Desc, en_km_com, Desc_en_only)";
 const EN_SHORT_DESC_SOURCE: &str = "(CASE
     WHEN Desc IS NOT NULL THEN 1

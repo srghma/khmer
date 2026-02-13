@@ -59,8 +59,8 @@ export const SettingsView: React.FC = memo(() => {
     setFontSize_ui,
     fontSize_details,
     setFontSize_details,
-    isRegex,
-    setIsRegex,
+    searchMode,
+    setSearchMode,
     searchInContent,
     setSearchInContent,
     highlightInList,
@@ -122,12 +122,26 @@ export const SettingsView: React.FC = memo(() => {
         <div className="flex flex-col gap-3 p-3 rounded-medium bg-default-100/50 border border-default-100">
           <span className="text-xs font-semibold text-default-500 uppercase tracking-wider">Search</span>
 
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-2">
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">Regex Search</span>
-              <span className="text-xs text-default-400">Use regular expressions</span>
+              <span className="text-sm font-medium text-foreground">Search Mode</span>
+              <span className="text-xs text-default-400">Choose how to match your query</span>
             </div>
-            <Switch isSelected={isRegex} size="sm" onValueChange={setIsRegex} />
+            <div className="grid grid-cols-3 gap-1 bg-default-200/50 p-1 rounded-lg">
+              {(['starts_with', 'includes', 'regex'] as const).map(mode => (
+                <Button
+                  key={mode}
+                  className={`text-[10px] h-8 min-w-0 ${
+                    searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
+                  }`}
+                  size="sm"
+                  variant={searchMode === mode ? 'flat' : 'light'}
+                  onPress={() => setSearchMode(mode)}
+                >
+                  {mode === 'starts_with' ? 'Starts' : mode === 'includes' ? 'Includes' : 'Regex'}
+                </Button>
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-between items-center">
