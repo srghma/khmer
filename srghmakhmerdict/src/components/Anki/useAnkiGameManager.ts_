@@ -29,7 +29,7 @@ import {
 } from './AnkiGameManager.ts_'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
-export const AnkiGame_loading = { t: 'loading' } as const
+export const AnkiGame_loading = 'loading' as const
 
 export type AnkiGameHookResult<T> =
   | typeof AnkiGame_loading

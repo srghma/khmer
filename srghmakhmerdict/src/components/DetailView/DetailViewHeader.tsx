@@ -55,8 +55,8 @@ export interface DetailViewHeaderProps_KnownWord extends DetailViewHeaderProps_C
   toggleNonKhmerWordsHiding: () => void
 }
 
-export interface DetailViewHeaderProps_AnkiGame extends DetailViewHeaderProps_Common {
-  type: 'anki_game'
+export interface DetailViewHeaderProps_AnkiGame_Back extends DetailViewHeaderProps_Common {
+  type: 'anki_game_back'
   phonetic: NonEmptyStringTrimmed | undefined
   khmerFontFamily: NonEmptyStringTrimmed | undefined
   word_displayHtml: NonEmptyStringTrimmed
@@ -77,12 +77,27 @@ export interface DetailViewHeaderProps_SentenceAnalyzer extends DetailViewHeader
   header: React.ReactNode
 }
 
+export interface DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown extends DetailViewHeaderProps_Common {
+  type: 'anki_game_front_and_khmer_words_are_shown'
+  // Colorization
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (v: MaybeColorizationMode) => void
+  header: NonEmptyStringTrimmed
+}
+
+export interface DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown extends DetailViewHeaderProps_Common {
+  type: 'anki_game_front_and_khmer_words_are_not_shown'
+  header: NonEmptyStringTrimmed
+}
+
 export type DetailViewHeaderProps =
   | DetailViewHeaderProps_KnownWord
   | DetailViewHeaderProps_SentenceAnalyzer
-  | DetailViewHeaderProps_AnkiGame
+  | DetailViewHeaderProps_AnkiGame_Back
+  | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
+  | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
-const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame) => {
+const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) => {
   const { khmerFontFamily, word_displayHtml, phonetic, word_or_sentence__language } = props
 
   const h1Style = useMemo(
@@ -137,13 +152,36 @@ const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer)
   )
 }
 
+const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
+  return (
+    <CardHeader className="flex justify-between items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1.5rem+env(safe-area-inset-top))] md:pt-6">
+      <div className="flex-1">
+        <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
+      </div>
+      <DetailViewActions {...props} />
+    </CardHeader>
+  )
+}
+
+const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
+  return (
+    <CardHeader className="flex shrink-0 items-center px-6 py-4 border-b border-divider bg-content1/50 backdrop-blur-md z-10 sticky top-0 pt-[calc(1rem+env(safe-area-inset-top))] md:pt-4">
+      <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
+    </CardHeader>
+  )
+}
+
 const DetailViewHeaderImpl = (props: DetailViewHeaderProps) => {
   switch (props.type) {
     case 'sentence_analyzer':
       return <DetailViewHeaderSentence {...props} />
     case 'known_word':
-    case 'anki_game':
+    case 'anki_game_back':
       return <DetailViewHeaderWord {...props} />
+    case 'anki_game_front_and_khmer_words_are_shown':
+      return <AnkiFrontHeaderShown {...props} />
+    case 'anki_game_front_and_khmer_words_are_not_shown':
+      return <AnkiFrontHeaderNotShown {...props} />
   }
 }
 

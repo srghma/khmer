@@ -11,12 +11,12 @@ import { RenderHtmlColorized } from '../DetailView/atoms'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 export type AnkiListItemProps_ShowMode_Map = {
-  GUESS_NON_KHMER_km: NonEmptyStringTrimmed
-  GUESS_KHMER_en: NonEmptyStringTrimmed
-  GUESS_KHMER_ru: NonEmptyStringTrimmed
-  GUESS_KHMER_km: ShortDefinitionKm
-  GUESS_NON_KHMER_en: ShortDefinitionEn
-  GUESS_NON_KHMER_ru: ShortDefinitionRu
+  'km:GUESS_NON_KHMER': NonEmptyStringTrimmed
+  'en:GUESS_KHMER': NonEmptyStringTrimmed
+  'ru:GUESS_KHMER': NonEmptyStringTrimmed
+  'km:GUESS_KHMER': ShortDefinitionKm
+  'en:GUESS_NON_KHMER': ShortDefinitionEn
+  'ru:GUESS_NON_KHMER': ShortDefinitionRu
 }
 
 export type AnkiListItemProps_ShowMode = {
@@ -38,11 +38,13 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
   const { card_due, isSelected, onSelect, now, t, v, km_map, maybeColorMode } = props
 
   const isDue = card_due <= now
+  const notDueButWillSeeIn2MinutesOrLess = card_due <= now + 2 * 60000
+  const notDueButWillSeeIn5MinutesOrLess = card_due <= now + 5 * 60000
 
   const displayLabel = useMemo(() => {
     switch (t) {
       // Modes where we show the Word directly
-      case 'GUESS_NON_KHMER_km': {
+      case 'km:GUESS_NON_KHMER': {
         return (
           <RenderHtmlColorized
             hideBrokenImages_enable={false}
@@ -55,12 +57,12 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
           />
         )
       }
-      case 'GUESS_KHMER_en':
-      case 'GUESS_KHMER_ru':
+      case 'en:GUESS_KHMER':
+      case 'ru:GUESS_KHMER':
         return <span className="font-bold text-foreground">{v}</span>
 
       // Modes where we process the Description
-      case 'GUESS_KHMER_km': {
+      case 'km:GUESS_KHMER': {
         // Mode 2: Clue is Desc (Km) -> Show Desc without Khmer Chars.
         const val = getBestDefinitionHtml_fromShort(v)
 
@@ -78,7 +80,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
           />
         )
       }
-      case 'GUESS_NON_KHMER_en': {
+      case 'en:GUESS_NON_KHMER': {
         // Mode 4: Clue is Desc (En). Remove non-khmer chars -> Shows Khmer Text.
         const val = getBestDefinitionKhmerFromEn_fromShort(v)
 
@@ -96,7 +98,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
           />
         )
       }
-      case 'GUESS_NON_KHMER_ru': {
+      case 'ru:GUESS_NON_KHMER': {
         // Mode 6: Clue is Desc (Ru). Remove non-khmer chars -> Shows Khmer Text.
         const val = getBestDefinitionKhmerFromRu_fromShort(v)
 
@@ -126,7 +128,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
     // We append - if due.
 
     const text = isDue ? `-${distance}` : distance
-    const colorClass = isDue ? 'text-danger' : 'text-primary' // Red vs Blue
+    const colorClass = isDue ? 'text-danger' : notDueButWillSeeIn2MinutesOrLess ? 'text-warning' : notDueButWillSeeIn5MinutesOrLess ? 'text-secondary' : 'text-primary' // Red vs Blue
 
     return (
       <div className="flex flex-col items-end gap-0.5 ml-auto shrink-0 pl-2">

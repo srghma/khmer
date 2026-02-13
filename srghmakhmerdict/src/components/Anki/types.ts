@@ -3,6 +3,7 @@ import {
   stringToEnumOrUndefined,
   stringToEnumOrThrow,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/enum'
+import type { DictionaryLanguage } from '../../types'
 
 export const ANKI_DIRECTIONS = ['GUESSING_KHMER', 'GUESSING_NON_KHMER'] as const
 
@@ -20,9 +21,18 @@ export function stringToAnkiDirectionOrThrow(value: string): AnkiDirection {
   return stringToEnumOrThrow(value, ANKI_DIRECTIONS, 'AnkiDirection')
 }
 export type AnkiGameMode =
-  | 'GUESS_NON_KHMER_km'
-  | 'GUESS_KHMER_en'
-  | 'GUESS_KHMER_ru'
-  | 'GUESS_KHMER_km'
-  | 'GUESS_NON_KHMER_en'
-  | 'GUESS_NON_KHMER_ru'
+  | 'km:GUESS_NON_KHMER'
+  | 'en:GUESS_KHMER'
+  | 'ru:GUESS_KHMER'
+  | 'km:GUESS_KHMER'
+  | 'en:GUESS_NON_KHMER'
+  | 'ru:GUESS_NON_KHMER'
+
+export function languageAndDirectionToAnkiGameMode(language: DictionaryLanguage, direction: AnkiDirection): AnkiGameMode {
+  return `${language}:${direction}` as AnkiGameMode
+}
+
+export function ankiGameModeToLanguageAndDirection(mode: AnkiGameMode): [DictionaryLanguage, AnkiDirection] {
+  const [language, direction] = mode.split(':') as [DictionaryLanguage, AnkiDirection]
+  return [language, direction]
+}

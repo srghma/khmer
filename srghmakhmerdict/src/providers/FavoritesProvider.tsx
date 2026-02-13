@@ -6,7 +6,8 @@ import {
   deleteAllFavorites as deleteAllFavoritesDb,
   getFavorites as getFavoritesDb,
 } from '../db/favorite'
-import { calculateReviewUpdates, reviewCard as reviewCardDb } from '../db/favorite/anki'
+import { reviewCard as reviewCardDb } from '../db/favorite/anki'
+import { reviewCard_calculateReviewUpdates } from '../components/Anki/utils'
 import { FavoriteItem_mk, type FavoriteItem } from '../db/favorite/item'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../types'
@@ -72,7 +73,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     })
 
     // Update the mutex to wait for this new mutation, catching errors to ensure the chain continues
-    mutex.current = resultPromise.catch(() => {})
+    mutex.current = resultPromise.catch(() => { })
 
     return resultPromise
   }, [])
@@ -184,7 +185,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
 
         const now = Date.now()
-        const updates = calculateReviewUpdates(currentItem, grade, now)
+        const updates = reviewCard_calculateReviewUpdates(currentItem, grade, now)
         const optimisticItem = { ...currentItem, ...updates }
 
         const optimisticState = [...favorites]

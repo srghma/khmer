@@ -21,74 +21,80 @@ import {
   Record_toNonEmptyRecord_unsafe,
   type NonEmptyRecord,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import {
+  INTERVAL_MS_AGAIN,
+  INTERVAL_MS_HARD,
+  INTERVAL_MS_GOOD_NEW,
+  getOneDayInMs,
+} from './constants'
 // import { formatDistance } from 'date-fns/formatDistance'
+
+// Initialize the FSRS algorithm
+export const deck = createDeck()
 
 export function FavoriteItem_isDueToday(item: FavoriteItem, now_milliseconds: number): boolean {
   return item.due <= now_milliseconds
 }
 
 /**
- * Calculates the hypothetical interval (in days) for each rating button.
- * Used for UI display (e.g., "Good: 4d").
+ * CORE LOGIC: Determines the next interval (in ms) and the next FSRS state.
+ * This is the source of truth for both UI and DB.
  */
-function calculate_isNew(grade: Grade): NOfDays {
-  return numberToNOfDays_orThrow_mk(deck.newCard(grade).I)
-}
-
-/**
- * Logic for cards with an existing review history.
- */
-function calculate_isNotNew(
+export function calculateNextStep(
+  item: Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review'>,
   grade: Grade,
-  item_last_review: number,
-  item_difficulty: number,
-  item_stability: number,
-  now_milliseconds: number,
-): NOfDays {
-  const daysSinceReview = (now_milliseconds - item_last_review) / getOneDayInMs
-
-  const graded = deck.gradeCard({ D: item_difficulty, S: item_stability }, daysSinceReview, grade)
-
-  return numberToNOfDays_orThrow_mk(graded.I)
-}
-
-// 1 minute in days
-const AGAIN_INTERVAL_DAYS = 1 / (24 * 60)
-// 3 minutes in days
-const HARD_INTERVAL_DAYS = 3 / (24 * 60)
-// 10 minutes in days
-const GOOD_INTERVAL_DAYS = 10 / (24 * 60)
-
-/**
- * Calculates the hypothetical interval (in days) for each rating button.
- * Used for UI display (e.g., "Good: 4d").
- */
-export function getPreviewIntervals(item: FavoriteItem, now_milliseconds: number): NonEmptyRecord<Grade, NOfDays> {
+  now: number,
+) {
   const isNew = item.last_review === null
 
-  const calculate = (grade: Grade): NOfDays => {
-    // Traditional Anki: Has a "learning mode" where failed cards (Again) are reshown in minutes (1m, 10m, etc.) during the same session
-    if (grade === Grade.AGAIN) return numberToNOfDays_orThrow_mk(AGAIN_INTERVAL_DAYS)
-    if (grade === Grade.HARD) return numberToNOfDays_orThrow_mk(HARD_INTERVAL_DAYS)
-
-    if (isNew) {
-      // by logic of anki, if card is being reviewed first time (I see it and click on 1 of 4 buttons first time) AND I click on GOOD then I should see it today 1 more time
-      if (grade === Grade.GOOD) return numberToNOfDays_orThrow_mk(GOOD_INTERVAL_DAYS)
-
-      return calculate_isNew(grade)
-    }
-
-    return calculate_isNotNew(grade, item.last_review, item.difficulty, item.stability, now_milliseconds)
+  // 1. Calculate FSRS parameters (D, S)
+  let nextCard
+  if (isNew) {
+    nextCard = deck.newCard(grade)
+  } else {
+    const daysSinceReview = (now - item.last_review) / getOneDayInMs
+    nextCard = deck.gradeCard({ D: item.difficulty, S: item.stability }, daysSinceReview, grade)
   }
 
-  const output: Record<Grade, NOfDays> = {
+  // 2. Determine the Interval (Duration until next review)
+  let intervalMs: number
+
+  // --- MANUAL OVERRIDES (Simulating Learning Steps) ---
+  if (grade === Grade.AGAIN) {
+    intervalMs = INTERVAL_MS_AGAIN
+  } else if (grade === Grade.HARD) {
+    intervalMs = INTERVAL_MS_HARD
+  } else if (isNew && grade === Grade.GOOD) {
+    // FIX: This was the missing logic in the DB updater
+    intervalMs = INTERVAL_MS_GOOD_NEW
+  } else {
+    // Standard FSRS behavior (Days * MS)
+    intervalMs = nextCard.I * getOneDayInMs
+  }
+
+  return {
+    nextCard,
+    intervalMs,
+  }
+}
+
+/**
+ * Calculates the hypothetical interval (in days) for each rating button.
+ * Used for UI display (e.g., "Good: 4d").
+ */
+export function getPreviewIntervals(item: FavoriteItem, now: number): NonEmptyRecord<Grade, NOfDays> {
+  const calculate = (grade: Grade): NOfDays => {
+    const { intervalMs } = calculateNextStep(item, grade, now)
+    // Convert back to "Days" float for the NOfDays type
+    return numberToNOfDays_orThrow_mk(intervalMs / getOneDayInMs)
+  }
+
+  return {
     [Grade.AGAIN]: calculate(Grade.AGAIN),
     [Grade.HARD]: calculate(Grade.HARD),
     [Grade.GOOD]: calculate(Grade.GOOD),
     [Grade.EASY]: calculate(Grade.EASY),
-  }
-
-  return output as NonEmptyRecord<Grade, NOfDays>
+  } as NonEmptyRecord<Grade, NOfDays>
 }
 
 export type ButtonData = {
@@ -214,11 +220,6 @@ export function getWords(queue: NonEmptyArray<FavoriteItem>): NonEmptySet<NonEmp
   return NonEmptyArray_collectToSet(queue, x => x.word)
 }
 
-export const getOneDayInMs = 24 * 60 * 60 * 1000
-
-// Initialize the FSRS algorithm
-export const deck = createDeck()
-
 /**
  * Pure function: Calculates the next state of a card based on the grade and current time.
  * This determines the "optimistic" data without touching the database.
@@ -228,38 +229,13 @@ export const reviewCard_calculateReviewUpdates = (
   grade: Grade,
   now: number,
 ): Pick<FavoriteItem, 'stability' | 'difficulty' | 'last_review' | 'due'> => {
-  const isNew = item.last_review === null
-
-  // Calculate next FSRS parameters
-  const nextCard = (() => {
-    if (isNew) {
-      // Branch A: New Card
-      return deck.newCard(grade)
-    } else {
-      // Branch B: Existing Card
-      const daysSinceReview = (now - item.last_review) / getOneDayInMs
-
-      return deck.gradeCard({ D: item.difficulty, S: item.stability }, daysSinceReview, grade)
-    }
-  })()
-
-  // Calculate next due date
-  // For Again (1) and Hard (2), we want short learning steps (1 min, 3 min)
-  // regardless of FSRS calc for now.
-  let nextDue: number
-
-  if (grade === Grade.AGAIN) {
-    nextDue = now + 1 * 60 * 1000 // 1 minute
-  } else if (grade === Grade.HARD) {
-    nextDue = now + 3 * 60 * 1000 // 3 minutes
-  } else {
-    nextDue = now + nextCard.I * getOneDayInMs
-  }
+  // Use the shared logic
+  const { nextCard, intervalMs } = calculateNextStep(item, grade, now)
 
   return {
     stability: nextCard.S,
     difficulty: nextCard.D,
     last_review: now,
-    due: nextDue,
+    due: now + intervalMs, // Ensure we add to 'now'
   }
 }

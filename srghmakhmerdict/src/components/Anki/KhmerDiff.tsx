@@ -2,10 +2,8 @@ import React, { useMemo } from 'react'
 import { diffChars } from 'diff'
 import clsx from 'clsx'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-
 interface KhmerDiffProps {
-  inDictExpected: TypedContainsKhmer
+  inDictExpected: NonEmptyStringTrimmed
   userProvider: NonEmptyStringTrimmed
   className?: string
 }

@@ -242,8 +242,8 @@ export interface DetailViewActionsProps_KnownWord extends DetailViewActionsProps
   toggleNonKhmerWordsHiding: () => void
 }
 
-export interface DetailViewActionsProps_AnkiGame extends DetailViewActionsProps_Common {
-  type: 'anki_game'
+export interface DetailViewActionsProps_AnkiGame_Back extends DetailViewActionsProps_Common {
+  type: 'anki_game_back'
   // Colorization
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
@@ -255,6 +255,13 @@ export interface DetailViewActionsProps_AnkiGame extends DetailViewActionsProps_
   toggleNonKhmerWordsHiding: () => void
 }
 
+export interface DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown extends DetailViewActionsProps_Common {
+  type: 'anki_game_front_and_khmer_words_are_shown'
+  // Colorization
+  maybeColorMode: MaybeColorizationMode
+  setMaybeColorMode: (v: MaybeColorizationMode) => void
+}
+
 export interface DetailViewActionsProps_SentenceAnalyzer extends DetailViewActionsProps_Common {
   type: 'sentence_analyzer'
 }
@@ -262,34 +269,35 @@ export interface DetailViewActionsProps_SentenceAnalyzer extends DetailViewActio
 export type DetailViewActionsProps =
   | DetailViewActionsProps_KnownWord
   | DetailViewActionsProps_SentenceAnalyzer
-  | DetailViewActionsProps_AnkiGame
+  | DetailViewActionsProps_AnkiGame_Back
+  | DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
 
-export const DetailViewActions = memo((props: DetailViewActionsProps) => {
-  const {
-    type,
-    word_or_sentence,
-    word_or_sentence__language,
-    isKhmerLinksEnabled,
-    toggleKhmerLinks,
-    khmerFontName,
-    setKhmerFontName,
-  } = props
+const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_SentenceAnalyzer) => {
+  const { isKhmerLinksEnabled, toggleKhmerLinks, khmerFontName, setKhmerFontName, word_or_sentence, word_or_sentence__language } = props
+  return (
+    <div className="flex gap-1 shrink-0">
+      <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
+      <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
+      <NativeSpeechAction
+        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
+        word={word_or_sentence}
+      />
+      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+    </div>
+  )
+})
+DetailViewActionsSentenceAnalyzer.displayName = 'DetailViewActionsSentenceAnalyzer'
 
-  if (type === 'sentence_analyzer') {
-    return (
-      <div className="flex gap-1 shrink-0">
-        <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
-        <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
-        <NativeSpeechAction
-          mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
-          word={word_or_sentence}
-        />
-        <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
-      </div>
-    )
-  }
+const DetailViewActionsAnkiFrontShown = memo((props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
+  return (
+    <div className="flex gap-1 shrink-0">
+      <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />
+    </div>
+  )
+})
+DetailViewActionsAnkiFrontShown.displayName = 'DetailViewActionsAnkiFrontShown'
 
-  // Now props is narrowed to KnownWord | AnkiGame
+const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord) => {
   const {
     maybeColorMode,
     setMaybeColorMode,
@@ -297,6 +305,14 @@ export const DetailViewActions = memo((props: DetailViewActionsProps) => {
     toggleKhmerWordsHiding,
     isNonKhmerWordsHidingEnabled,
     toggleNonKhmerWordsHiding,
+    isKhmerLinksEnabled,
+    toggleKhmerLinks,
+    khmerFontName,
+    setKhmerFontName,
+    word_or_sentence,
+    word_or_sentence__language,
+    isFav,
+    toggleFav,
   } = props
 
   return (
@@ -315,8 +331,59 @@ export const DetailViewActions = memo((props: DetailViewActionsProps) => {
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
-      {type === 'known_word' && <FavoriteAction isFav={props.isFav} onToggle={props.toggleFav} />}
+      <FavoriteAction isFav={isFav} onToggle={toggleFav} />
     </div>
   )
+})
+DetailViewActionsKnownWord.displayName = 'DetailViewActionsKnownWord'
+
+const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_Back) => {
+  const {
+    maybeColorMode,
+    setMaybeColorMode,
+    isKhmerWordsHidingEnabled,
+    toggleKhmerWordsHiding,
+    isNonKhmerWordsHidingEnabled,
+    toggleNonKhmerWordsHiding,
+    isKhmerLinksEnabled,
+    toggleKhmerLinks,
+    khmerFontName,
+    setKhmerFontName,
+    word_or_sentence,
+    word_or_sentence__language,
+  } = props
+
+  return (
+    <div className="flex gap-1 shrink-0">
+      <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
+      <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
+      <KhmerLinksAction
+        isDisabled={maybeColorMode === 'none'}
+        isEnabled={isKhmerLinksEnabled}
+        onToggle={toggleKhmerLinks}
+      />
+      <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
+      <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
+      <NativeSpeechAction
+        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
+        word={word_or_sentence}
+      />
+      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+    </div>
+  )
+})
+DetailViewActionsAnkiBack.displayName = 'DetailViewActionsAnkiBack'
+
+export const DetailViewActions = memo((props: DetailViewActionsProps) => {
+  switch (props.type) {
+    case 'sentence_analyzer':
+      return <DetailViewActionsSentenceAnalyzer {...props} />
+    case 'anki_game_front_and_khmer_words_are_shown':
+      return <DetailViewActionsAnkiFrontShown {...props} />
+    case 'known_word':
+      return <DetailViewActionsKnownWord {...props} />
+    case 'anki_game_back':
+      return <DetailViewActionsAnkiBack {...props} />
+  }
 })
 DetailViewActions.displayName = 'DetailViewActions'

@@ -69,9 +69,9 @@ export const AnkiListContent = React.memo(function AnkiListContent({
 
   const listItems = useMemo(() => {
     switch (data.t) {
-      case 'GUESS_NON_KHMER_km':
-      case 'GUESS_KHMER_en':
-      case 'GUESS_KHMER_ru':
+      case 'km:GUESS_NON_KHMER':
+      case 'en:GUESS_KHMER':
+      case 'ru:GUESS_KHMER':
         return data.v.map(item => (
           <AnkiListContentItem
             key={item.word}
@@ -86,9 +86,9 @@ export const AnkiListContent = React.memo(function AnkiListContent({
             onSelect={onSelect}
           />
         ))
-      case 'GUESS_KHMER_km':
-      case 'GUESS_NON_KHMER_en':
-      case 'GUESS_NON_KHMER_ru':
+      case 'km:GUESS_KHMER':
+      case 'en:GUESS_NON_KHMER':
+      case 'ru:GUESS_NON_KHMER':
         return data.v.map(({ card, description }) => (
           <AnkiListContentItem
             key={card.word}

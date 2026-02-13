@@ -1,12 +1,11 @@
-import React from 'react'
+import React, { type Dispatch, type SetStateAction } from 'react'
 import type { DictionaryLanguage } from '../../types'
 import { Spinner } from '@heroui/spinner'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
-import { DetailSections } from '../DetailView/DetailSections'
 import { useWordData } from '../../hooks/useWordData'
 import { AnkiCardDetailView } from './AnkiCardDetailView'
-import { useSettings } from '../../providers/SettingsProvider'
+import { type AnkiGameMode } from './types'
 
 const DetailFetcher_loading = (
   <div className="flex justify-center p-4">
@@ -24,8 +23,11 @@ export const DetailFetcher = React.memo(
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isRevealed,
-    onExit,
     onBack,
+    ankiGameMode,
+    userAnswer,
+    setUserAnswer,
+    onReveal,
   }: {
     language: DictionaryLanguage
     word: NonEmptyStringTrimmed
@@ -33,41 +35,33 @@ export const DetailFetcher = React.memo(
     isKhmerWordsHidingEnabled: boolean
     isNonKhmerWordsHidingEnabled: boolean
     isRevealed: boolean
-    onExit: () => void
     onBack: () => void
+    ankiGameMode: AnkiGameMode
+    userAnswer: string
+    setUserAnswer: Dispatch<SetStateAction<string>>
+    onReveal: () => void
   }) => {
     const result = useWordData(word, language)
-    const { maybeColorMode } = useSettings()
 
     if (result.t === 'loading') return DetailFetcher_loading
     if (result.t === 'not_found') return DetailFetcher_not_found
 
     const d: WordDetailEnOrRuOrKm = result.detail
 
-    if (isRevealed) {
-      return <AnkiCardDetailView data={d} km_map={km_map} mode={language} word={word} onBack={onBack} onExit={onExit} />
-    }
-
     return (
-      <DetailSections
-        desc={d.desc}
-        desc_en_only={d.desc_en_only}
-        en_km_com={d.en_km_com}
-        from_chuon_nath={d.from_chuon_nath}
-        from_chuon_nath_translated={d.from_chuon_nath_translated}
-        from_csv_noun_forms={d.from_csv_noun_forms}
-        from_csv_pronunciations={d.from_csv_pronunciations}
-        from_csv_raw_html={d.from_csv_raw_html}
-        from_csv_variants={d.from_csv_variants}
-        from_russian_wiki={d.from_russian_wiki}
-        gorgoniev={d.gorgoniev}
-        isKhmerLinksEnabled_ifTrue_passOnNavigate={undefined}
+      <AnkiCardDetailView
+        ankiGameMode={ankiGameMode}
+        data={d}
         isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
         isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+        isRevealed={isRevealed}
         km_map={km_map}
-        maybeColorMode={maybeColorMode}
         mode={language}
-        wiktionary={d.wiktionary}
+        setUserAnswer={setUserAnswer}
+        userAnswer={userAnswer}
+        word={word}
+        onBack={onBack}
+        onReveal={onReveal}
       />
     )
   },

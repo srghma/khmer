@@ -4,8 +4,9 @@ import { createPulseStore, type PulseStore } from '../../utils/createPulseStore'
 const AnkiPulseContext = createContext<PulseStore | null>(null)
 
 export const AnkiPulseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Create a store that ticks every 60 seconds (sufficient for "minutes" resolution)
-  const store = useMemo(() => createPulseStore(60000), [])
+  const seconds = 5
+  // Create a store that ticks every `seconds` seconds (sufficient for "minutes" resolution)
+  const store = useMemo(() => createPulseStore(seconds * 1000), [])
 
   return <AnkiPulseContext.Provider value={store}>{children}</AnkiPulseContext.Provider>
 }
