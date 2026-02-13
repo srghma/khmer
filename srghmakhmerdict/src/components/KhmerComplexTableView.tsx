@@ -22,9 +22,7 @@ export const KhmerComplexTableView: React.FC = memo(() => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {km_map && <KhmerComplexTableContent wordsMap={km_map} />}
-      </div>
+      <div className="flex-1 overflow-hidden">{km_map && <KhmerComplexTableContent wordsMap={km_map} />}</div>
     </div>
   )
 })

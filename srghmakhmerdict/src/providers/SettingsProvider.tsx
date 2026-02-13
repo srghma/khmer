@@ -47,7 +47,6 @@ export interface SettingsContextType {
   filters: DictFilterSettings
   setFilters: (v: DictFilterSettings | ((prev: DictFilterSettings | undefined) => DictFilterSettings)) => void
 
-
   // Image Mode
   imageMode: EnglishKhmerCom_Images_Mode
   setImageMode: (
@@ -151,7 +150,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [autoReadMode, setAutoReadMode] = useLocalStorageState<AutoReadMode>('srghmakhmerdict__auto_read_mode', {
     defaultValue: 'disabled',
   })
-
 
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)

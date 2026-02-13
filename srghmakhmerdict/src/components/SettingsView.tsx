@@ -174,8 +174,9 @@ export const SettingsView: React.FC = memo(() => {
               {(['starts_with', 'includes', 'regex'] as const).map(mode => (
                 <Button
                   key={mode}
-                  className={`text-[10px] h-8 min-w-0 ${searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
-                    }`}
+                  className={`text-[10px] h-8 min-w-0 ${
+                    searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
+                  }`}
                   size="sm"
                   variant={searchMode === mode ? 'flat' : 'light'}
                   onPress={() => setSearchMode(mode)}

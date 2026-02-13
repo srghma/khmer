@@ -59,6 +59,8 @@ pub fn run() {
                 constants::IMAGES_FOLDER_NAME,
             )
         })
+        .plugin(tauri_plugin_iap::init())
+        // .plugin(tauri_plugin_in_app_review::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_tts::init())
         .plugin(tauri_plugin_log::Builder::new().build())

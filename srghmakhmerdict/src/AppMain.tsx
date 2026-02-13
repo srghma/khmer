@@ -26,14 +26,7 @@ export function AppMain() {
     return undefined
   }, [currentView])
 
-  const {
-    searchMode,
-    searchInContent,
-    highlightInList,
-    fontSize_ui,
-    filters,
-    maybeColorMode,
-  } = useSettings()
+  const { searchMode, searchInContent, highlightInList, fontSize_ui, filters, maybeColorMode } = useSettings()
   const activeTab = useAppActiveTab()
 
   const { onSearch, searchQuery, contentMatches, resultData, resultCount, isSearching } = useDictionarySearch({
@@ -52,7 +45,8 @@ export function AppMain() {
 
   const divClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${
+        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
   )

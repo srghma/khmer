@@ -5,10 +5,53 @@ import { FaGithub, FaDollarSign, FaSearchPlus } from 'react-icons/fa'
 import { SiGooglepay } from 'react-icons/si'
 import { HiArrowLeft } from 'react-icons/hi2'
 
+import { useIap } from '../providers/IapProvider'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/modal'
+
+const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const handleSuccess = useCallback(() => {
+    onClose()
+  }, [onClose])
+
+  return (
+    <Modal backdrop="blur" isOpen={isOpen} size="xs" onOpenChange={onClose}>
+      <ModalContent className="bg-gradient-to-br from-success-50 to-white dark:from-success-900/20 dark:to-background border border-success-200">
+        <ModalHeader className="flex flex-col gap-1 items-center pb-0">
+          <div className="w-16 h-16 bg-success-500 rounded-full flex items-center justify-center text-white text-3xl mb-2 shadow-lg shadow-success-200 animate-bounce">
+            🎉
+          </div>
+          <h1 className="text-xl font-bold text-success-700">Success!</h1>
+        </ModalHeader>
+        <ModalBody className="text-center py-4">
+          <p className="text-default-700 font-medium">
+            Thank you for your generous support! It means a lot for the development of this project.
+          </p>
+          <p className="text-sm text-default-500 mt-2 italic">Support this free feature with a quick rating!</p>
+        </ModalBody>
+        <ModalFooter className="flex flex-col gap-2 pb-6 px-6">
+          <Button className="w-full font-bold shadow-md h-12 text-base" color="success" onPress={handleSuccess}>
+            Yes, I&apos;ll support!
+          </Button>
+          <Button className="w-full font-medium" color="danger" variant="light" onPress={onClose}>
+            Not now
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+})
+
+SuccessModal.displayName = 'SuccessModal'
+
 export const AboutView: React.FC = memo(() => {
-  const handleDonate = useCallback(() => {
-    alert('Google Pay donation integration would go here (requires native plugin setup).')
-  }, [])
+  const { handlePurchase, isPurchasing } = useIap()
+  const { isOpen, onOpen, onClose } = useDisclosure()
+
+  const handleDonate = useCallback(async () => {
+    // For simplicity, we choose a medium tier or could show a selection
+    await handlePurchase('donation_medium')
+    onOpen()
+  }, [handlePurchase, onOpen])
 
   const handleBack = useCallback(() => {
     window.history.back()
@@ -16,6 +59,7 @@ export const AboutView: React.FC = memo(() => {
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
+      <SuccessModal isOpen={isOpen} onClose={onClose} />
       {/* Header */}
       <div className="flex shrink-0 items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1rem+env(safe-area-inset-top))]">
         <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
@@ -34,14 +78,14 @@ export const AboutView: React.FC = memo(() => {
             </div>
             <p className="text-default-700 leading-relaxed">
               My name is <strong className="text-foreground">Serhii Khoma</strong>. My github is{' '}
-              <Link isExternal className="font-semibold" href="https://github.com/srghma" showAnchorIcon>
+              <Link isExternal showAnchorIcon className="font-semibold" href="https://github.com/srghma">
                 srghma
               </Link>
               .
             </p>
             <p className="text-default-700 leading-relaxed">
               The source code for this dictionary is open source and available at{' '}
-              <Link isExternal className="font-semibold" href="https://github.com/srghma/khmer" showAnchorIcon>
+              <Link isExternal showAnchorIcon className="font-semibold" href="https://github.com/srghma/khmer">
                 github.com/srghma/khmer
               </Link>
             </p>
@@ -51,17 +95,16 @@ export const AboutView: React.FC = memo(() => {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <FaSearchPlus className="text-8xl -rotate-12" />
             </div>
-            <h3 className="text-sm font-bold text-primary-600 uppercase tracking-widest mb-4">Evolutionary Origin</h3>
             <p className="text-default-700 leading-relaxed mb-4 text-base">
               I also know how humans have appeared in the universe from (autocatalyst ={'>'} molecular robot). You can
               read about it in my detailed presentation.
             </p>
             <Button
-              as={Link}
               isExternal
+              showAnchorIcon
+              as={Link}
               className="bg-primary text-white font-bold"
               href="https://docs.google.com/presentation/d/1x1WXcqXbxWo-Nj3lzXgcSBTdmV-8Ohs9lGZDlfMI76g?usp=sharing"
-              showAnchorIcon
               variant="shadow"
             >
               View Full Presentation
@@ -95,6 +138,7 @@ export const AboutView: React.FC = memo(() => {
                 className="w-full max-w-xs font-bold"
                 color="warning"
                 endContent={<SiGooglepay className="text-2xl" />}
+                isLoading={isPurchasing}
                 size="lg"
                 variant="shadow"
                 onPress={handleDonate}
