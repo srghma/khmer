@@ -15,7 +15,17 @@ interface State {
 }
 
 const GlobalErrorBoundaryFallback = ({ error, handleReload }: { error: Error | null; handleReload: () => void }) => {
-  const { LL } = useI18nContext()
+  const i18n = useI18nContext()
+  const LL = i18n?.LL
+
+  const title = LL?.ERROR_BOUNDARY?.TITLE ? LL.ERROR_BOUNDARY.TITLE() : 'Something went wrong'
+  const subtitle = LL?.ERROR_BOUNDARY?.SUBTITLE
+    ? LL.ERROR_BOUNDARY.SUBTITLE()
+    : 'The application encountered an unexpected error'
+  const body = LL?.ERROR_BOUNDARY?.BODY
+    ? LL.ERROR_BOUNDARY.BODY()
+    : 'Please try reloading the page. If the problem persists, contact support.'
+  const reloadButton = LL?.ERROR_BOUNDARY?.RELOAD_BUTTON ? LL.ERROR_BOUNDARY.RELOAD_BUTTON() : 'Reload Application'
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-default-50 p-4">
@@ -25,12 +35,12 @@ const GlobalErrorBoundaryFallback = ({ error, handleReload }: { error: Error | n
             <BiErrorCircle size={24} />
           </div>
           <div className="flex flex-col">
-            <p className="text-md font-bold text-danger">{LL.ERROR_BOUNDARY.TITLE()}</p>
-            <p className="text-small text-default-500">{LL.ERROR_BOUNDARY.SUBTITLE()}</p>
+            <p className="text-md font-bold text-danger">{title}</p>
+            <p className="text-small text-default-500">{subtitle}</p>
           </div>
         </CardHeader>
         <CardBody>
-          <p className="mb-4 text-small text-default-600">{LL.ERROR_BOUNDARY.BODY()}</p>
+          <p className="mb-4 text-small text-default-600">{body}</p>
 
           {error && (
             <div className="mb-4 max-h-32 overflow-y-auto rounded-md bg-default-100 p-2 font-mono text-tiny text-default-600">
@@ -39,7 +49,7 @@ const GlobalErrorBoundaryFallback = ({ error, handleReload }: { error: Error | n
           )}
 
           <Button fullWidth color="primary" startContent={<HiRefresh />} variant="flat" onPress={handleReload}>
-            {LL.ERROR_BOUNDARY.RELOAD_BUTTON()}
+            {reloadButton}
           </Button>
         </CardBody>
       </Card>

@@ -19,6 +19,17 @@ export type AppMainView =
   | { type: 'khmer-analyzer'; text?: NonEmptyStringTrimmed }
   | { type: 'khmer-complex-table' }
 
+const tryDecode = (str: string): string => {
+  try {
+    return decodeURIComponent(str)
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[Router] Failed to decode URL component:', str, e)
+
+    return str
+  }
+}
+
 export const useAppMainView = () => {
   const [location] = useLocation()
 
@@ -35,7 +46,7 @@ export const useAppMainView = () => {
     const analyzerMatch = location.match(/^\/khmer_analyzer(?:\/(.+))?$/)
 
     if (analyzerMatch) {
-      const text = analyzerMatch[1] ? (decodeURIComponent(analyzerMatch[1]) as NonEmptyStringTrimmed) : undefined
+      const text = analyzerMatch[1] ? (tryDecode(analyzerMatch[1]) as NonEmptyStringTrimmed) : undefined
 
       return { type: 'khmer-analyzer', text }
     }
@@ -47,7 +58,11 @@ export const useAppMainView = () => {
       // console.log('[Router Debug] Matched Detail List Regex:', detailListMatch)
       const type = detailListMatch[1] as 'history' | 'favorites'
       const mode = detailListMatch[2] as DictionaryLanguage
-      const word = decodeURIComponent(detailListMatch[3] || '') as NonEmptyStringTrimmed
+      const word = tryDecode(detailListMatch[3] || '') as NonEmptyStringTrimmed
+
+      if (!word) {
+        return { type: 'dashboard', mode: 'en' }
+      }
 
       return { type, word, mode }
     }
@@ -58,7 +73,7 @@ export const useAppMainView = () => {
     if (langMatch) {
       // console.log('[Router Debug] Matched Language/Dashboard Regex:', langMatch)
       const mode = langMatch[1] as DictionaryLanguage
-      const word = langMatch[2] ? (decodeURIComponent(langMatch[2]) as NonEmptyStringTrimmed) : undefined
+      const word = langMatch[2] ? (tryDecode(langMatch[2]) as NonEmptyStringTrimmed) : undefined
 
       return { type: 'dashboard', word, mode }
     }

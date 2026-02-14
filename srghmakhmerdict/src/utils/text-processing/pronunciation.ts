@@ -33,7 +33,7 @@ export const wrapGorgonievPronunciations = (html: string): string => {
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
 
-  doc.querySelectorAll('pre').forEach(el => {
+  doc.querySelectorAll('span.ipa').forEach(el => {
     el.classList.add('khmer--ipa')
   })
 

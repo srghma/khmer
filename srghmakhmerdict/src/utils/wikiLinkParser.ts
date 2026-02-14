@@ -11,6 +11,7 @@ export type WikiLinkResult =
   | { kind: 'ignore' } // For empty hrefs or non-links
 
 export const parseWikiHref = (href: string | null | undefined): WikiLinkResult => {
+  href = href?.trim()
   if (!href) return { kind: 'ignore' }
 
   // 1. Standard Wiki Links: /wiki/Word

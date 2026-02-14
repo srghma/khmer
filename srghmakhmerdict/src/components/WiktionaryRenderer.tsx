@@ -37,6 +37,8 @@ const useWikiLinkHandler = (
   currentMode: DictionaryLanguage,
   toast: ReturnType<typeof useAppToast>,
 ) => {
+  const { en, ru } = useDictionary()
+
   return useCallback(
     (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -45,25 +47,66 @@ const useWikiLinkHandler = (
       if (!targetAnchor) return
 
       const href = targetAnchor.getAttribute('href')
+
+      if (!href) return
+
       const result = parseWikiHref(href)
+
+      const processAsExternal = () => {
+        const isRelativeLink = href.startsWith('/')
+        const absoluteHref = isRelativeLink ? `https://en.wiktionary.org${href}` : href
+
+        targetAnchor.setAttribute('href', absoluteHref)
+        targetAnchor.setAttribute('target', '_blank')
+        targetAnchor.setAttribute('rel', 'noopener noreferrer')
+      }
+
+      const processAsInternal = (
+        isKhmerLinksEnabled_ifTrue_passOnNavigate_: (term: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void,
+        term: NonEmptyStringTrimmed,
+        mode: DictionaryLanguage,
+      ) => {
+        e.preventDefault()
+        isKhmerLinksEnabled_ifTrue_passOnNavigate_(term, mode)
+      }
 
       switch (result.kind) {
         case 'internal': {
           // TODO: we disable all links (instead of just clicks on colorized khmer word), maybe its bad (but in anki game we want to disable things that disable the game, so...)
           if (isKhmerLinksEnabled_ifTrue_passOnNavigate) {
-            e.preventDefault()
             const nextMode = detectModeFromText(result.term) ?? currentMode
 
-            isKhmerLinksEnabled_ifTrue_passOnNavigate?.(result.term, nextMode)
+            switch (nextMode) {
+              case 'km': {
+                processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
+                break
+              }
+              case 'en': {
+                if (en.find((x: NonEmptyStringTrimmed) => x === result.term)) {
+                  processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
+                } else {
+                  processAsExternal()
+                }
+                break
+              }
+              case 'ru': {
+                if (ru.find((x: NonEmptyStringTrimmed) => x === result.term)) {
+                  processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
+                } else {
+                  processAsExternal()
+                }
+                break
+              }
+              default:
+                assertNever(nextMode)
+            }
           } else {
-            targetAnchor.setAttribute('target', '_blank')
-            targetAnchor.setAttribute('rel', 'noopener noreferrer')
+            processAsExternal()
           }
           break
         }
         case 'external': {
-          targetAnchor.setAttribute('target', '_blank')
-          targetAnchor.setAttribute('rel', 'noopener noreferrer')
+          processAsExternal()
           break
         }
         case 'invalid': {
@@ -77,7 +120,7 @@ const useWikiLinkHandler = (
           assertNever(result)
       }
     },
-    [isKhmerLinksEnabled_ifTrue_passOnNavigate, currentMode, toast],
+    [isKhmerLinksEnabled_ifTrue_passOnNavigate, currentMode, toast, en, ru],
   )
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, memo } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -30,6 +30,40 @@ interface DetailViewFoundProps {
   backButton_goBack: (() => void) | undefined
   backButton_desktopOnlyStyles_showButton: boolean
 }
+
+const SelectionMenuBodyLocalWrapper = memo(
+  ({
+    selectedText,
+    mode,
+    handleOpenKhmerAnalyzer,
+    handleOpenSearch,
+  }: {
+    selectedText: NonEmptyStringTrimmed
+    mode: DictionaryLanguage
+    handleOpenKhmerAnalyzer: (text: NonEmptyStringTrimmed) => void
+    handleOpenSearch: (text: NonEmptyStringTrimmed) => void
+  }) => {
+    const onClosePopupAndKhmerAnalyzerModal = useCallback(
+      () => handleOpenKhmerAnalyzer(selectedText),
+      [handleOpenKhmerAnalyzer, selectedText],
+    )
+    const onClosePopupAndOpenSearch = useCallback(
+      () => handleOpenSearch(selectedText),
+      [handleOpenSearch, selectedText],
+    )
+
+    return (
+      <SelectionMenuBody
+        currentMode={mode}
+        selectedText={selectedText}
+        onClosePopupAndKhmerAnalyzerModal={onClosePopupAndKhmerAnalyzerModal}
+        onClosePopupAndOpenSearch={onClosePopupAndOpenSearch}
+      />
+    )
+  },
+)
+
+SelectionMenuBodyLocalWrapper.displayName = 'SelectionMenuBodyLocalWrapper'
 
 export const DetailViewFound = ({
   word,
@@ -111,15 +145,15 @@ export const DetailViewFound = ({
       if (!currentNavigationStackItem) return null
 
       return (
-        <SelectionMenuBody
-          currentMode={currentNavigationStackItem.mode}
+        <SelectionMenuBodyLocalWrapper
+          handleOpenKhmerAnalyzer={handleOpenKhmerAnalyzer}
+          handleOpenSearch={handleOpenSearch}
+          mode={currentNavigationStackItem.mode}
           selectedText={selectedText}
-          onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
-          onClosePopupAndOpenSearch={() => handleOpenSearch(selectedText)}
         />
       )
     },
-    [currentNavigationStackItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
+    [currentNavigationStackItem, handleOpenKhmerAnalyzer, handleOpenSearch],
   )
 
   return (
