@@ -26,7 +26,8 @@ export const KhmerWordUnit = React.memo(
     )
 
     const wordClass = useMemo(
-      () => (colorization === 'none' ? undefined : getKhmerWordCssClass(colorIndex, colorization === 'isKnown')),
+      () =>
+        getKhmerWordCssClass(colorIndex, colorization === 'isKnown', colorization === 'none' ? 'none' : 'dictionary'),
       [colorIndex, colorization],
     )
 

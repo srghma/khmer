@@ -23,7 +23,6 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useDictionary } from '../providers/DictionaryProvider'
 
@@ -225,10 +224,7 @@ export const EnKmHtmlRenderer = ({
 
     const html_withChangedUrls = processHtmlImages(html_withWrappedImages, imageMode)
 
-    const html_colorized =
-      maybeColorMode !== 'none' && isContainsKhmer(html_withChangedUrls)
-        ? colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
-        : html_withChangedUrls
+    const html_colorized = colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
 
     return { __html: html_colorized }
   }, [html, ocrMap, km_map, maybeColorMode, imageMode])

@@ -19,7 +19,6 @@ import { map_ToTranslateLanguage_to_BCP47LanguageTagName } from '../../utils/my-
 import { GoogleSpeechAction } from '../DetailView/Tooltips/GoogleSpeechAction'
 import { NativeSpeechAction } from '../DetailView/Tooltips/NativeSpeechAction'
 import type { TranslateResultSuccess } from '../../utils/googleTranslate/googleTranslate'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { useDictionary } from '../../providers/DictionaryProvider'
 
 // --- Atomic Components ---
@@ -78,11 +77,9 @@ export const ResultDisplay = memo(({ result, targetLang, maybeColorMode }: Resul
   const { km_map } = useDictionary()
   const resultHtml = useMemo(() => {
     if (!result.text) return undefined
-    if (targetLang !== 'km' || maybeColorMode === 'none') return { __html: result.text }
-    if (!isContainsKhmer(result.text)) return { __html: result.text }
 
     return { __html: colorizeHtml(result.text, maybeColorMode, km_map) }
-  }, [result.text, targetLang, maybeColorMode, km_map])
+  }, [result.text, maybeColorMode, km_map])
 
   return (
     <div className="bg-default-100/50 border border-default-200 rounded-medium p-3 animate-in fade-in duration-200">

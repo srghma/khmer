@@ -15,7 +15,6 @@ import { colorizeText } from '../../utils/text-processing/text'
 
 import { TrashIcon, ChevronIcon } from './SharedComponents'
 import { tab_title_ru } from '../SidebarHeader'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -61,8 +60,6 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     )
 
     const wordColorized = useMemo(() => {
-      if (maybeColorMode === 'none' || !isContainsKhmer(word)) return { __html: word }
-
       return { __html: colorizeText(word, maybeColorMode, km_map) }
     }, [word, km_map, maybeColorMode])
 

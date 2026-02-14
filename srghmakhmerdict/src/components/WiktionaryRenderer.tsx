@@ -9,7 +9,6 @@ import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useSettings } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
@@ -26,10 +25,6 @@ export const useWiktionaryContent = (html: NonEmptyStringTrimmed, isKhmerPronunc
       isKhmerPronunciationHidingEnabled,
       'wiktionary',
     )
-
-    if (maybeColorMode === 'none') return { __html: html_withPronunciations }
-
-    if (!isContainsKhmer(html_withPronunciations)) return { __html: html_withPronunciations }
 
     return { __html: colorizeHtml(html_withPronunciations, maybeColorMode, km_map) }
   }, [html, maybeColorMode, km_map, isKhmerPronunciationHidingEnabled])

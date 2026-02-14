@@ -16,7 +16,7 @@ import {
   nonEmptyString,
   type NonEmptyString,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
-import { type ColorizationMode } from './utils'
+import { type MaybeColorizationMode } from './utils'
 import { renderKhmerWordSpan, renderNonKhmerSpan } from './word-renderer'
 
 import {
@@ -70,7 +70,7 @@ export const segmentsToUniqueKhmerWords = (
  */
 export function* yieldTextSegments(
   text: NonEmptyString,
-  mode: ColorizationMode,
+  mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
 ): Generator<TextSegment> {
   // Capture Khmer blocks
@@ -82,9 +82,9 @@ export function* yieldTextSegments(
     if (isKhmerWord(part)) {
       const match = part as TypedKhmerWord
       const words =
-        mode === 'segmenter'
-          ? khmerSentenceToWords_usingSegmenter(match)
-          : khmerSentenceToWords_usingDictionary(match, (s: TypedKhmerWord) => s !== match && km_map.has(s))
+        mode === 'dictionary'
+          ? khmerSentenceToWords_usingDictionary(match, (s: TypedKhmerWord) => s !== match && km_map.has(s))
+          : khmerSentenceToWords_usingSegmenter(match)
 
       yield { t: 'khmer', words }
     } else {
@@ -112,6 +112,7 @@ export function* yieldColorizedChunks(
   segments: Iterable<TextSegment>,
   km_map: KhmerWordsMap,
   wordCounter: { current: number },
+  mode: MaybeColorizationMode,
 ): Generator<NonEmptyString> {
   for (const segment of segments) {
     if (segment.t === 'whitespace') {
@@ -125,7 +126,7 @@ export function* yieldColorizedChunks(
     }
 
     for (const w of segment.words) {
-      yield renderKhmerWordSpan(w, wordCounter.current, km_map.has(w))
+      yield renderKhmerWordSpan(w, wordCounter.current, km_map.has(w), mode)
       wordCounter.current++
     }
   }
@@ -135,7 +136,7 @@ export function* yieldColorizedChunks(
 
 export const generateTextSegments = (
   text: NonEmptyString, // Accept full string (not pre-trimmed)
-  mode: ColorizationMode,
+  mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyArray<TextSegment> => {
   if (HTML_DETECTION_REGEX.test(text)) {
@@ -150,33 +151,38 @@ export const colorizeSegments_usingWordCounterRef = (
   segments: Iterable<TextSegment>,
   km_map: KhmerWordsMap,
   wordCounter: { current: number },
+  mode: MaybeColorizationMode,
 ): NonEmptyString => {
   let result = ''
 
-  for (const chunk of yieldColorizedChunks(segments, km_map, wordCounter)) {
+  for (const chunk of yieldColorizedChunks(segments, km_map, wordCounter, mode)) {
     result += chunk
   }
 
   return nonEmptyString(result)
 }
 
-export const colorizeSegments = (segments: Iterable<TextSegment>, km_map: KhmerWordsMap): NonEmptyString => {
-  return colorizeSegments_usingWordCounterRef(segments, km_map, { current: 0 })
+export const colorizeSegments = (
+  segments: Iterable<TextSegment>,
+  km_map: KhmerWordsMap,
+  mode: MaybeColorizationMode,
+): NonEmptyString => {
+  return colorizeSegments_usingWordCounterRef(segments, km_map, { current: 0 }, mode)
 }
 
 export const colorizeText = (
   text: NonEmptyStringTrimmed,
-  mode: ColorizationMode,
+  mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyString => {
   const segments = yieldTextSegments(escapeHtml(text), mode, km_map)
 
-  return colorizeSegments(segments, km_map)
+  return colorizeSegments(segments, km_map, mode)
 }
 
 export const colorizeText_allowUndefined = (
   text: NonEmptyStringTrimmed | undefined,
-  mode: ColorizationMode,
+  mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyString | undefined => {
   return text ? colorizeText(text, mode, km_map) : undefined
