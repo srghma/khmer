@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "typesafe-i18n": "typesafe-i18n"
   },
   "dependencies": {
     "@choochmeque/tauri-plugin-iap-api": "^0.7.1",
@@ -74,6 +75,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwind-variants": "3.2.2",
     "tauri-plugin-tts-api": "^0.1.2",
+    "typesafe-i18n": "^5.27.1",
     "unescape": "^1.0.1",
     "use-debounce": "^10.1.0",
     "vitest": "^4.0.18",

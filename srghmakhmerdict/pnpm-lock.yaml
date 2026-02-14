@@ -197,6 +197,9 @@ importers:
       tauri-plugin-tts-api:
         specifier: ^0.1.2
         version: 0.1.2
+      typesafe-i18n:
+        specifier: ^5.27.1
+        version: 5.27.1(typescript@5.9.3)
       unescape:
         specifier: ^1.0.1
         version: 1.0.1
@@ -3820,6 +3823,12 @@ packages:
   typed-array-length@1.0.7:
     resolution: {integrity: sha512-3KS2b+kL7fsuk/eJZ7EQdnEmQoaho/r6KUef7hxvltNA5DR8NAUM+8wJMbJyZ4G9/7i3v5zPBIMN5aybAh2/Jg==}
     engines: {node: '>= 0.4'}
+
+  typesafe-i18n@5.27.1:
+    resolution: {integrity: sha512-749uWo2ZXETT//kWjVYPm8QPYR8xLh8G0wLfoAyCAtAmysX67uCaAyLjAjAWojL6fuJpE5B6yIjwvO9orXzUPg==}
+    hasBin: true
+    peerDependencies:
+      typescript: '>=3.5.1'
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -8594,6 +8603,10 @@ snapshots:
       is-typed-array: 1.1.15
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
+
+  typesafe-i18n@5.27.1(typescript@5.9.3):
+    dependencies:
+      typescript: 5.9.3
 
   typescript@5.9.3: {}
 
