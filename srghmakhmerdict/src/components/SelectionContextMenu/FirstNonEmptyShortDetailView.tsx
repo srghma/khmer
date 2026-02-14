@@ -57,13 +57,13 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
             return
           case 'en':
-            if (en.includes(selectedText)) {
+            if (en.has(selectedText)) {
               throw new Error('English word is in db, but was not found using request, Impossible')
             }
 
             return
           case 'ru':
-            if (ru.includes(selectedText)) {
+            if (ru.has(selectedText)) {
               throw new Error('Russian word is in db, but was not found using request, Impossible')
             }
 

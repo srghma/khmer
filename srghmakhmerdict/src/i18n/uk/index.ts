@@ -154,6 +154,7 @@ const uk = {
     LOADING: 'Завантаження...',
     NO_ITEMS_FOUND: 'Елементів не знайдено.',
     CLEAR_ALL: 'Очистити все',
+    ALREADY_OPENED: 'Вже відкрито',
   },
   HISTORY: {
     RECENT_TITLE_WITH_COUNT: 'Історія пошуку ({count})',

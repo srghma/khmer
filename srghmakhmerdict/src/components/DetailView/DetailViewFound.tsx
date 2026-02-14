@@ -15,6 +15,8 @@ import type { DictionaryLanguage } from '../../types'
 import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { useAppMainView } from '../../hooks/useAppMainView'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import { useAppToast } from '../../providers/ToastProvider'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -76,6 +78,20 @@ export const DetailViewFound = ({
   backButton_desktopOnlyStyles_showButton,
 }: DetailViewFoundProps) => {
   // 1. Logic
+  const { LL } = useI18nContext()
+  const toast = useAppToast()
+
+  const handleNavigate = useCallback(
+    (navWord: NonEmptyStringTrimmed, navMode: DictionaryLanguage) => {
+      if (navWord === word && navMode === mode) {
+        toast.success(LL.COMMON.ALREADY_OPENED(), navWord)
+      } else {
+        onNavigate(navWord, navMode)
+      }
+    },
+    [word, mode, onNavigate, toast, LL],
+  )
+
   const {
     isKhmerLinksEnabled,
     isKhmerWordsHidingEnabled,
@@ -134,10 +150,10 @@ export const DetailViewFound = ({
       if (!selectedText) return
       const targetMode = detectModeFromText(selectedText) ?? currentNavigationStackItem.mode
 
-      setLocation(`/${targetMode}/${encodeURIComponent(selectedText)}`)
+      handleNavigate(selectedText, targetMode)
       window.getSelection()?.removeAllRanges()
     },
-    [setLocation, currentNavigationStackItem],
+    [handleNavigate, currentNavigationStackItem, mode],
   )
 
   const renderPopupContent = useCallback(
@@ -196,7 +212,7 @@ export const DetailViewFound = ({
               from_csv_variants={data.from_csv_variants}
               from_russian_wiki={data.from_russian_wiki}
               gorgoniev={data.gorgoniev}
-              isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? onNavigate : undefined}
+              isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? handleNavigate : undefined}
               isKhmerPronunciationHidingEnabled={false}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}

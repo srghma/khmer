@@ -2,12 +2,15 @@ import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import * as DictDb from './db/dict'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import {
+  Set_toNonEmptySet_orThrow,
+  type NonEmptySet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
 export type DictData = {
-  en: NonEmptyArray<NonEmptyStringTrimmed>
+  en: NonEmptySet<NonEmptyStringTrimmed>
   km_map: DictDb.KhmerWordsMap
-  ru: NonEmptyArray<NonEmptyStringTrimmed>
+  ru: NonEmptySet<NonEmptyStringTrimmed>
 }
 
 async function load3(): Promise<DictData> {
@@ -19,9 +22,9 @@ async function load3(): Promise<DictData> {
   // console.log('🎉 Dictionary data initialized successfully!')
 
   return {
-    en: enWords,
+    en: Set_toNonEmptySet_orThrow(new Set(enWords)),
     km_map: km_map,
-    ru: ruWords,
+    ru: Set_toNonEmptySet_orThrow(new Set(ruWords)),
   }
 }
 

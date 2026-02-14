@@ -154,6 +154,7 @@ const en = {
     LOADING: 'Loading...',
     NO_ITEMS_FOUND: 'No items found.',
     CLEAR_ALL: 'Clear All',
+    ALREADY_OPENED: 'Already opened',
   },
   HISTORY: {
     RECENT_TITLE_WITH_COUNT: 'Recent History ({count})',

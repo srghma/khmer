@@ -25,6 +25,7 @@ import { getBestDefinitionKhmerFromRu } from '../../utils/WordDetailRu_OnlyKhmer
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { useAnkiSettings } from './useAnkiSettings'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
+import { useAppToast } from '../../providers/ToastProvider'
 
 const SelectionMenuBodyLocalWrapper = React.memo(
   ({
@@ -198,8 +199,21 @@ export const AnkiCardDetailView = React.memo(
       [onReveal],
     )
 
+    const toast = useAppToast()
+
+    const handleNavigate = useCallback(
+      (navWord: NonEmptyStringTrimmed) => {
+        if (navWord === word) {
+          toast.success(LL.COMMON.ALREADY_OPENED(), navWord)
+        } else {
+          handleOpenSearch(navWord)
+        }
+      },
+      [word, handleOpenSearch, toast, LL],
+    )
+
     const handlePassOnNavigate = useMemo(
-      () => (isKhmerLinksEnabled ? handleOpenSearch : undefined),
+      () => (isKhmerLinksEnabled ? handleNavigate : undefined),
       [isKhmerLinksEnabled, handleOpenSearch],
     )
 

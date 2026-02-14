@@ -12,7 +12,6 @@ import { useListLogic } from './useListLogic'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { ConfirmAction } from '../ConfirmAction'
 import { useHistory } from '../../providers/HistoryProvider'
-import { useDictionary } from '../../providers/DictionaryProvider'
 import { FavoriteToggleButton } from './FavoriteToggleButton'
 
 interface HistoryListOnlyProps {
@@ -21,7 +20,6 @@ interface HistoryListOnlyProps {
 }
 
 export const HistoryListOnly = React.memo(({ maybeColorMode, onNavigate }: HistoryListOnlyProps) => {
-  const { km_map } = useDictionary()
   const { LL } = useI18nContext()
   const { history: items, loading, removeHistoryItem, deleteAllHistory } = useHistory()
   const { handleDelete, handleClearAll } = useListLogic(removeHistoryItem, deleteAllHistory)
@@ -80,7 +78,6 @@ export const HistoryListOnly = React.memo(({ maybeColorMode, onNavigate }: Histo
           {items.map(({ word, language }) => (
             <HistoryOrFavoriteItemRow
               key={`${word}-${language}`}
-              km_map={km_map}
               language={language}
               maybeColorMode={maybeColorMode}
               renderRightAction={renderRightAction}

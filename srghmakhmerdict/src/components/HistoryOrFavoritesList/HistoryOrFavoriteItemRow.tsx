@@ -5,22 +5,20 @@ import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.mo
 // Types & Utils
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type DictionaryLanguage } from '../../types'
-import type { KhmerWordsMap } from '../../db/dict/index'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { colorizeText } from '../../utils/text-processing/text'
 
-// DB
-
-// Components
-
 import { TrashIcon, ChevronIcon } from './SharedComponents'
 import { tab_title_ru } from '../SidebarHeader'
+import { useDictionary } from '../../providers/DictionaryProvider'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
   km: '🇰🇭',
   ru: tab_title_ru,
 }
+
+const SENTENCE_ICON = '📜'
 
 const ANIM_ENTER = { height: 'auto', opacity: 1 } as const
 const ANIM_EXIT = { height: 0, opacity: 0, transition: { duration: 0.2 } } as const
@@ -35,14 +33,14 @@ interface HistoryOrFavoriteItemRowProps {
   language: DictionaryLanguage
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   onDelete: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => void
-  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
   renderRightAction?: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => React.ReactNode
 }
 
 export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps>(
-  ({ word, language, onSelect, onDelete, km_map, maybeColorMode, renderRightAction }) => {
+  ({ word, language, onSelect, onDelete, maybeColorMode, renderRightAction }) => {
     const controls = useAnimation()
+    const { km_map, en, ru } = useDictionary()
 
     const handleDragEnd = useCallback(
       async (_: unknown, info: PanInfo) => {
@@ -58,6 +56,19 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
       },
       [controls, onDelete, word, language],
     )
+
+    const isSentence = useMemo(() => {
+      switch (language) {
+        case 'km':
+          return !km_map.has(word)
+        case 'en':
+          return !en.has(word)
+        case 'ru':
+          return !ru.has(word)
+        default:
+          return false
+      }
+    }, [language, word, km_map, en, ru])
 
     const wordColorized = useMemo(() => {
       return { __html: colorizeText(word, maybeColorMode, km_map) }
@@ -85,7 +96,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
           onTap={onTap}
         >
           <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0">
-            {MODES_ICON[language]}
+            {isSentence ? SENTENCE_ICON : MODES_ICON[language]}
           </div>
           <div className="flex-1 min-w-0 pointer-events-none select-none">
             <div

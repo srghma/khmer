@@ -154,6 +154,7 @@ const ru = {
     LOADING: 'Загрузка...',
     NO_ITEMS_FOUND: 'Элементов не найдено.',
     CLEAR_ALL: 'Очистить всё',
+    ALREADY_OPENED: 'Уже открыто',
   },
   HISTORY: {
     RECENT_TITLE_WITH_COUNT: 'История поиска ({count})',

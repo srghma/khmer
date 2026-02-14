@@ -12,7 +12,6 @@ import { EmptyState } from './SharedComponents'
 import { HistoryOrFavoriteItemRow } from './HistoryOrFavoriteItemRow'
 import { useListLogic } from './useListLogic'
 import { ConfirmAction } from '../ConfirmAction'
-import { useDictionary } from '../../providers/DictionaryProvider'
 import { useFavorites } from '../../providers/FavoritesProvider'
 
 import { Link } from 'wouter'
@@ -26,7 +25,6 @@ interface ListPropsCommon {
 
 export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelect, maybeColorMode }: ListPropsCommon) {
   const { LL } = useI18nContext()
-  const dictData = useDictionary()
 
   const { favorites: items, loading, removeFavorite, deleteAllFavorites } = useFavorites()
 
@@ -89,9 +87,9 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
           {items.map(({ word, language }) => (
             <HistoryOrFavoriteItemRow
               key={`${word}-${language}`}
-              km_map={dictData.km_map}
               language={language}
               maybeColorMode={maybeColorMode}
+              renderRightAction={undefined}
               word={word}
               onDelete={handleDelete}
               onSelect={onSelect}

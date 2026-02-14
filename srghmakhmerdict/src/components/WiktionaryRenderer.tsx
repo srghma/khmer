@@ -82,7 +82,7 @@ const useWikiLinkHandler = (
                 break
               }
               case 'en': {
-                if (en.find((x: NonEmptyStringTrimmed) => x === result.term)) {
+                if (en.has(result.term)) {
                   processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
                 } else {
                   processAsExternal()
@@ -90,7 +90,7 @@ const useWikiLinkHandler = (
                 break
               }
               case 'ru': {
-                if (ru.find((x: NonEmptyStringTrimmed) => x === result.term)) {
+                if (ru.has(result.term)) {
                   processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
                 } else {
                   processAsExternal()
@@ -128,8 +128,8 @@ interface WiktionaryRendererProps {
   html: NonEmptyStringTrimmed
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
   isKhmerLinksEnabled_ifTrue_passOnNavigate:
-    | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
-    | undefined
+  | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
+  | undefined
   currentMode: DictionaryLanguage
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean

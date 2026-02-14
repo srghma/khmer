@@ -491,6 +491,10 @@ type RootTranslation = {
 		 * C​l​e​a​r​ ​A​l​l
 		 */
 		CLEAR_ALL: string
+		/**
+		 * A​l​r​e​a​d​y​ ​o​p​e​n​e​d
+		 */
+		ALREADY_OPENED: string
 	}
 	HISTORY: {
 		/**
@@ -1286,6 +1290,10 @@ export type TranslationFunctions = {
 		 * Clear All
 		 */
 		CLEAR_ALL: () => LocalizedString
+		/**
+		 * Already opened
+		 */
+		ALREADY_OPENED: () => LocalizedString
 	}
 	HISTORY: {
 		/**
