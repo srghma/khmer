@@ -9,6 +9,7 @@ import { useAppToast } from '../providers/ToastProvider'
 import { useSettings } from '../providers/SettingsProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 interface ProgressPayload {
   percentage: number
@@ -18,6 +19,7 @@ interface ProgressPayload {
 const MdOutlineCloudDownload_ = <MdOutlineCloudDownload className="text-lg" />
 
 export const SettingsEnKmOfflineImagesControl = () => {
+  const { LL } = useI18nContext()
   const { imageMode, setImageMode } = useSettings()
   const toast = useAppToast()
 
@@ -36,8 +38,10 @@ export const SettingsEnKmOfflineImagesControl = () => {
 
         setHasOfflineAssets(count)
       })
-      .catch((e: unknown) => toast.error('Check failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(e)))
-  }, [])
+      .catch((e: unknown) =>
+        toast.error(LL.OFFLINE.CHECK_FAILED() as unknown as NonEmptyStringTrimmed, unknown_to_errorMessage(e)),
+      )
+  }, [LL, toast])
 
   // Listen for progress events from Rust
   useEffect(() => {
@@ -63,7 +67,7 @@ export const SettingsEnKmOfflineImagesControl = () => {
     try {
       setIsDownloading(true)
       setProgress(0)
-      setStatusLabel('Starting download...')
+      setStatusLabel(LL.OFFLINE.STARTING_DOWNLOAD())
 
       // Now receives the count
       const count = await invoke('download_offline_images')
@@ -73,16 +77,16 @@ export const SettingsEnKmOfflineImagesControl = () => {
       }
 
       if (count === null) {
-        toast.error('Files were not downloaded.' as NonEmptyStringTrimmed)
+        toast.error(LL.OFFLINE.NOT_DOWNLOADED() as unknown as NonEmptyStringTrimmed)
       } else if (count > 0) {
         setHasOfflineAssets(count)
         setImageMode('offline')
-        toast.success(`Offline images ready! (${count} files)` as NonEmptyStringTrimmed)
+        toast.success(LL.OFFLINE.READY({ count }) as unknown as NonEmptyStringTrimmed)
       } else {
-        toast.error('Download completed but no files found.' as NonEmptyStringTrimmed)
+        toast.error(LL.OFFLINE.NO_FILES_FOUND() as unknown as NonEmptyStringTrimmed)
       }
     } catch (e: unknown) {
-      toast.error('Download failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+      toast.error(LL.OFFLINE.DOWNLOAD_FAILED() as unknown as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
     } finally {
       setIsDownloading(false)
       setProgress(0)
@@ -95,15 +99,13 @@ export const SettingsEnKmOfflineImagesControl = () => {
 
   return (
     <div className="flex flex-col gap-3 p-3 rounded-medium bg-default-100/50 border border-default-100">
-      <span className="text-xs font-semibold text-default-500 uppercase tracking-wider">Images</span>
+      <span className="text-xs font-semibold text-default-500 uppercase tracking-wider">{LL.OFFLINE.TITLE()}</span>
 
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-foreground">Offline Images</span>
+          <span className="text-sm font-medium text-foreground">{LL.OFFLINE.LABEL()}</span>
           <span className="text-xs text-default-400">
-            {isAvailable
-              ? `Use downloaded images (${hasOfflineAssets} files, ~30MB)`
-              : 'Download images for offline use (~30MB)'}
+            {isAvailable ? LL.OFFLINE.HINT_AVAILABLE({ count: hasOfflineAssets! }) : LL.OFFLINE.HINT_NOT_AVAILABLE()}
           </span>
         </div>
         <Switch
@@ -122,14 +124,14 @@ export const SettingsEnKmOfflineImagesControl = () => {
           variant="flat"
           onPress={handleDownload}
         >
-          Download Offline Assets
+          {LL.OFFLINE.DOWNLOAD_BUTTON()}
         </Button>
       )}
 
       {isDownloading && (
         <div className="flex flex-col gap-2 w-full">
           <Progress
-            aria-label="Downloading..."
+            aria-label={LL.OFFLINE.DOWNLOADING()}
             className="max-w-md"
             color={progress === 100 ? 'success' : 'primary'}
             showValueLabel={true}
@@ -142,7 +144,7 @@ export const SettingsEnKmOfflineImagesControl = () => {
 
       {isAvailable && !isDownloading && (
         <div className="flex items-center gap-2 text-xs text-success font-medium px-1">
-          <MdCheckCircle className="text-sm" /> Assets Available ({hasOfflineAssets})
+          <MdCheckCircle className="text-sm" /> {LL.OFFLINE.ASSETS_AVAILABLE({ count: hasOfflineAssets! })}
         </div>
       )}
     </div>

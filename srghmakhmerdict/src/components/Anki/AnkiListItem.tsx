@@ -30,8 +30,11 @@ interface AnkiListItemProps_Common {
 
 export type AnkiListItemProps = AnkiListItemProps_Common & AnkiListItemProps_ShowMode
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItemProps) {
   const { card_due, isSelected, onSelect, now, t, v } = props
+  const { LL } = useI18nContext()
 
   const isDue = card_due <= now
   const notDueButWillSeeIn2MinutesOrLess = card_due <= now + 2 * 60000
@@ -126,7 +129,11 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
 
     return (
       <div className="flex flex-col items-end gap-0.5 ml-auto shrink-0 pl-2">
-        {isDue && <span className="text-[10px] font-black uppercase tracking-wider text-danger leading-none">Due</span>}
+        {isDue && (
+          <span className="text-[10px] font-black uppercase tracking-wider text-danger leading-none">
+            {LL.ANKI.DUE()}
+          </span>
+        )}
         <span className={`text-tiny whitespace-nowrap font-medium ${colorClass}`}>{text}</span>
       </div>
     )

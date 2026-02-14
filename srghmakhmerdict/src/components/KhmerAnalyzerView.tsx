@@ -15,6 +15,7 @@ import { KhmerAnalyzer } from './KhmerAnalyzer'
 import { SegmentationPreview } from './KhmerAnalyzerModal/SegmentationPreview'
 import { useKhmerAnalysis, type KhmerAnalysisResult } from './KhmerAnalyzerModal/useKhmerAnalysis'
 import { useDebounce } from 'use-debounce'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 interface HeaderTogglerOfSegmenterProps {
   title: string
@@ -31,6 +32,7 @@ export function HeaderTogglerOfSegmenter({
   initiallySelected,
   children,
 }: HeaderTogglerOfSegmenterProps) {
+  const { LL } = useI18nContext()
   const [selected, setSelected] = useState(initiallySelected)
   const isDict = selected === 'dict'
 
@@ -43,7 +45,7 @@ export function HeaderTogglerOfSegmenter({
           type="button"
           onClick={() => setSelected(isDict ? 'intl' : 'dict')}
         >
-          using {isDict ? 'app dictionary' : 'intl segmenter'}
+          {isDict ? LL.ANALYZER.USING_APP_DICT() : LL.ANALYZER.USING_INTL_SEGMENTER()}
         </button>
       </div>
       {children(isDict ? segmentsDict : segmentsIntl)}
@@ -57,14 +59,16 @@ interface KhmerAnalysisResultsProps {
 }
 
 export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res, onKhmerWordClick }) => {
+  const { LL } = useI18nContext()
+
   if (res.t === 'empty_text') {
-    return <div className="py-10 text-center text-default-400 italic">Enter some text to start analysis</div>
+    return <div className="py-10 text-center text-default-400 italic">{LL.ANALYZER.EMPTY_TEXT()}</div>
   }
 
   if (res.t === 'non_empty_text_without_at_least_one_khmer_char') {
     return (
       <Alert color="warning" variant="flat">
-        No Khmer characters detected in the provided text.
+        {LL.ANALYZER.NO_KHMER_CHAR()}
       </Alert>
     )
   }
@@ -73,13 +77,13 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res,
     <div className="flex flex-col gap-2">
       {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
         <div className="flex items-center gap-3 text-small text-primary animate-pulse">
-          <Spinner size="sm" /> <span>Fetching word definitions...</span>
+          <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
         </div>
       )}
 
       {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
-        <Alert color="danger" title="Definition Fetch Failed" variant="flat">
-          {res.e || 'An unknown error occurred while fetching definitions.'}
+        <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
+          {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
         </Alert>
       )}
 
@@ -87,7 +91,7 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res,
         initiallySelected="dict"
         segmentsDict={res.segmentsDict}
         segmentsIntl={res.segmentsIntl}
-        title="Word Segmentation"
+        title={LL.ANALYZER.SEGMENTATION()}
       >
         {segments => (
           <SegmentationPreview maybeColorMode="dictionary" segments={segments} onKhmerWordClick={onKhmerWordClick} />
@@ -98,7 +102,7 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res,
         initiallySelected="intl"
         segmentsDict={res.segmentsDict}
         segmentsIntl={res.segmentsIntl}
-        title="Character Analysis"
+        title={LL.ANALYZER.CHARACTER_ANALYSIS()}
       >
         {segments => <KhmerAnalyzer segments={segments} />}
       </HeaderTogglerOfSegmenter>
@@ -111,6 +115,7 @@ interface KhmerAnalyzerViewProps {
 }
 
 export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initialText }) => {
+  const { LL } = useI18nContext()
   const [, setLocation] = useLocation()
   const { maybeColorMode, filters } = useSettings()
 
@@ -160,7 +165,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
         <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
           <HiArrowLeft className="w-6 h-6" />
         </Button>
-        <h1 className="text-xl font-bold">Khmer Analyzer</h1>
+        <h1 className="text-xl font-bold">{LL.ANALYZER.TITLE()}</h1>
       </div>
 
       {/* Content */}
@@ -172,7 +177,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
             maxRows={10}
             maybeColorMode={maybeColorMode}
             minRows={3}
-            placeholder="Enter Khmer text to analyze..."
+            placeholder={LL.ANALYZER.PLACEHOLDER()}
             value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
             value_toShowInTextArea={analyzedText}
             variant="faded"

@@ -15,18 +15,1588 @@ export type Translation = RootTranslation
 export type Translations = RootTranslation
 
 type RootTranslation = {
-	/**
-	 * H​i​ ​{​n​a​m​e​}​!​ ​P​l​e​a​s​e​ ​l​e​a​v​e​ ​a​ ​s​t​a​r​ ​i​f​ ​y​o​u​ ​l​i​k​e​ ​t​h​i​s​ ​p​r​o​j​e​c​t​:​ ​h​t​t​p​s​:​/​/​g​i​t​h​u​b​.​c​o​m​/​i​v​a​n​h​o​f​e​r​/​t​y​p​e​s​a​f​e​-​i​1​8​n
-	 * @param {string} name
-	 */
-	HI: RequiredParams<'name'>
+	SETTINGS: {
+		/**
+		 * A​p​p​ ​S​e​t​t​i​n​g​s
+		 */
+		TITLE: string
+		/**
+		 * C​u​s​t​o​m​i​z​e​ ​y​o​u​r​ ​d​i​c​t​i​o​n​a​r​y​ ​e​x​p​e​r​i​e​n​c​e​.
+		 */
+		SUBTITLE: string
+		GROUPS: {
+			/**
+			 * T​o​o​l​s
+			 */
+			TOOLS: string
+			/**
+			 * S​e​a​r​c​h
+			 */
+			SEARCH: string
+			/**
+			 * I​n​t​e​r​f​a​c​e
+			 */
+			INTERFACE: string
+			/**
+			 * T​e​x​t​ ​S​i​z​e
+			 */
+			TEXT_SIZE: string
+			/**
+			 * K​h​m​e​r​ ​D​i​c​t​i​o​n​a​r​y
+			 */
+			KHMER_DICT: string
+			/**
+			 * P​r​o​j​e​c​t
+			 */
+			PROJECT: string
+		}
+		ACTIONS: {
+			/**
+			 * O​p​e​n​ ​K​h​m​e​r​ ​C​h​a​r​a​c​t​e​r​s​ ​T​a​b​l​e
+			 */
+			OPEN_KHMER_COMPLEX_TABLE: string
+			/**
+			 * O​p​e​n​ ​K​h​m​e​r​ ​A​n​a​l​y​z​e​r
+			 */
+			OPEN_KHMER_ANALYZER: string
+			/**
+			 * A​b​o​u​t​ ​D​i​c​t​i​o​n​a​r​y
+			 */
+			ABOUT: string
+			/**
+			 * D​o​n​a​t​e
+			 */
+			DONATE: string
+		}
+		LABELS: {
+			/**
+			 * S​e​a​r​c​h​ ​M​o​d​e
+			 */
+			SEARCH_MODE: string
+			/**
+			 * C​h​o​o​s​e​ ​h​o​w​ ​t​o​ ​m​a​t​c​h​ ​y​o​u​r​ ​q​u​e​r​y
+			 */
+			SEARCH_MODE_HINT: string
+			/**
+			 * S​e​a​r​c​h​ ​i​n​ ​C​o​n​t​e​n​t
+			 */
+			SEARCH_IN_CONTENT: string
+			/**
+			 * I​n​c​l​u​d​e​ ​r​e​s​u​l​t​s​ ​f​r​o​m​ ​d​e​f​i​n​i​t​i​o​n​s
+			 */
+			SEARCH_IN_CONTENT_HINT: string
+			/**
+			 * H​i​g​h​l​i​g​h​t​ ​i​n​ ​L​i​s​t
+			 */
+			HIGHLIGHT_IN_LIST: string
+			/**
+			 * H​i​g​h​l​i​g​h​t​ ​m​a​t​c​h​e​s​ ​i​n​ ​w​o​r​d​ ​l​i​s​t
+			 */
+			HIGHLIGHT_IN_LIST_HINT: string
+			/**
+			 * H​i​g​h​l​i​g​h​t​ ​i​n​ ​D​e​t​a​i​l​s
+			 */
+			HIGHLIGHT_IN_DETAILS: string
+			/**
+			 * H​i​g​h​l​i​g​h​t​ ​m​a​t​c​h​e​s​ ​i​n​ ​d​e​f​i​n​i​t​i​o​n
+			 */
+			HIGHLIGHT_IN_DETAILS_HINT: string
+			/**
+			 * T​h​e​m​e
+			 */
+			THEME: string
+			/**
+			 * T​o​g​g​l​e​ ​d​a​r​k​/​l​i​g​h​t​ ​t​h​e​m​e
+			 */
+			THEME_HINT: string
+			/**
+			 * A​p​p​ ​L​a​n​g​u​a​g​e
+			 */
+			APP_LANGUAGE: string
+			/**
+			 * C​h​o​o​s​e​ ​i​n​t​e​r​f​a​c​e​ ​l​a​n​g​u​a​g​e
+			 */
+			APP_LANGUAGE_HINT: string
+			/**
+			 * A​u​t​o
+			 */
+			AUTO: string
+			/**
+			 * S​i​d​e​b​a​r​ ​/​ ​L​i​s​t​ ​S​i​z​e
+			 */
+			SIDEBAR_LIST_SIZE: string
+			/**
+			 * D​e​f​i​n​i​t​i​o​n​ ​T​e​x​t​ ​S​i​z​e
+			 */
+			DEFINITION_TEXT_SIZE: string
+			/**
+			 * F​i​l​t​e​r
+			 */
+			DESCRIPTION_FILTER: string
+			/**
+			 * S​h​o​w​ ​A​l​l
+			 */
+			ALL: string
+			/**
+			 * O​n​l​y​ ​V​e​r​i​f​i​e​d
+			 */
+			ONLY_VERIFIED: string
+		}
+	}
+	ABOUT: {
+		/**
+		 * A​b​o​u​t​ ​K​h​m​e​r​ ​D​i​c​t​i​o​n​a​r​y
+		 */
+		TITLE: string
+		/**
+		 * D​e​v​e​l​o​p​e​r​ ​I​n​f​o
+		 */
+		DEVELOPER_INFO: string
+		/**
+		 * H​e​l​p​ ​t​h​e​ ​P​r​o​j​e​c​t
+		 */
+		HELP_PROJECT: string
+		/**
+		 * S​u​p​p​o​r​t​ ​d​e​v​e​l​o​p​m​e​n​t
+		 */
+		SUPPORT_DEVELOPMENT: string
+		/**
+		 * S​u​p​p​o​r​t​ ​m​y​ ​w​o​r​k​ ​v​i​a​ ​G​o​o​g​l​e​ ​P​a​y
+		 */
+		DONATE_SUBTITLE: string
+		/**
+		 * R​a​t​e​ ​t​h​e​ ​A​p​p
+		 */
+		RATE_APP: string
+		SUCCESS_MODAL: {
+			/**
+			 * S​u​c​c​e​s​s​!
+			 */
+			TITLE: string
+			/**
+			 * T​h​a​n​k​ ​y​o​u​ ​f​o​r​ ​y​o​u​r​ ​g​e​n​e​r​o​u​s​ ​s​u​p​p​o​r​t​!​ ​I​t​ ​m​e​a​n​s​ ​a​ ​l​o​t​ ​f​o​r​ ​t​h​e​ ​d​e​v​e​l​o​p​m​e​n​t​ ​o​f​ ​t​h​e​ ​p​r​o​j​e​c​t​.
+			 */
+			BODY_1: string
+			/**
+			 * S​u​p​p​o​r​t​ ​t​h​i​s​ ​f​r​e​e​ ​f​e​a​t​u​r​e​ ​w​i​t​h​ ​a​ ​q​u​i​c​k​ ​r​a​t​i​n​g​!
+			 */
+			BODY_2: string
+			/**
+			 * Y​e​s​,​ ​I​ ​w​i​l​l​ ​s​u​p​p​o​r​t​!
+			 */
+			BUTTON_YES: string
+			/**
+			 * N​o​t​ ​n​o​w
+			 */
+			BUTTON_NO: string
+		}
+		CANCELLATION_MODAL: {
+			/**
+			 * O​O​P​S​.​.​.
+			 */
+			TITLE: string
+			/**
+			 * W​e​ ​a​r​e​ ​s​o​r​r​y​ ​t​h​a​t​ ​y​o​u​ ​c​a​n​c​e​l​l​e​d​ ​t​h​e​ ​d​o​n​a​t​i​o​n
+			 */
+			BODY: string
+			/**
+			 * I​ ​u​n​d​e​r​s​t​a​n​d
+			 */
+			BUTTON: string
+		}
+		DEV_SECTION: {
+			/**
+			 * M​y​ ​n​a​m​e​ ​i​s​ ​<​s​t​r​o​n​g​ ​c​l​a​s​s​=​"​t​e​x​t​-​f​o​r​e​g​r​o​u​n​d​"​>​S​e​r​h​i​i​ ​K​h​o​m​a​<​/​s​t​r​o​n​g​>​.
+			 */
+			NAME: string
+			/**
+			 * M​y​ ​g​i​t​h​u​b​:​ ​<​a​ ​h​r​e​f​=​"​h​t​t​p​s​:​/​/​g​i​t​h​u​b​.​c​o​m​/​s​r​g​h​m​a​"​ ​c​l​a​s​s​=​"​f​o​n​t​-​s​e​m​i​b​o​l​d​ ​t​e​x​t​-​p​r​i​m​a​r​y​"​>​s​r​g​h​m​a​<​/​a​>​.
+			 */
+			GITHUB: string
+			/**
+			 * T​h​e​ ​s​o​u​r​c​e​ ​c​o​d​e​ ​o​f​ ​t​h​i​s​ ​d​i​c​t​i​o​n​a​r​y​ ​i​s​ ​o​p​e​n​ ​a​n​d​ ​a​v​a​i​l​a​b​l​e​ ​a​t​ ​<​a​ ​h​r​e​f​=​"​h​t​t​p​s​:​/​/​g​i​t​h​u​b​.​c​o​m​/​s​r​g​h​m​a​/​k​h​m​e​r​"​ ​c​l​a​s​s​=​"​f​o​n​t​-​s​e​m​i​b​o​l​d​ ​t​e​x​t​-​p​r​i​m​a​r​y​"​>​g​i​t​h​u​b​.​c​o​m​/​s​r​g​h​m​a​/​k​h​m​e​r​<​/​a​>
+			 */
+			SOURCE_CODE: string
+		}
+		PRESENTATION_SECTION: {
+			/**
+			 * I​ ​a​l​s​o​ ​k​n​o​w​ ​h​o​w​ ​p​e​o​p​l​e​ ​a​p​p​e​a​r​e​d​ ​i​n​ ​t​h​e​ ​u​n​i​v​e​r​s​e​ ​f​r​o​m​ ​(​<​b​>​a​u​t​o​c​a​t​a​l​y​z​e​r​<​/​b​>​ ​=​&​g​t​;​ ​<​b​>​t​h​e​ ​f​i​r​s​t​ ​m​o​l​e​c​u​l​a​r​ ​r​o​b​o​t​-​s​e​l​f​-​r​e​p​l​i​c​a​t​o​r​<​/​b​>​ ​�​�​)​.
+			 */
+			BODY_1: string
+			/**
+			 * Y​o​u​ ​c​a​n​ ​r​e​a​d​ ​a​b​o​u​t​ ​i​t​ ​i​n​ ​m​y​ ​p​r​e​s​e​n​t​a​t​i​o​n​.
+			 */
+			BODY_2: string
+			/**
+			 * (​A​l​s​o​ ​t​h​e​r​e​ ​i​s​ ​a​ ​s​t​o​r​y​ ​a​b​o​u​t​ ​h​o​w​ ​r​u​s​s​i​a​n​s​ ​�​�​�​�​ ​t​o​r​t​u​r​e​d​ ​m​y​ ​�​�​�​�​ ​f​r​i​e​n​d​ ​I​v​a​n​)​.
+			 */
+			BODY_3: string
+			/**
+			 * V​i​e​w​ ​P​r​e​s​e​n​t​a​t​i​o​n
+			 */
+			BUTTON: string
+		}
+		OCR_SECTION: {
+			/**
+			 * Y​o​u​ ​c​a​n​ ​s​i​g​n​i​f​i​c​a​n​t​l​y​ ​h​e​l​p​ ​b​y​ ​f​i​n​d​i​n​g​ ​m​i​s​t​a​k​e​s​ ​i​n​ ​d​i​c​t​i​o​n​a​r​i​e​s​.​ ​M​o​r​e​ ​-​ ​i​n​ ​G​i​t​H​u​b​.
+			 */
+			TITLE: string
+		}
+	}
+	TABS: {
+		/**
+		 * H​i​s​t​o​r​y
+		 */
+		HISTORY: string
+		/**
+		 * F​a​v​o​r​i​t​e​s
+		 */
+		FAVORITES: string
+		/**
+		 * S​e​t​t​i​n​g​s
+		 */
+		SETTINGS: string
+	}
+	ANALYZER: {
+		/**
+		 * K​h​m​e​r​ ​A​n​a​l​y​z​e​r
+		 */
+		TITLE: string
+		/**
+		 * E​n​t​e​r​ ​K​h​m​e​r​ ​t​e​x​t​ ​t​o​ ​a​n​a​l​y​z​e​.​.​.
+		 */
+		PLACEHOLDER: string
+		/**
+		 * W​o​r​d​ ​S​e​g​m​e​n​t​a​t​i​o​n
+		 */
+		SEGMENTATION: string
+		/**
+		 * C​h​a​r​a​c​t​e​r​ ​A​n​a​l​y​s​i​s
+		 */
+		CHARACTER_ANALYSIS: string
+		/**
+		 * u​s​i​n​g​ ​a​p​p​ ​d​i​c​t​i​o​n​a​r​y
+		 */
+		USING_APP_DICT: string
+		/**
+		 * u​s​i​n​g​ ​i​n​t​l​ ​s​e​g​m​e​n​t​e​r
+		 */
+		USING_INTL_SEGMENTER: string
+		/**
+		 * E​n​t​e​r​ ​s​o​m​e​ ​t​e​x​t​ ​t​o​ ​s​t​a​r​t​ ​a​n​a​l​y​s​i​s
+		 */
+		EMPTY_TEXT: string
+		/**
+		 * N​o​ ​K​h​m​e​r​ ​c​h​a​r​a​c​t​e​r​s​ ​d​e​t​e​c​t​e​d​ ​i​n​ ​t​h​e​ ​p​r​o​v​i​d​e​d​ ​t​e​x​t​.
+		 */
+		NO_KHMER_CHAR: string
+		/**
+		 * F​e​t​c​h​i​n​g​ ​w​o​r​d​ ​d​e​f​i​n​i​t​i​o​n​s​.​.​.
+		 */
+		FETCHING_DEFS: string
+		/**
+		 * E​r​r​o​r​ ​f​e​t​c​h​i​n​g​ ​d​e​f​i​n​i​t​i​o​n​s
+		 */
+		DEFS_FETCH_FAILED: string
+		/**
+		 * A​n​ ​u​n​k​n​o​w​n​ ​e​r​r​o​r​ ​o​c​c​u​r​r​e​d​ ​w​h​i​l​e​ ​f​e​t​c​h​i​n​g​ ​d​e​f​i​n​i​t​i​o​n​s​.
+		 */
+		DEFS_FETCH_ERROR: string
+		/**
+		 * C​l​i​c​k​ ​t​o​ ​e​x​p​a​n​d​ ​d​e​f​i​n​i​t​i​o​n
+		 */
+		EXPAND_DEFINITION: string
+	}
+	ANKI: {
+		/**
+		 * F​a​v​o​r​i​t​e​s​ ​i​s​ ​e​m​p​t​y​.​ ​A​d​d​ ​w​o​r​d​s​ ​t​o​ ​f​a​v​o​r​i​t​e​s​ ​t​o​ ​s​t​a​r​t​ ​l​e​a​r​n​i​n​g​.
+		 */
+		NO_FAVORITES: string
+		/**
+		 * C​a​r​d​ ​n​o​t​ ​f​o​u​n​d
+		 */
+		CARD_NOT_FOUND: string
+		/**
+		 * S​e​l​e​c​t​ ​a​ ​c​a​r​d​ ​t​o​ ​s​t​a​r​t
+		 */
+		SELECT_CARD: string
+		/**
+		 * F​a​i​l​e​d​ ​t​o​ ​l​o​a​d​ ​d​e​f​i​n​i​t​i​o​n
+		 */
+		FETCH_FAILED: string
+		/**
+		 * D​u​e
+		 */
+		DUE: string
+		DIFF: {
+			/**
+			 * E​x​t​r​a​ ​c​h​a​r​a​c​t​e​r
+			 */
+			EXTRA: string
+			/**
+			 * M​i​s​s​i​n​g​ ​c​h​a​r​a​c​t​e​r
+			 */
+			MISSING: string
+		}
+		MODES: {
+			/**
+			 * G​u​e​s​s​i​n​g
+			 */
+			GUESSING: string
+			/**
+			 * T​r​a​n​s​l​a​t​e​ ​t​o​ ​E​n​/​R​u
+			 */
+			TRANSLATE_TO_EN_RU: string
+			/**
+			 * T​r​a​n​s​l​a​t​e​ ​t​o​ ​{​l​a​n​g​}
+			 * @param {unknown} lang
+			 */
+			TRANSLATE_TO: RequiredParams<'lang'>
+		}
+		ARIA: {
+			/**
+			 * A​n​k​i​ ​D​i​c​t​i​o​n​a​r​y​ ​T​a​b​s
+			 */
+			TABS: string
+		}
+		BUTTONS: {
+			/**
+			 * �​�​ ​A​g​a​i​n
+			 */
+			AGAIN: string
+			/**
+			 * �​�​ ​H​a​r​d
+			 */
+			HARD: string
+			/**
+			 * �​�​ ​G​o​o​d
+			 */
+			GOOD: string
+			/**
+			 * �​�​ ​E​a​s​y
+			 */
+			EASY: string
+			/**
+			 * S​h​o​w​ ​A​n​s​w​e​r
+			 */
+			SHOW_ANSWER: string
+		}
+		/**
+		 * S​e​s​s​i​o​n​ ​f​i​n​i​s​h​e​d​!
+		 */
+		SESSION_FINISHED: string
+		/**
+		 * Y​o​u​r​ ​G​u​e​s​s​ ​(​{​f​i​e​l​d​}​ ​f​i​e​l​d​)
+		 * @param {unknown} field
+		 */
+		YOUR_GUESS: RequiredParams<'field'>
+		/**
+		 * A​n​s​w​e​r​.​.​.​ ​(​{​f​i​e​l​d​}​ ​f​i​e​l​d​)
+		 * @param {unknown} field
+		 */
+		ANSWER_PLACEHOLDER: RequiredParams<'field'>
+		LANGUAGES: {
+			/**
+			 * K​h​m​e​r
+			 */
+			KHMER: string
+			/**
+			 * E​n​g​l​i​s​h
+			 */
+			ENGLISH: string
+			/**
+			 * R​u​s​s​i​a​n
+			 */
+			RUSSIAN: string
+			/**
+			 * E​n​/​R​u
+			 */
+			EN_RU: string
+		}
+	}
+	SIDEBAR: {
+		/**
+		 * L​o​a​d​i​n​g​ ​D​i​c​t​i​o​n​a​r​y​.​.​.
+		 */
+		LOADING_DICT: string
+		/**
+		 * F​i​l​t​e​r​i​n​g​.​.​.
+		 */
+		FILTERING: string
+		/**
+		 * D​i​c​t​i​o​n​a​r​y​ ​n​o​t​ ​l​o​a​d​e​d​ ​o​r​ ​e​m​p​t​y
+		 */
+		ERROR_NOT_LOADED: string
+		ARIA: {
+			/**
+			 * D​i​c​t​i​o​n​a​r​y​ ​T​a​b​s
+			 */
+			TABS: string
+		}
+		/**
+		 * 1​s​t
+		 */
+		LEVEL_1: string
+		/**
+		 * 2​n​d
+		 */
+		LEVEL_2: string
+	}
+	COMMON: {
+		/**
+		 * W​e​l​c​o​m​e​ ​t​o​ ​K​h​m​e​r​ ​D​i​c​t​i​o​n​a​r​y
+		 */
+		WELCOME_TITLE: string
+		/**
+		 * S​e​l​e​c​t​ ​a​ ​w​o​r​d​ ​f​r​o​m​ ​t​h​e​ ​l​i​s​t​ ​t​o​ ​v​i​e​w​ ​d​e​t​a​i​l​s
+		 */
+		WELCOME_SUBTITLE: string
+		/**
+		 * S​t​a​r​t​s​ ​W​i​t​h
+		 */
+		STARTS_WITH: string
+		/**
+		 * I​n​c​l​u​d​e​s
+		 */
+		INCLUDES: string
+		/**
+		 * R​e​g​e​x
+		 */
+		REGEX: string
+		/**
+		 * F​o​u​n​d​ ​i​n​ ​C​o​n​t​e​n​t
+		 */
+		FOUND_IN_CONTENT: string
+		/**
+		 * C​a​n​c​e​l
+		 */
+		CANCEL: string
+		/**
+		 * C​o​n​f​i​r​m
+		 */
+		CONFIRM: string
+		/**
+		 * N​o​t​h​i​n​g
+		 */
+		NOTHING: string
+		/**
+		 * L​o​a​d​i​n​g​.​.​.
+		 */
+		LOADING: string
+		/**
+		 * N​o​ ​i​t​e​m​s​ ​f​o​u​n​d​.
+		 */
+		NO_ITEMS_FOUND: string
+		/**
+		 * C​l​e​a​r​ ​A​l​l
+		 */
+		CLEAR_ALL: string
+	}
+	HISTORY: {
+		/**
+		 * R​e​c​e​n​t​ ​H​i​s​t​o​r​y​ ​(​{​c​o​u​n​t​}​)
+		 * @param {unknown} count
+		 */
+		RECENT_TITLE_WITH_COUNT: RequiredParams<'count'>
+		/**
+		 * C​l​e​a​r​ ​S​e​a​r​c​h​ ​H​i​s​t​o​r​y​?
+		 */
+		CLEAR_TITLE: string
+		/**
+		 * A​r​e​ ​y​o​u​ ​s​u​r​e​ ​y​o​u​ ​w​a​n​t​ ​t​o​ ​d​e​l​e​t​e​ ​a​l​l​ ​{​c​o​u​n​t​}​ ​i​t​e​m​s​?
+		 * @param {unknown} count
+		 */
+		CONFIRM_DELETE_ALL: RequiredParams<'count'>
+	}
+	FAVORITES: {
+		/**
+		 * F​a​v​o​r​i​t​e​s​ ​(​{​c​o​u​n​t​}​)
+		 * @param {unknown} count
+		 */
+		TITLE_WITH_COUNT: RequiredParams<'count'>
+		/**
+		 * C​l​e​a​r​ ​F​a​v​o​r​i​t​e​s​?
+		 */
+		CLEAR_TITLE: string
+		/**
+		 * A​r​e​ ​y​o​u​ ​s​u​r​e​ ​y​o​u​ ​w​a​n​t​ ​t​o​ ​d​e​l​e​t​e​ ​a​l​l​ ​{​c​o​u​n​t​}​ ​i​t​e​m​s​?
+		 * @param {unknown} count
+		 */
+		CONFIRM_DELETE_ALL: RequiredParams<'count'>
+		/**
+		 * O​p​e​n​ ​A​n​k​i
+		 */
+		OPEN_ANKI: string
+		/**
+		 * A​n​k​i
+		 */
+		ANKI_BUTTON: string
+	}
+	DETAIL: {
+		/**
+		 * W​o​r​d​ ​"​{​w​o​r​d​}​"​ ​n​o​t​ ​f​o​u​n​d​ ​i​n​ ​d​i​c​t​i​o​n​a​r​y​.
+		 * @param {unknown} word
+		 */
+		NOT_FOUND: RequiredParams<'word'>
+		/**
+		 * T​r​y​ ​a​d​j​u​s​t​i​n​g​ ​t​h​e​ ​t​e​x​t​ ​o​r​ ​c​h​e​c​k​i​n​g​ ​t​h​e​ ​K​h​m​e​r​ ​A​n​a​l​y​z​e​r​ ​b​e​l​o​w​.
+		 */
+		ANALYSIS_HINT: string
+		/**
+		 * T​r​a​n​s​l​a​t​e​ ​t​e​x​t​.​.​.
+		 */
+		PLACEHOLDER: string
+		SECTION: {
+			/**
+			 * D​e​f​i​n​i​t​i​o​n
+			 */
+			DEFINITION: string
+			/**
+			 * E​n​g​l​i​s​h​ ​D​e​f​i​n​i​t​i​o​n
+			 */
+			DEFINITION_EN: string
+			/**
+			 * E​n​-​K​m​ ​D​i​c​t​i​o​n​a​r​y
+			 */
+			EN_KM: string
+			/**
+			 * E​n​g​l​i​s​h​ ​D​i​c​t​i​o​n​a​r​y
+			 */
+			ENGLISH: string
+			/**
+			 * N​o​u​n​ ​F​o​r​m​s
+			 */
+			NOUN_FORMS: string
+			/**
+			 * P​r​o​n​u​n​c​i​a​t​i​o​n​s
+			 */
+			PRONUNCIATIONS: string
+			/**
+			 * W​i​k​t​i​o​n​a​r​y
+			 */
+			WIKTIONARY: string
+			/**
+			 * R​u​s​s​i​a​n​ ​W​i​k​i
+			 */
+			RU_WIKI: string
+			/**
+			 * G​o​r​g​o​n​i​e​v​ ​D​i​c​t​i​o​n​a​r​y
+			 */
+			GORGONIEV: string
+			/**
+			 * C​h​u​o​n​ ​N​a​t​h​ ​D​i​c​t​i​o​n​a​r​y
+			 */
+			CHUON_NATH: string
+		}
+		TESTER: {
+			/**
+			 * P​r​o​c​e​s​s​o​r​s​ ​L​o​g​i​c​ ​T​e​s​t
+			 */
+			TITLE: string
+			/**
+			 * O​r​i​g​i​n​a​l​ ​V​a​l​u​e
+			 */
+			ORIGINAL_VALUE: string
+			/**
+			 * P​r​o​c​e​s​s​e​d​ ​R​e​s​u​l​t​s
+			 */
+			PROCESSED_RESULTS: string
+		}
+		SEARCH: {
+			/**
+			 * S​t​a​r​t​s
+			 */
+			STARTS: string
+			/**
+			 * I​n​c​l​u​d​e​s
+			 */
+			INCLUDES: string
+			/**
+			 * R​e​g​e​x
+			 */
+			REGEX: string
+		}
+	}
+	ACTIONS: {
+		/**
+		 * H​i​d​e​ ​K​h​m​e​r​ ​w​o​r​d​s
+		 */
+		HIDE_KM: string
+		/**
+		 * S​h​o​w​ ​K​h​m​e​r​ ​w​o​r​d​s
+		 */
+		SHOW_KM: string
+		/**
+		 * H​i​d​e​ ​N​O​N​-​K​h​m​e​r​ ​w​o​r​d​s
+		 */
+		HIDE_NON_KM: string
+		/**
+		 * S​h​o​w​ ​N​O​N​-​K​h​m​e​r​ ​w​o​r​d​s
+		 */
+		SHOW_NON_KM: string
+		/**
+		 * D​i​s​a​b​l​e​ ​l​i​n​k​s
+		 */
+		DISABLE_LINKS: string
+		/**
+		 * E​n​a​b​l​e​ ​l​i​n​k​s
+		 */
+		ENABLE_LINKS: string
+		/**
+		 * S​e​l​e​c​t​ ​K​h​m​e​r​ ​F​o​n​t
+		 */
+		FONT_LABEL: string
+		/**
+		 * C​o​l​o​r​i​z​a​t​i​o​n​ ​M​o​d​e
+		 */
+		COLOR_LABEL: string
+		/**
+		 * W​o​r​d​s​ ​S​e​g​m​e​n​t​a​t​i​o​n​ ​(​C​o​l​o​r​s​)
+		 */
+		COLOR_SEGMENTER: string
+		/**
+		 * D​i​c​t​i​o​n​a​r​y​-​b​a​s​e​d​ ​c​o​l​o​r​i​n​g
+		 */
+		COLOR_DICT: string
+		/**
+		 * N​o​ ​c​o​l​o​r​i​n​g
+		 */
+		COLOR_NONE: string
+		/**
+		 * A​d​d​ ​t​o​ ​f​a​v​o​r​i​t​e​s
+		 */
+		FAV_ADD: string
+		/**
+		 * R​e​m​o​v​e​ ​f​r​o​m​ ​f​a​v​o​r​i​t​e​s
+		 */
+		FAV_REMOVE: string
+		/**
+		 * A​u​t​o​f​o​c​u​s​ ​a​n​s​w​e​r​ ​f​i​e​l​d​:​ ​O​N
+		 */
+		AUTOFOCUS_ON: string
+		/**
+		 * A​u​t​o​f​o​c​u​s​ ​a​n​s​w​e​r​ ​f​i​e​l​d​:​ ​O​F​F
+		 */
+		AUTOFOCUS_OFF: string
+	}
+	AUTOREAD: {
+		/**
+		 * A​u​t​o​-​r​e​a​d​ ​o​n​ ​r​e​v​e​a​l
+		 */
+		TITLE: string
+		/**
+		 * D​i​s​a​b​l​e​d
+		 */
+		DISABLED: string
+		/**
+		 * G​o​o​g​l​e​ ​T​T​S​,​ ​t​h​e​n​ ​N​a​t​i​v​e
+		 */
+		GOOGLE_THEN_NATIVE: string
+		/**
+		 * G​o​o​g​l​e​ ​T​T​S​ ​o​n​l​y
+		 */
+		GOOGLE_ONLY: string
+		/**
+		 * N​a​t​i​v​e​ ​T​T​S​ ​o​n​l​y
+		 */
+		NATIVE_ONLY: string
+	}
+	SPEECH: {
+		/**
+		 * O​f​f​l​i​n​e​ ​(​G​o​o​g​l​e​ ​T​T​S​ ​u​n​a​v​a​i​l​a​b​l​e​)
+		 */
+		OFFLINE: string
+		/**
+		 * L​i​s​t​e​n​ ​w​i​t​h​ ​G​o​o​g​l​e​ ​T​T​S
+		 */
+		GOOGLE: string
+		/**
+		 * L​i​s​t​e​n​ ​w​i​t​h​ ​N​a​t​i​v​e​ ​T​T​S
+		 */
+		NATIVE: string
+	}
+	SEARCH: {
+		/**
+		 * S​e​a​r​c​h​ ​w​i​t​h​ ​R​e​g​e​x​.​.​.
+		 */
+		PLACEHOLDER_REGEX: string
+		/**
+		 * S​e​a​r​c​h​ ​s​t​a​r​t​s​ ​w​i​t​h​.​.​.
+		 */
+		PLACEHOLDER_STARTS_WITH: string
+		/**
+		 * S​e​a​r​c​h​ ​i​n​c​l​u​d​e​s​.​.​.
+		 */
+		PLACEHOLDER_INCLUDES: string
+	}
+	OFFLINE: {
+		/**
+		 * F​a​i​l​e​d​ ​t​o​ ​v​e​r​i​f​y​ ​o​f​f​l​i​n​e​ ​a​s​s​e​t​s
+		 */
+		CHECK_FAILED: string
+		/**
+		 * S​t​a​r​t​i​n​g​ ​d​o​w​n​l​o​a​d​.​.​.
+		 */
+		STARTING_DOWNLOAD: string
+		/**
+		 * I​m​a​g​e​s​ ​n​o​t​ ​d​o​w​n​l​o​a​d​e​d
+		 */
+		NOT_DOWNLOADED: string
+		/**
+		 * R​e​a​d​y​ ​(​{​c​o​u​n​t​}​ ​f​i​l​e​s​)
+		 * @param {unknown} count
+		 */
+		READY: RequiredParams<'count'>
+		/**
+		 * N​o​ ​d​i​c​t​i​o​n​a​r​y​ ​f​i​l​e​s​ ​f​o​u​n​d​ ​f​o​r​ ​d​o​w​n​l​o​a​d
+		 */
+		NO_FILES_FOUND: string
+		/**
+		 * F​a​i​l​e​d​ ​t​o​ ​d​o​w​n​l​o​a​d​ ​d​i​c​t​i​o​n​a​r​y​ ​i​m​a​g​e​s
+		 */
+		DOWNLOAD_FAILED: string
+		/**
+		 * O​f​f​l​i​n​e​ ​S​u​p​p​o​r​t
+		 */
+		TITLE: string
+		/**
+		 * O​f​f​l​i​n​e​ ​I​m​a​g​e​s
+		 */
+		LABEL: string
+		/**
+		 * I​m​a​g​e​s​ ​a​v​a​i​l​a​b​l​e​ ​o​f​f​l​i​n​e​ ​(​{​c​o​u​n​t​}​ ​f​i​l​e​s​)
+		 * @param {unknown} count
+		 */
+		HINT_AVAILABLE: RequiredParams<'count'>
+		/**
+		 * I​m​a​g​e​s​ ​o​n​l​y​ ​a​v​a​i​l​a​b​l​e​ ​w​h​e​n​ ​o​n​l​i​n​e
+		 */
+		HINT_NOT_AVAILABLE: string
+		/**
+		 * D​o​w​n​l​o​a​d​ ​O​f​f​l​i​n​e​ ​I​m​a​g​e​s
+		 */
+		DOWNLOAD_BUTTON: string
+		/**
+		 * D​o​w​n​l​o​a​d​i​n​g​.​.​.
+		 */
+		DOWNLOADING: string
+		/**
+		 * O​f​f​l​i​n​e​ ​a​s​s​e​t​s​ ​a​v​a​i​l​a​b​l​e​ ​(​{​c​o​u​n​t​}​ ​f​i​l​e​s​)
+		 * @param {unknown} count
+		 */
+		ASSETS_AVAILABLE: RequiredParams<'count'>
+	}
+	ERROR_BOUNDARY: {
+		/**
+		 * A​p​p​l​i​c​a​t​i​o​n​ ​E​r​r​o​r
+		 */
+		TITLE: string
+		/**
+		 * S​o​m​e​t​h​i​n​g​ ​w​e​n​t​ ​w​r​o​n​g​.
+		 */
+		SUBTITLE: string
+		/**
+		 * A​n​ ​u​n​e​x​p​e​c​t​e​d​ ​e​r​r​o​r​ ​o​c​c​u​r​r​e​d​.​ ​P​l​e​a​s​e​ ​t​r​y​ ​r​e​l​o​a​d​i​n​g​ ​t​h​e​ ​a​p​p​l​i​c​a​t​i​o​n​.
+		 */
+		BODY: string
+		/**
+		 * R​e​l​o​a​d​ ​A​p​p​l​i​c​a​t​i​o​n
+		 */
+		RELOAD_BUTTON: string
+	}
+	COMPLEX_TABLE: {
+		/**
+		 * K​h​m​e​r​ ​C​h​a​r​a​c​t​e​r​s​ ​T​a​b​l​e
+		 */
+		TITLE: string
+	}
 }
 
 export type TranslationFunctions = {
-	/**
-	 * Hi {name}! Please leave a star if you like this project: https://github.com/ivanhofer/typesafe-i18n
-	 */
-	HI: (arg: { name: string }) => LocalizedString
+	SETTINGS: {
+		/**
+		 * App Settings
+		 */
+		TITLE: () => LocalizedString
+		/**
+		 * Customize your dictionary experience.
+		 */
+		SUBTITLE: () => LocalizedString
+		GROUPS: {
+			/**
+			 * Tools
+			 */
+			TOOLS: () => LocalizedString
+			/**
+			 * Search
+			 */
+			SEARCH: () => LocalizedString
+			/**
+			 * Interface
+			 */
+			INTERFACE: () => LocalizedString
+			/**
+			 * Text Size
+			 */
+			TEXT_SIZE: () => LocalizedString
+			/**
+			 * Khmer Dictionary
+			 */
+			KHMER_DICT: () => LocalizedString
+			/**
+			 * Project
+			 */
+			PROJECT: () => LocalizedString
+		}
+		ACTIONS: {
+			/**
+			 * Open Khmer Characters Table
+			 */
+			OPEN_KHMER_COMPLEX_TABLE: () => LocalizedString
+			/**
+			 * Open Khmer Analyzer
+			 */
+			OPEN_KHMER_ANALYZER: () => LocalizedString
+			/**
+			 * About Dictionary
+			 */
+			ABOUT: () => LocalizedString
+			/**
+			 * Donate
+			 */
+			DONATE: () => LocalizedString
+		}
+		LABELS: {
+			/**
+			 * Search Mode
+			 */
+			SEARCH_MODE: () => LocalizedString
+			/**
+			 * Choose how to match your query
+			 */
+			SEARCH_MODE_HINT: () => LocalizedString
+			/**
+			 * Search in Content
+			 */
+			SEARCH_IN_CONTENT: () => LocalizedString
+			/**
+			 * Include results from definitions
+			 */
+			SEARCH_IN_CONTENT_HINT: () => LocalizedString
+			/**
+			 * Highlight in List
+			 */
+			HIGHLIGHT_IN_LIST: () => LocalizedString
+			/**
+			 * Highlight matches in word list
+			 */
+			HIGHLIGHT_IN_LIST_HINT: () => LocalizedString
+			/**
+			 * Highlight in Details
+			 */
+			HIGHLIGHT_IN_DETAILS: () => LocalizedString
+			/**
+			 * Highlight matches in definition
+			 */
+			HIGHLIGHT_IN_DETAILS_HINT: () => LocalizedString
+			/**
+			 * Theme
+			 */
+			THEME: () => LocalizedString
+			/**
+			 * Toggle dark/light theme
+			 */
+			THEME_HINT: () => LocalizedString
+			/**
+			 * App Language
+			 */
+			APP_LANGUAGE: () => LocalizedString
+			/**
+			 * Choose interface language
+			 */
+			APP_LANGUAGE_HINT: () => LocalizedString
+			/**
+			 * Auto
+			 */
+			AUTO: () => LocalizedString
+			/**
+			 * Sidebar / List Size
+			 */
+			SIDEBAR_LIST_SIZE: () => LocalizedString
+			/**
+			 * Definition Text Size
+			 */
+			DEFINITION_TEXT_SIZE: () => LocalizedString
+			/**
+			 * Filter
+			 */
+			DESCRIPTION_FILTER: () => LocalizedString
+			/**
+			 * Show All
+			 */
+			ALL: () => LocalizedString
+			/**
+			 * Only Verified
+			 */
+			ONLY_VERIFIED: () => LocalizedString
+		}
+	}
+	ABOUT: {
+		/**
+		 * About Khmer Dictionary
+		 */
+		TITLE: () => LocalizedString
+		/**
+		 * Developer Info
+		 */
+		DEVELOPER_INFO: () => LocalizedString
+		/**
+		 * Help the Project
+		 */
+		HELP_PROJECT: () => LocalizedString
+		/**
+		 * Support development
+		 */
+		SUPPORT_DEVELOPMENT: () => LocalizedString
+		/**
+		 * Support my work via Google Pay
+		 */
+		DONATE_SUBTITLE: () => LocalizedString
+		/**
+		 * Rate the App
+		 */
+		RATE_APP: () => LocalizedString
+		SUCCESS_MODAL: {
+			/**
+			 * Success!
+			 */
+			TITLE: () => LocalizedString
+			/**
+			 * Thank you for your generous support! It means a lot for the development of the project.
+			 */
+			BODY_1: () => LocalizedString
+			/**
+			 * Support this free feature with a quick rating!
+			 */
+			BODY_2: () => LocalizedString
+			/**
+			 * Yes, I will support!
+			 */
+			BUTTON_YES: () => LocalizedString
+			/**
+			 * Not now
+			 */
+			BUTTON_NO: () => LocalizedString
+		}
+		CANCELLATION_MODAL: {
+			/**
+			 * OOPS...
+			 */
+			TITLE: () => LocalizedString
+			/**
+			 * We are sorry that you cancelled the donation
+			 */
+			BODY: () => LocalizedString
+			/**
+			 * I understand
+			 */
+			BUTTON: () => LocalizedString
+		}
+		DEV_SECTION: {
+			/**
+			 * My name is <strong class="text-foreground">Serhii Khoma</strong>.
+			 */
+			NAME: () => LocalizedString
+			/**
+			 * My github: <a href="https://github.com/srghma" class="font-semibold text-primary">srghma</a>.
+			 */
+			GITHUB: () => LocalizedString
+			/**
+			 * The source code of this dictionary is open and available at <a href="https://github.com/srghma/khmer" class="font-semibold text-primary">github.com/srghma/khmer</a>
+			 */
+			SOURCE_CODE: () => LocalizedString
+		}
+		PRESENTATION_SECTION: {
+			/**
+			 * I also know how people appeared in the universe from (<b>autocatalyzer</b> =&gt; <b>the first molecular robot-self-replicator</b> 🤖).
+			 */
+			BODY_1: () => LocalizedString
+			/**
+			 * You can read about it in my presentation.
+			 */
+			BODY_2: () => LocalizedString
+			/**
+			 * (Also there is a story about how russians 🇷🇺 tortured my 🇺🇦 friend Ivan).
+			 */
+			BODY_3: () => LocalizedString
+			/**
+			 * View Presentation
+			 */
+			BUTTON: () => LocalizedString
+		}
+		OCR_SECTION: {
+			/**
+			 * You can significantly help by finding mistakes in dictionaries. More - in GitHub.
+			 */
+			TITLE: () => LocalizedString
+		}
+	}
+	TABS: {
+		/**
+		 * History
+		 */
+		HISTORY: () => LocalizedString
+		/**
+		 * Favorites
+		 */
+		FAVORITES: () => LocalizedString
+		/**
+		 * Settings
+		 */
+		SETTINGS: () => LocalizedString
+	}
+	ANALYZER: {
+		/**
+		 * Khmer Analyzer
+		 */
+		TITLE: () => LocalizedString
+		/**
+		 * Enter Khmer text to analyze...
+		 */
+		PLACEHOLDER: () => LocalizedString
+		/**
+		 * Word Segmentation
+		 */
+		SEGMENTATION: () => LocalizedString
+		/**
+		 * Character Analysis
+		 */
+		CHARACTER_ANALYSIS: () => LocalizedString
+		/**
+		 * using app dictionary
+		 */
+		USING_APP_DICT: () => LocalizedString
+		/**
+		 * using intl segmenter
+		 */
+		USING_INTL_SEGMENTER: () => LocalizedString
+		/**
+		 * Enter some text to start analysis
+		 */
+		EMPTY_TEXT: () => LocalizedString
+		/**
+		 * No Khmer characters detected in the provided text.
+		 */
+		NO_KHMER_CHAR: () => LocalizedString
+		/**
+		 * Fetching word definitions...
+		 */
+		FETCHING_DEFS: () => LocalizedString
+		/**
+		 * Error fetching definitions
+		 */
+		DEFS_FETCH_FAILED: () => LocalizedString
+		/**
+		 * An unknown error occurred while fetching definitions.
+		 */
+		DEFS_FETCH_ERROR: () => LocalizedString
+		/**
+		 * Click to expand definition
+		 */
+		EXPAND_DEFINITION: () => LocalizedString
+	}
+	ANKI: {
+		/**
+		 * Favorites is empty. Add words to favorites to start learning.
+		 */
+		NO_FAVORITES: () => LocalizedString
+		/**
+		 * Card not found
+		 */
+		CARD_NOT_FOUND: () => LocalizedString
+		/**
+		 * Select a card to start
+		 */
+		SELECT_CARD: () => LocalizedString
+		/**
+		 * Failed to load definition
+		 */
+		FETCH_FAILED: () => LocalizedString
+		/**
+		 * Due
+		 */
+		DUE: () => LocalizedString
+		DIFF: {
+			/**
+			 * Extra character
+			 */
+			EXTRA: () => LocalizedString
+			/**
+			 * Missing character
+			 */
+			MISSING: () => LocalizedString
+		}
+		MODES: {
+			/**
+			 * Guessing
+			 */
+			GUESSING: () => LocalizedString
+			/**
+			 * Translate to En/Ru
+			 */
+			TRANSLATE_TO_EN_RU: () => LocalizedString
+			/**
+			 * Translate to {lang}
+			 */
+			TRANSLATE_TO: (arg: { lang: unknown }) => LocalizedString
+		}
+		ARIA: {
+			/**
+			 * Anki Dictionary Tabs
+			 */
+			TABS: () => LocalizedString
+		}
+		BUTTONS: {
+			/**
+			 * 😵 Again
+			 */
+			AGAIN: () => LocalizedString
+			/**
+			 * 😐 Hard
+			 */
+			HARD: () => LocalizedString
+			/**
+			 * 😊 Good
+			 */
+			GOOD: () => LocalizedString
+			/**
+			 * 😎 Easy
+			 */
+			EASY: () => LocalizedString
+			/**
+			 * Show Answer
+			 */
+			SHOW_ANSWER: () => LocalizedString
+		}
+		/**
+		 * Session finished!
+		 */
+		SESSION_FINISHED: () => LocalizedString
+		/**
+		 * Your Guess ({field} field)
+		 */
+		YOUR_GUESS: (arg: { field: unknown }) => LocalizedString
+		/**
+		 * Answer... ({field} field)
+		 */
+		ANSWER_PLACEHOLDER: (arg: { field: unknown }) => LocalizedString
+		LANGUAGES: {
+			/**
+			 * Khmer
+			 */
+			KHMER: () => LocalizedString
+			/**
+			 * English
+			 */
+			ENGLISH: () => LocalizedString
+			/**
+			 * Russian
+			 */
+			RUSSIAN: () => LocalizedString
+			/**
+			 * En/Ru
+			 */
+			EN_RU: () => LocalizedString
+		}
+	}
+	SIDEBAR: {
+		/**
+		 * Loading Dictionary...
+		 */
+		LOADING_DICT: () => LocalizedString
+		/**
+		 * Filtering...
+		 */
+		FILTERING: () => LocalizedString
+		/**
+		 * Dictionary not loaded or empty
+		 */
+		ERROR_NOT_LOADED: () => LocalizedString
+		ARIA: {
+			/**
+			 * Dictionary Tabs
+			 */
+			TABS: () => LocalizedString
+		}
+		/**
+		 * 1st
+		 */
+		LEVEL_1: () => LocalizedString
+		/**
+		 * 2nd
+		 */
+		LEVEL_2: () => LocalizedString
+	}
+	COMMON: {
+		/**
+		 * Welcome to Khmer Dictionary
+		 */
+		WELCOME_TITLE: () => LocalizedString
+		/**
+		 * Select a word from the list to view details
+		 */
+		WELCOME_SUBTITLE: () => LocalizedString
+		/**
+		 * Starts With
+		 */
+		STARTS_WITH: () => LocalizedString
+		/**
+		 * Includes
+		 */
+		INCLUDES: () => LocalizedString
+		/**
+		 * Regex
+		 */
+		REGEX: () => LocalizedString
+		/**
+		 * Found in Content
+		 */
+		FOUND_IN_CONTENT: () => LocalizedString
+		/**
+		 * Cancel
+		 */
+		CANCEL: () => LocalizedString
+		/**
+		 * Confirm
+		 */
+		CONFIRM: () => LocalizedString
+		/**
+		 * Nothing
+		 */
+		NOTHING: () => LocalizedString
+		/**
+		 * Loading...
+		 */
+		LOADING: () => LocalizedString
+		/**
+		 * No items found.
+		 */
+		NO_ITEMS_FOUND: () => LocalizedString
+		/**
+		 * Clear All
+		 */
+		CLEAR_ALL: () => LocalizedString
+	}
+	HISTORY: {
+		/**
+		 * Recent History ({count})
+		 */
+		RECENT_TITLE_WITH_COUNT: (arg: { count: unknown }) => LocalizedString
+		/**
+		 * Clear Search History?
+		 */
+		CLEAR_TITLE: () => LocalizedString
+		/**
+		 * Are you sure you want to delete all {count} items?
+		 */
+		CONFIRM_DELETE_ALL: (arg: { count: unknown }) => LocalizedString
+	}
+	FAVORITES: {
+		/**
+		 * Favorites ({count})
+		 */
+		TITLE_WITH_COUNT: (arg: { count: unknown }) => LocalizedString
+		/**
+		 * Clear Favorites?
+		 */
+		CLEAR_TITLE: () => LocalizedString
+		/**
+		 * Are you sure you want to delete all {count} items?
+		 */
+		CONFIRM_DELETE_ALL: (arg: { count: unknown }) => LocalizedString
+		/**
+		 * Open Anki
+		 */
+		OPEN_ANKI: () => LocalizedString
+		/**
+		 * Anki
+		 */
+		ANKI_BUTTON: () => LocalizedString
+	}
+	DETAIL: {
+		/**
+		 * Word "{word}" not found in dictionary.
+		 */
+		NOT_FOUND: (arg: { word: unknown }) => LocalizedString
+		/**
+		 * Try adjusting the text or checking the Khmer Analyzer below.
+		 */
+		ANALYSIS_HINT: () => LocalizedString
+		/**
+		 * Translate text...
+		 */
+		PLACEHOLDER: () => LocalizedString
+		SECTION: {
+			/**
+			 * Definition
+			 */
+			DEFINITION: () => LocalizedString
+			/**
+			 * English Definition
+			 */
+			DEFINITION_EN: () => LocalizedString
+			/**
+			 * En-Km Dictionary
+			 */
+			EN_KM: () => LocalizedString
+			/**
+			 * English Dictionary
+			 */
+			ENGLISH: () => LocalizedString
+			/**
+			 * Noun Forms
+			 */
+			NOUN_FORMS: () => LocalizedString
+			/**
+			 * Pronunciations
+			 */
+			PRONUNCIATIONS: () => LocalizedString
+			/**
+			 * Wiktionary
+			 */
+			WIKTIONARY: () => LocalizedString
+			/**
+			 * Russian Wiki
+			 */
+			RU_WIKI: () => LocalizedString
+			/**
+			 * Gorgoniev Dictionary
+			 */
+			GORGONIEV: () => LocalizedString
+			/**
+			 * Chuon Nath Dictionary
+			 */
+			CHUON_NATH: () => LocalizedString
+		}
+		TESTER: {
+			/**
+			 * Processors Logic Test
+			 */
+			TITLE: () => LocalizedString
+			/**
+			 * Original Value
+			 */
+			ORIGINAL_VALUE: () => LocalizedString
+			/**
+			 * Processed Results
+			 */
+			PROCESSED_RESULTS: () => LocalizedString
+		}
+		SEARCH: {
+			/**
+			 * Starts
+			 */
+			STARTS: () => LocalizedString
+			/**
+			 * Includes
+			 */
+			INCLUDES: () => LocalizedString
+			/**
+			 * Regex
+			 */
+			REGEX: () => LocalizedString
+		}
+	}
+	ACTIONS: {
+		/**
+		 * Hide Khmer words
+		 */
+		HIDE_KM: () => LocalizedString
+		/**
+		 * Show Khmer words
+		 */
+		SHOW_KM: () => LocalizedString
+		/**
+		 * Hide NON-Khmer words
+		 */
+		HIDE_NON_KM: () => LocalizedString
+		/**
+		 * Show NON-Khmer words
+		 */
+		SHOW_NON_KM: () => LocalizedString
+		/**
+		 * Disable links
+		 */
+		DISABLE_LINKS: () => LocalizedString
+		/**
+		 * Enable links
+		 */
+		ENABLE_LINKS: () => LocalizedString
+		/**
+		 * Select Khmer Font
+		 */
+		FONT_LABEL: () => LocalizedString
+		/**
+		 * Colorization Mode
+		 */
+		COLOR_LABEL: () => LocalizedString
+		/**
+		 * Words Segmentation (Colors)
+		 */
+		COLOR_SEGMENTER: () => LocalizedString
+		/**
+		 * Dictionary-based coloring
+		 */
+		COLOR_DICT: () => LocalizedString
+		/**
+		 * No coloring
+		 */
+		COLOR_NONE: () => LocalizedString
+		/**
+		 * Add to favorites
+		 */
+		FAV_ADD: () => LocalizedString
+		/**
+		 * Remove from favorites
+		 */
+		FAV_REMOVE: () => LocalizedString
+		/**
+		 * Autofocus answer field: ON
+		 */
+		AUTOFOCUS_ON: () => LocalizedString
+		/**
+		 * Autofocus answer field: OFF
+		 */
+		AUTOFOCUS_OFF: () => LocalizedString
+	}
+	AUTOREAD: {
+		/**
+		 * Auto-read on reveal
+		 */
+		TITLE: () => LocalizedString
+		/**
+		 * Disabled
+		 */
+		DISABLED: () => LocalizedString
+		/**
+		 * Google TTS, then Native
+		 */
+		GOOGLE_THEN_NATIVE: () => LocalizedString
+		/**
+		 * Google TTS only
+		 */
+		GOOGLE_ONLY: () => LocalizedString
+		/**
+		 * Native TTS only
+		 */
+		NATIVE_ONLY: () => LocalizedString
+	}
+	SPEECH: {
+		/**
+		 * Offline (Google TTS unavailable)
+		 */
+		OFFLINE: () => LocalizedString
+		/**
+		 * Listen with Google TTS
+		 */
+		GOOGLE: () => LocalizedString
+		/**
+		 * Listen with Native TTS
+		 */
+		NATIVE: () => LocalizedString
+	}
+	SEARCH: {
+		/**
+		 * Search with Regex...
+		 */
+		PLACEHOLDER_REGEX: () => LocalizedString
+		/**
+		 * Search starts with...
+		 */
+		PLACEHOLDER_STARTS_WITH: () => LocalizedString
+		/**
+		 * Search includes...
+		 */
+		PLACEHOLDER_INCLUDES: () => LocalizedString
+	}
+	OFFLINE: {
+		/**
+		 * Failed to verify offline assets
+		 */
+		CHECK_FAILED: () => LocalizedString
+		/**
+		 * Starting download...
+		 */
+		STARTING_DOWNLOAD: () => LocalizedString
+		/**
+		 * Images not downloaded
+		 */
+		NOT_DOWNLOADED: () => LocalizedString
+		/**
+		 * Ready ({count} files)
+		 */
+		READY: (arg: { count: unknown }) => LocalizedString
+		/**
+		 * No dictionary files found for download
+		 */
+		NO_FILES_FOUND: () => LocalizedString
+		/**
+		 * Failed to download dictionary images
+		 */
+		DOWNLOAD_FAILED: () => LocalizedString
+		/**
+		 * Offline Support
+		 */
+		TITLE: () => LocalizedString
+		/**
+		 * Offline Images
+		 */
+		LABEL: () => LocalizedString
+		/**
+		 * Images available offline ({count} files)
+		 */
+		HINT_AVAILABLE: (arg: { count: unknown }) => LocalizedString
+		/**
+		 * Images only available when online
+		 */
+		HINT_NOT_AVAILABLE: () => LocalizedString
+		/**
+		 * Download Offline Images
+		 */
+		DOWNLOAD_BUTTON: () => LocalizedString
+		/**
+		 * Downloading...
+		 */
+		DOWNLOADING: () => LocalizedString
+		/**
+		 * Offline assets available ({count} files)
+		 */
+		ASSETS_AVAILABLE: (arg: { count: unknown }) => LocalizedString
+	}
+	ERROR_BOUNDARY: {
+		/**
+		 * Application Error
+		 */
+		TITLE: () => LocalizedString
+		/**
+		 * Something went wrong.
+		 */
+		SUBTITLE: () => LocalizedString
+		/**
+		 * An unexpected error occurred. Please try reloading the application.
+		 */
+		BODY: () => LocalizedString
+		/**
+		 * Reload Application
+		 */
+		RELOAD_BUTTON: () => LocalizedString
+	}
+	COMPLEX_TABLE: {
+		/**
+		 * Khmer Characters Table
+		 */
+		TITLE: () => LocalizedString
+	}
 }
 
 export type Formatters = {}

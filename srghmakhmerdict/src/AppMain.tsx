@@ -7,7 +7,7 @@ import { SidebarHeader } from './components/SidebarHeader'
 import { SidebarContent } from './components/SidebarContent'
 import { RightPanel } from './components/RightPanel'
 import { useDictionary } from './providers/DictionaryProvider'
-import { AboutView } from './components/AboutView'
+import { AboutView } from './components/About/AboutView'
 import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
 import { KhmerComplexTableView } from './components/KhmerComplexTableView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
@@ -69,7 +69,6 @@ export function AppMain() {
             contentMatches={contentMatches}
             highlightInList={highlightInList}
             isSearching={isSearching}
-            km_map={dictData.km_map}
             loading={dictData === undefined}
             maybeColorMode="segmenter"
             resultData={resultData}

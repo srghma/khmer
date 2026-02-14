@@ -8,6 +8,8 @@ import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import { useSettings } from '../providers/SettingsProvider'
 import { DetailView } from './DetailView'
 import { useLocation } from 'wouter'
+import { useI18nContext } from '../i18n/i18n-react-custom'
+import type { TranslationFunctions } from '../i18n/i18n-types'
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
@@ -15,16 +17,17 @@ interface RightPanelProps {
   searchQuery: NonEmptyStringTrimmed | undefined
 }
 
-const NoSelectedWord = (
+const NoSelectedWord = ({ LL }: { LL: TranslationFunctions }) => (
   <div className="hidden md:flex flex-1 bg-background items-center justify-center text-default-400 p-8 text-center">
     <div>
-      <p className="mb-2 text-lg font-semibold">Welcome to Khmer Dictionary</p>
-      <p className="text-sm">Select a word from the list to view details</p>
+      <p className="mb-2 text-lg font-semibold">{LL.COMMON.WELCOME_TITLE()}</p>
+      <p className="text-sm">{LL.COMMON.WELCOME_SUBTITLE()}</p>
     </div>
   </div>
 )
 
 export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, searchQuery }) => {
+  const { LL } = useI18nContext()
   // Use the global navigation hooks
   const [location, setLocation] = useLocation()
 
@@ -52,7 +55,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, searchQuer
     }
   }, [location])
 
-  if (!selectedWord) return NoSelectedWord
+  if (!selectedWord) return <NoSelectedWord LL={LL} />
 
   return (
     <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">

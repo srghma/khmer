@@ -13,6 +13,7 @@ import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-e
 import { GoogleTranslateTextarea } from '../GoogleTranslateTextarea/GoogleTranslateTextarea'
 import { KhmerAnalysisResults } from '../KhmerAnalyzerView'
 import { truncateString } from '../../utils/truncateString'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 interface DetailViewNotFoundProps {
   word: NonEmptyStringTrimmed
@@ -29,6 +30,7 @@ export const DetailViewNotFound = ({
   backButton_goBack,
   backButton_desktopOnlyStyles_showButton,
 }: DetailViewNotFoundProps) => {
+  const { LL } = useI18nContext()
   const [analyzedText, setAnalyzedText] = useState<string>(word)
   // 1. Analyze the unknown text
   const res = useKhmerAnalysis(analyzedText, mode)
@@ -67,14 +69,12 @@ export const DetailViewNotFound = ({
     return (
       <>
         <button className="font-semibold text-md" onClick={() => setAnalyzedText(word)}>
-          {w} not found
+          {LL.DETAIL.NOT_FOUND({ word: w })}
         </button>
-        <p className="text-default-500 text-tiny">
-          This text is not in the dictionary. Showing automated analysis below.
-        </p>
+        <p className="text-default-500 text-tiny">{LL.DETAIL.ANALYSIS_HINT()}</p>
       </>
     )
-  }, [word])
+  }, [word, LL])
 
   return (
     <Card className="h-full md:px-1 bg-background" style={cardStyle}>
@@ -100,7 +100,7 @@ export const DetailViewNotFound = ({
           maxRows={10} // Increased slightly to accommodate translation text growth
           maybeColorMode={maybeColorMode}
           minRows={2}
-          placeholder="Enter text to analyze..."
+          placeholder={LL.DETAIL.PLACEHOLDER()}
           value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
           value_toShowInTextArea={analyzedText}
           variant="faded"

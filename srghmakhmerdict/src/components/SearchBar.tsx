@@ -2,6 +2,7 @@ import { Input } from '@heroui/input'
 import { memo, useState, useEffect, useCallback, useMemo } from 'react'
 import { CiSearch } from 'react-icons/ci'
 import { useDebounce } from 'use-debounce'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { DictionaryLanguage, AppTab } from '../types'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
@@ -40,6 +41,7 @@ const getLangHint = (tab: AppTab): DictionaryLanguage => {
 }
 
 export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, activeTab }: SearchBarProps) => {
+  const { LL } = useI18nContext()
   const [localValue, setLocalValue] = useState<string>(initialValue ?? '')
 
   // Use the library to debounce the value (updates 300ms after localValue changes)
@@ -90,15 +92,15 @@ export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, acti
   const placeholder = useMemo(() => {
     switch (searchMode) {
       case 'regex':
-        return 'Search with regex...'
+        return LL.SEARCH.PLACEHOLDER_REGEX()
       case 'starts_with':
-        return 'Search words starting with...'
+        return LL.SEARCH.PLACEHOLDER_STARTS_WITH()
       case 'includes':
-        return 'Search words including...'
+        return LL.SEARCH.PLACEHOLDER_INCLUDES()
       default:
         assertNever(searchMode)
     }
-  }, [searchMode])
+  }, [searchMode, LL])
 
   return (
     <Input

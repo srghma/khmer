@@ -4,11 +4,11 @@ import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { type AppTab } from '../types'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { ProcessedDataState } from '../hooks/useDictionarySearch'
 import { WordListGeneral } from './WordListGeneral'
 import { usePreloadOnIdle } from '../utils/lazyWithPreload'
 import lazyWithPreload from 'react-lazy-with-preload'
-import type { KhmerWordsMap } from '../db/dict'
 import type { MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { HistoryListOnly } from './HistoryOrFavoritesList/HistoryListOnly'
@@ -35,13 +35,13 @@ interface SidebarContentProps {
   contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined
   highlightInList: boolean
   searchQuery: NonEmptyStringTrimmed | undefined
-  km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
   searchMode: SearchMode
 }
 
 export const SidebarContent = memo<SidebarContentProps>(props => {
-  const { activeTab, loading, isSearching, resultData, km_map, maybeColorMode, searchMode } = props
+  const { activeTab, loading, isSearching, resultData, maybeColorMode, searchMode } = props
+  const { LL } = useI18nContext()
 
   const [, setLocation] = useLocation()
 
@@ -64,7 +64,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-content1/80 z-20 gap-4 backdrop-blur-sm">
         <Spinner color="primary" size="lg" />
-        <div className="text-default-400 text-xs tracking-wider font-medium uppercase">Loading Dictionary...</div>
+        <div className="text-default-400 text-xs tracking-wider font-medium uppercase">{LL.SIDEBAR.LOADING_DICT()}</div>
       </div>
     )
   }
@@ -81,9 +81,8 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
     return (
       <Suspense fallback={ContentFallback}>
         <HistoryListOnly
-          km_map={km_map}
           maybeColorMode={maybeColorMode}
-          onSelect={(w, m) => setLocation(`/history/${m}/${encodeURIComponent(w)}`)}
+          onNavigate={(w, m) => setLocation(`/history/${m}/${encodeURIComponent(w)}`)}
         />
       </Suspense>
     )
@@ -104,7 +103,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-default-400 gap-3">
         <Spinner color="warning" size="md" />
-        <span className="text-xs tracking-wider opacity-70">Filtering...</span>
+        <span className="text-xs tracking-wider opacity-70">{LL.SIDEBAR.FILTERING()}</span>
       </div>
     )
   }
@@ -158,7 +157,7 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-default-400 gap-2">
       <span className="text-4xl opacity-20">📚</span>
-      <p>Dictionary not loaded or empty</p>
+      <p>{LL.SIDEBAR.ERROR_NOT_LOADED()}</p>
     </div>
   )
 })

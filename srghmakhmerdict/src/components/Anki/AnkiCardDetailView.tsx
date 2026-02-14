@@ -24,6 +24,7 @@ import { getBestDefinitionKhmerFromEn } from '../../utils/WordDetailEn_OnlyKhmer
 import { getBestDefinitionKhmerFromRu } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { useAnkiSettings } from './useAnkiSettings'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 export const AnkiCardDetailView = React.memo(
   ({
@@ -49,6 +50,7 @@ export const AnkiCardDetailView = React.memo(
     setUserAnswer: Dispatch<SetStateAction<string>>
     onReveal: () => void
   }) => {
+    const { LL } = useI18nContext()
     // 1. Logic
     const { km_map } = useDictionary()
     const { isAutoFocusAnswerEnabled, setIsAutoFocusAnswerEnabled } = useAnkiSettings()
@@ -138,18 +140,20 @@ export const AnkiCardDetailView = React.memo(
     const userAnswer_ = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(userAnswer), [userAnswer])
 
     const headerFront: NonEmptyStringTrimmed = useMemo(() => {
-      if (ankiGameMode === 'km:GUESSING_NON_KHMER') return 'Translate to En/Ru' as NonEmptyStringTrimmed
+      if (ankiGameMode === 'km:GUESSING_NON_KHMER') {
+        return LL.ANKI.MODES.TRANSLATE_TO_EN_RU() as unknown as NonEmptyStringTrimmed
+      }
 
       const targetLang = {
-        'km:GUESSING_KHMER': 'Khmer',
-        'en:GUESSING_KHMER': 'Khmer',
-        'ru:GUESSING_KHMER': 'Khmer',
-        'en:GUESSING_NON_KHMER': 'English',
-        'ru:GUESSING_NON_KHMER': 'Russian',
+        'km:GUESSING_KHMER': LL.ANKI.LANGUAGES.KHMER(),
+        'en:GUESSING_KHMER': LL.ANKI.LANGUAGES.KHMER(),
+        'ru:GUESSING_KHMER': LL.ANKI.LANGUAGES.KHMER(),
+        'en:GUESSING_NON_KHMER': LL.ANKI.LANGUAGES.ENGLISH(),
+        'ru:GUESSING_NON_KHMER': LL.ANKI.LANGUAGES.RUSSIAN(),
       }[ankiGameMode]
 
-      return `Translate to ${targetLang}` as NonEmptyStringTrimmed
-    }, [ankiGameMode])
+      return LL.ANKI.MODES.TRANSLATE_TO({ lang: targetLang }) as unknown as NonEmptyStringTrimmed
+    }, [ankiGameMode, LL])
 
     const onBack = useCallback(() => setLocation(`/anki`), [])
 
@@ -208,7 +212,7 @@ export const AnkiCardDetailView = React.memo(
                 {isRevealed && userAnswer_ && (
                   <div className="px-6 py-3 border-b border-divider bg-default-50/50">
                     <div className="text-[10px] uppercase font-black tracking-widest text-default-400 mb-1">
-                      Your Guess ({expectedTarget.t} field)
+                      {LL.ANKI.YOUR_GUESS({ field: expectedTarget.t })}
                     </div>
                     <KhmerDiff inDictExpected={expectedTarget.v} userProvider={userAnswer_} />
                   </div>
@@ -218,9 +222,10 @@ export const AnkiCardDetailView = React.memo(
                   {!isRevealed && (
                     <div className="flex justify-center mb-2">
                       <Input
+                        // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus={isAutoFocusAnswerEnabled}
                         className="m font-khmer"
-                        placeholder={`Answer... (${expectedTarget.t} field)`}
+                        placeholder={LL.ANKI.ANSWER_PLACEHOLDER({ field: expectedTarget.t })}
                         size="sm"
                         value={userAnswer}
                         variant="underlined"

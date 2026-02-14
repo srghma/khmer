@@ -26,29 +26,11 @@ import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chr
 
 import { useAppToast } from '../../providers/ToastProvider'
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 const LoadingSpinner = (
   <div className="flex h-full w-full items-center justify-center">
     <Spinner size="lg" />
-  </div>
-)
-
-const NoFavoritesView = (
-  <div className="flex h-full items-center justify-center">
-    <p>No favorites found. Add some words to favorites to start learning.</p>
-  </div>
-)
-
-const CardNotFoundView = (
-  <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-    <span className="text-4xl">❓</span>
-    <p>Card not found</p>
-  </div>
-)
-
-const SelectCardToStartView = (
-  <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-    <span className="text-4xl">🎴</span>
-    <p>Select a card to start</p>
   </div>
 )
 
@@ -93,6 +75,7 @@ interface AnkiGameStep2Props {
 const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted }: AnkiGameStep2Props) {
   // useAnkiAutoRedirect(allFavorites_splitted)
 
+  const { LL } = useI18nContext()
   const { urlLanguage, selectedId, navigateToWord, navigateToLanguage, exitAnki } = useAnkiNavigation()
 
   const currentLanguage_favoriteItems = assertIsDefinedAndReturn(allFavorites_splitted[urlLanguage])
@@ -139,8 +122,7 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
 
         navigateToWord(nextWord)
       } else {
-        console.log('Session finished!')
-        toast.success('Session finished!' as NonEmptyStringTrimmed)
+        toast.success(LL.ANKI.SESSION_FINISHED())
         navigateToLanguage(urlLanguage)
       }
     },
@@ -162,7 +144,14 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
 
   const rightPanelContent = useMemo(() => {
     if (selectedId) {
-      if (!itemData) return CardNotFoundView
+      if (!itemData) {
+        return (
+          <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
+            <span className="text-4xl">❓</span>
+            <p>{LL.ANKI.CARD_NOT_FOUND()}</p>
+          </div>
+        )
+      }
 
       return (
         <AnkiPlayArea
@@ -174,8 +163,13 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
       )
     }
 
-    return SelectCardToStartView
-  }, [exitAnki, selectedId, itemData, isRevealed, km_map, handleRate, handleReveal])
+    return (
+      <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
+        <span className="text-4xl">🎴</span>
+        <p>{LL.ANKI.SELECT_CARD()}</p>
+      </div>
+    )
+  }, [exitAnki, selectedId, itemData, isRevealed, km_map, handleRate, handleReveal, LL])
 
   return (
     <div className="flex h-full w-full md:h-full bg-background overflow-hidden font-inter text-foreground h-[100dvh]">
@@ -235,9 +229,15 @@ export const AnkiGame = React.memo(function AnkiGame() {
     return allFavorites_split_sorted(allFavorites)
   }, [allFavorites])
 
+  const { LL } = useI18nContext()
+
   if (loading) return LoadingSpinner
   if (!allFavorites_splitted || !Array_isNonEmptyArray(allFavorites)) {
-    return NoFavoritesView
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p>{LL.ANKI.NO_FAVORITES()}</p>
+      </div>
+    )
   }
 
   return (

@@ -7,6 +7,8 @@ import { DetailViewActions, type DetailViewActionsProps_Common } from './DetailV
 import { Button } from '@heroui/button'
 import { HiArrowLeft } from 'react-icons/hi2'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import type { TranslationFunctions } from '../../i18n/i18n-types'
 
 interface DetailViewBackButtonProps {
   onPress: () => void
@@ -105,7 +107,9 @@ export type DetailViewHeaderProps =
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
-const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) => {
+const DetailViewHeaderWord = (
+  props: (DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) & { LL: TranslationFunctions },
+) => {
   const { khmerFontFamily, word_displayHtml, phonetic, word_or_sentence__language } = props
 
   const h1Style = useMemo(
@@ -136,7 +140,13 @@ const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailVie
           )}
         </div>
         <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest">
-          {word_or_sentence__language} Dictionary
+          {
+            {
+              en: props.LL.ANKI.LANGUAGES.ENGLISH(),
+              ru: props.LL.ANKI.LANGUAGES.RUSSIAN(),
+              km: props.LL.ANKI.LANGUAGES.KHMER(),
+            }[word_or_sentence__language]
+          }
         </div>
       </div>
 
@@ -195,12 +205,14 @@ const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And
 }
 
 const DetailViewHeaderImpl = (props: DetailViewHeaderProps) => {
+  const { LL } = useI18nContext()
+
   switch (props.type) {
     case 'sentence_analyzer':
       return <DetailViewHeaderSentence {...props} />
     case 'known_word':
     case 'anki_game_back':
-      return <DetailViewHeaderWord {...props} />
+      return <DetailViewHeaderWord {...props} LL={LL} />
     case 'anki_game_front_and_khmer_words_are_shown':
       return <AnkiFrontHeaderShown {...props} />
     case 'anki_game_front_and_khmer_words_are_not_shown':

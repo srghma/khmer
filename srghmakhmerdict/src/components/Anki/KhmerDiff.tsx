@@ -9,7 +9,10 @@ interface KhmerDiffProps {
   className?: string
 }
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }: KhmerDiffProps) => {
+  const { LL } = useI18nContext()
   const diffs = useMemo(() => {
     // diffChars(oldValue, newValue)
     // oldValue: inDictExpected (the correct version)
@@ -28,7 +31,7 @@ export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }
         // Case 1: Extra characters user typed that shouldn't be there
         if (part.added) {
           return (
-            <span key={index} className="text-success font-bold" title="Extra character">
+            <span key={index} className="text-success font-bold" title={LL.ANKI.DIFF.EXTRA()}>
               {value}
             </span>
           )
@@ -37,7 +40,7 @@ export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }
         // Case 2: Characters missing from user input (present in expected)
         if (part.removed) {
           return (
-            <span key={index} className="text-danger font-bold" title="Missing character">
+            <span key={index} className="text-danger font-bold" title={LL.ANKI.DIFF.MISSING()}>
               {value}
             </span>
           )

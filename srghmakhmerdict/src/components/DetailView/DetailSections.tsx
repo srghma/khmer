@@ -4,6 +4,7 @@ import { WiktionaryRenderer } from '../WiktionaryRenderer'
 import { SectionTitle, RenderHtmlColorized, CsvListRendererColorized, CsvListRendererText } from './atoms'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { DetailSectionsProps } from './DetailSectionsProps'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 // add a component that tests all 3
 // srghmakhmerdict / src / utils / WordDetailEn_OnlyKhmerAndWithoutHtml.ts
@@ -30,6 +31,7 @@ export const DetailSections = React.memo(
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
   }: DetailSectionsProps) => {
+    const { LL } = useI18nContext()
     const isKhmerLinksEnabled_ifTrue_passOnNavigateKm = useMemo(
       () =>
         isKhmerLinksEnabled_ifTrue_passOnNavigate
@@ -62,7 +64,7 @@ export const DetailSections = React.memo(
         /> */}
         {desc && (
           <div className="mb-1">
-            <SectionTitle>Definition</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.DEFINITION()}</SectionTitle>
             <RenderHtmlColorized
               hideBrokenImages_enable={true}
               html={desc}
@@ -75,7 +77,7 @@ export const DetailSections = React.memo(
 
         {desc_en_only && (
           <div className="mb-6">
-            <SectionTitle>English Definition</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.DEFINITION_EN()}</SectionTitle>
             <RenderHtmlColorized
               hideBrokenImages_enable={true}
               html={desc_en_only}
@@ -88,7 +90,7 @@ export const DetailSections = React.memo(
 
         {en_km_com && (
           <div className="mb-1">
-            <SectionTitle>English-Khmer</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.EN_KM()}</SectionTitle>
             <EnKmHtmlRenderer
               html={en_km_com}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
@@ -100,7 +102,7 @@ export const DetailSections = React.memo(
 
         {from_csv_raw_html && (
           <div className="mb-1">
-            <SectionTitle>English</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.ENGLISH()}</SectionTitle>
             {from_csv_variants && (
               <div className="mb-2">
                 <CsvListRendererColorized
@@ -114,7 +116,9 @@ export const DetailSections = React.memo(
             {from_csv_noun_forms && (
               <>
                 <div className="mt-4 border-b border-divider pb-1 mb-3">
-                  <span className="text-[0.7em] uppercase tracking-wider font-bold text-default-400">Noun forms</span>
+                  <span className="text-[0.7em] uppercase tracking-wider font-bold text-default-400">
+                    {LL.DETAIL.SECTION.NOUN_FORMS()}
+                  </span>
                 </div>
                 <CsvListRendererColorized
                   isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
@@ -128,7 +132,7 @@ export const DetailSections = React.memo(
               <>
                 <div className="mt-4 border-b border-divider pb-1 mb-3">
                   <span className="text-[0.7em] uppercase tracking-wider font-bold text-default-400">
-                    Pronunciations
+                    {LL.DETAIL.SECTION.PRONUNCIATIONS()}
                   </span>
                 </div>
                 <CsvListRendererText items={from_csv_pronunciations} />
@@ -146,7 +150,7 @@ export const DetailSections = React.memo(
 
         {wiktionary && (
           <div className="mb-6">
-            <SectionTitle>Wiktionary</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.WIKTIONARY()}</SectionTitle>
             <WiktionaryRenderer
               currentMode={mode}
               html={wiktionary}
@@ -160,7 +164,7 @@ export const DetailSections = React.memo(
 
         {from_russian_wiki && (
           <div className="mb-6">
-            <SectionTitle>Russian Wiki</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.RU_WIKI()}</SectionTitle>
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={from_russian_wiki}
@@ -173,7 +177,7 @@ export const DetailSections = React.memo(
 
         {gorgoniev && (
           <div className="mb-6">
-            <SectionTitle>Gorgoniev book</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.GORGONIEV()}</SectionTitle>
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={gorgoniev}
@@ -186,7 +190,7 @@ export const DetailSections = React.memo(
 
         {from_chuon_nath && (
           <div className="mb-6">
-            <SectionTitle>Chuon Nath</SectionTitle>
+            <SectionTitle>{LL.DETAIL.SECTION.CHUON_NATH()}</SectionTitle>
             <RenderHtmlColorized
               hideBrokenImages_enable={false}
               html={from_chuon_nath}

@@ -1,26 +1,31 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Button, type ButtonProps } from '@heroui/button'
 import { Grade } from 'femto-fsrs'
 import type { FourButtons } from './utils'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import type { TranslationFunctions } from '../../i18n/i18n-types'
 
 // --- Types & Config ---
 
 interface RatingConfig {
   rating: Grade
-  label: string // The button text (Again, Hard, etc.) - actually we might want to override this or use from config
+  label: (LL: TranslationFunctions) => string // The button text (Again, Hard, etc.)
   color: ButtonProps['color']
 }
 
-const RATINGS: RatingConfig[] = [
-  { rating: Grade.AGAIN, label: '😵 Again', color: 'danger' },
-  { rating: Grade.HARD, label: '😐 Hard', color: 'warning' },
-  { rating: Grade.GOOD, label: '😊 Good', color: 'success' },
-  { rating: Grade.EASY, label: '😎 Easy', color: 'primary' },
+const getRatings = (LL: TranslationFunctions): RatingConfig[] => [
+  { rating: Grade.AGAIN, label: () => LL.ANKI.BUTTONS.AGAIN(), color: 'danger' },
+  { rating: Grade.HARD, label: () => LL.ANKI.BUTTONS.HARD(), color: 'warning' },
+  { rating: Grade.GOOD, label: () => LL.ANKI.BUTTONS.GOOD(), color: 'success' },
+  { rating: Grade.EASY, label: () => LL.ANKI.BUTTONS.EASY(), color: 'primary' },
 ]
 
 // --- Sub-Component ---
 
-interface AnkiRatingButtonProps extends RatingConfig {
+interface AnkiRatingButtonProps {
+  rating: Grade
+  label: string
+  color: ButtonProps['color']
   intervalLabel: string
   onRate: (rating: Grade) => void
 }
@@ -45,18 +50,21 @@ interface AnkiRevealButtonProps {
   onReveal: () => void
 }
 
-// REMOVED THE WRAPPER DIV WITH PADDING
-export const AnkiRevealButton = React.memo(({ disabled, onReveal }: AnkiRevealButtonProps) => (
-  <Button
-    className="font-bold px-12 w-full md:w-auto"
-    color="primary"
-    isDisabled={disabled}
-    size="lg"
-    onPress={onReveal}
-  >
-    Show Answer
-  </Button>
-))
+export const AnkiRevealButton = React.memo(({ disabled, onReveal }: AnkiRevealButtonProps) => {
+  const { LL } = useI18nContext()
+
+  return (
+    <Button
+      className="font-bold px-12 w-full md:w-auto"
+      color="primary"
+      isDisabled={disabled}
+      size="lg"
+      onPress={onReveal}
+    >
+      {LL.ANKI.BUTTONS.SHOW_ANSWER()}
+    </Button>
+  )
+})
 AnkiRevealButton.displayName = 'AnkiRevealButton'
 
 // --- Export 2: The Rating Buttons (Back Side) ---
@@ -66,18 +74,25 @@ interface AnkiRatingButtonsProps {
   onRate: (rating: Grade) => void
 }
 
-export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButtonsProps) => (
-  <div className="flex justify-center w-full">
-    <div className="grid grid-cols-4 gap-2 md:gap-4 w-full max-w-3xl">
-      {RATINGS.map(config => (
-        <AnkiRatingButton
-          key={config.rating}
-          {...config}
-          intervalLabel={buttons[config.rating].label}
-          onRate={onRate}
-        />
-      ))}
+export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButtonsProps) => {
+  const { LL } = useI18nContext()
+  const ratings = useMemo(() => getRatings(LL), [LL])
+
+  return (
+    <div className="flex justify-center w-full">
+      <div className="grid grid-cols-4 gap-2 md:gap-4 w-full max-w-3xl">
+        {ratings.map(config => (
+          <AnkiRatingButton
+            key={config.rating}
+            color={config.color}
+            intervalLabel={buttons[config.rating].label}
+            label={config.label(LL)}
+            rating={config.rating}
+            onRate={onRate}
+          />
+        ))}
+      </div>
     </div>
-  </div>
-))
+  )
+})
 AnkiRatingButtons.displayName = 'AnkiRatingButtons'

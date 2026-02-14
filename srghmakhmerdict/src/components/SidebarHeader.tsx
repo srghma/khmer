@@ -2,6 +2,7 @@ import { memo, useCallback } from 'react'
 import { Tabs, Tab } from '@heroui/tabs'
 import { GoHistory, GoStar, GoGear } from 'react-icons/go'
 import { SearchBar } from './SearchBar'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import { stringToAppTabOrThrow, type AppTab } from '../types'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useLocation } from 'wouter'
@@ -26,6 +27,7 @@ const tab_title_settings = <GoGear className="text-lg" />
 
 export const SidebarHeader = memo<SidebarHeaderProps>(
   ({ activeTab, onSearch, resultCount, searchMode, showSearchBar, searchInitialValue }) => {
+    const { LL } = useI18nContext()
     const [, setLocation] = useLocation()
 
     const handleTabChange = useCallback(
@@ -42,7 +44,7 @@ export const SidebarHeader = memo<SidebarHeaderProps>(
         <div className="px-2 pt-2">
           <Tabs
             fullWidth
-            aria-label="Dictionary Tabs"
+            aria-label={LL.SIDEBAR.ARIA.TABS()}
             color="warning"
             radius="none"
             selectedKey={activeTab}

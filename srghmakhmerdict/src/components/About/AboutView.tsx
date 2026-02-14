@@ -7,10 +7,13 @@ import { GoStar } from 'react-icons/go'
 import { HiArrowLeft } from 'react-icons/hi2'
 import { requestReview } from '@gbyte/tauri-plugin-in-app-review'
 
-import { useIap } from '../providers/IapProvider'
+import { useIap } from '../../providers/IapProvider'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/modal'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import type { TranslationFunctions } from '../../i18n/i18n-types'
 
 const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { LL }: { LL: TranslationFunctions } = useI18nContext()
   const handleSuccess = useCallback(() => {
     onClose()
   }, [onClose])
@@ -22,20 +25,18 @@ const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           <div className="w-16 h-16 bg-success-500 rounded-full flex items-center justify-center text-white text-3xl mb-2 shadow-lg shadow-success-200 animate-bounce">
             🎉
           </div>
-          <h1 className="text-xl font-bold text-success-700">Success!</h1>
+          <h1 className="text-xl font-bold text-success-700">{LL.ABOUT.SUCCESS_MODAL.TITLE()}</h1>
         </ModalHeader>
         <ModalBody className="text-center py-4">
-          <p className="text-default-700 font-medium">
-            Thank you for your generous support! It means a lot for the development of this project.
-          </p>
-          <p className="text-sm text-default-500 mt-2 italic">Support this free feature with a quick rating!</p>
+          <p className="text-default-700 font-medium">{LL.ABOUT.SUCCESS_MODAL.BODY_1()}</p>
+          <p className="text-sm text-default-500 mt-2 italic">{LL.ABOUT.SUCCESS_MODAL.BODY_2()}</p>
         </ModalBody>
         <ModalFooter className="flex flex-col gap-2 pb-6 px-6">
           <Button className="w-full font-bold shadow-md h-12 text-base" color="success" onPress={handleSuccess}>
-            Yes, I&apos;ll support!
+            {LL.ABOUT.SUCCESS_MODAL.BUTTON_YES()}
           </Button>
           <Button className="w-full font-medium" color="danger" variant="light" onPress={onClose}>
-            Not now
+            {LL.ABOUT.SUCCESS_MODAL.BUTTON_NO()}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -46,6 +47,8 @@ const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 SuccessModal.displayName = 'SuccessModal'
 
 const CancellationModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { LL }: { LL: TranslationFunctions } = useI18nContext()
+
   return (
     <Modal backdrop="blur" isOpen={isOpen} size="xs" onOpenChange={onClose}>
       <ModalContent className="bg-gradient-to-br from-danger-50 to-white dark:from-danger-900/20 dark:to-background border border-danger-200">
@@ -53,14 +56,14 @@ const CancellationModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose:
           <div className="w-16 h-16 bg-danger-500 rounded-full flex items-center justify-center text-white text-3xl mb-2 shadow-lg shadow-danger-200">
             😢
           </div>
-          <h1 className="text-xl font-bold text-danger-700">UUH...</h1>
+          <h1 className="text-xl font-bold text-danger-700">{LL.ABOUT.CANCELLATION_MODAL.TITLE()}</h1>
         </ModalHeader>
         <ModalBody className="text-center py-4">
-          <p className="text-default-700 font-medium">So sorry that you cancelled donation</p>
+          <p className="text-default-700 font-medium">{LL.ABOUT.CANCELLATION_MODAL.BODY()}</p>
         </ModalBody>
         <ModalFooter className="flex flex-col gap-2 pb-6 px-6">
           <Button className="w-full font-bold shadow-md h-12 text-base" color="danger" onPress={onClose}>
-            Got it
+            {LL.ABOUT.CANCELLATION_MODAL.BUTTON()}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -71,6 +74,7 @@ const CancellationModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose:
 CancellationModal.displayName = 'CancellationModal'
 
 export const AboutView: React.FC = memo(() => {
+  const { LL }: { LL: TranslationFunctions } = useI18nContext()
   const { handlePurchase, isPurchasing } = useIap()
   const successDisclosure = useDisclosure()
   const cancellationDisclosure = useDisclosure()
@@ -103,7 +107,7 @@ export const AboutView: React.FC = memo(() => {
         <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
           <HiArrowLeft className="w-6 h-6" />
         </Button>
-        <h1 className="text-xl font-bold">About Khmer Dictionary</h1>
+        <h1 className="text-xl font-bold">{LL.ABOUT.TITLE()}</h1>
       </div>
 
       {/* Content */}
@@ -112,32 +116,31 @@ export const AboutView: React.FC = memo(() => {
           <section className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <FaGithub className="text-2xl text-default-600" />
-              <h2 className="text-xl font-bold">Developer Info</h2>
+              <h2 className="text-xl font-bold">{LL.ABOUT.DEVELOPER_INFO()}</h2>
             </div>
-            <p className="text-default-700 leading-relaxed">
-              My name is <strong className="text-foreground">Serhii Khoma</strong>. My github is{' '}
-              <Link isExternal showAnchorIcon className="font-semibold" href="https://github.com/srghma">
-                srghma
-              </Link>
-              .
-            </p>
-            <p className="text-default-700 leading-relaxed">
-              The source code for this dictionary is open source and available at{' '}
-              <Link isExternal showAnchorIcon className="font-semibold" href="https://github.com/srghma/khmer">
-                github.com/srghma/khmer
-              </Link>
-            </p>
+            <p
+              dangerouslySetInnerHTML={{ __html: LL.ABOUT.DEV_SECTION.NAME() }}
+              className="text-default-700 leading-relaxed"
+            />
+            <p
+              dangerouslySetInnerHTML={{ __html: LL.ABOUT.DEV_SECTION.GITHUB() }}
+              className="text-default-700 leading-relaxed"
+            />
+            <p
+              dangerouslySetInnerHTML={{ __html: LL.ABOUT.DEV_SECTION.SOURCE_CODE() }}
+              className="text-default-700 leading-relaxed"
+            />
           </section>
 
           <section className="bg-primary-50/50 dark:bg-primary-900/10 p-6 rounded-2xl border border-primary-100 dark:border-primary-900/30 shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <FaSearchPlus className="text-8xl -rotate-12" />
             </div>
-            <p className="text-default-700 leading-relaxed mb-4 text-base">
-              I also know how humans have appeared in the universe from (<b>autocatalyst</b> ={'>'} <b>first molecular robot
-                self-replicator</b> 🤖). You can read about it in my presentation. <br /> (There is also a story how russians 🇷🇺
-              tortured my 🇺🇦 friend Ivan).
-            </p>
+            <div className="text-default-700 leading-relaxed mb-4 text-base flex flex-col gap-2">
+              <p dangerouslySetInnerHTML={{ __html: LL.ABOUT.PRESENTATION_SECTION.BODY_1() }} />
+              <p dangerouslySetInnerHTML={{ __html: LL.ABOUT.PRESENTATION_SECTION.BODY_2() }} />
+              <p dangerouslySetInnerHTML={{ __html: LL.ABOUT.PRESENTATION_SECTION.BODY_3() }} />
+            </div>
             <Button
               isExternal
               showAnchorIcon
@@ -146,32 +149,30 @@ export const AboutView: React.FC = memo(() => {
               href="https://docs.google.com/presentation/d/1x1WXcqXbxWo-Nj3lzXgcSBTdmV-8Ohs9lGZDlfMI76g?usp=sharing"
               variant="shadow"
             >
-              View Full Presentation
+              {LL.ABOUT.PRESENTATION_SECTION.BUTTON()}
             </Button>
           </section>
 
           <section className="flex flex-col gap-4">
-            <h3 className="text-sm font-bold text-default-400 uppercase tracking-widest">Help the Project</h3>
-            <p className="text-default-700">
-              You can help significantly by assisting with OCRing of the following dictionary files:
-            </p>
-            <div className="bg-default-50 dark:bg-default-900/50 p-4 rounded-xl border border-default-200">
+            <h3 className="text-sm font-bold text-default-400 uppercase tracking-widest">{LL.ABOUT.HELP_PROJECT()}</h3>
+            <p className="text-default-700">{LL.ABOUT.OCR_SECTION.TITLE()}</p>
+            {/* <div className="bg-default-50 dark:bg-default-900/50 p-4 rounded-xl border border-default-200">
               <ul className="list-disc list-inside text-sm text-default-600 flex flex-col gap-2">
-                <li>Краткий русско-кхмерский словарь.pdf</li>
-                <li>Кхмерско-русский словарь-Горгониев.pdf</li>
+                <li>{LL.ABOUT.OCR_SECTION.FILE_1()}</li>
+                <li>{LL.ABOUT.OCR_SECTION.FILE_2()}</li>
               </ul>
-            </div>
+            </div> */}
           </section>
 
           <section className="flex flex-col gap-4 pt-4 border-t border-divider">
-            <h3 className="text-base font-bold text-foreground">Support Development</h3>
+            <h3 className="text-base font-bold text-foreground">{LL.ABOUT.SUPPORT_DEVELOPMENT()}</h3>
             <div className="bg-gradient-to-br from-warning-50 to-warning-100 dark:from-warning-900/20 dark:to-warning-900/10 p-6 rounded-2xl border border-warning-200 dark:border-warning-900/30 flex flex-col items-center gap-4 text-center">
               <div className="p-3 bg-white dark:bg-warning-900/30 rounded-full shadow-sm">
                 <FaDollarSign className="text-3xl text-warning-500" />
               </div>
               <div>
-                <p className="font-bold text-lg mb-1">Make a Donation</p>
-                <p className="text-sm text-default-600">Support my work using Google Pay</p>
+                <p className="font-bold text-lg mb-1">{LL.SETTINGS.ACTIONS.DONATE()}</p>
+                <p className="text-sm text-default-600">{LL.ABOUT.DONATE_SUBTITLE()}</p>
               </div>
               <Button
                 className="w-full max-w-xs font-bold"
@@ -182,7 +183,7 @@ export const AboutView: React.FC = memo(() => {
                 variant="shadow"
                 onPress={handleDonate}
               >
-                Donate
+                {LL.SETTINGS.ACTIONS.DONATE()}
               </Button>
               <Button
                 className="w-full max-w-xs font-bold"
@@ -192,7 +193,7 @@ export const AboutView: React.FC = memo(() => {
                 variant="flat"
                 onPress={handleReview}
               >
-                Rate the App
+                {LL.ABOUT.RATE_APP()}
               </Button>
             </div>
           </section>

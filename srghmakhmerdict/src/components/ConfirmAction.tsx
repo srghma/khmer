@@ -1,7 +1,7 @@
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from '@heroui/react'
-import { useCallback, type ReactNode } from 'react'
-
+import React, { useCallback, type ReactNode } from 'react'
 import { memo } from 'react'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 interface ConfirmModalContentProps {
   title: string
@@ -18,13 +18,15 @@ const ConfirmModalContent = memo(function ConfirmModalContent({
   onClose,
   onConfirm,
 }: ConfirmModalContentProps) {
+  const { LL } = useI18nContext()
+
   return (
     <>
       <ModalHeader>{title}</ModalHeader>
       <ModalBody>{children}</ModalBody>
       <ModalFooter>
         <Button variant="light" onPress={onClose}>
-          Cancel
+          {LL.COMMON.CANCEL()}
         </Button>
         <Button color="danger" onPress={onConfirm}>
           {confirmLabel}

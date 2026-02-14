@@ -4,11 +4,18 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import type { LocalizedString } from 'typesafe-i18n'
 
 export type FlatListItem =
   | {
       type: 'header'
-      label: '*' | 'Found in content' | CharUppercaseLatin | CharUppercaseCyrillic | NonEmptyStringTrimmed // TODO: maybe pass ProcessDataOutputKhmerCursor_FirstAndSecondLevel instead of NonEmptyStringTrimmed?
+      label:
+        | '*'
+        | 'Found in content'
+        | CharUppercaseLatin
+        | CharUppercaseCyrillic
+        | NonEmptyStringTrimmed
+        | LocalizedString // TODO: maybe pass ProcessDataOutputKhmerCursor_FirstAndSecondLevel instead of NonEmptyStringTrimmed?
       bgClass: string
       index: number
     }

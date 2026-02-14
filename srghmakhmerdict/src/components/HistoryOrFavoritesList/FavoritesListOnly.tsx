@@ -17,12 +17,15 @@ import { useFavorites } from '../../providers/FavoritesProvider'
 
 import { Link } from 'wouter'
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   maybeColorMode: MaybeColorizationMode
 }
 
 export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelect, maybeColorMode }: ListPropsCommon) {
+  const { LL } = useI18nContext()
   const dictData = useDictionary()
 
   const { favorites: items, loading, removeFavorite, deleteAllFavorites } = useFavorites()
@@ -30,11 +33,13 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
   const { handleDelete, handleClearAll } = useListLogic(removeFavorite, deleteAllFavorites)
 
   const confirmContent = React.useMemo(
-    () => <p className="text-small text-default-500">Are you sure you want to delete all {items?.length} items?</p>,
-    [items?.length],
+    () => (
+      <p className="text-small text-default-500">{LL.FAVORITES.CONFIRM_DELETE_ALL({ count: items?.length ?? 0 })}</p>
+    ),
+    [items?.length, LL],
   )
 
-  if (loading) return <div className="p-4 text-center">Loading...</div>
+  if (loading) return <div className="p-4 text-center">{LL.COMMON.LOADING()}</div>
   if (!items || items.length === 0) return <EmptyState type="favorites" />
 
   return (
@@ -42,10 +47,10 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
       <div className="flex-1 overflow-y-auto bg-content1 overflow-x-hidden pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm">
           <span className="text-tiny font-bold uppercase text-default-500 tracking-wider">
-            Favorites ({items.length})
+            {LL.FAVORITES.TITLE_WITH_COUNT({ count: items.length })}
           </span>
           <div className="flex gap-2">
-            <Tooltip content="Open anki">
+            <Tooltip content={LL.FAVORITES.OPEN_ANKI()}>
               <Button
                 isIconOnly
                 as={Link}
@@ -55,12 +60,12 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
                 size="sm"
                 variant="flat"
               >
-                <span className="text-xs font-bold">Anki</span>
+                <span className="text-xs font-bold">{LL.FAVORITES.ANKI_BUTTON()}</span>
               </Button>
             </Tooltip>
             <ConfirmAction
-              confirmLabel="Clear All"
-              title="Clear Search History?"
+              confirmLabel={LL.COMMON.CLEAR_ALL()}
+              title={LL.FAVORITES.CLEAR_TITLE()}
               trigger={onOpen => (
                 <Button
                   className="h-8 text-tiny font-medium"
@@ -70,7 +75,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
                   variant="light"
                   onPress={onOpen}
                 >
-                  Clear All
+                  {LL.COMMON.CLEAR_ALL()}
                 </Button>
               )}
               onConfirm={handleClearAll}

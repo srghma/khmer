@@ -5,6 +5,7 @@ import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chro
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import { mkColorRotator } from './mkColorRotator'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import type { LocalizedString } from 'typesafe-i18n'
 
 export type GeneralChar = CharUppercaseLatin | CharUppercaseCyrillic
 
@@ -22,6 +23,7 @@ export function flattenGeneralData(
   data: ProcessDataOutput<GeneralChar>,
   searchQuery: NonEmptyStringTrimmed | undefined,
   contentMatches: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
+  foundInContentLabel: NonEmptyStringTrimmed | LocalizedString,
 ): FlattenGeneralResult {
   const flatList: FlatListItem[] = []
   const stickyIndexes: number[] = []
@@ -81,7 +83,7 @@ export function flattenGeneralData(
     const bg = 'bg-secondary-50 dark:bg-secondary-900/30'
 
     stickyIndexes.push(start)
-    flatList.push({ type: 'header', label: 'Found in content', bgClass: bg, index: start })
+    flatList.push({ type: 'header', label: foundInContentLabel, bgClass: bg, index: start })
     contentMatches.forEach(w => flatList.push({ type: 'word', word: w, bgClass: bg }))
   }
 

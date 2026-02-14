@@ -3,6 +3,7 @@ import { processors as enProcessors } from '../../utils/WordDetailEn_OnlyKhmerAn
 import { processors as ruProcessors } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
 import { processors as kmProcessors } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 import type { DetailSectionsProps } from './DetailSectionsProps'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 const fieldsToTest = [
   'desc',
@@ -20,9 +21,11 @@ const fieldsToTest = [
 ] as const
 
 export const ProcessorsTester: React.FC<DetailSectionsProps> = props => {
+  const { LL } = useI18nContext()
+
   return (
     <div className="p-4 border-2 border-dashed border-divider rounded-lg mt-8 mb-8 bg-content1/30">
-      <h2 className="text-xl font-bold mb-4">Processors Logic Test</h2>
+      <h2 className="text-xl font-bold mb-4">{LL.DETAIL.TESTER.TITLE()}</h2>
       <div className="space-y-6">
         {fieldsToTest.map(field => {
           const value = props[field]
@@ -43,14 +46,16 @@ export const ProcessorsTester: React.FC<DetailSectionsProps> = props => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <div className="text-xs text-default-400 uppercase tracking-wider font-semibold">Original Value</div>
+                  <div className="text-xs text-default-400 uppercase tracking-wider font-semibold">
+                    {LL.DETAIL.TESTER.ORIGINAL_VALUE()}
+                  </div>
                   <pre className="text-xs bg-content2 p-2 rounded overflow-x-auto whitespace-pre-wrap max-h-40">
                     {JSON.stringify(value, null, 2)}
                   </pre>
                 </div>
                 <div className="space-y-3">
                   <div className="text-xs text-default-400 uppercase tracking-wider font-semibold">
-                    Processed Results
+                    {LL.DETAIL.TESTER.PROCESSED_RESULTS()}
                   </div>
                   {enProc && (
                     <div className="text-xs">

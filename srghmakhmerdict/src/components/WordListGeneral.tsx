@@ -9,6 +9,7 @@ import { isCharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chro
 import { isCharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenGeneralData, type GeneralChar } from '../utils/flattenGeneralData'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { SearchMode } from '../providers/SettingsProvider'
 
@@ -40,12 +41,13 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
   contentMatches,
   searchMode,
 }) => {
+  const { LL } = useI18nContext()
   const [activeL1, setActiveL1] = useState<GeneralChar | '*'>(assertIsDefinedAndReturn(data.groups[0]?.letter ?? '*'))
 
   // 1. Flatten Data
   const { flatList, stickyIndexes, l1Map, exactMatchIndex } = useMemo(
-    () => flattenGeneralData(data, searchQuery, contentMatches),
-    [data, contentMatches, searchQuery],
+    () => flattenGeneralData(data, searchQuery, contentMatches, LL.COMMON.FOUND_IN_CONTENT()),
+    [data, contentMatches, searchQuery, LL],
   )
 
   // 2. Common List Logic (Refs, Scrolling, Rendering)
@@ -62,24 +64,20 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
       const item = flatList[idx]
 
       if (item?.type === 'header') {
-        try {
-          if (item.label === 'Found in content') return
-          if (item.label === '*') {
-            setActiveL1('*')
+        if (item.label === LL.COMMON.FOUND_IN_CONTENT()) return
+        if (item.label === '*') {
+          setActiveL1('*')
 
-            return
-          }
-          const char = Char_mkOrThrow(item.label)
+          return
+        }
+        const char = Char_mkOrThrow(item.label)
 
-          if (isL12SidebarGeneral_activeL1(char)) {
-            setActiveL1(char)
-          }
-        } catch {
-          /* Ignore */
+        if (isL12SidebarGeneral_activeL1(char)) {
+          setActiveL1(char)
         }
       }
     },
-    [flatList],
+    [flatList, LL],
   )
 
   // 4. Sidebar Handler

@@ -56,6 +56,8 @@ const tabsClassNames = {
   cursor: 'bg-secondary',
 }
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
     activeDict,
@@ -70,6 +72,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     onExit,
   }) => {
     const { navigateToLanguage } = useAnkiNavigation()
+    const { LL } = useI18nContext()
 
     const isGuessingKhmer = direction === 'GUESSING_KHMER'
 
@@ -121,11 +124,19 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     const toggleTitle = useMemo(
       () => (
         <div className="flex flex-col items-center justify-center font-black uppercase text-secondary text-xs">
-          <span>Guessing</span>
-          <span>{isGuessingKhmer ? 'Khmer' : { en: 'English', ru: 'Russian', km: 'En/Ru' }[activeDict]}</span>
+          <span>{LL.ANKI.MODES.GUESSING()}</span>
+          <span>
+            {isGuessingKhmer
+              ? LL.ANKI.LANGUAGES.KHMER()
+              : {
+                  en: LL.ANKI.LANGUAGES.ENGLISH(),
+                  ru: LL.ANKI.LANGUAGES.RUSSIAN(),
+                  km: LL.ANKI.LANGUAGES.EN_RU(),
+                }[activeDict]}
+          </span>
         </div>
       ),
-      [isGuessingKhmer, activeDict],
+      [isGuessingKhmer, activeDict, LL],
     )
 
     return (
@@ -134,7 +145,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
           <div className="flex-1">
             <Tabs
               fullWidth
-              aria-label="Anki Dictionary Tabs"
+              aria-label={LL.ANKI.ARIA.TABS()}
               classNames={tabsClassNames}
               color="secondary"
               radius="sm"

@@ -3,8 +3,10 @@ import { Button } from '@heroui/button'
 import { HiArrowLeft } from 'react-icons/hi2'
 import { useDictionary } from '../providers/DictionaryProvider'
 import { KhmerComplexTableContent } from './KhmerComplexTableModal/KhmerComplexTableContent'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 export const KhmerComplexTableView: React.FC = memo(() => {
+  const { LL } = useI18nContext()
   const { km_map } = useDictionary()
 
   const handleBack = useCallback(() => {
@@ -18,7 +20,7 @@ export const KhmerComplexTableView: React.FC = memo(() => {
         <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
           <HiArrowLeft className="w-6 h-6" />
         </Button>
-        <h1 className="text-xl font-bold">Khmer Complex Table</h1>
+        <h1 className="text-xl font-bold">{LL.COMPLEX_TABLE.TITLE()}</h1>
       </div>
 
       {/* Content */}

@@ -130,7 +130,7 @@ export function flattenKhmerData(
     const idx = flatList.length
     const bg = 'bg-secondary-50 dark:bg-secondary-900/30'
 
-    flatList.push({ type: 'header', label: 'Found in content' as any, bgClass: bg, index: idx })
+    flatList.push({ type: 'header', label: 'Found in content' as NonEmptyStringTrimmed, bgClass: bg, index: idx })
     stickyIndexes.push(idx)
     addWords(contentMatches, bg)
   }

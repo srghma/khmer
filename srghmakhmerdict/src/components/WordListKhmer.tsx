@@ -11,6 +11,7 @@ import {
 import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../utils/toGroupKhmer_cursor_full'
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenKhmerData } from '../utils/flattenKhmerData'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { SearchMode } from '../providers/SettingsProvider'
 
@@ -31,6 +32,7 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   contentMatches,
   searchMode,
 }: WordListKhmerProps) => {
+  const { LL } = useI18nContext()
   // Memoize lengths for sidebar (kept here as it's specific to Sidebar UI prop)
   const lengthsData = useMemo(() => makeShortInfoAboutLengths(data), [data])
 
@@ -90,7 +92,7 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
           scrollToSubGroup={handleScrollToSubGroup}
         />
       ) : (
-        <p>Nothing</p>
+        <p>{LL.COMMON.NOTHING()}</p>
       )}
       <VirtualizedList
         ref={listRef}

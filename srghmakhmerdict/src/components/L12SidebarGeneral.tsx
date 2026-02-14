@@ -4,6 +4,7 @@ import type { Char } from '@gemini-ocr-automate-images-upload-chrome-extension/u
 import { NavButton, SidebarHeader, sidebarClass } from './SidebarCommon'
 import type { CharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-cyrillic'
 import type { CharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 interface L12SidebarGeneralProps<UC extends Char> {
   data: ProcessDataOutput<UC>
@@ -18,6 +19,7 @@ function L12SidebarGeneralImpl<UC extends CharUppercaseLatin | CharUppercaseCyri
   scrollToLetter,
   scrollToSubGroup,
 }: L12SidebarGeneralProps<UC>) {
+  const { LL } = useI18nContext()
   const l1NavItems = useMemo(() => {
     const items: (UC | '*')[] = data.groups.map(g => g.letter)
 
@@ -36,14 +38,14 @@ function L12SidebarGeneralImpl<UC extends CharUppercaseLatin | CharUppercaseCyri
   return (
     <>
       <div className={`${sidebarClass} border-l pb-[calc(1rem+env(safe-area-inset-bottom))]`}>
-        <SidebarHeader>1st</SidebarHeader>
+        <SidebarHeader>{LL.SIDEBAR.LEVEL_1()}</SidebarHeader>
         {l1NavItems.map(l => (
           <NavButton key={l} active={l === activeL1} label={l} onClick={() => scrollToLetter(l)} />
         ))}
       </div>
 
       <div className={`${sidebarClass} border-l pb-[calc(1rem+env(safe-area-inset-bottom))]`}>
-        <SidebarHeader>2nd</SidebarHeader>
+        <SidebarHeader>{LL.SIDEBAR.LEVEL_2()}</SidebarHeader>
         {l2NavItems.map(l => (
           <NavButton key={l} active={false} label={l} onClick={() => scrollToSubGroup(l)} />
         ))}

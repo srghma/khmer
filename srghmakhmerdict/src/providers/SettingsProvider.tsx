@@ -3,14 +3,65 @@ import { useLocalStorageState } from 'ahooks'
 import { type EnglishKhmerCom_Images_Mode } from '../types'
 import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { LanguagesOrAuto } from '../i18n/languages'
+import {
+  isEnumValue,
+  stringToEnumOrThrow,
+  stringToEnumOrUndefined,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/enum'
 
 // --- Types ---
 
-export type AutoReadMode = 'disabled' | 'google_then_native' | 'google_only' | 'native_only'
+// AutoReadMode
+export const AUTO_READ_MODES = ['disabled', 'google_then_native', 'google_only', 'native_only'] as const
 
-export type SearchMode = 'starts_with' | 'includes' | 'regex'
+export type AutoReadMode = (typeof AUTO_READ_MODES)[number]
 
-export type DictFilterSettings_Km_Mode = 'all' | 'only_verified'
+export function isAutoReadMode(value: string): value is AutoReadMode {
+  return isEnumValue(value, AUTO_READ_MODES)
+}
+
+export function stringToAutoReadModeOrUndefined(value: string): AutoReadMode | undefined {
+  return stringToEnumOrUndefined(value, AUTO_READ_MODES)
+}
+
+export function stringToAutoReadModeOrThrow(value: string): AutoReadMode {
+  return stringToEnumOrThrow(value, AUTO_READ_MODES, 'AutoReadMode')
+}
+
+// SearchMode
+export const SEARCH_MODES = ['starts_with', 'includes', 'regex'] as const
+
+export type SearchMode = (typeof SEARCH_MODES)[number]
+
+export function isSearchMode(value: string): value is SearchMode {
+  return isEnumValue(value, SEARCH_MODES)
+}
+
+export function stringToSearchModeOrUndefined(value: string): SearchMode | undefined {
+  return stringToEnumOrUndefined(value, SEARCH_MODES)
+}
+
+export function stringToSearchModeOrThrow(value: string): SearchMode {
+  return stringToEnumOrThrow(value, SEARCH_MODES, 'SearchMode')
+}
+
+// DictFilterSettings_Km_Mode
+export const DICT_FILTER_SETTINGS_KM_MODES = ['all', 'only_verified'] as const
+
+export type DictFilterSettings_Km_Mode = (typeof DICT_FILTER_SETTINGS_KM_MODES)[number]
+
+export function isDictFilterSettingsKmMode(value: string): value is DictFilterSettings_Km_Mode {
+  return isEnumValue(value, DICT_FILTER_SETTINGS_KM_MODES)
+}
+
+export function stringToDictFilterSettingsKmModeOrUndefined(value: string): DictFilterSettings_Km_Mode | undefined {
+  return stringToEnumOrUndefined(value, DICT_FILTER_SETTINGS_KM_MODES)
+}
+
+export function stringToDictFilterSettingsKmModeOrThrow(value: string): DictFilterSettings_Km_Mode {
+  return stringToEnumOrThrow(value, DICT_FILTER_SETTINGS_KM_MODES, 'DictFilterSettings_Km_Mode')
+}
 
 export interface DictFilterSettings {
   km: {
@@ -77,6 +128,9 @@ export interface SettingsContextType {
 
   autoReadMode: AutoReadMode
   setAutoReadMode: (v: AutoReadMode | ((prev: AutoReadMode | undefined) => AutoReadMode)) => void
+
+  location: LanguagesOrAuto
+  setLocation: (v: LanguagesOrAuto | ((prev: LanguagesOrAuto | undefined) => LanguagesOrAuto)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -151,6 +205,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: 'disabled',
   })
 
+  const [location, setLocation] = useLocalStorageState<LanguagesOrAuto>('srghmakhmerdict__location', {
+    defaultValue: 'auto',
+  })
+
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
@@ -199,6 +257,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerFontName,
       autoReadMode: autoReadMode ?? 'disabled',
       setAutoReadMode,
+      location: location ?? 'auto',
+      setLocation,
     }),
     [
       searchMode,
@@ -232,6 +292,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerFontName,
       autoReadMode,
       setAutoReadMode,
+      location,
+      setLocation,
     ],
   )
 

@@ -24,6 +24,7 @@ import { KhmerHideToggleIcon } from '../Icons/KhmerHideToggleIcon'
 import { NonKhmerHideToggleIcon } from '../Icons/NonKhmerHideToggleIcon'
 import { AutoReadAction } from './DetailViewHeaderActions/AutoReadAction'
 import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 /**
  * 1. WORD HIDING TOGGLE
@@ -34,8 +35,10 @@ export interface KhmerWordsHidingActionProps {
 }
 
 export const KhmerWordsHidingAction = memo(({ isEnabled, onToggle }: KhmerWordsHidingActionProps) => {
+  const { LL } = useI18nContext()
+
   return (
-    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? 'Hide khmer words' : 'Show khmer words'}>
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? LL.ACTIONS.HIDE_KM() : LL.ACTIONS.SHOW_KM()}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -59,8 +62,10 @@ export interface NonKhmerWordsHidingActionProps {
 }
 
 export const NonKhmerWordsHidingAction = memo(({ isEnabled, onToggle }: NonKhmerWordsHidingActionProps) => {
+  const { LL } = useI18nContext()
+
   return (
-    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? 'Hide non khmer words' : 'Show non khmer words'}>
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? LL.ACTIONS.HIDE_NON_KM() : LL.ACTIONS.SHOW_NON_KM()}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -85,8 +90,10 @@ export interface KhmerLinksActionProps {
 }
 
 export const KhmerLinksAction = memo(({ isEnabled, isDisabled, onToggle }: KhmerLinksActionProps) => {
+  const { LL } = useI18nContext()
+
   return (
-    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? 'Disable word links' : 'Enable word links'}>
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? LL.ACTIONS.DISABLE_LINKS() : LL.ACTIONS.ENABLE_LINKS()}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
@@ -111,6 +118,7 @@ export interface KhmerFontActionProps {
 }
 
 export const KhmerFontAction = memo(({ khmerFontName, onChange }: KhmerFontActionProps) => {
+  const { LL } = useI18nContext()
   const selectedKeys = useMemo(() => [khmerFontName], [khmerFontName])
 
   const handleFontChange = useCallback(
@@ -126,7 +134,7 @@ export const KhmerFontAction = memo(({ khmerFontName, onChange }: KhmerFontActio
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly className="text-default-900" radius="full" variant="light">
-          <TooltipMobileFriendly closeDelay={0} content="Khmer Font">
+          <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.FONT_LABEL()}>
             <MdTextFields className={`h-6 w-6 ${khmerFontName !== 'Default' ? 'text-primary' : 'text-default-500'}`} />
           </TooltipMobileFriendly>
         </Button>
@@ -158,6 +166,7 @@ export interface ColorizationActionProps {
 }
 
 export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationActionProps) => {
+  const { LL } = useI18nContext()
   const selectedKeys = useMemo(() => [colorMode], [colorMode])
 
   const handleColorChange = useCallback(
@@ -173,21 +182,21 @@ export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationAct
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly radius="full" variant="light">
-          <TooltipMobileFriendly closeDelay={0} content="Colorization Settings">
+          <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.COLOR_LABEL()}>
             <IoColorPalette className={`h-6 w-6 ${colorMode !== 'none' ? 'text-primary' : 'text-default-500'}`} />
           </TooltipMobileFriendly>
         </Button>
       </DropdownTrigger>
       <DropdownMenu
         disallowEmptySelection
-        aria-label="Colorization Settings"
+        aria-label={LL.ACTIONS.COLOR_LABEL()}
         selectedKeys={selectedKeys}
         selectionMode="single"
         onSelectionChange={handleColorChange}
       >
-        <DropdownItem key="segmenter">Using Segmenter</DropdownItem>
-        <DropdownItem key="dictionary">Using Dictionary</DropdownItem>
-        <DropdownItem key="none">None</DropdownItem>
+        <DropdownItem key="segmenter">{LL.ACTIONS.COLOR_SEGMENTER()}</DropdownItem>
+        <DropdownItem key="dictionary">{LL.ACTIONS.COLOR_DICT()}</DropdownItem>
+        <DropdownItem key="none">{LL.ACTIONS.COLOR_NONE()}</DropdownItem>
       </DropdownMenu>
     </Dropdown>
   )
@@ -197,20 +206,24 @@ ColorizationAction.displayName = 'ColorizationAction'
 /**
  * 7. FAVORITE TOGGLE
  */
-export const FavoriteAction = memo(({ isFav, onToggle }: { isFav: boolean; onToggle: () => void }) => (
-  <TooltipMobileFriendly closeDelay={0} content={isFav ? 'Remove Favorite' : 'Add Favorite'}>
-    <Button
-      isIconOnly
-      className={isFav ? 'text-warning' : 'text-default-400'}
-      color={isFav ? 'warning' : 'default'}
-      radius="full"
-      variant="light"
-      onPress={onToggle}
-    >
-      {isFav ? <GoStarFill className="h-6 w-6" /> : <GoStar className="h-6 w-6" />}
-    </Button>
-  </TooltipMobileFriendly>
-))
+export const FavoriteAction = memo(({ isFav, onToggle }: { isFav: boolean; onToggle: () => void }) => {
+  const { LL } = useI18nContext()
+
+  return (
+    <TooltipMobileFriendly closeDelay={0} content={isFav ? LL.ACTIONS.FAV_REMOVE() : LL.ACTIONS.FAV_ADD()}>
+      <Button
+        isIconOnly
+        className={isFav ? 'text-warning' : 'text-default-400'}
+        color={isFav ? 'warning' : 'default'}
+        radius="full"
+        variant="light"
+        onPress={onToggle}
+      >
+        {isFav ? <GoStarFill className="h-6 w-6" /> : <GoStar className="h-6 w-6" />}
+      </Button>
+    </TooltipMobileFriendly>
+  )
+})
 FavoriteAction.displayName = 'FavoriteAction'
 
 /**
@@ -222,15 +235,10 @@ export interface AutoFocusAnswerActionProps {
 }
 
 export const AutoFocusAnswerAction = memo(({ isEnabled, onToggle }: AutoFocusAnswerActionProps) => {
+  const { LL } = useI18nContext()
+
   return (
-    <TooltipMobileFriendly
-      closeDelay={0}
-      content={
-        isEnabled
-          ? 'Autofocus Answer: ON (input will be focused automatically)'
-          : 'Autofocus Answer: OFF (input will NOT be focused automatically)'
-      }
-    >
+    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? LL.ACTIONS.AUTOFOCUS_ON() : LL.ACTIONS.AUTOFOCUS_OFF()}>
       <Button
         isIconOnly
         className={isEnabled ? 'text-primary' : 'text-default-500'}
