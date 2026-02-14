@@ -1,5 +1,7 @@
 import { Input } from '@heroui/input'
 import { memo, useState, useEffect, useCallback, useMemo } from 'react'
+import { IoClose } from 'react-icons/io5'
+import { Button } from '@heroui/button'
 import { CiSearch } from 'react-icons/ci'
 import { useDebounce } from 'use-debounce'
 import { useI18nContext } from '../i18n/i18n-react-custom'
@@ -62,13 +64,28 @@ export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, acti
   }, [onSearch])
 
   const endContent = useMemo(
-    () =>
-      count !== undefined ? (
-        <span className="text-default-400 text-xs font-mono shrink-0 pointer-events-none">
-          {numberFormatter.format(count)}
-        </span>
-      ) : null,
-    [count],
+    () => (
+      <div className="flex items-center gap-0.5">
+        {localValue.length > 0 && (
+          <Button
+            isIconOnly
+            className="h-7 w-7 min-w-7 text-default-400 hover:text-default-600 -mr-1"
+            radius="full"
+            size="sm"
+            variant="light"
+            onPress={handleClear}
+          >
+            <IoClose className="text-lg" />
+          </Button>
+        )}
+        {count !== undefined && (
+          <span className="text-default-400 text-xs font-mono shrink-0 pointer-events-none ml-1">
+            {numberFormatter.format(count)}
+          </span>
+        )}
+      </div>
+    ),
+    [count, localValue, handleClear],
   )
 
   const langHint = getLangHint(activeTab)
@@ -106,7 +123,6 @@ export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, acti
     <Input
       // Spread native attributes top-level so the library forwards them to the input
       {...nativeInputAttributes}
-      isClearable
       endContent={endContent}
       placeholder={placeholder}
       radius="none"
@@ -114,7 +130,6 @@ export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, acti
       startContent={startContent}
       value={localValue}
       // Callbacks listed last
-      onClear={handleClear}
       onValueChange={handleChange}
     />
   )

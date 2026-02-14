@@ -1,5 +1,5 @@
 .wikiScope {
-  font-size: 0.925rem;
+  font-size: inherit;
   line-height: 1.6;
   color: hsl(var(--heroui-foreground) / 0.9);
 }

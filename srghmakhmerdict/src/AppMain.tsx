@@ -1,7 +1,11 @@
-import { useMemo } from 'react'
-import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useMemo, useEffect } from 'react'
+import { useLocalStorageState } from 'ahooks'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useSettings } from './providers/SettingsProvider'
-import { isAppTabNonLanguage } from './types'
+import { isAppTabNonLanguage, type DictionaryLanguage } from './types'
 import { useDictionarySearch } from './hooks/useDictionarySearch'
 import { SidebarHeader } from './components/SidebarHeader'
 import { SidebarContent } from './components/SidebarContent'
@@ -24,6 +28,16 @@ export function AppMain() {
 
     return undefined
   }, [currentView])
+
+  const [lastSelectedWord, setLastSelectedWord] = useLocalStorageState<
+    { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
+  >('lastSelectedWord')
+
+  useEffect(() => {
+    if (currentNavigationStackItem) {
+      setLastSelectedWord(currentNavigationStackItem)
+    }
+  }, [currentNavigationStackItem, setLastSelectedWord])
 
   const { searchMode, searchInContent, highlightInList, fontSize_ui, filters, maybeColorMode } = useSettings()
   const activeTab = useAppActiveTab()
@@ -99,6 +113,7 @@ export function AppMain() {
           case 'settings':
             return (
               <RightPanel
+                lastSelectedWord={lastSelectedWord}
                 maybeColorMode={maybeColorMode}
                 searchQuery={searchQuery}
                 selectedWord={currentNavigationStackItem}

@@ -35,6 +35,7 @@ export const RenderHtml = React.memo(
         dangerouslySetInnerHTML={dangerousHtml}
         ref={ref} // ref comes from props
         className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert ${className}`}
+        style={{ fontSize: 'inherit' }}
       />
     )
   },
@@ -72,6 +73,7 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
       dangerouslySetInnerHTML={{ __html: processedText_html }}
       ref={containerRef}
       className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert`}
+      style={{ fontSize: 'inherit' }}
     />
   )
 })

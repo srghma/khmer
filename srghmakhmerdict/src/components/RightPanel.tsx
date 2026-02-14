@@ -15,6 +15,7 @@ import { safeBack } from '../utils/safeBack'
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
   selectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
+  lastSelectedWord: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
   searchQuery: NonEmptyStringTrimmed | undefined
 }
 
@@ -27,7 +28,7 @@ const NoSelectedWord = ({ LL }: { LL: TranslationFunctions }) => (
   </div>
 )
 
-export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, searchQuery }) => {
+export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelectedWord, searchQuery }) => {
   const { LL } = useI18nContext()
   // Use the global navigation hooks
   const [location, setLocation] = useLocation()
@@ -56,17 +57,30 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, searchQuer
     }
   }, [canGoBack, location, setLocation])
 
-  if (!selectedWord) return <NoSelectedWord LL={LL} />
+  const effectiveWord = selectedWord || lastSelectedWord
+
+  if (!effectiveWord) return <NoSelectedWord LL={LL} />
+
+  // If we only have lastSelectedWord but no active selection,
+  // we only show it on desktop (md+) because on mobile we want to see the list/settings.
+  // Actually, AppMain already handles visibility via 'hidden md:flex' for the sidebar,
+  // but for the RightPanel, if selectedWord is undefined, it means we are in a state
+  // like '/settings'. On mobile, '/settings' should show SettingsView (sidebar).
+  // On desktop, '/settings' should show SettingsView on the left AND RightPanel (with last word) on the right.
 
   return (
-    <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
+    <div
+      className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${
+        !selectedWord ? 'hidden md:flex' : 'flex'
+      }`}
+    >
       {/* Detail View Wrapper with Selection Class */}
       <DetailView
         backButton_desktopOnlyStyles_showButton={canGoBack}
         backButton_goBack={backButton_goBack}
         highlightMatch={highlightMatch}
-        mode={selectedWord.mode}
-        word={selectedWord.word}
+        mode={effectiveWord.mode}
+        word={effectiveWord.word}
         onNavigate={onNavigate}
       />
     </div>
