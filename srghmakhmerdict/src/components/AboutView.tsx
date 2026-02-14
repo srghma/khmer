@@ -3,7 +3,9 @@ import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 import { FaGithub, FaDollarSign, FaSearchPlus } from 'react-icons/fa'
 import { SiGooglepay } from 'react-icons/si'
+import { GoStar } from 'react-icons/go'
 import { HiArrowLeft } from 'react-icons/hi2'
+import { requestReview } from '@gbyte/tauri-plugin-in-app-review'
 
 import { useIap } from '../providers/IapProvider'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/modal'
@@ -43,15 +45,50 @@ const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
 SuccessModal.displayName = 'SuccessModal'
 
+const CancellationModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  return (
+    <Modal backdrop="blur" isOpen={isOpen} size="xs" onOpenChange={onClose}>
+      <ModalContent className="bg-gradient-to-br from-danger-50 to-white dark:from-danger-900/20 dark:to-background border border-danger-200">
+        <ModalHeader className="flex flex-col gap-1 items-center pb-0">
+          <div className="w-16 h-16 bg-danger-500 rounded-full flex items-center justify-center text-white text-3xl mb-2 shadow-lg shadow-danger-200">
+            😢
+          </div>
+          <h1 className="text-xl font-bold text-danger-700">UUH...</h1>
+        </ModalHeader>
+        <ModalBody className="text-center py-4">
+          <p className="text-default-700 font-medium">So sorry that you cancelled donation</p>
+        </ModalBody>
+        <ModalFooter className="flex flex-col gap-2 pb-6 px-6">
+          <Button className="w-full font-bold shadow-md h-12 text-base" color="danger" onPress={onClose}>
+            Got it
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+})
+
+CancellationModal.displayName = 'CancellationModal'
+
 export const AboutView: React.FC = memo(() => {
   const { handlePurchase, isPurchasing } = useIap()
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const successDisclosure = useDisclosure()
+  const cancellationDisclosure = useDisclosure()
 
   const handleDonate = useCallback(async () => {
     // For simplicity, we choose a medium tier or could show a selection
-    await handlePurchase('donation_medium')
-    onOpen()
-  }, [handlePurchase, onOpen])
+    const success = await handlePurchase('donation_medium')
+
+    if (success) {
+      successDisclosure.onOpen()
+    } else {
+      cancellationDisclosure.onOpen()
+    }
+  }, [handlePurchase, successDisclosure, cancellationDisclosure])
+
+  const handleReview = useCallback(async () => {
+    await requestReview()
+  }, [])
 
   const handleBack = useCallback(() => {
     window.history.back()
@@ -59,7 +96,8 @@ export const AboutView: React.FC = memo(() => {
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
-      <SuccessModal isOpen={isOpen} onClose={onClose} />
+      <SuccessModal isOpen={successDisclosure.isOpen} onClose={successDisclosure.onClose} />
+      <CancellationModal isOpen={cancellationDisclosure.isOpen} onClose={cancellationDisclosure.onClose} />
       {/* Header */}
       <div className="flex shrink-0 items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1rem+env(safe-area-inset-top))]">
         <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
@@ -96,8 +134,9 @@ export const AboutView: React.FC = memo(() => {
               <FaSearchPlus className="text-8xl -rotate-12" />
             </div>
             <p className="text-default-700 leading-relaxed mb-4 text-base">
-              I also know how humans have appeared in the universe from (autocatalyst ={'>'} molecular robot). You can
-              read about it in my detailed presentation.
+              I also know how humans have appeared in the universe from (<b>autocatalyst</b> ={'>'} <b>first molecular robot
+                self-replicator</b> 🤖). You can read about it in my presentation. <br /> (There is also a story how russians 🇷🇺
+              tortured my 🇺🇦 friend Ivan).
             </p>
             <Button
               isExternal
@@ -144,6 +183,16 @@ export const AboutView: React.FC = memo(() => {
                 onPress={handleDonate}
               >
                 Donate
+              </Button>
+              <Button
+                className="w-full max-w-xs font-bold"
+                color="default"
+                endContent={<GoStar className="text-2xl" />}
+                size="lg"
+                variant="flat"
+                onPress={handleReview}
+              >
+                Rate the App
               </Button>
             </div>
           </section>

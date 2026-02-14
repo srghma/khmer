@@ -2,8 +2,11 @@
   "$schema": "../gen/schemas/mobile-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
+    "in-app-review:default",
     "iap:default",
     "core:window:allow-set-theme",
     "core:default",
@@ -24,7 +27,10 @@
     "fs:allow-stat",
     {
       "identifier": "fs:scope",
-      "allow": ["$RESOURCE/**/*", "$APPLOCALDATA/**/*"]
+      "allow": [
+        "$RESOURCE/**/*",
+        "$APPLOCALDATA/**/*"
+      ]
     },
     "http:default",
     {

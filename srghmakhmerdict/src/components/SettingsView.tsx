@@ -133,33 +133,6 @@ export const SettingsView: React.FC = memo(() => {
           </div>
         </div>
 
-        {/* About & Support Group */}
-        <div className="flex flex-col gap-3 p-3 rounded-medium bg-warning-50/50 border border-warning-100 dark:bg-warning-900/10 dark:border-warning-900/30">
-          <span className="text-xs font-semibold text-warning-600 uppercase tracking-wider">Project</span>
-          <div className="flex flex-col gap-2">
-            <Button
-              className="w-full justify-start font-medium"
-              color="warning"
-              startContent={<GoInfo />}
-              variant="flat"
-              onPress={() => setLocation('/about')}
-            >
-              About Khmer Dictionary
-            </Button>
-            <Button
-              className="w-full justify-start font-medium"
-              color="warning"
-              endContent={<SiGooglepay className="text-xl" />}
-              startContent={<FaDollarSign />}
-              variant="flat"
-              onPress={() => {
-                alert('Google Pay donation integration would go here (requires native plugin setup).')
-              }}
-            >
-              Donate
-            </Button>
-          </div>
-        </div>
 
         {/* Search Settings Group */}
         <div className="flex flex-col gap-3 p-3 rounded-medium bg-default-100/50 border border-default-100">
@@ -174,9 +147,8 @@ export const SettingsView: React.FC = memo(() => {
               {(['starts_with', 'includes', 'regex'] as const).map(mode => (
                 <Button
                   key={mode}
-                  className={`text-[10px] h-8 min-w-0 ${
-                    searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
-                  }`}
+                  className={`text-[10px] h-8 min-w-0 ${searchMode === mode ? 'bg-background shadow-sm' : 'bg-transparent text-default-500'
+                    }`}
                   size="sm"
                   variant={searchMode === mode ? 'flat' : 'light'}
                   onPress={() => setSearchMode(mode)}
@@ -274,6 +246,35 @@ export const SettingsView: React.FC = memo(() => {
         </div>
 
         <SettingsEnKmOfflineImagesControl />
+
+        {/* About & Support Group */}
+        <div className="flex flex-col gap-3 p-3 rounded-medium bg-warning-50/50 border border-warning-100 dark:bg-warning-900/10 dark:border-warning-900/30">
+          <span className="text-xs font-semibold text-warning-600 uppercase tracking-wider">Project</span>
+          <div className="flex flex-col gap-2">
+            <Button
+              className="w-full justify-start font-medium"
+              color="warning"
+              startContent={<GoInfo />}
+              variant="flat"
+              onPress={() => setLocation('/about')}
+            >
+              About Khmer Dictionary
+            </Button>
+            <Button
+              className="w-full justify-start font-medium"
+              color="warning"
+              endContent={<SiGooglepay className="text-xl" />}
+              startContent={<FaDollarSign />}
+              variant="flat"
+              onPress={() => {
+                alert('Google Pay donation integration would go here (requires native plugin setup).')
+              }}
+            >
+              Donate
+            </Button>
+          </div>
+        </div>
+
       </div>
     </div>
   )

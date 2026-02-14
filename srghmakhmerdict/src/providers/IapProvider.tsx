@@ -16,7 +16,7 @@ interface IapContextType {
   products: Product[]
   isLoading: boolean
   isPurchasing: boolean
-  handlePurchase: (productId: DonationProductId) => Promise<void>
+  handlePurchase: (productId: DonationProductId) => Promise<boolean>
 }
 
 const IapContext = createContext<IapContextType | undefined>(undefined)
@@ -47,6 +47,7 @@ export const IapProvider = memo(({ children }: { children: React.ReactNode }) =>
         // GetProductsResponse likely contains products array
         setProducts((fetchedProducts as any).products ?? fetchedProducts)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('[IAP] Failed to fetch products:', error)
       } finally {
         setIsLoading(false)
@@ -59,6 +60,7 @@ export const IapProvider = memo(({ children }: { children: React.ReactNode }) =>
     let listener: { unregister: () => Promise<void> } | undefined
 
     onPurchaseUpdated(p => {
+      // eslint-disable-next-line no-console
       console.log('[IAP] Purchase updated:', p)
     }).then(l => {
       listener = l
@@ -73,11 +75,12 @@ export const IapProvider = memo(({ children }: { children: React.ReactNode }) =>
 
   // 3. Purchase handler
   const handlePurchase = useCallback(
-    async (productId: DonationProductId) => {
+    async (productId: DonationProductId): Promise<boolean> => {
       setIsPurchasing(true)
       try {
         const result = await purchase(productId, 'inapp')
 
+        // eslint-disable-next-line no-console
         console.log('[IAP] Purchase successful:', result)
 
         toast.success('Thank you!' as any, 'Your donation has been received. You are awesome!' as any)
@@ -86,9 +89,15 @@ export const IapProvider = memo(({ children }: { children: React.ReactNode }) =>
         setTimeout(() => {
           requestReview()
         }, 1000)
+
+        return true
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('[IAP] Purchase failed:', error)
+
         toast.warn('Purchase Canceled' as any, 'The donation process was not completed.' as any)
+
+        return false
       } finally {
         setIsPurchasing(false)
       }
