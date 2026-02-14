@@ -128,8 +128,8 @@ interface WiktionaryRendererProps {
   html: NonEmptyStringTrimmed
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
   isKhmerLinksEnabled_ifTrue_passOnNavigate:
-  | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
-  | undefined
+    | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
+    | undefined
   currentMode: DictionaryLanguage
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean

@@ -9,7 +9,6 @@ import { RightPanel } from './components/RightPanel'
 import { useDictionary } from './providers/DictionaryProvider'
 import { AboutView } from './components/About/AboutView'
 import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
-import { KhmerComplexTableView } from './components/KhmerComplexTableView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 
@@ -90,12 +89,6 @@ export function AppMain() {
             return (
               <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
                 <KhmerAnalyzerView initialText={currentView.text} />
-              </div>
-            )
-          case 'khmer-complex-table':
-            return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
-                <KhmerComplexTableView />
               </div>
             )
           case 'history':

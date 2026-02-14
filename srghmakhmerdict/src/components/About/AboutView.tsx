@@ -1,4 +1,6 @@
 import React, { memo, useCallback } from 'react'
+import { useLocation } from 'wouter'
+import { safeBack } from '../../utils/safeBack'
 import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 import { FaGithub, FaDollarSign, FaSearchPlus } from 'react-icons/fa'
@@ -94,9 +96,10 @@ export const AboutView: React.FC = memo(() => {
     await requestReview()
   }, [])
 
+  const [, setLocation] = useLocation()
   const handleBack = useCallback(() => {
-    window.history.back()
-  }, [])
+    safeBack(setLocation)
+  }, [setLocation])
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">

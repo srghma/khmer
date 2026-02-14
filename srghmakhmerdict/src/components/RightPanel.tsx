@@ -10,6 +10,7 @@ import { DetailView } from './DetailView'
 import { useLocation } from 'wouter'
 import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { TranslationFunctions } from '../i18n/i18n-types'
+import { safeBack } from '../utils/safeBack'
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
@@ -47,13 +48,13 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, searchQuer
 
   const backButton_goBack = useCallback(() => {
     if (canGoBack) {
-      window.history.back()
+      safeBack(setLocation)
     } else {
       const langMatch = location.match(/^\/(en|ru|km)/)
 
       setLocation(langMatch ? `/${langMatch[1]}` : '/en')
     }
-  }, [location])
+  }, [canGoBack, location, setLocation])
 
   if (!selectedWord) return <NoSelectedWord LL={LL} />
 

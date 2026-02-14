@@ -5,18 +5,23 @@ import type { ToTranslateLanguage } from '../utils/googleTranslate/toTranslateLa
 import { executeGoogleTts, googleTtsResultToError } from '../utils/tts/google'
 import { createExternalStore } from '../utils/createExternalStore'
 
+import { useOnline } from './useOnline'
+
 const GOOGLE_TTS_OFFLINE = { t: 'offline' } as const
 const GOOGLE_TTS_SPEAKING = { t: 'online_and_speaking' } as const
+const GOOGLE_TTS_DISABLED = { t: 'disabled' } as const
 
 export type GoogleTtsState =
   | typeof GOOGLE_TTS_OFFLINE
   | typeof GOOGLE_TTS_SPEAKING
+  | typeof GOOGLE_TTS_DISABLED
   | { t: 'online'; speak: () => Promise<void> }
 
 const googleSpeakingStore = createExternalStore<boolean>(false)
 
 export function useGoogleTts(word: NonEmptyStringTrimmed | undefined, mode: ToTranslateLanguage): GoogleTtsState {
   const toast = useAppToast()
+  const isOnline = useOnline()
 
   // No useEffect, no manual listener management
   const isSpeaking = useSyncExternalStore(googleSpeakingStore.subscribe, googleSpeakingStore.getSnapshot)
@@ -39,9 +44,10 @@ export function useGoogleTts(word: NonEmptyStringTrimmed | undefined, mode: ToTr
   }, [word, mode, toast])
 
   return useMemo(() => {
-    if (!word) return GOOGLE_TTS_OFFLINE
+    if (!isOnline) return GOOGLE_TTS_OFFLINE
+    if (!word) return GOOGLE_TTS_DISABLED
     if (isSpeaking) return GOOGLE_TTS_SPEAKING
 
     return { t: 'online', speak }
-  }, [word, isSpeaking, speak])
+  }, [word, isSpeaking, speak, isOnline])
 }

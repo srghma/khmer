@@ -1,8 +1,9 @@
 import React, { useCallback, memo, useEffect, useState, useRef } from 'react'
 import { Button } from '@heroui/button'
 import { HiArrowLeft } from 'react-icons/hi2'
-import { GoogleTranslateTextarea } from './GoogleTranslateTextarea/GoogleTranslateTextarea'
 import { useLocation } from 'wouter'
+import { safeBack } from '../utils/safeBack'
+import { GoogleTranslateTextarea } from './GoogleTranslateTextarea/GoogleTranslateTextarea'
 import { useSettings } from '../providers/SettingsProvider'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
@@ -146,8 +147,8 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   }, [initialText])
 
   const handleBack = useCallback(() => {
-    window.history.back()
-  }, [])
+    safeBack(setLocation)
+  }, [setLocation])
 
   const handleNavigate = useCallback(
     (word: NonEmptyStringTrimmed) => {

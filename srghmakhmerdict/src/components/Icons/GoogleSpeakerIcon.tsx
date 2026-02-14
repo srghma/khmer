@@ -22,6 +22,7 @@ const CompositeIcon = (
 
 export const GoogleSpeakerIcon = React.memo((props: GoogleTtsState & { className?: string }) => {
   const isOffline = props.t === 'offline'
+  const isDisabled = props.t === 'disabled'
   const isSpeaking = props.t === 'online_and_speaking'
 
   return (
@@ -35,7 +36,7 @@ export const GoogleSpeakerIcon = React.memo((props: GoogleTtsState & { className
       <div
         className={clsx(
           'relative w-full h-full transition-all duration-300',
-          isOffline && 'opacity-30 grayscale',
+          (isOffline || isDisabled) && 'opacity-30 grayscale',
           isSpeaking && 'scale-110',
         )}
       >

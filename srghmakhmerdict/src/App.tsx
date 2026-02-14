@@ -5,12 +5,13 @@ import { useDeepLinkHandler } from './hooks/useDeepLinkHandler'
 import { Route, Switch, useLocation } from 'wouter'
 import { AppAnki } from './AppAnki'
 import { AppMain } from './AppMain'
+import { KhmerComplexTableView } from './components/KhmerComplexTableView'
 import './App.css'
 
 function App() {
   const { theme } = useTheme()
 
-  const [_, setLocation] = useLocation()
+  const [, setLocation] = useLocation()
 
   useEffect(() => {
     document.documentElement.classList.remove(theme === ThemeProps.DARK ? ThemeProps.LIGHT : ThemeProps.DARK)
@@ -25,6 +26,12 @@ function App() {
     <Switch>
       <Route nest path="/anki">
         <AppAnki />
+      </Route>
+
+      <Route path="/khmer_complex_table">
+        <div className="fixed inset-0 z-[100] bg-background">
+          <KhmerComplexTableView />
+        </div>
       </Route>
 
       <Route>

@@ -1,3 +1,4 @@
+import { tryDecode } from '../utils/tryDecode'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -18,17 +19,6 @@ export type AppMainView =
   | { type: 'about' }
   | { type: 'khmer-analyzer'; text?: NonEmptyStringTrimmed }
   | { type: 'khmer-complex-table' }
-
-const tryDecode = (str: string): string => {
-  try {
-    return decodeURIComponent(str)
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn('[Router] Failed to decode URL component:', str, e)
-
-    return str
-  }
-}
 
 export const useAppMainView = () => {
   const [location] = useLocation()
