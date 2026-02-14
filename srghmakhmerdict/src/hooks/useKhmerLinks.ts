@@ -66,6 +66,23 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
     }
   }
 
+  // 3. Check for Khmer Image Wrapper (Hiding Only)
+  const khmerImageWrapper = target.closest('.khmer--image-wrapper') as HTMLElement | null
+
+  if (khmerImageWrapper) {
+    if (isKhmerWordsHidingEnabled) {
+      const isRevealed = khmerImageWrapper.classList.contains('is-revealed')
+
+      if (!isRevealed) {
+        e.preventDefault()
+        e.stopPropagation()
+        khmerImageWrapper.classList.add('is-revealed')
+
+        return true
+      }
+    }
+  }
+
   return false
 }
 

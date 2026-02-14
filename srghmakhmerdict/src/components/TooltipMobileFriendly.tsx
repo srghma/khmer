@@ -7,39 +7,68 @@ export interface TooltipMobileFriendlyProps extends TooltipProps {
   children: React.ReactElement
 }
 
+const TOOLTIP_PROPS = [
+  'content',
+  'delay',
+  'closeDelay',
+  'placement',
+  'color',
+  'size',
+  'radius',
+  'shadow',
+  'offset',
+  'showArrow',
+  'isDisabled',
+  'container',
+  'motionProps',
+  'trigger',
+  'triggerRef',
+  'portalContainer',
+]
+
 /**
  * A wrapper for our custom Tooltip that enables controll over mobile behavior.
  * This replaces the previous implementation that caused crashes.
  */
-export const TooltipMobileFriendly = React.memo((props: TooltipMobileFriendlyProps) => {
-  const [isOpen, setIsOpen] = useState(false)
+export const TooltipMobileFriendly = React.memo(
+  React.forwardRef<any, TooltipMobileFriendlyProps>((props, ref) => {
+    const { children, isOpen: propIsOpen, onOpenChange, ...otherProps } = props
+    const [isOpenInternal, setIsOpenInternal] = useState(false)
 
-  const { longPressProps } = useLongPress({
-    accessibilityDescription: 'Long press to show tooltip',
-    onLongPress: () => {
-      setIsOpen(true)
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(50)
-      }
-      setTimeout(() => setIsOpen(false), 3000)
-    },
-  })
+    // Ensure we always pass a boolean to avoid "controlled to uncontrolled" warnings
+    const mergedIsOpen = !!(propIsOpen ?? isOpenInternal)
 
-  return (
-    <Tooltip
-      {...props}
-      isOpen={isOpen || props.isOpen}
-      onOpenChange={open => {
-        if (!open) setIsOpen(false)
-        props.onOpenChange?.(open)
-      }}
-    >
-      {React.cloneElement(
-        props.children,
-        mergeProps(longPressProps, (props.children as React.ReactElement<any>).props),
-      )}
-    </Tooltip>
-  )
-})
+    const { longPressProps } = useLongPress({
+      accessibilityDescription: (otherProps as any)['aria-label'] || 'Long press to show tooltip',
+      onLongPress: () => {
+        setIsOpenInternal(true)
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(50)
+        }
+        setTimeout(() => setIsOpenInternal(false), 3000)
+      },
+    })
+
+    const passthroughProps = Object.fromEntries(
+      Object.entries(otherProps).filter(([key]) => !TOOLTIP_PROPS.includes(key)),
+    )
+
+    return (
+      <Tooltip
+        {...otherProps}
+        isOpen={mergedIsOpen}
+        onOpenChange={open => {
+          setIsOpenInternal(open)
+          onOpenChange?.(open)
+        }}
+      >
+        {React.cloneElement(children, {
+          ...mergeProps(children.props, longPressProps, passthroughProps as any),
+          ref,
+        } as any)}
+      </Tooltip>
+    )
+  }),
+)
 
 TooltipMobileFriendly.displayName = 'TooltipMobileFriendly'

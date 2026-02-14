@@ -33,13 +33,13 @@ export const AutoReadAction = memo(() => {
   return (
     <Dropdown>
       <DropdownTrigger>
-        <Button isIconOnly radius="full" variant="light">
-          <TooltipMobileFriendly closeDelay={0} content={LL.AUTOREAD.TITLE()}>
+        <TooltipMobileFriendly closeDelay={0} content={LL.AUTOREAD.TITLE()}>
+          <Button isIconOnly radius="full" variant="light">
             <MdRecordVoiceOver
               className={`h-6 w-6 ${autoReadMode !== 'disabled' ? 'text-primary' : 'text-default-500'}`}
             />
-          </TooltipMobileFriendly>
-        </Button>
+          </Button>
+        </TooltipMobileFriendly>
       </DropdownTrigger>
       <DropdownMenu
         disallowEmptySelection

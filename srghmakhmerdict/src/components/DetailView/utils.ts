@@ -5,18 +5,17 @@ import {
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../../db/dict'
 import { colorizeHtml } from '../../utils/text-processing/html'
-import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
+import type { ColorizationMode } from '../../utils/text-processing/utils'
 import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 export const colorizeHtml_nonEmptyArray = (
   items: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
-  maybeColorMode: MaybeColorizationMode,
-  km_map: KhmerWordsMap | undefined,
+  colorMode: ColorizationMode,
+  km_map: KhmerWordsMap,
 ): NonEmptyArray<NonEmptyStringTrimmed> | undefined => {
   if (!items) return undefined
-  if (maybeColorMode === 'none' || !km_map) return undefined
 
   return Array_toNonEmptyArray_orThrow(
-    items.map(item => (isContainsKhmer(item) ? colorizeHtml(item, maybeColorMode, km_map) : item)),
+    items.map(item => (isContainsKhmer(item) ? colorizeHtml(item, colorMode, km_map) : item)),
   )
 }

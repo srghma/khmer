@@ -19,7 +19,6 @@ import {
 import { type ColorizationMode } from './utils'
 import { renderKhmerWordSpan, renderNonKhmerSpan } from './word-renderer'
 
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import {
   type NonEmptySet,
   Set_toNonEmptySet_orUndefined,
@@ -166,7 +165,7 @@ export const colorizeSegments = (segments: Iterable<TextSegment>, km_map: KhmerW
 }
 
 export const colorizeText = (
-  text: TypedContainsKhmer,
+  text: NonEmptyStringTrimmed,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyString => {
@@ -176,7 +175,7 @@ export const colorizeText = (
 }
 
 export const colorizeText_allowUndefined = (
-  text: TypedContainsKhmer | undefined,
+  text: NonEmptyStringTrimmed | undefined,
   mode: ColorizationMode,
   km_map: KhmerWordsMap,
 ): NonEmptyString | undefined => {

@@ -163,6 +163,7 @@ export const DetailViewFound = ({
               from_russian_wiki={data.from_russian_wiki}
               gorgoniev={data.gorgoniev}
               isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? onNavigate : undefined}
+              isKhmerPronunciationHidingEnabled={false}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
               km_map={km_map}

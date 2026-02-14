@@ -253,6 +253,7 @@ export const AnkiCardDetailView = React.memo(
                     isKhmerLinksEnabled_ifTrue_passOnNavigate={
                       isKhmerLinksEnabled ? w => handleOpenSearch(w) : undefined
                     }
+                    isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
                     isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
                     isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
                     km_map={km_map}

@@ -8,6 +8,7 @@ import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyle
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useSettings } from '../../providers/SettingsProvider'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { colorizeText } from '../../utils/text-processing/text'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
   <div className="text-[0.7em] uppercase tracking-wider font-bold text-default-400 mb-[0.75em] border-b border-divider pb-1">
@@ -40,6 +41,35 @@ export const RenderHtml = React.memo(
 
 RenderHtml.displayName = 'RenderHtml'
 
+export const RenderTextColorized = React.memo(function RenderTextColorized({
+  text,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+}: {
+  text: NonEmptyStringTrimmed
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+}) {
+  const { maybeColorMode } = useSettings()
+  const { km_map } = useDictionary()
+  const containerRef = React.useRef<HTMLDivElement>(null)
+
+  const processedText_html = useMemo(
+    () => colorizeText(text, maybeColorMode === 'none' ? 'segmenter' : maybeColorMode, km_map),
+    [text, maybeColorMode, km_map],
+  )
+
+  useKhmerAndNonKhmerClickListener(containerRef, undefined, isKhmerWordsHidingEnabled, isNonKhmerWordsHidingEnabled)
+
+  return (
+    <span
+      dangerouslySetInnerHTML={{ __html: processedText_html }}
+      ref={containerRef}
+      className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert`}
+    />
+  )
+})
+
 export const RenderHtmlColorized = React.memo(
   ({
     html,
@@ -58,7 +88,7 @@ export const RenderHtmlColorized = React.memo(
     const { km_map } = useDictionary()
     const containerRef = React.useRef<HTMLDivElement>(null)
     const processedHtml = useMemo(
-      () => (maybeColorMode !== 'none' && html ? colorizeHtml(html, maybeColorMode, km_map) : html),
+      () => (html ? colorizeHtml(html, maybeColorMode === 'none' ? 'segmenter' : maybeColorMode, km_map) : html),
       [html, maybeColorMode, km_map],
     )
 
@@ -126,7 +156,7 @@ export const CsvListRendererColorized = React.memo(
     const listRef = React.useRef<HTMLUListElement>(null)
 
     const processedItems = useMemo(
-      () => colorizeHtml_nonEmptyArray(items, maybeColorMode, km_map),
+      () => colorizeHtml_nonEmptyArray(items, maybeColorMode === 'none' ? 'segmenter' : maybeColorMode, km_map),
       [items, maybeColorMode, km_map],
     )
 
@@ -151,12 +181,32 @@ export const CsvListRendererColorized = React.memo(
 
 CsvListRendererColorized.displayName = 'CsvListRendererColorized'
 
-export const CsvListRendererText = React.memo(({ items }: { items: NonEmptyArray<NonEmptyStringTrimmed> }) => (
-  <ul className="list-disc list-inside space-y-1 text-foreground/80">
-    {items.map((item, i) => (
-      <li key={i}>{item}</li>
-    ))}
-  </ul>
-))
+export const CsvListRendererText = React.memo(function CsvListRendererText({
+  items,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+}: {
+  items: NonEmptyArray<NonEmptyStringTrimmed>
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+}) {
+  const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
+    false,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
+  )
 
-CsvListRendererText.displayName = 'CsvListRendererText'
+  return (
+    <ul className={`list-disc list-inside space-y-1 text-foreground/80 ${khmerContentClass}`}>
+      {items.map((item, i) => (
+        <li key={i}>
+          <RenderTextColorized
+            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+            text={item}
+          />
+        </li>
+      ))}
+    </ul>
+  )
+})

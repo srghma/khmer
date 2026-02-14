@@ -214,7 +214,7 @@ const en = {
   AUTOREAD: {
     TITLE: 'Auto-read on reveal',
     DISABLED: 'Disabled',
-    GOOGLE_THEN_NATIVE: 'Google TTS, then Native',
+    GOOGLE_THEN_NATIVE: 'Google TTS or Native when offline',
     GOOGLE_ONLY: 'Google TTS only',
     NATIVE_ONLY: 'Native TTS only',
   },

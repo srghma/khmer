@@ -30,6 +30,7 @@ export const DetailSections = React.memo(
     isKhmerLinksEnabled_ifTrue_passOnNavigate,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
   }: DetailSectionsProps) => {
     const { LL } = useI18nContext()
     const isKhmerLinksEnabled_ifTrue_passOnNavigateKm = useMemo(
@@ -135,7 +136,11 @@ export const DetailSections = React.memo(
                     {LL.DETAIL.SECTION.PRONUNCIATIONS()}
                   </span>
                 </div>
-                <CsvListRendererText items={from_csv_pronunciations} />
+                <CsvListRendererText
+                  isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+                  isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled ?? isKhmerPronunciationHidingEnabled}
+                  items={from_csv_pronunciations}
+                />
               </>
             )}
             <RenderHtmlColorized
@@ -156,6 +161,7 @@ export const DetailSections = React.memo(
               html={wiktionary}
               isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled_ifTrue_passOnNavigate}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
+              isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             />

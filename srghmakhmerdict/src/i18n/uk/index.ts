@@ -214,7 +214,7 @@ const uk = {
   AUTOREAD: {
     TITLE: 'Авточитання при показі',
     DISABLED: 'Вимкнено',
-    GOOGLE_THEN_NATIVE: 'Google TTS, потім Native',
+    GOOGLE_THEN_NATIVE: 'Google TTS, або Native якщо офлайн',
     GOOGLE_ONLY: 'Тільки Google TTS',
     NATIVE_ONLY: 'Тільки Native TTS',
   },

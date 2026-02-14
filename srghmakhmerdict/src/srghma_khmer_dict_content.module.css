@@ -158,7 +158,8 @@
   /* Smooth transition for revealing */
   transition:
     color 0.2s ease,
-    background-color 0.2s ease;
+    background-color 0.2s ease,
+    opacity 0.2s ease;
 
   /* Ensure it looks like a block/pill */
   padding-left: 2px;
@@ -167,8 +168,20 @@
   -webkit-box-decoration-break: clone;
 }
 
-/* Hover effect on hidden words to hint interactivity */
-.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover) {
+/* Specific styling for hidden images */
+
+.hiding_enabled :global(img.khmer--image:not(.is-revealed)) {
+  /* show solid color block instead of image */
+  filter: brightness(0);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* Hover effect on hidden words and images to hint interactivity */
+.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover),
+.hiding_enabled :global(img.khmer--image:not(.is-revealed):hover) {
   background-color: var(--kw-0);
   /* Show a hint color or darker gray */
   opacity: 0.5;

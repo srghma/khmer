@@ -60,7 +60,10 @@ export class GlobalErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  public override componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {}
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // eslint-disable-next-line no-console
+    console.error('Error in error boundary:', error, errorInfo)
+  }
 
   private handleReload = () => {
     window.location.reload()
@@ -68,7 +71,18 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   public override render() {
     if (this.state.hasError) {
-      return <GlobalErrorBoundaryFallback error={this.state.error} handleReload={this.handleReload} />
+      try {
+        return <GlobalErrorBoundaryFallback error={this.state.error} handleReload={this.handleReload} />
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error rendering error boundary fallback:', error)
+
+        return (
+          <div className="flex h-screen w-screen items-center justify-center bg-default-50 p-4">
+            Something went wrong during error boundary fallback, check console for details
+          </div>
+        )
+      }
     }
 
     return this.props.children

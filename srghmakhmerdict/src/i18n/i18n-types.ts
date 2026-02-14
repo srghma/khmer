@@ -689,7 +689,7 @@ type RootTranslation = {
 		 */
 		DISABLED: string
 		/**
-		 * G​o​o​g​l​e​ ​T​T​S​,​ ​t​h​e​n​ ​N​a​t​i​v​e
+		 * G​o​o​g​l​e​ ​T​T​S​ ​o​r​ ​N​a​t​i​v​e​ ​w​h​e​n​ ​o​f​f​l​i​n​e
 		 */
 		GOOGLE_THEN_NATIVE: string
 		/**
@@ -1479,7 +1479,7 @@ export type TranslationFunctions = {
 		 */
 		DISABLED: () => LocalizedString
 		/**
-		 * Google TTS, then Native
+		 * Google TTS or Native when offline
 		 */
 		GOOGLE_THEN_NATIVE: () => LocalizedString
 		/**

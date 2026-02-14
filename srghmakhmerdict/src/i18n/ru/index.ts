@@ -214,7 +214,7 @@ const ru = {
   AUTOREAD: {
     TITLE: 'Авточтение при показе',
     DISABLED: 'Отключено',
-    GOOGLE_THEN_NATIVE: 'Google TTS, затем Native',
+    GOOGLE_THEN_NATIVE: 'Google TTS или Native если оффлайн',
     GOOGLE_ONLY: 'Только Google TTS',
     NATIVE_ONLY: 'Только Native TTS',
   },
