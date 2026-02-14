@@ -104,6 +104,7 @@ async fn ensure_dict_db(app_handle: &AppHandle) -> Result<PathBuf, String> {
 }
 
 pub async fn init_db_process(app_handle: AppHandle) {
+    let state = app_handle.state::<AppState>();
     let dest_path_res = ensure_dict_db(&app_handle).await;
 
     match dest_path_res {
@@ -118,21 +119,25 @@ pub async fn init_db_process(app_handle: AppHandle) {
 
             match pool_res {
                 Ok(pool) => {
-                    let state = app_handle.state::<AppState>();
                     let mut guard = state.dict_pool.write().await;
                     *guard = Some(pool);
                     println!("✅ Dictionary DB Connected");
                     let _ = app_handle.emit("db-initialized", ());
                 }
                 Err(e) => {
-                    eprintln!("❌ DB Connection Error: {}", e);
-                    let _ = app_handle.emit("db-error", e.to_string());
+                    let err_msg = e.to_string();
+                    eprintln!("❌ DB Connection Error: {}", err_msg);
+                    let mut error_guard = state.init_error.write().await;
+                    *error_guard = Some(err_msg.clone());
+                    let _ = app_handle.emit("db-error", err_msg);
                 }
             }
         }
         Err(e) => {
             eprintln!("❌ DB Extraction Error: {}", e);
-            let _ = app_handle.emit("db-error", e.to_string());
+            let mut error_guard = state.init_error.write().await;
+            *error_guard = Some(e.clone());
+            let _ = app_handle.emit("db-error", e);
         }
     }
 }

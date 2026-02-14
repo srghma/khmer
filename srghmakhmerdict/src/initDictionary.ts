@@ -63,16 +63,20 @@ async function waitForDatabase(): Promise<void> {
 
       // Check if DB is already ready
       try {
-        const isReady = await invoke<boolean>('is_db_ready')
+        const { is_ready, error } = await invoke<{ is_ready: boolean; error: string | null }>('get_db_status')
 
-        // console.log('🔍 DB ready check:', isReady)
+        // console.log('🔍 DB ready check:', { is_ready, error })
 
-        if (isReady) {
+        if (is_ready) {
           cleanup()
           resolve()
+        } else if (error) {
+          cleanup()
+          reject(new Error(`Database error: ${error}`))
         }
-      } catch (_e: any) {
-        // console.warn('⚠️ Could not check DB status:', e)
+      } catch (e: any) {
+        // eslint-disable-next-line no-console
+        console.warn('⚠️ Could not check DB status:', e)
         // Continue waiting for event
       }
     }

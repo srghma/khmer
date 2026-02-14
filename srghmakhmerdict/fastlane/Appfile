@@ -1,0 +1,2 @@
+json_key_file("/home/srghma/.dotfiles/secrets/crafty-fulcrum-444610-u1-b077baed83cf.json") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
+package_name("com.srghma.srghmakhmerdict") # e.g. com.krausefx.app

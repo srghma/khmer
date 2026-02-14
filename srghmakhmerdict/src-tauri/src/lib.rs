@@ -74,6 +74,7 @@ pub fn run() {
         .setup(|app| {
             app.manage(AppState {
                 dict_pool: RwLock::new(None),
+                init_error: RwLock::new(None),
             });
 
             let handle = app.handle().clone();
@@ -98,7 +99,7 @@ pub fn run() {
             db::dict::en::search_en_content,
             db::dict::km::search_km_content,
             db::dict::ru::search_ru_content,
-            db::dict::is_db_ready,
+            db::dict::get_db_status,
             db::dict::en::get_en_km_com_images_ocr,
             db::dict::km::km_for_many_short_description_none_if_word_not_found,
             db::dict::km::km_for_many_short_description_throws_if_word_not_found,

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "my": "bash -c '(adb uninstall com.srghma.srghmakhmerdict || true) && gzip --force --keep --best ./src-tauri/dict.db > ./src-tauri/dict.dbgz && rm -frd src-tauri/gen/android/app/src/main/assets/ && RUST_BACKTRACE=1 pnpm tauri android dev'",
-    "prod": "gzip --force --keep --best ./src-tauri/dict.db > ./src-tauri/dict.dbgz && rm -frd src-tauri/gen/android/app/src/main/assets/ && tauri android build && (adb uninstall com.srghma.srghmakhmerdict || true) && adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk",
+    "prod": "gzip --force --keep --best ./src-tauri/dict.db > ./src-tauri/dict.dbgz && rm -frd src-tauri/gen/android/app/src/main/assets/ && tauri android build --target aarch64 && (adb uninstall com.srghma.srghmakhmerdict || true) && adb install src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
