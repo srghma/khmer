@@ -188,6 +188,30 @@
 }
 
 /* ========================================= */
+/* PRONUNCIATION HIDING                      */
+/* ========================================= */
+
+.hiding_pronunciations_enabled :global(.khmer--ipa:not(.is-revealed)) {
+  color: var(--kw-skeleton-fg) !important;
+  background-color: var(--kw-skeleton-bg);
+  border-radius: 6px;
+  user-select: none;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+  padding-left: 2px;
+  padding-right: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.hiding_pronunciations_enabled :global(.khmer--ipa:not(.is-revealed):hover) {
+  background-color: var(--kw-0);
+  opacity: 0.5;
+}
+
+/* ========================================= */
 /* NON-KHMER WORD HIDING                     */
 /* ========================================= */
 

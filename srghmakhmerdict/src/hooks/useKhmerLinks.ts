@@ -1,7 +1,7 @@
 import { nonEmptyString_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 import { useEffect } from 'react'
-import { memoizeSync3_Booleans } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
+
 import {
   strToKhmerWordOrThrow,
   type TypedKhmerWord,
@@ -86,18 +86,24 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
   return false
 }
 
-export const calculateKhmerAndNonKhmerContentStyles = memoizeSync3_Booleans(
-  (isKhmerLinksEnabled: boolean, isKhmerWordsHidingEnabled: boolean, isNonKhmerWordsHidingEnabled: boolean) => {
-    const classes = [
-      srghma_khmer_dict_content_styles.srghma_khmer_dict_content,
-      isKhmerLinksEnabled && srghma_khmer_dict_content_styles.interactive,
-      isKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_enabled,
-      isNonKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_non_khmer_enabled,
-    ]
+const calculateKhmerAndNonKhmerContentStyles_ = (
+  isKhmerLinksEnabled: boolean,
+  isKhmerWordsHidingEnabled: boolean,
+  isNonKhmerWordsHidingEnabled: boolean,
+  isKhmerPronunciationHidingEnabled: boolean,
+) => {
+  const classes = [
+    srghma_khmer_dict_content_styles.srghma_khmer_dict_content,
+    isKhmerLinksEnabled && srghma_khmer_dict_content_styles.interactive,
+    isKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_enabled,
+    isNonKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_non_khmer_enabled,
+    isKhmerPronunciationHidingEnabled && srghma_khmer_dict_content_styles.hiding_pronunciations_enabled,
+  ]
 
-    return classes.filter(Boolean).join(' ')
-  },
-)
+  return classes.filter(Boolean).join(' ')
+}
+
+export const calculateKhmerAndNonKhmerContentStyles = calculateKhmerAndNonKhmerContentStyles_
 
 /**
  * Extended click listener that tries Khmer/non-Khmer handling first,
@@ -108,6 +114,7 @@ export const useKhmerAndNonKhmerClickListener = (
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined,
   isKhmerWordsHidingEnabled: boolean,
   isNonKhmerWordsHidingEnabled: boolean,
+  isKhmerPronunciationHidingEnabled: boolean,
   fallbackHandler?: (e: MouseEvent) => void | Promise<void>,
 ) => {
   useEffect(() => {
@@ -123,7 +130,22 @@ export const useKhmerAndNonKhmerClickListener = (
         isNonKhmerWordsHidingEnabled,
       )
 
-      if (!handled && fallbackHandler) {
+      if (handled) return
+
+      // Handle Pronunciation reveal
+      const ipaSpan = (e.target as HTMLElement).closest('.khmer--ipa') as HTMLElement | null
+
+      if (ipaSpan && isKhmerPronunciationHidingEnabled) {
+        if (!ipaSpan.classList.contains('is-revealed')) {
+          e.preventDefault()
+          e.stopPropagation()
+          ipaSpan.classList.add('is-revealed')
+
+          return
+        }
+      }
+
+      if (fallbackHandler) {
         await fallbackHandler(e)
       }
     }
@@ -137,5 +159,6 @@ export const useKhmerAndNonKhmerClickListener = (
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
   ])
 }

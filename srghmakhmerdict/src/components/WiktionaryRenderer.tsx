@@ -14,17 +14,25 @@ import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-e
 import { useSettings } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
 
-export const useWiktionaryContent = (html: NonEmptyStringTrimmed) => {
+import { processHtmlForPronunciationHiding } from '../utils/text-processing/pronunciation'
+
+export const useWiktionaryContent = (html: NonEmptyStringTrimmed, isKhmerPronunciationHidingEnabled: boolean) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
 
   return useMemo(() => {
-    if (maybeColorMode === 'none') return { __html: html }
+    const html_withPronunciations = processHtmlForPronunciationHiding(
+      html,
+      isKhmerPronunciationHidingEnabled,
+      'wiktionary',
+    )
 
-    if (!isContainsKhmer(html)) return { __html: html }
+    if (maybeColorMode === 'none') return { __html: html_withPronunciations }
 
-    return { __html: colorizeHtml(html, maybeColorMode, km_map) }
-  }, [html, maybeColorMode, km_map])
+    if (!isContainsKhmer(html_withPronunciations)) return { __html: html_withPronunciations }
+
+    return { __html: colorizeHtml(html_withPronunciations, maybeColorMode, km_map) }
+  }, [html, maybeColorMode, km_map, isKhmerPronunciationHidingEnabled])
 }
 
 const useWikiLinkHandler = (
@@ -87,6 +95,7 @@ interface WiktionaryRendererProps {
   currentMode: DictionaryLanguage
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
 }
 
 export const WiktionaryRenderer = ({
@@ -96,11 +105,12 @@ export const WiktionaryRenderer = ({
   currentMode,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // 1. Process HTML (Colorization)
-  const content = useWiktionaryContent(html)
+  const content = useWiktionaryContent(html, isKhmerPronunciationHidingEnabled)
 
   const toast = useAppToast()
 
@@ -111,6 +121,7 @@ export const WiktionaryRenderer = ({
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
     wikiLinkHandler,
   )
 
@@ -118,6 +129,7 @@ export const WiktionaryRenderer = ({
     !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
   )
 
   // 3. Dynamic Class for Interaction

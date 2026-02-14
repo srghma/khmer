@@ -204,6 +204,7 @@ export interface EnKmHtmlRendererProps {
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
 }
 
 export const EnKmHtmlRenderer = ({
@@ -211,6 +212,7 @@ export const EnKmHtmlRenderer = ({
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
 }: EnKmHtmlRendererProps) => {
   const { imageMode, maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
@@ -240,6 +242,7 @@ export const EnKmHtmlRenderer = ({
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
     imageClickHandler,
   )
 
@@ -247,6 +250,7 @@ export const EnKmHtmlRenderer = ({
     !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
   )
 
   return (

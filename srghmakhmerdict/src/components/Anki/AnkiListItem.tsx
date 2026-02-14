@@ -49,6 +49,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={v}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -70,6 +71,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -86,6 +88,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -102,6 +105,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
