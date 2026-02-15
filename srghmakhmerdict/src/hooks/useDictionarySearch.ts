@@ -35,6 +35,10 @@ export type ProcessedDataState =
 // We do this outside the hook so the cache persists across component re-renders
 const makeFilterQueryWithCache = mkMakeFilterQuery_memoized()
 
+// Global cache for "all words" processed data (grouped alphabet lists)
+// This makes switching tabs instant when no search query is present.
+const processedAllCache = new Map<string, { data: ProcessedDataState; count: number }>()
+
 // Helper generator to map Khmer words to [word, keys] without creating an array
 function* mapKhmerInput(words: Iterable<NonEmptyStringTrimmed>) {
   // console.log('words', words)
@@ -341,10 +345,23 @@ export function useDictionarySearch({ activeTab, mode, searchMode, searchInConte
       await new Promise(resolve => setTimeout(resolve, 0))
       if (signal.aborted) return
 
+      // --- OPTIMIZATION: Check Cache for 'All Items' Search ---
+      const cacheKey = !filterQuery ? `${activeTab}_${mode}` : undefined
+
+      if (cacheKey) {
+        const cached = processedAllCache.get(cacheKey)
+
+        if (cached) {
+          dispatch({ type: 'SEARCH_SUCCESS', data: cached.data, count: cached.count })
+
+          return
+        }
+      }
+
       // 1. Filter
       const filteredIter = filterDictionaryWords(sourceIter, filterQuery)
 
-      // 2. Count
+      // 2. Count & Process
       let count = 0
       const countingIter = (function* () {
         for (const item of filteredIter) {
@@ -357,6 +374,11 @@ export function useDictionarySearch({ activeTab, mode, searchMode, searchInConte
       const processed = performProcessing(countingIter, activeTab)
 
       if (signal.aborted) return
+
+      // Store in cache if this was an 'all items' search
+      if (cacheKey) {
+        processedAllCache.set(cacheKey, { data: processed, count })
+      }
 
       dispatch({ type: 'SEARCH_SUCCESS', data: processed, count })
     }

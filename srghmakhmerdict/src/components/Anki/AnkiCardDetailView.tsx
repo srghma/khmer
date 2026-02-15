@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, type Dispatch, type SetStateAction } from 'react'
 import { Card, CardBody } from '@heroui/card'
+import { cn } from '@heroui/theme'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import type { DictionaryLanguage } from '../../types'
 import {
@@ -13,7 +14,6 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
-import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
 import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopup'
 import { type AnkiGameMode } from './types'
 import { KhmerDiff } from './KhmerDiff'
@@ -24,6 +24,43 @@ import { getBestDefinitionKhmerFromEn } from '../../utils/WordDetailEn_OnlyKhmer
 import { getBestDefinitionKhmerFromRu } from '../../utils/WordDetailRu_OnlyKhmerAndWithoutHtml'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { useAnkiSettings } from './useAnkiSettings'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import { useAppToast } from '../../providers/ToastProvider'
+import { useAutoReadTts } from '../../hooks/useAutoReadTts'
+
+const SelectionMenuBodyLocalWrapper = React.memo(
+  ({
+    selectedText,
+    mode,
+    handleOpenKhmerAnalyzer,
+    handleOpenSearch,
+  }: {
+    selectedText: NonEmptyStringTrimmed
+    mode: DictionaryLanguage
+    handleOpenKhmerAnalyzer: (text: NonEmptyStringTrimmed) => void
+    handleOpenSearch: (text: NonEmptyStringTrimmed) => void
+  }) => {
+    const onClosePopupAndKhmerAnalyzerModal = useCallback(
+      () => handleOpenKhmerAnalyzer(selectedText),
+      [handleOpenKhmerAnalyzer, selectedText],
+    )
+    const onClosePopupAndOpenSearch = useCallback(
+      () => handleOpenSearch(selectedText),
+      [handleOpenSearch, selectedText],
+    )
+
+    return (
+      <SelectionMenuBody
+        currentMode={mode}
+        selectedText={selectedText}
+        onClosePopupAndKhmerAnalyzerModal={onClosePopupAndKhmerAnalyzerModal}
+        onClosePopupAndOpenSearch={onClosePopupAndOpenSearch}
+      />
+    )
+  },
+)
+
+SelectionMenuBodyLocalWrapper.displayName = 'SelectionMenuBodyLocalWrapper'
 
 export const AnkiCardDetailView = React.memo(
   ({
@@ -49,12 +86,12 @@ export const AnkiCardDetailView = React.memo(
     setUserAnswer: Dispatch<SetStateAction<string>>
     onReveal: () => void
   }) => {
+    const { LL } = useI18nContext()
     // 1. Logic
     const { km_map } = useDictionary()
     const { isAutoFocusAnswerEnabled, setIsAutoFocusAnswerEnabled } = useAnkiSettings()
     const {
       isKhmerLinksEnabled,
-      fontSize_details,
       khmerFontName,
       setKhmerFontName,
       maybeColorMode,
@@ -65,6 +102,8 @@ export const AnkiCardDetailView = React.memo(
       khmerFontFamily,
     } = useSettings()
     const [, setLocation] = useLocation()
+
+    useAutoReadTts(isRevealed ? word : undefined, mode)
 
     const toggleAutoFocusAnswer = useCallback(
       () => setIsAutoFocusAnswerEnabled(prev => !prev),
@@ -87,14 +126,14 @@ export const AnkiCardDetailView = React.memo(
       )
     }, [ankiGameMode, word, data])
 
-    // 2. Styling
-    const detailsStyle = useMemo(
-      () => ({
-        fontSize: `${fontSize_details}px`,
-        fontFamily: KHMER_FONT_FAMILY[khmerFontName],
-      }),
-      [fontSize_details, khmerFontName],
-    )
+    // // 2. Styling
+    // const detailsStyle = useMemo(
+    //   () => ({
+    //     fontSize: `${scaling_details}px`,
+    //     fontFamily: KHMER_FONT_FAMILY[khmerFontName],
+    //   }),
+    //   [scaling_details, khmerFontName],
+    // )
 
     // 3. Selection / Popup Handlers
 
@@ -104,7 +143,7 @@ export const AnkiCardDetailView = React.memo(
         // 1. Navigate in Main App (Push Detail View on top of Anki)
         const targetMode = detectModeFromText(selectedText) ?? mode
 
-        setLocation(`/${targetMode}/${encodeURIComponent(selectedText)}`)
+        setLocation(`~/${targetMode}/${encodeURIComponent(selectedText)}`)
 
         window.getSelection()?.removeAllRanges()
       },
@@ -114,50 +153,153 @@ export const AnkiCardDetailView = React.memo(
     const handleOpenKhmerAnalyzer = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
         window.getSelection()?.removeAllRanges()
-        setLocation(`/khmer_analyzer/${encodeURIComponent(selectedText)}`)
+        setLocation(`~/khmer_analyzer/${encodeURIComponent(selectedText)}`)
       },
       [setLocation],
     )
 
     const renderPopupContent = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
-        if (!km_map) return null
-
         return (
-          <SelectionMenuBody
-            currentMode={mode}
+          <SelectionMenuBodyLocalWrapper
+            handleOpenKhmerAnalyzer={handleOpenKhmerAnalyzer}
+            handleOpenSearch={handleOpenSearch}
+            mode={mode}
             selectedText={selectedText}
-            onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
-            onClosePopupAndOpenSearch={() => handleOpenSearch(selectedText)}
           />
         )
       },
-      [mode, km_map, handleOpenSearch],
+      [mode, handleOpenKhmerAnalyzer, handleOpenSearch],
     )
 
     const userAnswer_ = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(userAnswer), [userAnswer])
 
     const headerFront: NonEmptyStringTrimmed = useMemo(() => {
-      if (ankiGameMode === 'km:GUESSING_NON_KHMER') return 'Translate to En/Ru' as NonEmptyStringTrimmed
+      if (ankiGameMode === 'km:GUESSING_NON_KHMER') {
+        return LL.ANKI.MODES.TRANSLATE_TO_EN_RU() as unknown as NonEmptyStringTrimmed
+      }
 
       const targetLang = {
-        'km:GUESSING_KHMER': 'Khmer',
-        'en:GUESSING_KHMER': 'Khmer',
-        'ru:GUESSING_KHMER': 'Khmer',
-        'en:GUESSING_NON_KHMER': 'English',
-        'ru:GUESSING_NON_KHMER': 'Russian',
+        'km:GUESSING_KHMER': LL.ANKI.LANGUAGES.KHMER(),
+        'en:GUESSING_KHMER': LL.ANKI.LANGUAGES.KHMER(),
+        'ru:GUESSING_KHMER': LL.ANKI.LANGUAGES.KHMER(),
+        'en:GUESSING_NON_KHMER': LL.ANKI.LANGUAGES.ENGLISH(),
+        'ru:GUESSING_NON_KHMER': LL.ANKI.LANGUAGES.RUSSIAN(),
       }[ankiGameMode]
 
-      return `Translate to ${targetLang}` as NonEmptyStringTrimmed
-    }, [ankiGameMode])
+      return LL.ANKI.MODES.TRANSLATE_TO({ lang: targetLang }) as unknown as NonEmptyStringTrimmed
+    }, [ankiGameMode, LL])
 
-    const onBack = useCallback(() => setLocation(`/anki`), [])
+    const onBack = useCallback(() => setLocation(`/anki`), [setLocation])
+
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          onReveal()
+        }
+      },
+      [onReveal],
+    )
+
+    const toast = useAppToast()
+
+    const handleNavigate = useCallback(
+      (navWord: NonEmptyStringTrimmed) => {
+        if (navWord === word) {
+          toast.success(LL.COMMON.ALREADY_OPENED(), navWord)
+        } else {
+          handleOpenSearch(navWord)
+        }
+      },
+      [word, handleOpenSearch, toast, LL],
+    )
+
+    const handlePassOnNavigate = useMemo(
+      () => (isKhmerLinksEnabled ? handleNavigate : undefined),
+      [isKhmerLinksEnabled, handleOpenSearch],
+    )
+
+    const guessField = expectedTarget.t
+    const guessLabel = useMemo(() => LL.ANKI.YOUR_GUESS({ field: guessField }), [LL, guessField])
+
+    const answerPlaceholder = useMemo(() => LL.ANKI.ANSWER_PLACEHOLDER({ field: guessField }), [LL, guessField])
+
+    const content = useMemo(
+      () => (
+        <>
+          {isRevealed && userAnswer_ && (
+            <div className="px-6 py-3 border-b border-divider bg-default-50/50">
+              <div className={cn('uppercase font-black tracking-widest text-default-400 mb-1', 'text-xs')}>
+                {guessLabel}
+              </div>
+              <KhmerDiff inDictExpected={expectedTarget.v} userProvider={userAnswer_} />
+            </div>
+          )}
+
+          <CardBody className="p-6 pt-4 gap-6">
+            {!isRevealed && (
+              <div className="flex justify-center mb-2">
+                <Input
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus={isAutoFocusAnswerEnabled}
+                  className="m font-khmer"
+                  placeholder={answerPlaceholder}
+                  size="sm"
+                  value={userAnswer}
+                  variant="underlined"
+                  onKeyDown={handleKeyDown}
+                  onValueChange={setUserAnswer}
+                />
+              </div>
+            )}
+            <DetailSections
+              desc={data.desc}
+              desc_en_only={data.desc_en_only}
+              en_km_com={data.en_km_com}
+              from_chuon_nath={data.from_chuon_nath}
+              from_chuon_nath_translated={data.from_chuon_nath_translated}
+              from_csv_noun_forms={data.from_csv_noun_forms}
+              from_csv_pronunciations={data.from_csv_pronunciations}
+              from_csv_raw_html={data.from_csv_raw_html}
+              from_csv_variants={data.from_csv_variants}
+              from_russian_wiki={data.from_russian_wiki}
+              gorgoniev={data.gorgoniev}
+              isKhmerLinksEnabled_ifTrue_passOnNavigate={isRevealed ? handlePassOnNavigate : undefined}
+              isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
+              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
+              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
+              km_map={km_map}
+              maybeColorMode={maybeColorMode}
+              mode={mode}
+              wiktionary={data.wiktionary}
+            />
+          </CardBody>
+        </>
+      ),
+      [
+        isRevealed,
+        userAnswer_,
+        guessLabel,
+        expectedTarget,
+        isAutoFocusAnswerEnabled,
+        answerPlaceholder,
+        userAnswer,
+        handleKeyDown,
+        setUserAnswer,
+        data,
+        handlePassOnNavigate,
+        isKhmerWordsHidingEnabled_prop,
+        isNonKhmerWordsHidingEnabled_prop,
+        km_map,
+        maybeColorMode,
+        mode,
+      ],
+    )
 
     return (
       <Card className="flex flex-col h-full w-full border-none rounded-none bg-background shadow-none">
         {isRevealed ? (
           <DetailViewHeader
-            backButton_desktopOnlyStyles_showButton={false}
             backButton_goBack={onBack}
             isAutoFocusAnswerEnabled={isAutoFocusAnswerEnabled}
             isKhmerLinksEnabled={isKhmerLinksEnabled}
@@ -180,11 +322,10 @@ export const AnkiCardDetailView = React.memo(
           />
         ) : (
           <DetailViewHeader
-            backButton_desktopOnlyStyles_showButton={false}
             backButton_goBack={onBack}
             header={headerFront}
             isAutoFocusAnswerEnabled={isAutoFocusAnswerEnabled}
-            isKhmerLinksEnabled={isKhmerLinksEnabled}
+            isKhmerLinksEnabled={false}
             khmerFontName={khmerFontName}
             maybeColorMode={maybeColorMode}
             setKhmerFontName={setKhmerFontName}
@@ -202,69 +343,11 @@ export const AnkiCardDetailView = React.memo(
         )}
 
         <ScrollShadow className="flex-1 pb-8">
-          {(() => {
-            const content = (
-              <>
-                {isRevealed && userAnswer_ && (
-                  <div className="px-6 py-3 border-b border-divider bg-default-50/50">
-                    <div className="text-[10px] uppercase font-black tracking-widest text-default-400 mb-1">
-                      Your Guess ({expectedTarget.t} field)
-                    </div>
-                    <KhmerDiff inDictExpected={expectedTarget.v} userProvider={userAnswer_} />
-                  </div>
-                )}
-
-                <CardBody className="p-6 pt-4 gap-6" style={detailsStyle}>
-                  {!isRevealed && (
-                    <div className="flex justify-center mb-2">
-                      <Input
-                        autoFocus={isAutoFocusAnswerEnabled}
-                        className="m font-khmer"
-                        placeholder={`Answer... (${expectedTarget.t} field)`}
-                        size="sm"
-                        value={userAnswer}
-                        variant="underlined"
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            onReveal()
-                          }
-                        }}
-                        onValueChange={setUserAnswer}
-                      />
-                    </div>
-                  )}
-                  <DetailSections
-                    desc={data.desc}
-                    desc_en_only={data.desc_en_only}
-                    en_km_com={data.en_km_com}
-                    from_chuon_nath={data.from_chuon_nath}
-                    from_chuon_nath_translated={data.from_chuon_nath_translated}
-                    from_csv_noun_forms={data.from_csv_noun_forms}
-                    from_csv_pronunciations={data.from_csv_pronunciations}
-                    from_csv_raw_html={data.from_csv_raw_html}
-                    from_csv_variants={data.from_csv_variants}
-                    from_russian_wiki={data.from_russian_wiki}
-                    gorgoniev={data.gorgoniev}
-                    isKhmerLinksEnabled_ifTrue_passOnNavigate={
-                      isKhmerLinksEnabled ? w => handleOpenSearch(w) : undefined
-                    }
-                    isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
-                    isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
-                    km_map={km_map}
-                    maybeColorMode={maybeColorMode}
-                    mode={mode}
-                    wiktionary={data.wiktionary}
-                  />
-                </CardBody>
-              </>
-            )
-
-            if (isRevealed) {
-              return <ReactSelectionPopup popupContent={renderPopupContent}>{content}</ReactSelectionPopup>
-            }
-
-            return content
-          })()}
+          {isRevealed ? (
+            <ReactSelectionPopup popupContent={renderPopupContent}>{content}</ReactSelectionPopup>
+          ) : (
+            content
+          )}
         </ScrollShadow>
       </Card>
     )

@@ -1,5 +1,6 @@
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { type MaybeColorizationMode } from './utils'
 
 // Defined in App.css (.khmer--is-in-dictionary-color-0 through .khmer--is-in-dictionary-color-4)
 const PALETTE_SIZE = 5
@@ -8,7 +9,15 @@ const PALETTE_SIZE = 5
  * Pure function to determine the CSS class for a Khmer word
  * based on colorization mode and dictionary status.
  */
-export const getKhmerWordCssClass = (colorIndex: number, isKnown: boolean): NonEmptyStringTrimmed => {
+export const getKhmerWordCssClass = (
+  colorIndex: number,
+  isKnown: boolean,
+  mode: MaybeColorizationMode,
+): NonEmptyStringTrimmed => {
+  if (mode === 'none') {
+    return 'khmer--word' as NonEmptyStringTrimmed
+  }
+
   const safeIndex = colorIndex % PALETTE_SIZE
 
   // Dictionary Mode
@@ -27,8 +36,9 @@ export const renderKhmerWordSpan = (
   word: TypedKhmerWord,
   colorIndex: number,
   isKnown: boolean,
+  mode: MaybeColorizationMode,
 ): NonEmptyStringTrimmed => {
-  const className = getKhmerWordCssClass(colorIndex, isKnown)
+  const className = getKhmerWordCssClass(colorIndex, isKnown, mode)
 
   return `<span class="${className}" data-navigate-khmer-word="${word}">${word}</span>` as NonEmptyStringTrimmed
 }

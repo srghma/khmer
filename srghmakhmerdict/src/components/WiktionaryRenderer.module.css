@@ -1,5 +1,5 @@
 .wikiScope {
-  font-size: 0.925rem;
+  font-size: inherit;
   line-height: 1.6;
   color: hsl(var(--heroui-foreground) / 0.9);
 }
@@ -13,7 +13,7 @@
 /* Headings */
 .wikiScope :global(h3),
 .wikiScope :global(h4) {
-  font-size: 0.75rem;
+  font-size: calc(0.75rem * var(--app-scale-factor));
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;

@@ -1,8 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Button } from '@heroui/button'
 import { Card, CardBody, CardHeader } from '@heroui/card'
-import { BiErrorCircle } from 'react-icons/bi' // Assuming you have react-icons
+import { BiErrorCircle } from 'react-icons/bi'
 import { HiRefresh } from 'react-icons/hi'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 interface Props {
   children: ReactNode
@@ -11,6 +12,49 @@ interface Props {
 interface State {
   hasError: boolean
   error: Error | null
+}
+
+const GlobalErrorBoundaryFallback = ({ error, handleReload }: { error: Error | null; handleReload: () => void }) => {
+  const i18n = useI18nContext()
+  const LL = i18n?.LL
+
+  const title = LL?.ERROR_BOUNDARY?.TITLE ? LL.ERROR_BOUNDARY.TITLE() : 'Something went wrong'
+  const subtitle = LL?.ERROR_BOUNDARY?.SUBTITLE
+    ? LL.ERROR_BOUNDARY.SUBTITLE()
+    : 'The application encountered an unexpected error'
+  const body = LL?.ERROR_BOUNDARY?.BODY
+    ? LL.ERROR_BOUNDARY.BODY()
+    : 'Please try reloading the page. If the problem persists, contact support.'
+  const reloadButton = LL?.ERROR_BOUNDARY?.RELOAD_BUTTON ? LL.ERROR_BOUNDARY.RELOAD_BUTTON() : 'Reload Application'
+
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-default-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="flex gap-3 pb-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-danger/10 text-danger">
+            <BiErrorCircle size={24} />
+          </div>
+          <div className="flex flex-col">
+            <p className="text-md font-bold text-danger">{title}</p>
+            <p className="text-small text-default-500">{subtitle}</p>
+          </div>
+        </CardHeader>
+        <CardBody>
+          <p className="mb-4 text-small text-default-600">{body}</p>
+
+          {error && (
+            <div className="mb-4 max-h-32 overflow-y-auto rounded-md bg-default-100 p-2 font-mono text-tiny text-default-600">
+              {error.toString()}
+            </div>
+          )}
+
+          <Button fullWidth color="primary" startContent={<HiRefresh />} variant="flat" onPress={handleReload}>
+            {reloadButton}
+          </Button>
+        </CardBody>
+      </Card>
+    </div>
+  )
 }
 
 export class GlobalErrorBoundary extends Component<Props, State> {
@@ -23,12 +67,12 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   public static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI.
     return { hasError: true, error }
   }
 
-  public override componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
-    // console.error('Uncaught error:', error, errorInfo)
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // eslint-disable-next-line no-console
+    console.error('Error in error boundary:', error, errorInfo)
   }
 
   private handleReload = () => {
@@ -37,37 +81,18 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   public override render() {
     if (this.state.hasError) {
-      return (
-        <div className="flex h-screen w-screen items-center justify-center bg-default-50 p-4">
-          <Card className="w-full max-w-md shadow-lg">
-            <CardHeader className="flex gap-3 pb-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-danger/10 text-danger">
-                <BiErrorCircle size={24} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-md font-bold text-danger">Application Error</p>
-                <p className="text-small text-default-500">Something went wrong.</p>
-              </div>
-            </CardHeader>
-            <CardBody>
-              <p className="mb-4 text-small text-default-600">
-                An unexpected error occurred. Please try reloading the application.
-              </p>
+      try {
+        return <GlobalErrorBoundaryFallback error={this.state.error} handleReload={this.handleReload} />
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error rendering error boundary fallback:', error)
 
-              {/* Optional: Show technical error message in dev mode */}
-              {this.state.error && (
-                <div className="mb-4 max-h-32 overflow-y-auto rounded-md bg-default-100 p-2 font-mono text-tiny text-default-600">
-                  {this.state.error.toString()}
-                </div>
-              )}
-
-              <Button fullWidth color="primary" startContent={<HiRefresh />} variant="flat" onPress={this.handleReload}>
-                Reload Application
-              </Button>
-            </CardBody>
-          </Card>
-        </div>
-      )
+        return (
+          <div className="flex h-screen w-screen items-center justify-center bg-default-50 p-4">
+            Something went wrong during error boundary fallback, check console for details
+          </div>
+        )
+      }
     }
 
     return this.props.children

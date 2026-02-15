@@ -36,6 +36,9 @@ zip = { version = "0.6", default-features = false, features = ["deflate"] }
 futures-util = "0.3"
 urlencoding = "2.1.3"
 tauri-plugin-opener = "2"
+tauri-plugin-iap = "0.7"
+# tauri-plugin-in-app-review = "0.1"
+tauri-plugin-in-app-review = { git = "https://github.com/srghma/tauri-plugin-in-app-review", rev = "4f1149ec12b90219590f12b575a382befcd74e81" }
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"] # or "postgres", or "mysql"

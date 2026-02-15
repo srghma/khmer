@@ -1,15 +1,18 @@
-import { useMemo } from 'react'
-import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useMemo, useEffect } from 'react'
+import { useLocalStorageState } from 'ahooks'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useSettings } from './providers/SettingsProvider'
-import { isAppTabNonLanguage } from './types'
+import { isAppTabNonLanguage, type DictionaryLanguage } from './types'
 import { useDictionarySearch } from './hooks/useDictionarySearch'
 import { SidebarHeader } from './components/SidebarHeader'
 import { SidebarContent } from './components/SidebarContent'
 import { RightPanel } from './components/RightPanel'
 import { useDictionary } from './providers/DictionaryProvider'
-import { AboutView } from './components/AboutView'
+import { AboutView } from './components/About/AboutView'
 import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
-import { KhmerComplexTableView } from './components/KhmerComplexTableView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 
@@ -26,14 +29,17 @@ export function AppMain() {
     return undefined
   }, [currentView])
 
-  const {
-    searchMode,
-    searchInContent,
-    highlightInList,
-    fontSize_ui,
-    filters,
-    maybeColorMode,
-  } = useSettings()
+  const [lastSelectedWord, setLastSelectedWord] = useLocalStorageState<
+    { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
+  >('lastSelectedWord')
+
+  useEffect(() => {
+    if (currentNavigationStackItem) {
+      setLastSelectedWord(currentNavigationStackItem)
+    }
+  }, [currentNavigationStackItem, setLastSelectedWord])
+
+  const { searchMode, searchInContent, highlightInList, filters, maybeColorMode } = useSettings()
   const activeTab = useAppActiveTab()
 
   const { onSearch, searchQuery, contentMatches, resultData, resultCount, isSearching } = useDictionarySearch({
@@ -48,18 +54,17 @@ export function AppMain() {
     [searchQuery],
   )
 
-  const fontSize_ui_ = useMemo(() => ({ fontSize: `${fontSize_ui}px`, lineHeight: 1.5 }), [fontSize_ui])
-
   const divClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${
+        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
   )
 
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
-      <div className={divClassName}>
+      <div className={`${divClassName} text-base`}>
         <SidebarHeader
           activeTab={activeTab}
           resultCount={resultCount}
@@ -69,13 +74,12 @@ export function AppMain() {
           onSearch={onSearch}
         />
 
-        <div className="flex-1 flex overflow-hidden relative bg-content1" style={fontSize_ui_}>
+        <div className="flex-1 flex overflow-hidden relative bg-content1">
           <SidebarContent
             activeTab={activeTab}
             contentMatches={contentMatches}
             highlightInList={highlightInList}
             isSearching={isSearching}
-            km_map={dictData.km_map}
             loading={dictData === undefined}
             maybeColorMode="segmenter"
             resultData={resultData}
@@ -89,20 +93,14 @@ export function AppMain() {
         switch (currentView.type) {
           case 'about':
             return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details">
                 <AboutView />
               </div>
             )
           case 'khmer-analyzer':
             return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details">
                 <KhmerAnalyzerView initialText={currentView.text} />
-              </div>
-            )
-          case 'khmer-complex-table':
-            return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none">
-                <KhmerComplexTableView />
               </div>
             )
           case 'history':
@@ -112,11 +110,14 @@ export function AppMain() {
           case 'favorites-list':
           case 'settings':
             return (
-              <RightPanel
-                maybeColorMode={maybeColorMode}
-                searchQuery={searchQuery}
-                selectedWord={currentNavigationStackItem}
-              />
+              <div className="flex-1 overflow-hidden scaling-details">
+                <RightPanel
+                  lastSelectedWord={lastSelectedWord}
+                  maybeColorMode={maybeColorMode}
+                  searchQuery={searchQuery}
+                  selectedWord={currentNavigationStackItem}
+                />
+              </div>
             )
           default:
             return null

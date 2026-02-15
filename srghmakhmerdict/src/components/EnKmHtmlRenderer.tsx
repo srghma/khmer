@@ -23,14 +23,14 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useDictionary } from '../providers/DictionaryProvider'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
-const IMG_ID_REGEX = /^\/en_Dict_en_km_com_assets_images\/(\d+)\.webp$/
-const IMG_ID_GLOBAL_REGEX = /src="\/en_Dict_en_km_com_assets_images\/(\d+)\.webp"/g
+const IMG_ID_ATTRIBUTE_OFFLINE_REGEX = /^\/en_Dict_en_km_com_assets_images\/(\d+)\.webp$/
+const IMG_ID_ATTRIBUTE_ONLINE_REGEX = /^http:\/\/imglocal\.localhost\/(\d+)\.webp$/ // should parse e.g.g http://imglocal.localhost/1497.webp
+const IMG_ID_IN_HTML_GLOBAL_REGEX = /src="\/en_Dict_en_km_com_assets_images\/(\d+)\.webp"/g
 
 export const fetchOcrCached = memoizeAsync1Lru(
   get_en_km_com_images_ocr,
@@ -61,8 +61,8 @@ const extractImageIds = (html: NonEmptyStringTrimmed): NonEmptySet<ValidNonNegat
   const ids = new Set<ValidNonNegativeInt>()
   let match
 
-  IMG_ID_GLOBAL_REGEX.lastIndex = 0
-  while ((match = IMG_ID_GLOBAL_REGEX.exec(html)) !== null) {
+  IMG_ID_IN_HTML_GLOBAL_REGEX.lastIndex = 0
+  while ((match = IMG_ID_IN_HTML_GLOBAL_REGEX.exec(html)) !== null) {
     const id = strOrNumberToNonNegativeIntOrUndefined_strict(assertIsDefinedAndReturn(match[1]))
 
     if (id) ids.add(id)
@@ -71,16 +71,10 @@ const extractImageIds = (html: NonEmptyStringTrimmed): NonEmptySet<ValidNonNegat
   return Set_toNonEmptySet_orUndefined(ids)
 }
 
-const injectOcrIntoHtml = (
+const wrapImagesAndInjectOcr = (
   html: NonEmptyStringTrimmed,
-  ocrMap: Record<ValidNonNegativeInt, NonEmptyStringTrimmed>,
-  // km_map: KhmerWordsMap | undefined,
-  // colorMode: ColorizationMode,
+  ocrMap: Record<ValidNonNegativeInt, NonEmptyStringTrimmed> | undefined,
 ): NonEmptyStringTrimmed => {
-  if (Object.keys(ocrMap).length === 0) {
-    throw new Error('ocrMap doesnt have anything inside, should have been undefined')
-  }
-
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
   const images = doc.querySelectorAll('img')
@@ -88,14 +82,12 @@ const injectOcrIntoHtml = (
   images.forEach(img => {
     if (img.parentElement?.classList.contains('img_and_ocr')) return
 
-    const src = assertIsDefinedAndReturn(img.getAttribute('src'))
+    const src = img.getAttribute('src') || ''
+    const match = src.match(IMG_ID_ATTRIBUTE_OFFLINE_REGEX)
 
-    // console.log('src', src)
-    const match = assertIsDefinedAndReturn(src.match(IMG_ID_REGEX))
-    const match1 = assertIsDefinedAndReturn(match)
+    if (!match) return
 
-    const id = strOrNumberToNonNegativeIntOrThrow_strict(assertIsDefinedAndReturn(match1[1]))
-    const ocrMapText_ = ocrMap[id]
+    const id = strOrNumberToNonNegativeIntOrThrow_strict(assertIsDefinedAndReturn(match[1]))
 
     // 1. Create Wrapper
     const wrapper = doc.createElement('div')
@@ -103,29 +95,29 @@ const injectOcrIntoHtml = (
     wrapper.className = 'img_and_ocr'
 
     // Perform DOM Swap: Insert wrapper before image, move image inside wrapper
+    img.classList.add('khmer--image')
     img.parentNode?.insertBefore(wrapper, img)
     wrapper.appendChild(img)
 
-    if (!ocrMapText_) {
-      // --- INLINE ERROR HANDLING ---
-      const errorSpan = doc.createElement('span')
+    const ocrMapText_ = ocrMap?.[id]
 
-      errorSpan.className = 'img-ocr-error'
-      errorSpan.style.color = 'red' // Or use a CSS class
-      errorSpan.textContent = ` (No translation found for ID: ${id})`
-      wrapper.appendChild(errorSpan)
-    } else {
-      const ocrMapText = nonEmptyString_afterTrim(ocrMapText_)
+    if (ocrMap) {
+      if (!ocrMapText_) {
+        // --- INLINE ERROR HANDLING ---
+        const errorSpan = doc.createElement('span')
 
-      // console.log('ocrMapText', ocrMapText)
-      const span = doc.createElement('div')
+        errorSpan.className = 'img-ocr-error'
+        errorSpan.style.color = 'red'
+        errorSpan.textContent = ` (No translation found for ID: ${id})`
+        wrapper.appendChild(errorSpan)
+      } else {
+        const ocrMapText = nonEmptyString_afterTrim(ocrMapText_)
+        const span = doc.createElement('div')
 
-      span.className = 'img-ocr'
-      // span.innerHTML = colorizeText(ocrMapText, colorMode, km_map)
-
-      // span.textContent = colorizeText(ocrMapText, colorMode, km_map)
-      span.textContent = ocrMapText
-      wrapper.appendChild(span)
+        span.className = 'img-ocr'
+        span.textContent = ocrMapText
+        wrapper.appendChild(span)
+      }
     }
   })
 
@@ -170,10 +162,21 @@ const useImageClickHandler = (toast: ReturnType<typeof useAppToast>) => {
 
       const img = target as HTMLImageElement
       const src = img.getAttribute('src') || ''
-      const match = src.match(IMG_ID_REGEX)
+      const match_offline = src.match(IMG_ID_ATTRIBUTE_OFFLINE_REGEX)
+      const match_online = src.match(IMG_ID_ATTRIBUTE_ONLINE_REGEX)
 
-      if (match && match[1]) {
-        const imageId = match[1]
+      if (match_offline && match_offline[1]) {
+        const imageId = match_offline[1]
+        const publicImageUrl = `https://www.english-khmer.com/imgukh/${imageId}.png`
+        const lensUrl = `https://lens.google.com/upload?url=${encodeURIComponent(publicImageUrl)}`
+
+        try {
+          await openUrl(lensUrl)
+        } catch (e: unknown) {
+          toast.error('Failed to open Google Lens.' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+        }
+      } else if (match_online && match_online[1]) {
+        const imageId = match_online[1]
         const publicImageUrl = `https://www.english-khmer.com/imgukh/${imageId}.png`
         const lensUrl = `https://lens.google.com/upload?url=${encodeURIComponent(publicImageUrl)}`
 
@@ -200,6 +203,7 @@ export interface EnKmHtmlRendererProps {
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
 }
 
 export const EnKmHtmlRenderer = ({
@@ -207,6 +211,7 @@ export const EnKmHtmlRenderer = ({
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
 }: EnKmHtmlRendererProps) => {
   const { imageMode, maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
@@ -214,15 +219,12 @@ export const EnKmHtmlRenderer = ({
   const ocrMap = useOcrData(html)
 
   const finalHtml = useMemo(() => {
-    // Logic remains same: inject OCR -> Change URLs -> Colorize (which now adds data-navigate-word)
-    const html_withInjectedOcr = ocrMap ? injectOcrIntoHtml(html, ocrMap) : html
+    // Logic: wrap images (and inject OCR if present) -> Change URLs -> Colorize
+    const html_withWrappedImages = wrapImagesAndInjectOcr(html, ocrMap)
 
-    const html_withChangedUrls = processHtmlImages(html_withInjectedOcr, imageMode)
+    const html_withChangedUrls = processHtmlImages(html_withWrappedImages, imageMode)
 
-    const html_colorized =
-      maybeColorMode !== 'none' && isContainsKhmer(html_withChangedUrls)
-        ? colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
-        : html_withChangedUrls
+    const html_colorized = colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
 
     return { __html: html_colorized }
   }, [html, ocrMap, km_map, maybeColorMode, imageMode])
@@ -236,6 +238,7 @@ export const EnKmHtmlRenderer = ({
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
     imageClickHandler,
   )
 
@@ -243,6 +246,7 @@ export const EnKmHtmlRenderer = ({
     !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
   )
 
   return (

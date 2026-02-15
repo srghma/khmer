@@ -1,7 +1,10 @@
 import { Input } from '@heroui/input'
 import { memo, useState, useEffect, useCallback, useMemo } from 'react'
+import { IoClose } from 'react-icons/io5'
+import { Button } from '@heroui/button'
 import { CiSearch } from 'react-icons/ci'
 import { useDebounce } from 'use-debounce'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { DictionaryLanguage, AppTab } from '../types'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
@@ -25,7 +28,7 @@ interface SearchBarProps {
 // Format once outside to reuse the formatter instance
 const numberFormatter = new Intl.NumberFormat('en-US')
 
-const startContent = <CiSearch className="text-default-400 text-lg pointer-events-none shrink-0" />
+const startContent = <CiSearch className={`text-default-400 pointer-events-none shrink-0 text-xl`} />
 
 // Maps internal app tabs to standard HTML lang codes
 const getLangHint = (tab: AppTab): DictionaryLanguage => {
@@ -40,6 +43,7 @@ const getLangHint = (tab: AppTab): DictionaryLanguage => {
 }
 
 export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, activeTab }: SearchBarProps) => {
+  const { LL } = useI18nContext()
   const [localValue, setLocalValue] = useState<string>(initialValue ?? '')
 
   // Use the library to debounce the value (updates 300ms after localValue changes)
@@ -60,13 +64,28 @@ export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, acti
   }, [onSearch])
 
   const endContent = useMemo(
-    () =>
-      count !== undefined ? (
-        <span className="text-default-400 text-xs font-mono shrink-0 pointer-events-none">
-          {numberFormatter.format(count)}
-        </span>
-      ) : null,
-    [count],
+    () => (
+      <div className="flex items-center gap-0.5">
+        {localValue.length > 0 && (
+          <Button
+            isIconOnly
+            className="h-7 w-7 min-w-7 text-default-400 hover:text-default-600 -mr-1"
+            radius="full"
+            size="sm"
+            variant="light"
+            onPress={handleClear}
+          >
+            <IoClose className="text-xl" />
+          </Button>
+        )}
+        {count !== undefined && (
+          <span className={`text-default-400 font-mono shrink-0 pointer-events-none ml-1 text-sm`}>
+            {numberFormatter.format(count)}
+          </span>
+        )}
+      </div>
+    ),
+    [count, localValue, handleClear],
   )
 
   const langHint = getLangHint(activeTab)
@@ -90,29 +109,26 @@ export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, acti
   const placeholder = useMemo(() => {
     switch (searchMode) {
       case 'regex':
-        return 'Search with regex...'
+        return LL.SEARCH.PLACEHOLDER_REGEX()
       case 'starts_with':
-        return 'Search words starting with...'
+        return LL.SEARCH.PLACEHOLDER_STARTS_WITH()
       case 'includes':
-        return 'Search words including...'
+        return LL.SEARCH.PLACEHOLDER_INCLUDES()
       default:
         assertNever(searchMode)
     }
-  }, [searchMode])
+  }, [searchMode, LL])
 
   return (
     <Input
-      // Spread native attributes top-level so the library forwards them to the input
       {...nativeInputAttributes}
-      isClearable
+      className="text-base"
       endContent={endContent}
       placeholder={placeholder}
       radius="none"
       size="sm"
       startContent={startContent}
       value={localValue}
-      // Callbacks listed last
-      onClear={handleClear}
       onValueChange={handleChange}
     />
   )

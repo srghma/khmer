@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { TooltipMobileFriendly } from './TooltipMobileFriendly'
+import { cn } from '@heroui/theme'
 import { clsx } from 'clsx'
 
 // Utils & Logic
@@ -49,7 +50,7 @@ const SeriesDualDisplay = ({
   activeSeries: 'a' | 'o' | null
   isIPA?: boolean
 }) => {
-  const baseClass = isIPA ? 'font-mono text-[9px]' : 'text-[10px] font-medium'
+  const baseClass = isIPA ? `font-mono text-tiny` : `text-xs font-medium`
   const activeClass = 'text-foreground opacity-100 font-bold'
   const inactiveClass = 'text-default-400 opacity-60'
 
@@ -97,7 +98,7 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
     return (
       <div className={clsx(boxClass, 'opacity-50')}>
         <div className="text-lg mb-1">{text}</div>
-        <div className="text-[10px]">—</div>
+        <div className="text-xs">—</div>
       </div>
     )
   }
@@ -117,8 +118,8 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
           <div className={clsx('text-xl leading-none mb-1', isSeriesA ? 'text-danger-600' : 'text-primary-600')}>
             {text}
           </div>
-          <div className="text-[10px] font-bold text-default-600">{def.trans}</div>
-          <div className="text-[9px] font-mono text-default-400">/{def.ipa}/</div>
+          <div className={cn('font-bold text-default-600', 'text-xs')}>{def.trans}</div>
+          <div className={cn('font-mono text-default-400', 'text-tiny')}>/{def.ipa}/</div>
         </button>
       )
     }
@@ -135,8 +136,8 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
       return (
         <button className={boxClass} onClick={handleSpeak}>
           <div className="text-xl font-khmer leading-none mb-1 italic text-secondary-600">{text}</div>
-          <div className="text-[10px] font-bold text-default-600">{def.trans}</div>
-          <div className="text-[9px] font-mono text-default-400">/{def.ipa}/</div>
+          <div className={cn('font-bold text-default-600', 'text-xs')}>{def.trans}</div>
+          <div className={cn('font-mono text-default-400', 'text-tiny')}>/{def.ipa}/</div>
         </button>
       )
     }
@@ -187,8 +188,8 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
       return (
         <button className={boxClass} onClick={handleSpeak}>
           <div className="text-xl font-khmer leading-none mb-1 text-warning-600">{text}</div>
-          <div className="text-[10px] font-bold text-default-600">{def.trans}</div>
-          <div className="text-[9px] font-mono text-default-400">/{def.ipa}/</div>
+          <div className={cn('font-bold text-default-600', 'text-xs')}>{def.trans}</div>
+          <div className={cn('font-mono text-default-400', 'text-tiny')}>/{def.ipa}/</div>
         </button>
       )
     }
@@ -211,7 +212,9 @@ const TokenRenderer = React.memo(({ token }: { token: Token }) => {
         >
           <div className={clsx(boxClass, 'border-dashed border-default-400 bg-default-50')}>
             <div className="text-xl font-khmer leading-none mb-1 text-default-500">◌{text}</div>
-            <div className="text-[9px] max-w-[50px] leading-tight text-center text-default-500 line-clamp-2 w-full px-0.5">
+            <div
+              className={`max-w-[50px] leading-tight text-center text-default-500 line-clamp-2 w-full px-0.5 text-tiny`}
+            >
               {def.desc_en}
             </div>
           </div>

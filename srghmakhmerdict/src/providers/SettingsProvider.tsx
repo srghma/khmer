@@ -3,14 +3,65 @@ import { useLocalStorageState } from 'ahooks'
 import { type EnglishKhmerCom_Images_Mode } from '../types'
 import { KHMER_FONT_FAMILY, type KhmerFontName, type MaybeColorizationMode } from '../utils/text-processing/utils'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { LanguagesOrAuto } from '../i18n/languages'
+import {
+  isEnumValue,
+  stringToEnumOrThrow,
+  stringToEnumOrUndefined,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/enum'
 
 // --- Types ---
 
-export type AutoReadMode = 'disabled' | 'google_then_native' | 'google_only' | 'native_only'
+// AutoReadMode
+export const AUTO_READ_MODES = ['disabled', 'google_then_native', 'google_only', 'native_only'] as const
 
-export type SearchMode = 'starts_with' | 'includes' | 'regex'
+export type AutoReadMode = (typeof AUTO_READ_MODES)[number]
 
-export type DictFilterSettings_Km_Mode = 'all' | 'only_verified'
+export function isAutoReadMode(value: string): value is AutoReadMode {
+  return isEnumValue(value, AUTO_READ_MODES)
+}
+
+export function stringToAutoReadModeOrUndefined(value: string): AutoReadMode | undefined {
+  return stringToEnumOrUndefined(value, AUTO_READ_MODES)
+}
+
+export function stringToAutoReadModeOrThrow(value: string): AutoReadMode {
+  return stringToEnumOrThrow(value, AUTO_READ_MODES, 'AutoReadMode')
+}
+
+// SearchMode
+export const SEARCH_MODES = ['starts_with', 'includes', 'regex'] as const
+
+export type SearchMode = (typeof SEARCH_MODES)[number]
+
+export function isSearchMode(value: string): value is SearchMode {
+  return isEnumValue(value, SEARCH_MODES)
+}
+
+export function stringToSearchModeOrUndefined(value: string): SearchMode | undefined {
+  return stringToEnumOrUndefined(value, SEARCH_MODES)
+}
+
+export function stringToSearchModeOrThrow(value: string): SearchMode {
+  return stringToEnumOrThrow(value, SEARCH_MODES, 'SearchMode')
+}
+
+// DictFilterSettings_Km_Mode
+export const DICT_FILTER_SETTINGS_KM_MODES = ['all', 'only_verified'] as const
+
+export type DictFilterSettings_Km_Mode = (typeof DICT_FILTER_SETTINGS_KM_MODES)[number]
+
+export function isDictFilterSettingsKmMode(value: string): value is DictFilterSettings_Km_Mode {
+  return isEnumValue(value, DICT_FILTER_SETTINGS_KM_MODES)
+}
+
+export function stringToDictFilterSettingsKmModeOrUndefined(value: string): DictFilterSettings_Km_Mode | undefined {
+  return stringToEnumOrUndefined(value, DICT_FILTER_SETTINGS_KM_MODES)
+}
+
+export function stringToDictFilterSettingsKmModeOrThrow(value: string): DictFilterSettings_Km_Mode {
+  return stringToEnumOrThrow(value, DICT_FILTER_SETTINGS_KM_MODES, 'DictFilterSettings_Km_Mode')
+}
 
 export interface DictFilterSettings {
   km: {
@@ -38,15 +89,14 @@ export interface SettingsContextType {
   setHighlightInDetails: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
 
   // UI Settings
-  fontSize_ui: number
-  setFontSize_ui: (v: number | ((prev: number | undefined) => number)) => void
-  fontSize_details: number
-  setFontSize_details: (v: number | ((prev: number | undefined) => number)) => void
+  scaling_ui: number
+  setScalingPercentage_ui: (v: number | ((prev: number | undefined) => number)) => void
+  scaling_details: number
+  setScalingPercentage_details: (v: number | ((prev: number | undefined) => number)) => void
 
   // Data Filters
   filters: DictFilterSettings
   setFilters: (v: DictFilterSettings | ((prev: DictFilterSettings | undefined) => DictFilterSettings)) => void
-
 
   // Image Mode
   imageMode: EnglishKhmerCom_Images_Mode
@@ -78,6 +128,9 @@ export interface SettingsContextType {
 
   autoReadMode: AutoReadMode
   setAutoReadMode: (v: AutoReadMode | ((prev: AutoReadMode | undefined) => AutoReadMode)) => void
+
+  location: LanguagesOrAuto
+  setLocation: (v: LanguagesOrAuto | ((prev: LanguagesOrAuto | undefined) => LanguagesOrAuto)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -104,13 +157,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   )
 
   // Font State
-  const [fontSize_ui, setFontSize_ui] = useLocalStorageState<number>('srghmakhmerdict__ui_font_size', {
-    defaultValue: 14,
+  const [scaling_ui, setScalingPercentage_ui] = useLocalStorageState<number>('srghmakhmerdict__ui_scaling', {
+    defaultValue: 100,
   })
 
-  const [fontSize_details, setFontSize_details] = useLocalStorageState<number>('srghmakhmerdict__details_font_size', {
-    defaultValue: 16,
-  })
+  const [scaling_details, setScalingPercentage_details] = useLocalStorageState<number>(
+    'srghmakhmerdict__details_scaling',
+    {
+      defaultValue: 100,
+    },
+  )
 
   const [khmerFontName, setKhmerFontName] = useLocalStorageState<KhmerFontName>('srghmakhmerdict__khmer_font_name', {
     defaultValue: 'Default',
@@ -152,6 +208,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: 'disabled',
   })
 
+  const [location, setLocation] = useLocalStorageState<LanguagesOrAuto>('srghmakhmerdict__location', {
+    defaultValue: 'auto',
+  })
 
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
@@ -177,10 +236,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setHighlightInList,
       highlightInDetails: highlightInDetails ?? true,
       setHighlightInDetails,
-      fontSize_ui: fontSize_ui ?? 14,
-      setFontSize_ui,
-      fontSize_details: fontSize_details ?? 16,
-      setFontSize_details,
+      scaling_ui: scaling_ui ?? 14,
+      setScalingPercentage_ui,
+      scaling_details: scaling_details ?? 16,
+      setScalingPercentage_details,
       filters: filters ?? DEFAULT_FILTERS,
       setFilters,
       imageMode: imageMode ?? 'online',
@@ -201,6 +260,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerFontName,
       autoReadMode: autoReadMode ?? 'disabled',
       setAutoReadMode,
+      location: location ?? 'auto',
+      setLocation,
     }),
     [
       searchMode,
@@ -211,10 +272,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setHighlightInList,
       highlightInDetails,
       setHighlightInDetails,
-      fontSize_ui,
-      setFontSize_ui,
-      fontSize_details,
-      setFontSize_details,
+      scaling_ui,
+      setScalingPercentage_ui,
+      scaling_details,
+      setScalingPercentage_details,
       filters,
       setFilters,
       imageMode,
@@ -234,6 +295,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerFontName,
       autoReadMode,
       setAutoReadMode,
+      location,
+      setLocation,
     ],
   )
 

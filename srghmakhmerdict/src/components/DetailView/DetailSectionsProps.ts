@@ -31,4 +31,5 @@ export interface DetailSectionsProps {
     | undefined
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
 }

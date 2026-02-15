@@ -48,7 +48,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => 
           ),
         })}
       >
-        {isSelected ? <FaMoon size={22} /> : <FaSun size={22} />}
+        {isSelected ? <FaMoon className="text-2xl" /> : <FaSun className="text-2xl" />}
       </div>
     </Component>
   )

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useSyncExternalStore, useEffect } from 'react'
+import React, { useCallback, useMemo, useSyncExternalStore, useEffect } from 'react'
 import { Spinner } from '@heroui/spinner'
 import { Grade } from 'femto-fsrs'
 import { useAnkiCurrentDirection } from './useAnkiCurrentDirection'
@@ -26,45 +26,25 @@ import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chr
 
 import { useAppToast } from '../../providers/ToastProvider'
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 const LoadingSpinner = (
   <div className="flex h-full w-full items-center justify-center">
     <Spinner size="lg" />
   </div>
 )
 
-const NoFavoritesView = (
-  <div className="flex h-full items-center justify-center">
-    <p>No favorites found. Add some words to favorites to start learning.</p>
-  </div>
-)
+const getSidebarClassName = memoizeSync1_Boolean((hasSelectedItem: boolean) => {
+  return `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${
+    hasSelectedItem ? 'hidden md:flex' : 'w-full'
+  }`
+})
 
-const CardNotFoundView = (
-  <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-    <span className="text-4xl">❓</span>
-    <p>Card not found</p>
-  </div>
-)
-
-const SelectCardToStartView = (
-  <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-    <span className="text-4xl">🎴</span>
-    <p>Select a card to start</p>
-  </div>
-)
-
-const getSidebarClassName = memoizeSync1_Boolean(
-  (hasSelectedItem: boolean) =>
-    `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] pt-[env(safe-area-inset-top)] ${
-      hasSelectedItem ? 'hidden md:flex' : 'w-full'
-    }`,
-)
-
-const getRightPanelClassName = memoizeSync1_Boolean(
-  (hasSelectedItem: boolean) =>
-    `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${
-      !hasSelectedItem ? 'hidden md:flex' : 'flex'
-    }`,
-)
+const getRightPanelClassName = memoizeSync1_Boolean((hasSelectedItem: boolean) => {
+  return `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${
+    !hasSelectedItem ? 'hidden md:flex' : 'flex'
+  }`
+})
 
 const useCountOfSplitted = (splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined>) => {
   const pulseStore = useAnkiPulseStore()
@@ -93,6 +73,7 @@ interface AnkiGameStep2Props {
 const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted }: AnkiGameStep2Props) {
   // useAnkiAutoRedirect(allFavorites_splitted)
 
+  const { LL } = useI18nContext()
   const { urlLanguage, selectedId, navigateToWord, navigateToLanguage, exitAnki } = useAnkiNavigation()
 
   const currentLanguage_favoriteItems = assertIsDefinedAndReturn(allFavorites_splitted[urlLanguage])
@@ -104,14 +85,6 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
   const { km_map } = useDictionary()
   const pulseStore = useAnkiPulseStore()
   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot)
-
-  // Local state only for 'Revealed' toggle
-  const [isRevealed, setIsRevealed] = useState(false)
-
-  // Reset revealed state when card changes
-  useEffect(() => {
-    setIsRevealed(false)
-  }, [selectedId])
 
   // Memoize counts to prevent re-calculation on every render
   const counts = useCountOfSplitted(allFavorites_splitted)
@@ -139,17 +112,12 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
 
         navigateToWord(nextWord)
       } else {
-        console.log('Session finished!')
-        toast.success('Session finished!' as NonEmptyStringTrimmed)
+        toast.success(LL.ANKI.SESSION_FINISHED())
         navigateToLanguage(urlLanguage)
       }
     },
-    [initialData, reviewCard, now, navigateToWord, navigateToLanguage, urlLanguage, toast],
+    [initialData, reviewCard, now, navigateToWord, navigateToLanguage, urlLanguage, toast, LL],
   )
-
-  const handleReveal = useCallback(() => {
-    setIsRevealed(true)
-  }, [])
 
   const sidebarClassName = useMemo(() => getSidebarClassName(!!selectedId), [selectedId])
   const rightPanelClassName = useMemo(() => getRightPanelClassName(!!selectedId), [selectedId])
@@ -162,24 +130,29 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
 
   const rightPanelContent = useMemo(() => {
     if (selectedId) {
-      if (!itemData) return CardNotFoundView
+      if (!itemData) {
+        return (
+          <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
+            <span className="text-4xl">❓</span>
+            <p>{LL.ANKI.CARD_NOT_FOUND()}</p>
+          </div>
+        )
+      }
 
-      return (
-        <AnkiPlayArea
-          isRevealed={isRevealed}
-          itemData={itemData}
-          onRate={rating => handleRate(selectedId, rating)}
-          onReveal={handleReveal}
-        />
-      )
+      return <AnkiPlayArea key={selectedId} itemData={itemData} onRate={rating => handleRate(selectedId, rating)} />
     }
 
-    return SelectCardToStartView
-  }, [exitAnki, selectedId, itemData, isRevealed, km_map, handleRate, handleReveal])
+    return (
+      <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
+        <span className="text-4xl">🎴</span>
+        <p>{LL.ANKI.SELECT_CARD()}</p>
+      </div>
+    )
+  }, [exitAnki, selectedId, itemData, km_map, handleRate, LL])
 
   return (
     <div className="flex h-full w-full md:h-full bg-background overflow-hidden font-inter text-foreground h-[100dvh]">
-      <div className={sidebarClassName}>
+      <div className={`${sidebarClassName} text-base`}>
         <AnkiHeader
           activeDict={urlLanguage}
           direction={currentLanguage_direction}
@@ -193,12 +166,12 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
           onExit={exitAnki}
         />
 
-        <div className="flex-1 flex overflow-hidden relative bg-background">
+        <div className="flex-1 flex flex-col overflow-hidden relative bg-background">
           {initialData === 'loading' ? LoadingSpinner : <AnkiListContent data={initialData} selectedId={selectedId} />}
         </div>
       </div>
 
-      <div className={rightPanelClassName}>{rightPanelContent}</div>
+      <div className={`${rightPanelClassName} scaling-details`}>{rightPanelContent}</div>
     </div>
   )
 })
@@ -235,9 +208,15 @@ export const AnkiGame = React.memo(function AnkiGame() {
     return allFavorites_split_sorted(allFavorites)
   }, [allFavorites])
 
+  const { LL } = useI18nContext()
+
   if (loading) return LoadingSpinner
   if (!allFavorites_splitted || !Array_isNonEmptyArray(allFavorites)) {
-    return NoFavoritesView
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p>{LL.ANKI.NO_FAVORITES()}</p>
+      </div>
+    )
   }
 
   return (

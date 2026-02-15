@@ -8,6 +8,7 @@ import { type KhmerWordsMap } from '../../db/dict'
 import { aSeriesSet, vowelsGrid, consonantsGrid, supplementaryConsonants, independentVowels } from './data'
 import { WordDeckModal, type DeckData } from './WordDeckModal'
 import { buildGraphemeIndex } from './buildGraphemeIndex'
+import { cn } from '@heroui/theme'
 
 // --- Memoized Components ---
 
@@ -33,10 +34,13 @@ const MatrixCell = memo(
             ${count === 0 ? 'opacity-30 cursor-default' : 'cursor-pointer hover:bg-primary/20 hover:text-primary active:scale-95'}
           `}
           disabled={count === 0}
-          onClick={() => count > 0 && onClick(combo)}
+          onClick={e => {
+            e.stopPropagation() // <--- CRITICAL FIX: Stop event from closing the modal immediately
+            if (count > 0) onClick(combo)
+          }}
         >
           <span className="font-khmer text-sm leading-none">{combo}</span>
-          {count > 0 && <span className="text-[9px] text-default-400 font-mono leading-none mt-0.5">{count}</span>}
+          {count > 0 && <span className={cn('text-default-400 font-mono leading-none mt-0.5 text-tiny')}>{count}</span>}
         </button>
       </td>
     )
@@ -158,9 +162,7 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
                   {consonantsGrid.flat().map(
                     (c, i) =>
                       c && (
-                        <div key={i}>
-                          <ConsonantBlock consonant={c} index={graphemeIndex.index} onClick={handleCellClick} />
-                        </div>
+                        <ConsonantBlock key={i} consonant={c} index={graphemeIndex.index} onClick={handleCellClick} />
                       ),
                   )}
                 </div>
@@ -172,9 +174,7 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {supplementaryConsonants.map((c, i) => (
-                    <div key={i}>
-                      <ConsonantBlock consonant={c} index={graphemeIndex.index} onClick={handleCellClick} />
-                    </div>
+                    <ConsonantBlock key={i} consonant={c} index={graphemeIndex.index} onClick={handleCellClick} />
                   ))}
                 </div>
               </section>
@@ -192,7 +192,10 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
                         key={char}
                         className={`border border-default-300 bg-content1 rounded-lg p-4 flex flex-col items-center gap-1 transition-all shadow-sm ${count === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer hover:border-primary hover:bg-primary/5 hover:scale-105'}`}
                         disabled={count === 0}
-                        onClick={() => count > 0 && handleCellClick(char)}
+                        onClick={e => {
+                          e.stopPropagation() // <--- CRITICAL FIX here as well
+                          if (count > 0) handleCellClick(char)
+                        }}
                       >
                         <span className="text-3xl font-khmer">{char}</span>
                         <span className="text-xs text-default-400">({count})</span>

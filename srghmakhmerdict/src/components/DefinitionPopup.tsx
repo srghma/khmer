@@ -1,11 +1,13 @@
 import React, { useMemo } from 'react'
 import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 
 interface DefinitionPopupProps {
   definitionHtml: string
 }
 
 export const DefinitionPopup = React.memo(({ definitionHtml }: DefinitionPopupProps) => {
+  const { LL } = useI18nContext()
   const dangerouslySetInnerHTML = useMemo(() => ({ __html: definitionHtml }), [definitionHtml])
 
   return (
@@ -14,13 +16,13 @@ export const DefinitionPopup = React.memo(({ definitionHtml }: DefinitionPopupPr
         <PopoverTrigger>
           <button
             className="w-full min-w-[60px] h-[2.6em] px-1 rounded-sm bg-default-200/60 hover:bg-default-300/60 cursor-pointer select-none overflow-hidden outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2"
-            title="Click to expand definition"
+            title={LL.ANALYZER.EXPAND_DEFINITION()}
             type="button"
           >
             {/* Collapsed Content: Plain HTML, Clamped to 2 lines */}
             <div
               dangerouslySetInnerHTML={dangerouslySetInnerHTML}
-              className="text-[10px] leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary"
+              className={`text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary`}
             />
           </button>
         </PopoverTrigger>

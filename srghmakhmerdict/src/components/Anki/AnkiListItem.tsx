@@ -7,6 +7,7 @@ import type { ShortDefinitionEn, ShortDefinitionKm, ShortDefinitionRu } from '..
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { AnkiGameMode } from './types'
 import { RenderHtmlColorized } from '../DetailView/atoms'
+import { cn } from '@heroui/theme'
 
 export type AnkiListItemProps_ShowMode_Map = {
   'km:GUESSING_NON_KHMER': NonEmptyStringTrimmed
@@ -30,8 +31,11 @@ interface AnkiListItemProps_Common {
 
 export type AnkiListItemProps = AnkiListItemProps_Common & AnkiListItemProps_ShowMode
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItemProps) {
   const { card_due, isSelected, onSelect, now, t, v } = props
+  const { LL } = useI18nContext()
 
   const isDue = card_due <= now
   const notDueButWillSeeIn2MinutesOrLess = card_due <= now + 2 * 60000
@@ -46,6 +50,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={v}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -67,6 +72,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -83,6 +89,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -99,6 +106,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
+            isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
           />
@@ -126,7 +134,11 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
 
     return (
       <div className="flex flex-col items-end gap-0.5 ml-auto shrink-0 pl-2">
-        {isDue && <span className="text-[10px] font-black uppercase tracking-wider text-danger leading-none">Due</span>}
+        {isDue && (
+          <span className={cn('font-black uppercase tracking-wider text-danger leading-none', 'text-xs')}>
+            {LL.ANKI.DUE()}
+          </span>
+        )}
         <span className={`text-tiny whitespace-nowrap font-medium ${colorClass}`}>{text}</span>
       </div>
     )
@@ -134,7 +146,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
 
   const containerClassName = useMemo(() => {
     const base =
-      'w-full cursor-pointer px-4 py-3 border-b border-divider transition-all text-left flex justify-between items-start gap-1'
+      'w-full cursor-pointer px-4 py-1 border-b border-divider transition-all text-left flex justify-between items-start gap-1'
     const bg = isSelected
       ? 'bg-secondary-100 dark:bg-secondary-900/40' // Active state
       : isDue

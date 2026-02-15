@@ -1,3 +1,4 @@
+import { tryDecode } from '../utils/tryDecode'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -35,7 +36,7 @@ export const useAppMainView = () => {
     const analyzerMatch = location.match(/^\/khmer_analyzer(?:\/(.+))?$/)
 
     if (analyzerMatch) {
-      const text = analyzerMatch[1] ? (decodeURIComponent(analyzerMatch[1]) as NonEmptyStringTrimmed) : undefined
+      const text = analyzerMatch[1] ? (tryDecode(analyzerMatch[1]) as NonEmptyStringTrimmed) : undefined
 
       return { type: 'khmer-analyzer', text }
     }
@@ -47,7 +48,11 @@ export const useAppMainView = () => {
       // console.log('[Router Debug] Matched Detail List Regex:', detailListMatch)
       const type = detailListMatch[1] as 'history' | 'favorites'
       const mode = detailListMatch[2] as DictionaryLanguage
-      const word = decodeURIComponent(detailListMatch[3] || '') as NonEmptyStringTrimmed
+      const word = tryDecode(detailListMatch[3] || '') as NonEmptyStringTrimmed
+
+      if (!word) {
+        return { type: 'dashboard', mode: 'en' }
+      }
 
       return { type, word, mode }
     }
@@ -58,7 +63,7 @@ export const useAppMainView = () => {
     if (langMatch) {
       // console.log('[Router Debug] Matched Language/Dashboard Regex:', langMatch)
       const mode = langMatch[1] as DictionaryLanguage
-      const word = langMatch[2] ? (decodeURIComponent(langMatch[2]) as NonEmptyStringTrimmed) : undefined
+      const word = langMatch[2] ? (tryDecode(langMatch[2]) as NonEmptyStringTrimmed) : undefined
 
       return { type: 'dashboard', word, mode }
     }

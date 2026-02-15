@@ -11,8 +11,10 @@ import {
 import type { ProcessDataOutputKhmerCursor_FirstAndSecondLevel } from '../utils/toGroupKhmer_cursor_full'
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenKhmerData } from '../utils/flattenKhmerData'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
-import type { SearchMode } from '../providers/SettingsProvider'
+import { type FlatListItem } from './VirtualizedList'
+import { useSettings, type SearchMode } from '../providers/SettingsProvider'
 
 interface WordListKhmerProps {
   readonly data: ProcessDataOutputKhmer
@@ -31,6 +33,7 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   contentMatches,
   searchMode,
 }: WordListKhmerProps) => {
+  const { LL } = useI18nContext()
   // Memoize lengths for sidebar (kept here as it's specific to Sidebar UI prop)
   const lengthsData = useMemo(() => makeShortInfoAboutLengths(data), [data])
 
@@ -80,6 +83,47 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
     [l2IndexMap, scrollToIndex],
   )
 
+  const renderItem = useCallback(
+    (item: FlatListItem) => {
+      const onClick = () => (item.type === 'header' ? undefined : onWordClick(item.word))
+
+      if (item.type === 'header') {
+        return (
+          <div
+            className={`h-full border-b border-divider flex items-center px-6 py-1 font-bold shadow-sm backdrop-blur-md font-khmer ${item.bgClass} text-xl`}
+          >
+            {item.label}
+          </div>
+        )
+      }
+
+      return (
+        <button
+          className={`h-full flex items-center px-6 border-b py-1 border-divider hover:brightness-95 dark:hover:brightness-110 w-full text-left transition-all ${item.bgClass}`}
+          onClick={onClick}
+        >
+          <span className={`text-foreground-900 leading-snug text-base font-khmer`}>{renderWordItem(item.word)}</span>
+        </button>
+      )
+    },
+    [onWordClick, renderWordItem],
+  )
+
+  const { scaling_ui } = useSettings()
+  const estimateSize = useCallback(
+    (idx: number) => {
+      const isHeader = flatList[idx]?.type === 'header'
+      const baseHeight = isHeader ? 48 : 32
+
+      return (baseHeight * scaling_ui) / 14
+    },
+    [flatList, scaling_ui],
+  )
+  const keyExtractor = useCallback(
+    (item: FlatListItem) => (item.type === 'header' ? `header-${item.label}` : `word-${item.word}`),
+    [],
+  )
+
   return (
     <div className="flex h-full w-full relative">
       {activeL1 ? (
@@ -90,15 +134,16 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
           scrollToSubGroup={handleScrollToSubGroup}
         />
       ) : (
-        <p>Nothing</p>
+        <p>{LL.COMMON.NOTHING()}</p>
       )}
       <VirtualizedList
         ref={listRef}
+        estimateSize={estimateSize}
         items={flatList}
-        renderWord={renderWordItem}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         stickyIndexes={stickyIndexes}
         onActiveHeaderChange={onActiveHeaderChange}
-        onWordClick={onWordClick}
       />
     </div>
   )

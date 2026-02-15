@@ -1,4 +1,4 @@
-import React, { useMemo, useSyncExternalStore, useState, useEffect } from 'react'
+import React, { useMemo, useSyncExternalStore, useState, useCallback } from 'react'
 import { Grade } from 'femto-fsrs'
 import { mkFourButtons, type FourButtons } from './utils'
 import { AnkiRevealButton, AnkiRatingButtons } from './AnkiButtons'
@@ -12,30 +12,35 @@ export type GameState = {
 
 import { type GameModeAndDataItem } from './useAnkiGameManagerInitialData'
 import { useAnkiPulseStore } from './AnkiPulseContext'
+import { useSettings } from '../../providers/SettingsProvider'
 
 interface AnkiPlayAreaProps {
   itemData: GameModeAndDataItem
-  isRevealed: boolean
   onRate: (rating: Grade) => void
-  onReveal: () => void
 }
 
-export const AnkiPlayArea = React.memo(({ itemData, isRevealed, onRate, onReveal }: AnkiPlayAreaProps) => {
+export const AnkiPlayArea = React.memo(({ itemData, onRate }: AnkiPlayAreaProps) => {
   const pulseStore = useAnkiPulseStore()
   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot) as number
 
   const item = 'card' in itemData.v ? itemData.v.card : itemData.v
 
   const [userAnswer, setUserAnswer] = useState<string>('')
+  const [isRevealed, setIsRevealed] = useState(false)
 
-  useEffect(() => {
-    setUserAnswer('')
-  }, [item.word])
+  const handleReveal = useCallback(() => {
+    setIsRevealed(true)
+  }, [])
 
   const mode = itemData.t
   const language = item.language
 
   const buttons: FourButtons = useMemo(() => mkFourButtons(item, now, i => i), [item, now])
+
+  const {
+    isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled_global,
+    isNonKhmerWordsHidingEnabled: isNonKhmerWordsHidingEnabled_global,
+  } = useSettings()
 
   const isKhmerWordsHidingEnabled = ['ru:GUESSING_KHMER', 'en:GUESSING_KHMER', 'km:GUESSING_KHMER'].some(
     x => x === mode,
@@ -49,20 +54,20 @@ export const AnkiPlayArea = React.memo(({ itemData, isRevealed, onRate, onReveal
       <div className="flex-1 min-h-0 relative">
         <DetailFetcher
           ankiGameMode={mode}
-          isKhmerWordsHidingEnabled={isRevealed ? false : isKhmerWordsHidingEnabled}
-          isNonKhmerWordsHidingEnabled={isRevealed ? false : isNonKhmerWordsHidingEnabled}
+          isKhmerWordsHidingEnabled={isRevealed ? isKhmerWordsHidingEnabled_global : isKhmerWordsHidingEnabled}
+          isNonKhmerWordsHidingEnabled={isRevealed ? isNonKhmerWordsHidingEnabled_global : isNonKhmerWordsHidingEnabled}
           isRevealed={isRevealed}
           language={language}
           setUserAnswer={setUserAnswer}
           userAnswer={userAnswer}
           word={item.word}
-          onReveal={onReveal}
+          onReveal={handleReveal}
         />
       </div>
 
       <div className="flex-none bg-background/95 backdrop-blur-md border-t border-divider px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex justify-center z-20 sticky bottom-0">
         {!isRevealed ? (
-          <AnkiRevealButton onReveal={onReveal} />
+          <AnkiRevealButton onReveal={handleReveal} />
         ) : (
           <AnkiRatingButtons buttons={buttons} onRate={onRate} />
         )}

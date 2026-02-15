@@ -39,7 +39,7 @@ export const KhmerInfoModal: React.FC<KhmerInfoModalProps> = ({ isOpen, onClose,
 
   return (
     <Modal backdrop="blur" isOpen={isOpen} size="sm" onClose={onClose}>
-      <ModalContent>
+      <ModalContent className="scaling-details">
         <ModalHeader className="flex flex-col gap-1 items-center pt-6">
           <span className="text-6xl font-khmer text-primary mb-2">{label}</span>
           <span className="text-xs text-default-400 uppercase tracking-widest">Character Info</span>

@@ -6,6 +6,8 @@
     "main"
   ],
   "permissions": [
+    "in-app-review:default",
+    "iap:default",
     "core:window:allow-set-theme",
     "core:default",
     "deep-link:default",

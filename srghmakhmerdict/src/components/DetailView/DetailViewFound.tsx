@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, memo } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -8,13 +8,15 @@ import { DetailSections } from './DetailSections'
 import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopup'
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { useSettings } from '../../providers/SettingsProvider'
-import { KHMER_FONT_FAMILY } from '../../utils/text-processing/utils'
 import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { DictionaryLanguage } from '../../types'
 import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { useAppMainView } from '../../hooks/useAppMainView'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import { useAppToast } from '../../providers/ToastProvider'
+import { useAutoReadTts } from '../../hooks/useAutoReadTts'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -28,10 +30,43 @@ interface DetailViewFoundProps {
 
   // Appearance / Nav
   backButton_goBack: (() => void) | undefined
-  backButton_desktopOnlyStyles_showButton: boolean
 }
 
-export const DetailViewFound = ({
+const SelectionMenuBodyLocalWrapper = memo(
+  ({
+    selectedText,
+    mode,
+    handleOpenKhmerAnalyzer,
+    handleOpenSearch,
+  }: {
+    selectedText: NonEmptyStringTrimmed
+    mode: DictionaryLanguage
+    handleOpenKhmerAnalyzer: (text: NonEmptyStringTrimmed) => void
+    handleOpenSearch: (text: NonEmptyStringTrimmed) => void
+  }) => {
+    const onClosePopupAndKhmerAnalyzerModal = useCallback(
+      () => handleOpenKhmerAnalyzer(selectedText),
+      [handleOpenKhmerAnalyzer, selectedText],
+    )
+    const onClosePopupAndOpenSearch = useCallback(
+      () => handleOpenSearch(selectedText),
+      [handleOpenSearch, selectedText],
+    )
+
+    return (
+      <SelectionMenuBody
+        currentMode={mode}
+        selectedText={selectedText}
+        onClosePopupAndKhmerAnalyzerModal={onClosePopupAndKhmerAnalyzerModal}
+        onClosePopupAndOpenSearch={onClosePopupAndOpenSearch}
+      />
+    )
+  },
+)
+
+SelectionMenuBodyLocalWrapper.displayName = 'SelectionMenuBodyLocalWrapper'
+
+const DetailViewFoundComponent = ({
   word,
   data,
   mode,
@@ -39,14 +74,26 @@ export const DetailViewFound = ({
   isFav,
   toggleFav,
   backButton_goBack,
-  backButton_desktopOnlyStyles_showButton,
 }: DetailViewFoundProps) => {
   // 1. Logic
+  const { LL } = useI18nContext()
+  const toast = useAppToast()
+
+  const handleNavigate = useCallback(
+    (navWord: NonEmptyStringTrimmed, navMode: DictionaryLanguage) => {
+      if (navWord === word && navMode === mode) {
+        toast.success(LL.COMMON.ALREADY_OPENED(), navWord)
+      } else {
+        onNavigate(navWord, navMode)
+      }
+    },
+    [word, mode, onNavigate, toast, LL],
+  )
+
   const {
     isKhmerLinksEnabled,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
-    fontSize_details,
     khmerFontName,
     setKhmerFontName,
     maybeColorMode,
@@ -60,6 +107,8 @@ export const DetailViewFound = ({
   const [, setLocation] = useLocation()
   const currentView = useAppMainView()
 
+  useAutoReadTts(word, mode)
+
   const currentNavigationStackItem =
     currentView.type === 'history' || currentView.type === 'favorites' || currentView.type === 'dashboard'
       ? currentView.word
@@ -67,23 +116,7 @@ export const DetailViewFound = ({
         : undefined
       : undefined
 
-  // // 2. Styling
-  // const uiStyle = useMemo(
-  //   () => ({
-  //     fontSize: `${fontSize_ui}px`,
-  //     fontFamily: KHMER_FONT_FAMILY[khmerFontName],
-  //   }),
-  //   [fontSize_ui, khmerFontName],
-  // )
-
-  // 2. Styling
-  const detailsStyle = useMemo(
-    () => ({
-      fontSize: `${fontSize_details}px`,
-      fontFamily: KHMER_FONT_FAMILY[khmerFontName],
-    }),
-    [fontSize_details, khmerFontName],
-  )
+  // 2. Styling (REMOVED: scaling and font are now handled via App.css variables)
 
   // 3. Selection / Popup Handlers
   const handleOpenKhmerAnalyzer = useCallback(
@@ -100,10 +133,10 @@ export const DetailViewFound = ({
       if (!selectedText) return
       const targetMode = detectModeFromText(selectedText) ?? currentNavigationStackItem.mode
 
-      setLocation(`/${targetMode}/${encodeURIComponent(selectedText)}`)
+      handleNavigate(selectedText, targetMode)
       window.getSelection()?.removeAllRanges()
     },
-    [setLocation, currentNavigationStackItem],
+    [handleNavigate, currentNavigationStackItem, mode],
   )
 
   const renderPopupContent = useCallback(
@@ -111,21 +144,22 @@ export const DetailViewFound = ({
       if (!currentNavigationStackItem) return null
 
       return (
-        <SelectionMenuBody
-          currentMode={currentNavigationStackItem.mode}
+        <SelectionMenuBodyLocalWrapper
+          handleOpenKhmerAnalyzer={handleOpenKhmerAnalyzer}
+          handleOpenSearch={handleOpenSearch}
+          mode={currentNavigationStackItem.mode}
           selectedText={selectedText}
-          onClosePopupAndKhmerAnalyzerModal={() => handleOpenKhmerAnalyzer(selectedText)}
-          onClosePopupAndOpenSearch={() => handleOpenSearch(selectedText)}
         />
       )
     },
-    [currentNavigationStackItem, km_map, handleOpenKhmerAnalyzer, handleOpenSearch],
+    [currentNavigationStackItem, handleOpenKhmerAnalyzer, handleOpenSearch],
   )
+
+  // 4. Scaling Style (REMOVED: scaling is now handled via App.css variables)
 
   return (
     <Card className="flex flex-col h-full w-full border-none rounded-none bg-background shadow-none">
       <DetailViewHeader
-        backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
         backButton_goBack={backButton_goBack}
         isFav={isFav}
         isKhmerLinksEnabled={isKhmerLinksEnabled}
@@ -147,32 +181,41 @@ export const DetailViewFound = ({
         word_or_sentence__language={mode}
       />
 
-      <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <ReactSelectionPopup popupContent={renderPopupContent}>
-          <CardBody className="p-6 gap-6" style={detailsStyle}>
-            <DetailSections
-              desc={data.desc}
-              desc_en_only={data.desc_en_only}
-              en_km_com={data.en_km_com}
-              from_chuon_nath={data.from_chuon_nath}
-              from_chuon_nath_translated={data.from_chuon_nath_translated}
-              from_csv_noun_forms={data.from_csv_noun_forms}
-              from_csv_pronunciations={data.from_csv_pronunciations}
-              from_csv_raw_html={data.from_csv_raw_html}
-              from_csv_variants={data.from_csv_variants}
-              from_russian_wiki={data.from_russian_wiki}
-              gorgoniev={data.gorgoniev}
-              isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? onNavigate : undefined}
-              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
-              km_map={km_map}
-              maybeColorMode={maybeColorMode}
-              mode={mode}
-              wiktionary={data.wiktionary}
-            />
-          </CardBody>
-        </ReactSelectionPopup>
-      </ScrollShadow>
+      <div className="flex-1 overflow-hidden w-full relative">
+        <div className="flex flex-col h-full w-full">
+          <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <ReactSelectionPopup popupContent={renderPopupContent}>
+              <CardBody className="p-6 gap-6">
+                <DetailSections
+                  desc={data.desc}
+                  desc_en_only={data.desc_en_only}
+                  en_km_com={data.en_km_com}
+                  from_chuon_nath={data.from_chuon_nath}
+                  from_chuon_nath_translated={data.from_chuon_nath_translated}
+                  from_csv_noun_forms={data.from_csv_noun_forms}
+                  from_csv_pronunciations={data.from_csv_pronunciations}
+                  from_csv_raw_html={data.from_csv_raw_html}
+                  from_csv_variants={data.from_csv_variants}
+                  from_russian_wiki={data.from_russian_wiki}
+                  gorgoniev={data.gorgoniev}
+                  isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? handleNavigate : undefined}
+                  isKhmerPronunciationHidingEnabled={false}
+                  isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+                  isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+                  km_map={km_map}
+                  maybeColorMode={maybeColorMode}
+                  mode={mode}
+                  wiktionary={data.wiktionary}
+                />
+              </CardBody>
+            </ReactSelectionPopup>
+          </ScrollShadow>
+        </div>
+      </div>
     </Card>
   )
 }
+
+export const DetailViewFound = memo(DetailViewFoundComponent)
+
+DetailViewFound.displayName = 'DetailViewFound'

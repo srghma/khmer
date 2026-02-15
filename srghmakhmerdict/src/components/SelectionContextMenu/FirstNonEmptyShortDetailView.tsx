@@ -57,13 +57,13 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
             return
           case 'en':
-            if (en.includes(selectedText)) {
+            if (en.has(selectedText)) {
               throw new Error('English word is in db, but was not found using request, Impossible')
             }
 
             return
           case 'ru':
-            if (ru.includes(selectedText)) {
+            if (ru.has(selectedText)) {
               throw new Error('Russian word is in db, but was not found using request, Impossible')
             }
 
@@ -110,7 +110,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
     // 4. Render 'found' state
     return (
       <div className="flex flex-col gap-1 w-full max-w-[400px]">
-        <div className="text-[10px] uppercase font-bold text-primary tracking-wider opacity-70">Dictionary Preview</div>
+        <div className={`uppercase font-bold text-primary tracking-wider opacity-70 text-xs`}>Dictionary Preview</div>
 
         <div
           className={`text-sm text-foreground-700 prose prose-sm dark:prose-invert max-w-none leading-snug line-clamp-4 max-h-[100px] overflow-hidden relative`}

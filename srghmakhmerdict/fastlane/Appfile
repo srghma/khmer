@@ -1,0 +1,2 @@
+json_key_file(ENV["GPC_JSON_KEY_PATH"] || "./google_play_key.json")
+package_name("com.srghma.srghmakhmerdict") # e.g. com.krausefx.app

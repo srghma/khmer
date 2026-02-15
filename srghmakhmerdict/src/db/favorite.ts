@@ -1,4 +1,4 @@
-import { getUserDb } from './core'
+import { getUserDb, getDictDb } from './core'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../types'
 import { type NonEmptyMap } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
@@ -37,7 +37,19 @@ export const removeFavoritesMany = async (
   }
 }
 
+export const isWordInDict = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
+  const dictDb = await getDictDb()
+  const table = language === 'km' ? 'km_Dict' : language === 'en' ? 'en_Dict' : 'ru_Dict'
+  const existenceRows = await dictDb.select<{ c: number }[]>(`SELECT 1 as c FROM ${table} WHERE Word = $1`, [word])
+
+  return existenceRows.length > 0
+}
+
 export const addFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
+  if (!(await isWordInDict(word, language))) {
+    throw new Error(`Word "${word}" not found in ${language} dictionary`)
+  }
+
   const db = await getUserDb()
   const now = Date.now()
 

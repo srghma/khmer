@@ -2,12 +2,15 @@ import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import * as DictDb from './db/dict'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import {
+  Set_toNonEmptySet_orThrow,
+  type NonEmptySet,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 
 export type DictData = {
-  en: NonEmptyArray<NonEmptyStringTrimmed>
+  en: NonEmptySet<NonEmptyStringTrimmed>
   km_map: DictDb.KhmerWordsMap
-  ru: NonEmptyArray<NonEmptyStringTrimmed>
+  ru: NonEmptySet<NonEmptyStringTrimmed>
 }
 
 async function load3(): Promise<DictData> {
@@ -19,9 +22,9 @@ async function load3(): Promise<DictData> {
   // console.log('🎉 Dictionary data initialized successfully!')
 
   return {
-    en: enWords,
+    en: Set_toNonEmptySet_orThrow(new Set(enWords)),
     km_map: km_map,
-    ru: ruWords,
+    ru: Set_toNonEmptySet_orThrow(new Set(ruWords)),
   }
 }
 
@@ -63,16 +66,20 @@ async function waitForDatabase(): Promise<void> {
 
       // Check if DB is already ready
       try {
-        const isReady = await invoke<boolean>('is_db_ready')
+        const { is_ready, error } = await invoke<{ is_ready: boolean; error: string | null }>('get_db_status')
 
-        // console.log('🔍 DB ready check:', isReady)
+        // console.log('🔍 DB ready check:', { is_ready, error })
 
-        if (isReady) {
+        if (is_ready) {
           cleanup()
           resolve()
+        } else if (error) {
+          cleanup()
+          reject(new Error(`Database error: ${error}`))
         }
-      } catch (_e: any) {
-        // console.warn('⚠️ Could not check DB status:', e)
+      } catch (e: any) {
+        // eslint-disable-next-line no-console
+        console.warn('⚠️ Could not check DB status:', e)
         // Continue waiting for event
       }
     }

@@ -7,32 +7,26 @@ import { DetailViewActions, type DetailViewActionsProps_Common } from './DetailV
 import { Button } from '@heroui/button'
 import { HiArrowLeft } from 'react-icons/hi2'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+import type { TranslationFunctions } from '../../i18n/i18n-types'
 
 interface DetailViewBackButtonProps {
   onPress: () => void
-  desktopOnlyStyles_showButton: boolean
+  // desktopOnlyStyles_showButton: boolean
 }
 
-export const DetailViewBackButton = React.memo(
-  ({ onPress, desktopOnlyStyles_showButton }: DetailViewBackButtonProps) => {
-    return (
-      <Button
-        isIconOnly
-        className={`mr-3 text-default-500 -ml-2 ${desktopOnlyStyles_showButton ? '' : 'md:hidden'}`}
-        variant="light"
-        onPress={onPress}
-      >
-        <HiArrowLeft className="w-6 h-6" />
-      </Button>
-    )
-  },
-)
+export const DetailViewBackButton = React.memo(({ onPress }: DetailViewBackButtonProps) => {
+  return (
+    <Button isIconOnly className={`mr-3 text-default-500 -ml-2 md:hidden`} variant="light" onPress={onPress}>
+      <HiArrowLeft className="w-6 h-6" />
+    </Button>
+  )
+})
 
 DetailViewBackButton.displayName = 'DetailViewBackButton'
 
 export interface DetailViewHeaderProps_Common extends DetailViewActionsProps_Common {
   backButton_goBack: (() => void) | undefined
-  backButton_desktopOnlyStyles_showButton: boolean
 }
 
 export interface DetailViewHeaderProps_KnownWord extends DetailViewHeaderProps_Common {
@@ -105,7 +99,9 @@ export type DetailViewHeaderProps =
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
-const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) => {
+const DetailViewHeaderWord = (
+  props: (DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) & { LL: TranslationFunctions },
+) => {
   const { khmerFontFamily, word_displayHtml, phonetic, word_or_sentence__language } = props
 
   const h1Style = useMemo(
@@ -117,26 +113,31 @@ const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailVie
 
   return (
     <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
-      {props.backButton_goBack && (
-        <DetailViewBackButton
-          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
-          onPress={props.backButton_goBack}
-        />
-      )}
+      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
 
       <div className="flex-1">
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
           {h1Html && (
-            <h1 dangerouslySetInnerHTML={h1Html} className="font-bold text-foreground font-khmer" style={h1Style} />
+            <h1
+              dangerouslySetInnerHTML={h1Html}
+              className="font-bold text-foreground text-xl font-khmer"
+              style={h1Style}
+            />
           )}
           {phonetic && (
-            <Chip className="font-mono" color="secondary" size="sm" variant="flat">
+            <Chip className="font-mono text-xl" color="secondary" size="sm" variant="flat">
               /{phonetic}/
             </Chip>
           )}
         </div>
         <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest">
-          {word_or_sentence__language} Dictionary
+          {
+            {
+              en: props.LL.ANKI.LANGUAGES.ENGLISH(),
+              ru: props.LL.ANKI.LANGUAGES.RUSSIAN(),
+              km: props.LL.ANKI.LANGUAGES.KHMER(),
+            }[word_or_sentence__language]
+          }
         </div>
       </div>
 
@@ -148,12 +149,7 @@ const DetailViewHeaderWord = (props: DetailViewHeaderProps_KnownWord | DetailVie
 const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer) => {
   return (
     <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
-      {props.backButton_goBack && (
-        <DetailViewBackButton
-          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
-          onPress={props.backButton_goBack}
-        />
-      )}
+      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
       <div className="flex-1">{props.header}</div>
       <DetailViewActions {...props} />
     </CardHeader>
@@ -163,12 +159,7 @@ const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer)
 const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
   return (
     <CardHeader className="flex justify-between items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
-      {props.backButton_goBack && (
-        <DetailViewBackButton
-          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
-          onPress={props.backButton_goBack}
-        />
-      )}
+      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
       </div>
@@ -180,12 +171,7 @@ const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Kh
 const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
   return (
     <CardHeader className="flex shrink-0 items-center px-6 py-4 border-b border-divider bg-content1/50 backdrop-blur-md z-10 sticky top-0 pt-[calc(env(safe-area-inset-top))]">
-      {props.backButton_goBack && (
-        <DetailViewBackButton
-          desktopOnlyStyles_showButton={props.backButton_desktopOnlyStyles_showButton}
-          onPress={props.backButton_goBack}
-        />
-      )}
+      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
       </div>
@@ -195,12 +181,14 @@ const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And
 }
 
 const DetailViewHeaderImpl = (props: DetailViewHeaderProps) => {
+  const { LL } = useI18nContext()
+
   switch (props.type) {
     case 'sentence_analyzer':
       return <DetailViewHeaderSentence {...props} />
     case 'known_word':
     case 'anki_game_back':
-      return <DetailViewHeaderWord {...props} />
+      return <DetailViewHeaderWord {...props} LL={LL} />
     case 'anki_game_front_and_khmer_words_are_shown':
       return <AnkiFrontHeaderShown {...props} />
     case 'anki_game_front_and_khmer_words_are_not_shown':

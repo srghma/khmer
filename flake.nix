@@ -73,17 +73,18 @@
             "34"
             "28"
           ];
+          includeEmulator = true;
+          includeSystemImages = true;
+          systemImageTypes = [ "google_apis" ];
           abiVersions = [
-            "armeabi-v7a"
+            "x86_64"
+            # "armeabi-v7a"
             "arm64-v8a"
           ];
 
-          # --- ADD THESE LINES ---
           includeNDK = true;
-          # The version specifically requested by your Gradle error
           ndkVersions = [ "28.2.13676358" ];
           cmakeVersions = [ "3.22.1" ];
-          # -----------------------
         };
         androidSdk = androidComposition.androidsdk;
 

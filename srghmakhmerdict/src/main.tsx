@@ -10,6 +10,8 @@ import { DictionaryProvider } from './providers/DictionaryProvider'
 import { GlobalErrorBoundary } from './components/ErrorBoundary'
 import { FavoritesProvider } from './providers/FavoritesProvider'
 import { HistoryProvider } from './providers/HistoryProvider'
+import { I18nAppProvider } from './providers/I18nAppProvider'
+import { IapProvider } from './providers/IapProvider'
 import { useHashLocation } from 'wouter/use-hash-location'
 
 import { Router } from 'wouter'
@@ -25,7 +27,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
             <FavoritesProvider>
               <HistoryProvider>
                 <SettingsProvider>
-                  <App />
+                  <IapProvider>
+                    <I18nAppProvider>
+                      <App />
+                    </I18nAppProvider>
+                  </IapProvider>
                 </SettingsProvider>
               </HistoryProvider>
             </FavoritesProvider>

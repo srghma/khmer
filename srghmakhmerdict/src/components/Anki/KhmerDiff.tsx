@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { diffArrays } from 'diff'
+import { diffChars } from 'diff'
 import clsx from 'clsx'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
@@ -9,32 +9,29 @@ interface KhmerDiffProps {
   className?: string
 }
 
-export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }: KhmerDiffProps) => {
-  const diffs = useMemo(() => {
-    // We use Intl.Segmenter to split Khmer text into grapheme clusters.
-    // This is crucial because standard character-based diffing can split a base character
-    // from its diacritics, which breaks Khmer rendering in separate <span> elements.
-    const segmenter = new Intl.Segmenter('km', { granularity: 'grapheme' })
-    const expectedClusters = Array.from(segmenter.segment(inDictExpected)).map(s => s.segment)
-    const userClusters = Array.from(segmenter.segment(userProvider)).map(s => s.segment)
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
-    // diffArrays(oldValue, newValue)
+export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }: KhmerDiffProps) => {
+  const { LL } = useI18nContext()
+  const diffs = useMemo(() => {
+    // diffChars(oldValue, newValue)
     // oldValue: inDictExpected (the correct version)
     // newValue: userProvider (what the user typed)
-    // - added: present in newValue (user) but not oldValue (dict) -> Extra character
-    // - removed: present in oldValue (dict) but not newValue (user) -> Missing character
-    return diffArrays(expectedClusters, userClusters)
+    return diffChars(userProvider, inDictExpected)
   }, [inDictExpected, userProvider])
 
   return (
-    <div className={clsx('text-2xl leading-loose', className)}>
+    <div className={clsx('text-2xl leading-loose break-all', className)}>
       {diffs.map((part, index) => {
-        const value = part.value.join('')
+        const isDiff = part.added || part.removed
+        // If it's a difference, we split into characters and add non-breaking spaces
+        // to make diacritics visible and prevent composition issues.
+        const value = isDiff ? Array.from(part.value).join('\u00A0') : part.value
 
         // Case 1: Extra characters user typed that shouldn't be there
         if (part.added) {
           return (
-            <span key={index} className="text-success" title="Extra character">
+            <span key={index} className="text-success font-bold" title={LL.ANKI.DIFF.EXTRA()}>
               {value}
             </span>
           )
@@ -43,7 +40,7 @@ export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }
         // Case 2: Characters missing from user input (present in expected)
         if (part.removed) {
           return (
-            <span key={index} className="text-danger" title="Missing character">
+            <span key={index} className="text-danger font-bold" title={LL.ANKI.DIFF.MISSING()}>
               {value}
             </span>
           )

@@ -35,7 +35,7 @@ export const NavButton = memo<NavButtonProps>(({ label, active, onClick, onLongP
 
   const computedClass = useMemo(
     () =>
-      `cursor-pointer py-0.5 w-full text-center text-[10px] font-medium transition-all hover:brightness-110 ${
+      `cursor-pointer py-0.5 w-full text-center font-medium transition-all hover:brightness-110 ${
         active ? 'font-bold scale-125' : ''
       } ${className || 'text-default-400'} ${active && !className ? 'text-primary' : ''}`,
     [active, className],
@@ -111,7 +111,7 @@ export const NavButton = memo<NavButtonProps>(({ label, active, onClick, onLongP
 
   return (
     <button
-      className={computedClass}
+      className={`${computedClass} text-tiny`}
       onContextMenu={handleContextMenu}
       onKeyDown={handleKeyDown}
       onPointerCancel={handleCancel}
@@ -128,6 +128,6 @@ export const NavButton = memo<NavButtonProps>(({ label, active, onClick, onLongP
 NavButton.displayName = 'NavButton'
 
 export const SidebarHeader = memo(({ children }: { children: React.ReactNode }) => (
-  <div className="mb-2 text-[8px] font-bold text-default-300 uppercase tracking-widest text-center">{children}</div>
+  <div className={`mb-2 font-bold text-default-300 uppercase tracking-widest text-center text-xs`}>{children}</div>
 ))
 SidebarHeader.displayName = 'SidebarHeader'

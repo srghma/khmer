@@ -9,22 +9,25 @@ import { parseWikiHref } from '../utils/wikiLinkParser'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyles } from '../hooks/useKhmerLinks'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useSettings } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
 
-export const useWiktionaryContent = (html: NonEmptyStringTrimmed) => {
+import { processHtmlForPronunciationHiding } from '../utils/text-processing/pronunciation'
+
+export const useWiktionaryContent = (html: NonEmptyStringTrimmed, isKhmerPronunciationHidingEnabled: boolean) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
 
   return useMemo(() => {
-    if (maybeColorMode === 'none') return { __html: html }
+    const html_withPronunciations = processHtmlForPronunciationHiding(
+      html,
+      isKhmerPronunciationHidingEnabled,
+      'wiktionary',
+    )
 
-    if (!isContainsKhmer(html)) return { __html: html }
-
-    return { __html: colorizeHtml(html, maybeColorMode, km_map) }
-  }, [html, maybeColorMode, km_map])
+    return { __html: colorizeHtml(html_withPronunciations, maybeColorMode, km_map) }
+  }, [html, maybeColorMode, km_map, isKhmerPronunciationHidingEnabled])
 }
 
 const useWikiLinkHandler = (
@@ -34,6 +37,8 @@ const useWikiLinkHandler = (
   currentMode: DictionaryLanguage,
   toast: ReturnType<typeof useAppToast>,
 ) => {
+  const { en, ru } = useDictionary()
+
   return useCallback(
     (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -42,25 +47,66 @@ const useWikiLinkHandler = (
       if (!targetAnchor) return
 
       const href = targetAnchor.getAttribute('href')
+
+      if (!href) return
+
       const result = parseWikiHref(href)
+
+      const processAsExternal = () => {
+        const isRelativeLink = href.startsWith('/')
+        const absoluteHref = isRelativeLink ? `https://en.wiktionary.org${href}` : href
+
+        targetAnchor.setAttribute('href', absoluteHref)
+        targetAnchor.setAttribute('target', '_blank')
+        targetAnchor.setAttribute('rel', 'noopener noreferrer')
+      }
+
+      const processAsInternal = (
+        isKhmerLinksEnabled_ifTrue_passOnNavigate_: (term: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void,
+        term: NonEmptyStringTrimmed,
+        mode: DictionaryLanguage,
+      ) => {
+        e.preventDefault()
+        isKhmerLinksEnabled_ifTrue_passOnNavigate_(term, mode)
+      }
 
       switch (result.kind) {
         case 'internal': {
           // TODO: we disable all links (instead of just clicks on colorized khmer word), maybe its bad (but in anki game we want to disable things that disable the game, so...)
           if (isKhmerLinksEnabled_ifTrue_passOnNavigate) {
-            e.preventDefault()
             const nextMode = detectModeFromText(result.term) ?? currentMode
 
-            isKhmerLinksEnabled_ifTrue_passOnNavigate?.(result.term, nextMode)
+            switch (nextMode) {
+              case 'km': {
+                processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
+                break
+              }
+              case 'en': {
+                if (en.has(result.term)) {
+                  processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
+                } else {
+                  processAsExternal()
+                }
+                break
+              }
+              case 'ru': {
+                if (ru.has(result.term)) {
+                  processAsInternal(isKhmerLinksEnabled_ifTrue_passOnNavigate, result.term, nextMode)
+                } else {
+                  processAsExternal()
+                }
+                break
+              }
+              default:
+                assertNever(nextMode)
+            }
           } else {
-            targetAnchor.setAttribute('target', '_blank')
-            targetAnchor.setAttribute('rel', 'noopener noreferrer')
+            processAsExternal()
           }
           break
         }
         case 'external': {
-          targetAnchor.setAttribute('target', '_blank')
-          targetAnchor.setAttribute('rel', 'noopener noreferrer')
+          processAsExternal()
           break
         }
         case 'invalid': {
@@ -74,7 +120,7 @@ const useWikiLinkHandler = (
           assertNever(result)
       }
     },
-    [isKhmerLinksEnabled_ifTrue_passOnNavigate, currentMode, toast],
+    [isKhmerLinksEnabled_ifTrue_passOnNavigate, currentMode, toast, en, ru],
   )
 }
 
@@ -87,6 +133,7 @@ interface WiktionaryRendererProps {
   currentMode: DictionaryLanguage
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
 }
 
 export const WiktionaryRenderer = ({
@@ -96,11 +143,12 @@ export const WiktionaryRenderer = ({
   currentMode,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // 1. Process HTML (Colorization)
-  const content = useWiktionaryContent(html)
+  const content = useWiktionaryContent(html, isKhmerPronunciationHidingEnabled)
 
   const toast = useAppToast()
 
@@ -111,6 +159,7 @@ export const WiktionaryRenderer = ({
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
     wikiLinkHandler,
   )
 
@@ -118,6 +167,7 @@ export const WiktionaryRenderer = ({
     !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
   )
 
   // 3. Dynamic Class for Interaction

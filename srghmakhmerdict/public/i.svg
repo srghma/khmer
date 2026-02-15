@@ -1,0 +1,123 @@
+<svg width="1024" height="500" viewBox="0 0 1024 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8ec5fc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c8e6c9;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Subtle Khmer Background Pattern -->
+    <pattern id="khmerPattern" x="0" y="0" width="200" height="100" patternUnits="userSpaceOnUse">
+      <text x="10" y="60" font-family="sans-serif" font-size="40" fill="white" opacity="0.15" font-weight="bold">
+        ក ខ គ
+      </text>
+    </pattern>
+
+    <!-- Filter for Drop Shadow on Text -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="2" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Rectangles -->
+  <rect width="100%" height="100%" fill="url(#bgGrad)" />
+  <rect width="100%" height="100%" fill="url(#khmerPattern)" />
+
+  <!-- ================= LOGO SECTION (Left) ================= -->
+  <g transform="translate(80, 110) scale(1.3)">
+
+    <!-- TOP: CAMBODIA (KM) -->
+    <g transform="translate(60, 0)">
+      <rect width="120" height="80" fill="#032ea1"/>
+      <rect y="20" width="120" height="40" fill="#e00025"/>
+      <!-- Simplified Angkor Wat -->
+      <path d="M25,55 L95,55 L95,50 L85,50 L85,45 L75,45 L75,35 L65,35 L60,30 L55,35 L45,35 L45,45 L35,45 L35,50 L25,50 Z" fill="white" stroke="black" stroke-width="1"/>
+      <rect width="120" height="80" fill="none" stroke="white" stroke-width="2"/>
+    </g>
+
+    <!-- BOTTOM LEFT: UK (EN) -->
+    <g transform="translate(0, 85)">
+      <rect width="120" height="80" fill="#012169"/>
+      <path d="M0,0 L120,80 M120,0 L0,80" stroke="white" stroke-width="12" />
+      <path d="M0,0 L120,80 M120,0 L0,80" stroke="#C8102E" stroke-width="4" />
+      <path d="M60,0 L60,80 M0,40 L120,40" stroke="white" stroke-width="20" />
+      <path d="M60,0 L60,80 M0,40 L120,40" stroke="#C8102E" stroke-width="12" />
+      <rect width="120" height="80" fill="none" stroke="white" stroke-width="2"/>
+    </g>
+
+    <!-- BOTTOM RIGHT: RUSSIA (RU - WBW Version) -->
+    <g transform="translate(125, 85)">
+      <!-- Top: White -->
+      <rect width="120" height="26.6" y="0" fill="white"/>
+      <!-- Mid: Azure -->
+      <rect width="120" height="26.6" y="26.6" fill="#0083d6"/>
+      <!-- Bot: White (Change fill="#D52B1E" for Red) -->
+      <rect width="120" height="26.6" y="53.2" fill="white"/>
+      <rect width="120" height="80" fill="none" stroke="#999" stroke-width="1"/>
+    </g>
+  </g>
+
+  <!-- ================= TEXT SECTION (Right) ================= -->
+  <g transform="translate(450, 80)" font-family="Arial, sans-serif">
+
+    <!-- Title -->
+    <text x="0" y="40" font-size="42" font-weight="bold" fill="#003366" filter="url(#shadow)">
+      Khmer <tspan fill="#444">↔</tspan> Russian/English
+    </text>
+    <text x="0" y="90" font-size="36" font-weight="bold" fill="#003366" opacity="0.8">
+      Dictionary
+    </text>
+
+    <!-- STATS GRID Background -->
+    <rect x="0" y="120" width="520" height="150" rx="10" fill="white" opacity="0.4" />
+
+    <!-- Stats Row 1: English -->
+    <g transform="translate(20, 160)">
+      <circle cx="10" cy="-5" r="5" fill="#012169"/>
+      <text x="25" y="0" font-size="22" font-weight="bold" fill="#333">En → Km: <tspan fill="#003366">85,000</tspan></text>
+
+      <circle cx="270" cy="-5" r="5" fill="#032ea1"/>
+      <text x="285" y="0" font-size="22" font-weight="bold" fill="#333">Km → En: <tspan fill="#003366">42,000</tspan></text>
+    </g>
+
+    <!-- Stats Row 2: Russian -->
+    <g transform="translate(20, 210)">
+      <circle cx="10" cy="-5" r="5" fill="#0083d6"/>
+      <text x="25" y="0" font-size="22" font-weight="bold" fill="#333">Ru → Km: <tspan fill="#003366">3,000</tspan></text>
+
+      <circle cx="270" cy="-5" r="5" fill="#032ea1"/>
+      <text x="285" y="0" font-size="22" font-weight="bold" fill="#333">Km → Ru: <tspan fill="#003366">4,000</tspan></text>
+    </g>
+
+    <!-- Separator Line -->
+    <line x1="20" y1="240" x2="500" y2="240" stroke="#003366" stroke-width="2" opacity="0.2" />
+
+    <!-- FEATURES LIST (Bottom) -->
+    <g transform="translate(0, 310)">
+      <!-- Feature 1 -->
+      <g transform="translate(0,0)">
+         <rect width="160" height="40" rx="20" fill="#003366" />
+         <text x="80" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Sentence Analyzer</text>
+      </g>
+      <!-- Feature 2 -->
+      <g transform="translate(170,0)">
+         <rect width="140" height="40" rx="20" fill="#003366" />
+         <text x="70" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Anki Game</text>
+      </g>
+      <!-- Feature 3 -->
+      <g transform="translate(320,0)">
+         <rect width="180" height="40" rx="20" fill="#003366" />
+         <text x="90" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Audio Pronunciation</text>
+      </g>
+    </g>
+
+  </g>
+</svg>

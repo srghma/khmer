@@ -1,5 +1,5 @@
 .enKmScope {
-  font-size: 1rem;
+  font-size: inherit;
   line-height: 1.6;
   color: hsl(var(--heroui-foreground) / 0.9);
 }
@@ -36,7 +36,7 @@
   display: inline-block;
   margin-top: 4px;
   margin-left: 2px;
-  font-size: 0.9rem;
+  font-size: inherit;
   color: hsl(var(--heroui-foreground) / 0.7);
   font-style: italic;
   font-family: 'Hanuman', serif;

@@ -62,7 +62,21 @@ export type KhmerInfo =
   | { type: 'khmer_lunar_date'; v: CharKhmerLunarDateSymbol }
   | { type: 'khmer_other_known'; v: NonEmptyStringTrimmed }
 
+const extractionCache = new Map<NonEmptyStringTrimmed, KhmerInfo>()
+
 export function extractKeysKhmer(word: NonEmptyStringTrimmed): KhmerInfo {
+  const cached = extractionCache.get(word)
+
+  if (cached) return cached
+
+  const result = extractKeysKhmerImpl(word)
+
+  extractionCache.set(word, result)
+
+  return result
+}
+
+function extractKeysKhmerImpl(word: NonEmptyStringTrimmed): KhmerInfo {
   const otherW = otherKnownKhmerWords.find(w => word === w)
 
   if (otherW) return { type: 'khmer_other_known', v: otherW }

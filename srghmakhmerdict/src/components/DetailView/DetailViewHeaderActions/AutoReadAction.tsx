@@ -7,12 +7,17 @@ import { MdRecordVoiceOver } from 'react-icons/md'
 
 import { useSettings, type AutoReadMode } from '../../../providers/SettingsProvider'
 import { herouiSharedSelection_getFirst_string } from '../../../utils/herouiSharedSelection_getFirst_string'
+import { useI18nContext } from '../../../i18n/i18n-react-custom'
+
+import { cn } from '@heroui/theme'
+import { details_header__text_className } from '../../header_classNames'
 
 const isAutoReadMode = (key: string): key is AutoReadMode => {
   return ['disabled', 'google_then_native', 'google_only', 'native_only'].includes(key)
 }
 
 export const AutoReadAction = memo(() => {
+  const { LL } = useI18nContext()
   const { autoReadMode, setAutoReadMode } = useSettings()
 
   const selectedKeys = useMemo(() => [autoReadMode], [autoReadMode])
@@ -31,25 +36,28 @@ export const AutoReadAction = memo(() => {
   return (
     <Dropdown>
       <DropdownTrigger>
-        <Button isIconOnly radius="full" variant="light">
-          <TooltipMobileFriendly closeDelay={0} content="Auto-Read Settings">
+        <TooltipMobileFriendly closeDelay={0} content={LL.AUTOREAD.TITLE()}>
+          <Button isIconOnly className={details_header__text_className} radius="full" variant="light">
             <MdRecordVoiceOver
-              className={`h-6 w-6 ${autoReadMode !== 'disabled' ? 'text-primary' : 'text-default-500'}`}
+              className={cn(
+                autoReadMode !== 'disabled' ? 'text-primary' : 'text-default-500',
+                details_header__text_className,
+              )}
             />
-          </TooltipMobileFriendly>
-        </Button>
+          </Button>
+        </TooltipMobileFriendly>
       </DropdownTrigger>
       <DropdownMenu
         disallowEmptySelection
-        aria-label="Auto-Read Settings"
+        aria-label={LL.AUTOREAD.TITLE()}
         selectedKeys={selectedKeys}
         selectionMode="single"
         onSelectionChange={handleModeChange}
       >
-        <DropdownItem key="disabled">Disabled</DropdownItem>
-        <DropdownItem key="google_then_native">Prefer Google & Fallback to Native</DropdownItem>
-        <DropdownItem key="google_only">Google Only (won't work if offline)</DropdownItem>
-        <DropdownItem key="native_only">Native Only</DropdownItem>
+        <DropdownItem key="disabled">{LL.AUTOREAD.DISABLED()}</DropdownItem>
+        <DropdownItem key="google_then_native">{LL.AUTOREAD.GOOGLE_THEN_NATIVE()}</DropdownItem>
+        <DropdownItem key="google_only">{LL.AUTOREAD.GOOGLE_ONLY()}</DropdownItem>
+        <DropdownItem key="native_only">{LL.AUTOREAD.NATIVE_ONLY()}</DropdownItem>
       </DropdownMenu>
     </Dropdown>
   )

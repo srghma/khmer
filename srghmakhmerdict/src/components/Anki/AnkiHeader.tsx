@@ -40,9 +40,9 @@ const TabItemContent = memo(function TabItemContent({
 }) {
   return (
     <div className={cn('flex items-center gap-2 transition-all duration-200', isDisabled && 'grayscale opacity-30')}>
-      <div className={cn('transition-all scale-125 md:scale-100 origin-center', isDisabled && 'scale-90')}>{icon}</div>
+      <div className={cn('transition-all origin-center text-xl', isDisabled && 'scale-90')}>{icon}</div>
       {total > 0 && (
-        <span className={cn('text-[10px] font-mono font-black tabular-nums px-1 rounded-sm')}>
+        <span className={cn('font-mono font-black tabular-nums px-1 rounded-sm text-xs')}>
           {today}/{total}
         </span>
       )}
@@ -55,6 +55,8 @@ const tabsClassNames = {
   tab: 'md:h-12 h-16 px-2',
   cursor: 'bg-secondary',
 }
+
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
@@ -70,6 +72,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     onExit,
   }) => {
     const { navigateToLanguage } = useAnkiNavigation()
+    const { LL } = useI18nContext()
 
     const isGuessingKhmer = direction === 'GUESSING_KHMER'
 
@@ -120,12 +123,20 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
 
     const toggleTitle = useMemo(
       () => (
-        <div className="flex flex-col items-center justify-center font-black uppercase text-secondary text-xs">
-          <span>Guessing</span>
-          <span>{isGuessingKhmer ? 'Khmer' : { en: 'English', ru: 'Russian', km: 'En/Ru' }[activeDict]}</span>
+        <div className={cn('flex flex-col items-center justify-center font-black uppercase text-secondary text-sm')}>
+          <span className="leading-none">{LL.ANKI.MODES.GUESSING()}</span>
+          <span className={cn('leading-none text-base')}>
+            {isGuessingKhmer
+              ? LL.ANKI.LANGUAGES.KHMER()
+              : {
+                  en: LL.ANKI.LANGUAGES.ENGLISH(),
+                  ru: LL.ANKI.LANGUAGES.RUSSIAN(),
+                  km: LL.ANKI.LANGUAGES.EN_RU(),
+                }[activeDict]}
+          </span>
         </div>
       ),
-      [isGuessingKhmer, activeDict],
+      [isGuessingKhmer, activeDict, LL],
     )
 
     return (
@@ -134,7 +145,8 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
           <div className="flex-1">
             <Tabs
               fullWidth
-              aria-label="Anki Dictionary Tabs"
+              aria-label={LL.ANKI.ARIA.TABS()}
+              className="text-base"
               classNames={tabsClassNames}
               color="secondary"
               radius="sm"
@@ -157,7 +169,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
             variant="light"
             onPress={onExit}
           >
-            <IoClose className="text-2xl" />
+            <IoClose className="text-xl" />
           </Button>
         </div>
       </div>

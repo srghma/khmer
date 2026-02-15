@@ -14,16 +14,9 @@ interface DetailViewProps {
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   highlightMatch: NonEmptyStringTrimmed | undefined
   backButton_goBack: (() => void) | undefined
-  backButton_desktopOnlyStyles_showButton: boolean
 }
 
-const DetailViewImpl = ({
-  word,
-  mode,
-  onNavigate,
-  backButton_goBack,
-  backButton_desktopOnlyStyles_showButton,
-}: DetailViewProps) => {
+const DetailViewImpl = ({ word, mode, onNavigate, backButton_goBack }: DetailViewProps) => {
   const res = useWordData(word, mode)
 
   // 1. Loading state
@@ -37,21 +30,12 @@ const DetailViewImpl = ({
 
   // 4. Not Found (Show Analyzer)
   if (res.t === 'not_found') {
-    return (
-      <DetailViewNotFound
-        backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
-        backButton_goBack={backButton_goBack}
-        mode={mode}
-        word={word}
-        onNavigate={onNavigate}
-      />
-    )
+    return <DetailViewNotFound backButton_goBack={backButton_goBack} mode={mode} word={word} onNavigate={onNavigate} />
   }
 
   // 5. Found (Show Details)
   return (
     <DetailViewFound
-      backButton_desktopOnlyStyles_showButton={backButton_desktopOnlyStyles_showButton}
       backButton_goBack={backButton_goBack}
       data={res.detail}
       isFav={res.isFav}

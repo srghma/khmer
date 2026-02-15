@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import type { ProcessDataOutput } from '../utils/toGroup'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { VirtualizedList } from './VirtualizedList'
+import { VirtualizedList, type FlatListItem } from './VirtualizedList'
 import { L12SidebarGeneral } from './L12SidebarGeneral'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { Char_mkOrThrow, type Char } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char'
@@ -9,8 +9,9 @@ import { isCharUppercaseCyrillic } from '@gemini-ocr-automate-images-upload-chro
 import { isCharUppercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char-uppercase-latin'
 import { useWordListCommon } from '../hooks/useWordListCommon'
 import { flattenGeneralData, type GeneralChar } from '../utils/flattenGeneralData'
+import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
-import type { SearchMode } from '../providers/SettingsProvider'
+import { useSettings, type SearchMode } from '../providers/SettingsProvider'
 
 type L12SidebarGeneral_activeL1 = GeneralChar | '*'
 
@@ -40,12 +41,13 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
   contentMatches,
   searchMode,
 }) => {
+  const { LL } = useI18nContext()
   const [activeL1, setActiveL1] = useState<GeneralChar | '*'>(assertIsDefinedAndReturn(data.groups[0]?.letter ?? '*'))
 
   // 1. Flatten Data
   const { flatList, stickyIndexes, l1Map, exactMatchIndex } = useMemo(
-    () => flattenGeneralData(data, searchQuery, contentMatches),
-    [data, contentMatches, searchQuery],
+    () => flattenGeneralData(data, searchQuery, contentMatches, LL.COMMON.FOUND_IN_CONTENT()),
+    [data, contentMatches, searchQuery, LL],
   )
 
   // 2. Common List Logic (Refs, Scrolling, Rendering)
@@ -62,24 +64,20 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
       const item = flatList[idx]
 
       if (item?.type === 'header') {
-        try {
-          if (item.label === 'Found in content') return
-          if (item.label === '*') {
-            setActiveL1('*')
+        if (item.label === LL.COMMON.FOUND_IN_CONTENT()) return
+        if (item.label === '*') {
+          setActiveL1('*')
 
-            return
-          }
-          const char = Char_mkOrThrow(item.label)
+          return
+        }
+        const char = Char_mkOrThrow(item.label)
 
-          if (isL12SidebarGeneral_activeL1(char)) {
-            setActiveL1(char)
-          }
-        } catch {
-          /* Ignore */
+        if (isL12SidebarGeneral_activeL1(char)) {
+          setActiveL1(char)
         }
       }
     },
-    [flatList],
+    [flatList, LL],
   )
 
   // 4. Sidebar Handler
@@ -93,6 +91,47 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
     scrollToIndex(idx)
   }
 
+  const renderItem = useCallback(
+    (item: FlatListItem) => {
+      const onClick = () => (item.type === 'header' ? undefined : onWordClick(item.word))
+
+      if (item.type === 'header') {
+        return (
+          <div
+            className={`h-full border-b border-divider flex items-center px-6 py-1 font-bold shadow-sm backdrop-blur-md font-khmer ${item.bgClass} text-xl`}
+          >
+            {item.label}
+          </div>
+        )
+      }
+
+      return (
+        <button
+          className={`h-full flex items-center px-6 border-b py-1 border-divider hover:brightness-95 dark:hover:brightness-110 w-full text-left transition-all ${item.bgClass}`}
+          onClick={onClick}
+        >
+          <span className={`text-foreground-900 leading-snug text-base`}>{renderWordItem(item.word)}</span>
+        </button>
+      )
+    },
+    [onWordClick, renderWordItem],
+  )
+
+  const { scaling_ui } = useSettings()
+  const estimateSize = useCallback(
+    (idx: number) => {
+      const isHeader = flatList[idx]?.type === 'header'
+      const baseHeight = isHeader ? 48 : 32
+
+      return (baseHeight * scaling_ui) / 14
+    },
+    [flatList, scaling_ui],
+  )
+  const keyExtractor = useCallback(
+    (item: FlatListItem) => (item.type === 'header' ? `header-${item.label}` : `word-${item.word}`),
+    [],
+  )
+
   return (
     <div className="flex h-full w-full relative">
       <L12SidebarGeneral
@@ -103,11 +142,12 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
       />
       <VirtualizedList
         ref={listRef}
+        estimateSize={estimateSize}
         items={flatList}
-        renderWord={renderWordItem}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         stickyIndexes={stickyIndexes}
         onActiveHeaderChange={onActiveHeaderChange}
-        onWordClick={onWordClick}
       />
     </div>
   )

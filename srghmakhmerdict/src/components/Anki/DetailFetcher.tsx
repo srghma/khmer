@@ -7,13 +7,13 @@ import { useWordData } from '../../hooks/useWordData'
 import { AnkiCardDetailView } from './AnkiCardDetailView'
 import { type AnkiGameMode } from './types'
 
+import { useI18nContext } from '../../i18n/i18n-react-custom'
+
 const DetailFetcher_loading = (
   <div className="flex justify-center p-4">
     <Spinner size="sm" />
   </div>
 )
-
-const DetailFetcher_not_found = <div className="text-danger text-center p-4">Failed to load definition</div>
 
 export const DetailFetcher = React.memo(
   ({
@@ -37,10 +37,13 @@ export const DetailFetcher = React.memo(
     setUserAnswer: Dispatch<SetStateAction<string>>
     onReveal: () => void
   }) => {
+    const { LL } = useI18nContext()
     const result = useWordData(word, language)
 
     if (result.t === 'loading') return DetailFetcher_loading
-    if (result.t === 'not_found') return DetailFetcher_not_found
+    if (result.t === 'not_found') {
+      return <div className="text-danger text-center p-4">{LL.ANKI.FETCH_FAILED()}</div>
+    }
 
     const d: WordDetailEnOrRuOrKm = result.detail
 

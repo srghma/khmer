@@ -3,6 +3,7 @@ import { SiGoogletranslate } from 'react-icons/si'
 import { type GoogleTtsState } from '../../hooks/useGoogleTts'
 import { clsx } from 'clsx'
 import { HiOutlineSpeakerWave } from 'react-icons/hi2'
+import { details_header__text_className } from '../header_classNames'
 
 const OfflineOverlay = (
   <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none text-danger">
@@ -15,19 +16,21 @@ const OfflineOverlay = (
 
 const CompositeIcon = (
   <>
-    <SiGoogletranslate className="absolute top-0 left-0 w-full h-full scale-50 origin-top-left" />
-    <HiOutlineSpeakerWave className="absolute bottom-0 right-0 w-full h-full scale-65 origin-bottom-right" />
+    <SiGoogletranslate className="absolute -top-1 -left-1 w-full h-full scale-70 origin-top-left" />
+    <HiOutlineSpeakerWave className="absolute -bottom-1 -right-1 w-full h-full scale-75 origin-bottom-right z-1" />
   </>
 )
 
 export const GoogleSpeakerIcon = React.memo((props: GoogleTtsState & { className?: string }) => {
   const isOffline = props.t === 'offline'
+  const isDisabled = props.t === 'disabled'
   const isSpeaking = props.t === 'online_and_speaking'
 
   return (
     <div
       className={clsx(
-        'relative w-6 h-6 transition-colors duration-200',
+        'relative transition-colors duration-200',
+        details_header__text_className,
         isSpeaking ? 'text-primary' : 'text-current',
         props.className,
       )}
@@ -35,7 +38,7 @@ export const GoogleSpeakerIcon = React.memo((props: GoogleTtsState & { className
       <div
         className={clsx(
           'relative w-full h-full transition-all duration-300',
-          isOffline && 'opacity-30 grayscale',
+          (isOffline || isDisabled) && 'opacity-30 grayscale',
           isSpeaking && 'scale-110',
         )}
       >
