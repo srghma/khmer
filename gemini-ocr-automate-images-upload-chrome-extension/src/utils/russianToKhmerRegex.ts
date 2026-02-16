@@ -1,16 +1,3 @@
-import {
-  type ConsonantDef,
-  type VowelDef,
-  type ExtraConsonantDef,
-  type VowelCombinationDef,
-  type IndependentVowelDef,
-  CONSONANTS,
-  VOWELS,
-  EXTRA_CONSONANTS,
-  VOWEL_COMBINATIONS,
-  INDEPENDENT_VOWELS,
-} from './khmer-consonants-vovels'
-
 /**
  * Maps Russian phoneme sequences to Khmer characters.
  * This mapping is used for fuzzy pronunciation-based search.
@@ -20,7 +7,32 @@ const RUSSIAN_PHONEME_MAP: Record<string, string[]> = {
   к: ['ក', 'គ', 'ខ', 'ឃ', '្ក', '្ខ', '្គ', '្ឃ'],
   кх: ['ខ', 'ឃ', '្ខ', '្ឃ'],
   нг: ['ង', '្ង'],
-  т: ['ត', 'ទ', 'ថ', 'ធ', 'ដ', 'ឌ', 'ឋ', 'ឍ', 'ច', 'ឆ', 'ជ', 'ឈ', '្ត', '្ទ', '្ឋ', '្ធ', '្ដ', '្ឌ', '្ឋ', '្ឍ', '្ច', '្ឆ', '្ជ', '្ឈ'],
+  т: [
+    'ត',
+    'ទ',
+    'ថ',
+    'ធ',
+    'ដ',
+    'ឌ',
+    'ឋ',
+    'ឍ',
+    'ច',
+    'ឆ',
+    'ជ',
+    'ឈ',
+    '្ត',
+    '្ទ',
+    '្ឋ',
+    '្ធ',
+    '្ដ',
+    '្ឌ',
+    '្ឋ',
+    '្ឍ',
+    '្ច',
+    '្ឆ',
+    '្ជ',
+    '្ឈ',
+  ],
   тх: ['ថ', 'ធ', 'ឋ', 'ឍ', 'ឆ', 'ឈ', '្ឋ', '្ធ', '្ឋ', '្ឍ', '្ឆ', '្ឈ'],
   д: ['ដ', 'ឌ', '្ដ', '្ឌ'],
   н: ['ន', 'ណ', 'ញ', 'ហ្ន', '្ន', '្ណ', '្ញ'],
@@ -95,9 +107,7 @@ export const russianToKhmerRegex = (russianText: string): string => {
       if (remaining.startsWith(phoneme)) {
         const khmerChars = RUSSIAN_PHONEME_MAP[phoneme]!
         // Escape any regex characters and join with |
-        const group = khmerChars
-          .map(c => (c === '' ? '' : c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
-          .filter(Boolean)
+        const group = khmerChars.map(c => (c === '' ? '' : c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))).filter(Boolean)
 
         if (group.length > 0) {
           // If the group contains an empty string behavior (like 'а'), handle it

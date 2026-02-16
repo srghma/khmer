@@ -359,7 +359,7 @@ const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_Se
   } = props
 
   return (
-    <div className="flex gap-2 shrink-0 flex-wrap justify-end pr-[env(safe-area-inset-right)]">
+    <>
       <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <NativeSpeechAction
@@ -368,7 +368,7 @@ const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_Se
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <AutoReadAction />
-    </div>
+    </>
   )
 })
 
@@ -377,10 +377,10 @@ DetailViewActionsSentenceAnalyzer.displayName = 'DetailViewActionsSentenceAnalyz
 const DetailViewActionsAnkiFrontShown = memo(
   (props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
     return (
-      <div className="flex gap-2 shrink-0 flex-wrap justify-end pr-[env(safe-area-inset-right)]">
+      <>
         <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />
         <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
-      </div>
+      </>
     )
   },
 )
@@ -390,9 +390,9 @@ DetailViewActionsAnkiFrontShown.displayName = 'DetailViewActionsAnkiFrontShown'
 const DetailViewActionsAnkiFrontNotShown = memo(
   (props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
     return (
-      <div className="flex gap-2 shrink-0 flex-wrap justify-end pr-[env(safe-area-inset-right)]">
+      <>
         <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
-      </div>
+      </>
     )
   },
 )
@@ -418,7 +418,7 @@ const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord
   } = props
 
   return (
-    <div className="flex gap-2 shrink-0 flex-wrap justify-end pr-[env(safe-area-inset-right)]">
+    <>
       <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
       <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
       <KhmerLinksAction
@@ -435,7 +435,7 @@ const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <AutoReadAction />
       <FavoriteAction isFav={isFav} onToggle={toggleFav} />
-    </div>
+    </>
   )
 })
 
@@ -458,7 +458,7 @@ const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_B
   } = props
 
   return (
-    <div className="flex gap-2 shrink-0 flex-wrap justify-end pr-[env(safe-area-inset-right)]">
+    <>
       <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
       <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
       <KhmerLinksAction
@@ -475,7 +475,7 @@ const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_B
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <AutoReadAction />
       <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
-    </div>
+    </>
   )
 })
 

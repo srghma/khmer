@@ -238,7 +238,7 @@ export const AnkiCardDetailView = React.memo(
             </div>
           )}
 
-          <CardBody className="p-6 pt-4 gap-6">
+          <CardBody className="p-6 pt-0 gap-6">
             {!isRevealed && (
               <div className="flex justify-center mb-2">
                 <Input

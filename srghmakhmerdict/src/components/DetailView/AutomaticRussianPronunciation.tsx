@@ -47,7 +47,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
   const sameSoundingWords = useMemo(() => {
     const khmerWordsWithSamePronunciation = Map_filterKeys(
       km_map,
-      (_word, v: KhmerWordsMapValue) => v.ru_translit === ruPronunciation,
+      (word, v: KhmerWordsMapValue) => v.ru_translit === ruPronunciation && word !== khmerText,
     )
 
     // Filter dictionary for same pronunciation, excluding the current word itself

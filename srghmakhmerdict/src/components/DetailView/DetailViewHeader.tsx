@@ -18,7 +18,7 @@ interface DetailViewBackButtonProps {
 
 export const DetailViewBackButton = React.memo(({ onPress }: DetailViewBackButtonProps) => {
   return (
-    <Button isIconOnly className={`mr-3 text-default-500 -ml-2 md:hidden`} variant="light" onPress={onPress}>
+    <Button isIconOnly className={`mr-1 text-default-500 -ml-2 md:hidden shrink-0`} variant="light" onPress={onPress}>
       <HiArrowLeft className="w-6 h-6" />
     </Button>
   )
@@ -100,11 +100,19 @@ export type DetailViewHeaderProps =
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
+// --- GRID & LAYOUT CONFIGURATION ---
+
 const scrollShadowProps = {
   hideScrollBar: true,
   orientation: 'horizontal' as const,
-  // className: "overflow-y-auto" as const,
+  // flex-1: Takes all remaining width after Title
+  // min-w-0: Allows shrinking below content size (CRITICAL for scroll to trigger)
+  className: 'flex-1  min-w-0 h-full pr-[env(safe-area-inset-right)] !overflow-x-none',
 }
+
+const actionGridClassName = 'grid grid-rows-2 grid-flow-col auto-cols-max gap-1 items-center h-full w-max'
+
+// -----------------------------------
 
 const DetailViewHeaderWord = (
   props: (DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) & { LL: TranslationFunctions },
@@ -119,25 +127,27 @@ const DetailViewHeaderWord = (
   const h1Html = useMemo(() => (word_displayHtml ? { __html: word_displayHtml } : undefined), [word_displayHtml])
 
   return (
-    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
+    <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
+      {/* 1. Back Button (Always Visible) */}
       {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
 
-      <div className="flex-1">
-        <div className="flex items-center gap-1 flex-wrap">
-          {h1Html && (
-            <h1
-              dangerouslySetInnerHTML={h1Html}
-              className="font-bold text-foreground text-xl font-khmer"
-              style={h1Style}
-            />
-          )}
+      {/* 2. Central Text (Max 40%, Truncated) */}
+      <div className="flex flex-col justify-center max-w-[40%] min-w-0 shrink-0">
+        {h1Html && (
+          <h1
+            dangerouslySetInnerHTML={h1Html}
+            className="font-bold text-foreground text-xl font-khmer truncate"
+            style={h1Style}
+          />
+        )}
+        <div className="flex items-center gap-1 truncate">
           {phonetic && (
-            <Chip className="font-mono text-xl" color="secondary" size="sm" variant="flat">
+            <Chip className="font-mono shrink-0" color="secondary" size="sm" variant="flat">
               /{phonetic}/
             </Chip>
           )}
         </div>
-        <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest">
+        <div className="mt-1 text-tiny font-mono uppercase text-default-400 tracking-widest truncate">
           {
             {
               en: props.LL.ANKI.LANGUAGES.ENGLISH(),
@@ -148,8 +158,11 @@ const DetailViewHeaderWord = (
         </div>
       </div>
 
+      {/* 3. Actions (Fill Remaining Space, 2 Rows, Horizontal Scroll) */}
       <ScrollShadow {...scrollShadowProps}>
-        <DetailViewActions {...props} />
+        <div className={actionGridClassName}>
+          <DetailViewActions {...props} />
+        </div>
       </ScrollShadow>
     </CardHeader>
   )
@@ -157,11 +170,17 @@ const DetailViewHeaderWord = (
 
 const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer) => {
   return (
-    <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
+    <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
       {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
-      <div className="flex-1">{props.header}</div>
+
+      {/* Central Text */}
+      <div className="max-w-[40%] min-w-0 shrink-0 truncate">{props.header}</div>
+
+      {/* Actions */}
       <ScrollShadow {...scrollShadowProps}>
-        <DetailViewActions {...props} />
+        <div className={actionGridClassName}>
+          <DetailViewActions {...props} />
+        </div>
       </ScrollShadow>
     </CardHeader>
   )
@@ -169,28 +188,28 @@ const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer)
 
 const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
   return (
-    <CardHeader className="flex justify-between items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
+    <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
       {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
+
       <div className="flex-1">
-        <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
+        <span className="text-small uppercase text-default-400 font-bold tracking-widest truncate">{props.header}</span>
       </div>
-      <ScrollShadow {...scrollShadowProps}>
-        <DetailViewActions {...props} />
-      </ScrollShadow>
+
+      <DetailViewActions {...props} />
     </CardHeader>
   )
 }
 
 const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
   return (
-    <CardHeader className="flex shrink-0 items-center px-6 py-4 border-b border-divider bg-content1/50 backdrop-blur-md z-10 sticky top-0 pt-[calc(env(safe-area-inset-top))]">
+    <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
       {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
+
       <div className="flex-1">
-        <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
+        <span className="text-small uppercase text-default-400 font-bold tracking-widest truncate">{props.header}</span>
       </div>
-      <ScrollShadow {...scrollShadowProps}>
-        <DetailViewActions {...props} />
-      </ScrollShadow>
+
+      <DetailViewActions {...props} />
     </CardHeader>
   )
 }

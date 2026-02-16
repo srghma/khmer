@@ -322,7 +322,7 @@ export function useDictionarySearch({ activeTab, mode, searchMode, searchInConte
       if (!debouncedQuery) return
 
       // Step B: Validate Query
-      const queryResult = makeFilterQueryWithCache(debouncedQuery, searchMode)
+      const queryResult = makeFilterQueryWithCache(debouncedQuery, searchMode, activeTab)
 
       if (queryResult.t === 'error') {
         dispatch({ type: 'SET_REGEX_ERROR', error: queryResult.v })
