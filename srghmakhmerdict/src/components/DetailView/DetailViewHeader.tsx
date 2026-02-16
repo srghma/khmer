@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
+import { ScrollShadow } from '@heroui/scroll-shadow'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { DetailViewActions, type DetailViewActionsProps_Common } from './DetailViewHeaderActions'
@@ -99,6 +100,12 @@ export type DetailViewHeaderProps =
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
   | DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
+const scrollShadowProps = {
+  hideScrollBar: true,
+  orientation: 'horizontal' as const,
+  // className: "overflow-y-auto" as const,
+}
+
 const DetailViewHeaderWord = (
   props: (DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) & { LL: TranslationFunctions },
 ) => {
@@ -141,7 +148,9 @@ const DetailViewHeaderWord = (
         </div>
       </div>
 
-      <DetailViewActions {...props} />
+      <ScrollShadow {...scrollShadowProps}>
+        <DetailViewActions {...props} />
+      </ScrollShadow>
     </CardHeader>
   )
 }
@@ -151,7 +160,9 @@ const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer)
     <CardHeader className="flex justify-between items-start p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
       {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
       <div className="flex-1">{props.header}</div>
-      <DetailViewActions {...props} />
+      <ScrollShadow {...scrollShadowProps}>
+        <DetailViewActions {...props} />
+      </ScrollShadow>
     </CardHeader>
   )
 }
@@ -163,7 +174,9 @@ const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Kh
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
       </div>
-      <DetailViewActions {...props} />
+      <ScrollShadow {...scrollShadowProps}>
+        <DetailViewActions {...props} />
+      </ScrollShadow>
     </CardHeader>
   )
 }
@@ -175,7 +188,9 @@ const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest">{props.header}</span>
       </div>
-      <DetailViewActions {...props} />
+      <ScrollShadow {...scrollShadowProps}>
+        <DetailViewActions {...props} />
+      </ScrollShadow>
     </CardHeader>
   )
 }

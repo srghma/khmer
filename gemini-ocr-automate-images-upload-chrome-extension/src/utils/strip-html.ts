@@ -1,12 +1,23 @@
 import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 
-const parser = new DOMParser()
+let _parser: DOMParser | undefined
+
+const getParser = (): DOMParser => {
+  if (_parser) return _parser
+  if (typeof DOMParser !== 'undefined') {
+    _parser = new DOMParser()
+    return _parser
+  }
+  throw new Error(
+    'DOMParser is not defined. Ensure you are running in a browser-like environment or have provided a polyfill.',
+  )
+}
 
 export const stripHtml = (html: string, tagsToStripContent: NonEmptyStringTrimmed[] = []): string => {
   const trimmedHtml = html.trim()
   if (!trimmedHtml) return ''
 
-  const doc = parser.parseFromString(trimmedHtml, 'text/html')
+  const doc = getParser().parseFromString(trimmedHtml, 'text/html')
 
   // Remove specified tags and their children entirely
   for (const tag of tagsToStripContent) {

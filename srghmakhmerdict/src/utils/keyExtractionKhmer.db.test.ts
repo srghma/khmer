@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Database } from 'bun:sqlite'
+// import { Database } from 'bun:sqlite' (Dynamic import used below to avoid Vitest crash)
 import fs from 'node:fs'
 import { extractKeysKhmer, type KhmerInfo } from './keyExtractionKhmer'
 import {
@@ -12,12 +12,20 @@ import { unknown_to_errorMessage } from './errorMessage'
 const DB_PATH = '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/dict.db'
 
 describe('extractKeysKhmer (Real DB)', () => {
-  it('processes all words from km_Dict table without error', () => {
+  it('processes all words from km_Dict table without error', async () => {
+    if (typeof Bun === 'undefined') {
+      console.log('Skipping Bun-specific sqlite test in non-Bun environment.')
+
+      return
+    }
+
     if (!fs.existsSync(DB_PATH)) {
       console.warn(`Database file not found at ${DB_PATH}. Skipping DB test.`)
 
       return
     }
+
+    const { Database } = await import('bun:sqlite')
 
     console.log(`Connecting to database: ${DB_PATH}`)
     const db = new Database(DB_PATH, { readonly: true })

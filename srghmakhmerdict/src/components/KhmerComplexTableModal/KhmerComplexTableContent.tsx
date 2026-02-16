@@ -159,12 +159,14 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
               {/* Main Consonants */}
               <section>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {consonantsGrid.flat().map(
-                    (c, i) =>
-                      c && (
-                        <ConsonantBlock key={i} consonant={c} index={graphemeIndex.index} onClick={handleCellClick} />
-                      ),
-                  )}
+                  {consonantsGrid
+                    .flat()
+                    .map(
+                      (c, i) =>
+                        c && (
+                          <ConsonantBlock key={i} consonant={c} index={graphemeIndex.index} onClick={handleCellClick} />
+                        ),
+                    )}
                 </div>
               </section>
               {/* Supplementary */}

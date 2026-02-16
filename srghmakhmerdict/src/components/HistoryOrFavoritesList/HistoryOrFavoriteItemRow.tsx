@@ -4,6 +4,7 @@ import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.mo
 
 // Types & Utils
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { type DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { colorizeText } from '../../utils/text-processing/text'
@@ -56,8 +57,12 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
 
     const isSentence = useMemo(() => {
       switch (language) {
-        case 'km':
-          return !km_map.has(word)
+        case 'km': {
+          const khmerWord = strToContainsKhmerOrUndefined(word)
+
+          return !khmerWord || !km_map.has(khmerWord)
+        }
+
         case 'en':
           return !en.has(word)
         case 'ru':

@@ -77,9 +77,9 @@
           includeSystemImages = true;
           systemImageTypes = [ "google_apis" ];
           abiVersions = [
-            "x86_64"
+            "x86_64" # for emulators
             # "armeabi-v7a"
-            "arm64-v8a"
+            # "arm64-v8a" # for connecting through usb
           ];
 
           includeNDK = true;

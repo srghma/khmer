@@ -27,6 +27,8 @@ import { useAnkiSettings } from './useAnkiSettings'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { useAppToast } from '../../providers/ToastProvider'
 import { useAutoReadTts } from '../../hooks/useAutoReadTts'
+import { AutomaticRussianPronunciation } from '../DetailView/AutomaticRussianPronunciation'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 const SelectionMenuBodyLocalWrapper = React.memo(
   ({
@@ -273,6 +275,15 @@ export const AnkiCardDetailView = React.memo(
               mode={mode}
               wiktionary={data.wiktionary}
             />
+            {mode === 'km' && (
+              <AutomaticRussianPronunciation
+                isKhmerPronunciationHidingEnabled={false}
+                isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
+                isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
+                khmerText={word as TypedContainsKhmer}
+                onWordClick={handleOpenSearch}
+              />
+            )}
           </CardBody>
         </>
       ),

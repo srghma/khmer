@@ -17,6 +17,9 @@ import { useDictionary } from '../../providers/DictionaryProvider'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { useAppToast } from '../../providers/ToastProvider'
 import { useAutoReadTts } from '../../hooks/useAutoReadTts'
+import { AutomaticRussianPronunciation } from './AutomaticRussianPronunciation'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -155,6 +158,11 @@ const DetailViewFoundComponent = ({
     [currentNavigationStackItem, handleOpenKhmerAnalyzer, handleOpenSearch],
   )
 
+  const automaticRussianPronunciation_onClick = useCallback(
+    (w: TypedKhmerWord) => handleNavigate(w, 'km'),
+    [handleNavigate],
+  )
+
   // 4. Scaling Style (REMOVED: scaling is now handled via App.css variables)
 
   return (
@@ -207,6 +215,15 @@ const DetailViewFoundComponent = ({
                   mode={mode}
                   wiktionary={data.wiktionary}
                 />
+                {mode === 'km' && (
+                  <AutomaticRussianPronunciation
+                    isKhmerPronunciationHidingEnabled={false}
+                    isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+                    isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+                    khmerText={word as TypedContainsKhmer}
+                    onWordClick={automaticRussianPronunciation_onClick}
+                  />
+                )}
               </CardBody>
             </ReactSelectionPopup>
           </ScrollShadow>

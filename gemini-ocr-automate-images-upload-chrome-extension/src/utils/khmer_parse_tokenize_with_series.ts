@@ -30,43 +30,39 @@ export const enrichWithSeries = (tokens: readonly Token[]): readonly EnrichedTok
   }>(
     (acc, token) => {
       let newSeries = acc.currentSeries
+      const lastToken = acc.tokens[acc.tokens.length - 1]
+      const isSubscript = lastToken?.type === 'diacritic' && lastToken.v === '្'
 
-      // Update series based on consonant types
       if (token.type === 'consonant') {
         const def = CONSONANTS.find(c => c.letter === token.v)
-        if (def) newSeries = def.series
-        return {
-          currentSeries: newSeries,
-          tokens: [...acc.tokens, token],
-        }
-      } else if (token.type === 'extra_consonant') {
-        const def = EXTRA_CONSONANTS.find(
-          ec => ec.letters.length === token.v.length && ec.letters.every((l, i) => l === token.v[i]),
-        )
-        if (def) newSeries = def.series
-        return {
-          currentSeries: newSeries,
-          tokens: [...acc.tokens, token],
-        }
-      } else if (token.type === 'vowel') {
-        // Vowels get the current series
-        return {
-          currentSeries: newSeries,
-          tokens: [...acc.tokens, { ...token, series: newSeries }],
-        }
-      } else if (token.type === 'vowel_combination') {
-        // Vowel combinations get the current series
-        return {
-          currentSeries: newSeries,
-          tokens: [...acc.tokens, { ...token, series: newSeries }],
-        }
-      } else {
-        // SPACE, UNKNOWN, independent_vowel, diacritic - pass through without series
-        return {
-          currentSeries: newSeries,
-          tokens: [...acc.tokens, token],
-        }
+        // Rule 1: Only update series if NOT a subscript
+        if (def && !isSubscript) newSeries = def.series
+        return { currentSeries: newSeries, tokens: [...acc.tokens, token] }
       }
+
+      if (token.type === 'extra_consonant') {
+        const def = EXTRA_CONSONANTS.find(ec => ec.letters.every((l, i) => l === token.v[i]))
+        if (def) newSeries = def.series
+        return { currentSeries: newSeries, tokens: [...acc.tokens, token] }
+      }
+
+      if (token.type === 'diacritic') {
+        // Rule 2: Handle series shifters
+        if (token.v === '៉') newSeries = 'a'
+        else if (token.v === '៊') newSeries = 'o'
+        return { currentSeries: newSeries, tokens: [...acc.tokens, token] }
+      }
+
+      if (token.type === 'SPACE') {
+        // Rule 3: Reset on word boundaries
+        return { currentSeries: 'a', tokens: [...acc.tokens, token] }
+      }
+
+      if (token.type === 'vowel' || token.type === 'vowel_combination') {
+        return { currentSeries: newSeries, tokens: [...acc.tokens, { ...token, series: newSeries }] }
+      }
+
+      return { currentSeries: newSeries, tokens: [...acc.tokens, token] }
     },
     { currentSeries: 'a', tokens: [] },
   ).tokens

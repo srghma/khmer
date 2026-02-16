@@ -10,7 +10,10 @@ import {
 import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { truncateHtmlSafe } from './truncateHtmlSafe'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
-import { isContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import {
+  isContainsKhmer,
+  strToContainsKhmerOrUndefined,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { ColorizationMode } from '../../utils/text-processing/utils'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
@@ -34,7 +37,8 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
     const fallback = useMemo(() => {
       const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
-      const known = km_map.has(selectedText)
+      const khmerWord = strToContainsKhmerOrUndefined(selectedText)
+      const known = khmerWord && km_map.has(khmerWord)
 
       return (
         <span className="font-medium group-hover:text-primary transition-colors">
@@ -50,12 +54,15 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
       if (res.t === 'loading') return null
       if (res.t === 'not_found') {
         switch (mode) {
-          case 'km':
-            if (km_map.has(selectedText)) {
+          case 'km': {
+            const khmerWord = strToContainsKhmerOrUndefined(selectedText)
+            if (khmerWord && km_map.has(khmerWord)) {
               throw new Error('Khmer word is in db, but was not found using request, Impossible')
             }
 
             return
+          }
+
           case 'en':
             if (en.has(selectedText)) {
               throw new Error('English word is in db, but was not found using request, Impossible')

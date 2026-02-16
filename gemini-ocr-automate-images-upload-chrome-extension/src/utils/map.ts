@@ -212,6 +212,16 @@ export function Map_filter<K, V>(map: ReadonlyMap<K, V>, predicate: (key: K, val
   return result
 }
 
+export function Map_filterKeys<K, V>(map: ReadonlyMap<K, V>, predicate: (key: K, value: V) => boolean): Set<K> {
+  const result = new Set<K>()
+  for (const [k, v] of map) {
+    if (predicate(k, v)) {
+      result.add(k)
+    }
+  }
+  return result
+}
+
 export function Map_mapKeys<K, V, J>(map: ReadonlyMap<K, V>, f: (key: K, value: V) => J): Map<J, V> {
   const result = new Map<J, V>()
   for (const [k, v] of map) {
@@ -366,10 +376,10 @@ export function zipMaps3Strict<K, A, B, C>(
   if (leftoversA.size > 0 || leftoversB.size > 0 || leftoversC.size > 0) {
     throw new Error(
       `zipMaps3Strict: maps must have identical keys. ` +
-        `Missing or extra keys → ` +
-        `A: [${Array.from(leftoversA.keys()).join(', ')}], ` +
-        `B: [${Array.from(leftoversB.keys()).join(', ')}], ` +
-        `C: [${Array.from(leftoversC.keys()).join(', ')}]`,
+      `Missing or extra keys → ` +
+      `A: [${Array.from(leftoversA.keys()).join(', ')}], ` +
+      `B: [${Array.from(leftoversB.keys()).join(', ')}], ` +
+      `C: [${Array.from(leftoversC.keys()).join(', ')}]`,
     )
   }
 

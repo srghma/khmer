@@ -9,9 +9,14 @@ import type {
   ShortDefinitionRuSchema,
   ShortDefinitionKmSchema,
 } from './schema'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
-export type KhmerWordsMapValue = { isKhmer: boolean; is_verified: boolean }
-export type KhmerWordsMap = NonEmptyMap<NonEmptyStringTrimmed, KhmerWordsMapValue>
+export type KhmerWordsMapValue = {
+  isKhmer: boolean
+  is_verified: boolean
+  ru_translit: NonEmptyStringTrimmed | undefined
+}
+export type KhmerWordsMap = NonEmptyMap<TypedContainsKhmer, KhmerWordsMapValue>
 
 export type WordDetailKm = z.infer<typeof WordDetailKmSchema>
 export type WordDetailEn = z.infer<typeof WordDetailEnSchema>
