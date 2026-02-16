@@ -19,6 +19,7 @@ async function load3(): Promise<DictData> {
 
   // console.log('km_map', km_map)
 
+  // Start populating transliterations in the background after app is idle
   // console.log('🎉 Dictionary data initialized successfully!')
 
   return {

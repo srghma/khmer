@@ -16,10 +16,10 @@ import type { ToTranslateLanguage } from '../../utils/googleTranslate/toTranslat
 import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
 
 // ---------------------------------------------------------------------------
-// Sub-Component: EndContent (Toolbar)
+// Sub-Component: Toolbar
 // ---------------------------------------------------------------------------
 
-interface GoogleTranslateEndContentProps {
+interface GoogleTranslateToolbarProps {
   value: NonEmptyStringTrimmed | undefined
   loading: boolean
   targetLang: ToTranslateLanguage
@@ -27,40 +27,42 @@ interface GoogleTranslateEndContentProps {
   onTranslate: () => void
 }
 
-const GoogleTranslateEndContent = memo(
-  ({ value, loading, targetLang, onTargetLangChange, onTranslate }: GoogleTranslateEndContentProps) => {
-    // Auto-detect mode for input text, fallback to 'km' if detection fails or empty
+const GoogleTranslateToolbar = memo(
+  ({ value, loading, targetLang, onTargetLangChange, onTranslate }: GoogleTranslateToolbarProps) => {
     const inputMode = useMemo(() => (value ? detectModeFromText(value) : undefined) ?? 'km', [value])
 
     return (
-      <div className="flex justify-between items-center gap-2">
-        {/* Left: Input Speak Actions (Auto-detected) */}
-        <div className="flex gap-1">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+        {/* Left: Speech Actions */}
+        <div className="flex items-center gap-1">
           <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[inputMode]} word={value} />
           <GoogleSpeechAction mode={inputMode} word={value} />
+          <span className="text-tiny uppercase text-default-400 font-bold ml-1 tracking-wider">{inputMode}</span>
         </div>
 
-        {/* Right: Translate Action */}
-        <ButtonGroup color="primary" size="sm" variant="flat">
-          <Button
-            className="font-semibold"
-            isLoading={loading}
-            startContent={!loading && <HiTranslate />}
-            onPress={onTranslate}
-          >
-            Translate
-          </Button>
-          <LanguageSelector targetLang={targetLang} onSelect={onTargetLangChange} />
-        </ButtonGroup>
+        {/* Right: Language + Translate button */}
+        <div className="flex items-center gap-2 max-w-full sm:max-w-[50%]">
+          <ButtonGroup className="shadow-sm" color="primary" size="sm" variant="flat">
+            <Button
+              className="font-bold px-4"
+              isLoading={loading}
+              startContent={!loading && <HiTranslate className="text-lg" />}
+              onPress={onTranslate}
+            >
+              Translate to
+            </Button>
+            <LanguageSelector targetLang={targetLang} onSelect={onTargetLangChange} />
+          </ButtonGroup>
+        </div>
       </div>
     )
   },
 )
 
-GoogleTranslateEndContent.displayName = 'GoogleTranslateEndContent'
+GoogleTranslateToolbar.displayName = 'GoogleTranslateToolbar'
 
 // ---------------------------------------------------------------------------
-// Sub-Component: BottomContent (Results/Status)
+// Sub-Component: BottomContent
 // ---------------------------------------------------------------------------
 
 interface GoogleTranslateBottomContentProps {
@@ -73,20 +75,20 @@ const GoogleTranslateBottomContent = memo(
   ({ state, targetLang, maybeColorMode }: GoogleTranslateBottomContentProps) => {
     if (state.t === 'idle') return null
 
-    // We construct the error object here, inside the child render.
-    // This prevents the parent from re-rendering just to create an object literal.
     if (state.t === 'error') {
-      return <Alert color="danger" description={state.description} title={state.title} />
+      return (
+        <div className="pt-4">
+          <Alert color="danger" description={state.description} title={state.title} variant="flat" />
+        </div>
+      )
     }
 
-    if (state.t === 'loading') return LoadingStatus
-
-    // Success Case
-    const { result } = state
+    if (state.t === 'loading') return <div className="pt-4">{LoadingStatus}</div>
 
     return (
-      <div className="flex flex-col gap-3 pt-2">
-        <ResultDisplay maybeColorMode={maybeColorMode} result={result} targetLang={targetLang} />
+      <div className="flex flex-col gap-3 pt-4 border-t border-divider mt-2">
+        <div className="text-tiny font-bold text-default-400 uppercase tracking-widest px-1">Translation</div>
+        <ResultDisplay maybeColorMode={maybeColorMode} result={state.result} targetLang={targetLang} />
       </div>
     )
   },
@@ -106,7 +108,6 @@ interface GoogleTranslateTextareaProps extends Pick<
   maybeColorMode: MaybeColorizationMode
   value_toShowInTextArea: string
   value_toShowInBottom: NonEmptyStringTrimmed | undefined
-  // onValueChange: (value: string) => void
 }
 
 export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = ({
@@ -119,48 +120,47 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
   ...props
 }) => {
   const [targetLang, setTargetLang] = useState<ToTranslateLanguage>(defaultTargetLang)
-
   const { state, performTranslate, clearResult } = useGoogleTranslation(value_toShowInBottom, 'auto', targetLang)
 
-  // Clear result when input changes
   useEffect(() => {
     clearResult()
   }, [value_toShowInTextArea, clearResult])
 
-  // Memoize styles to prevent unnecessary prop updates to Textarea
   const memoizedClassNames = useMemo(
     () => ({
       ...classNames,
-      input: 'text-medium font-khmer leading-relaxed',
-      inputWrapper: 'bg-default-100 hover:bg-default-200 pb-2',
+      input: 'text-lg font-khmer leading-relaxed p-4',
+      inputWrapper: 'bg-content2/50 hover:bg-content2 shadow-none border-divider border-b-0 rounded-b-none p-0',
     }),
     [classNames],
   )
 
-  // Memoize EndContent to avoid re-rendering Textarea's internal slots unnecessarily
-  const endContent = useMemo(
-    () => (
-      <GoogleTranslateEndContent
-        loading={state.t === 'loading'}
-        targetLang={targetLang}
-        value={value_toShowInBottom}
-        onTargetLangChange={setTargetLang}
-        onTranslate={performTranslate}
-      />
-    ),
-    [state.t, targetLang, value_toShowInBottom, performTranslate],
-  )
-
   return (
-    <>
+    <div className="flex flex-col w-full bg-content1 rounded-xl shadow-sm border border-divider overflow-hidden">
+      {/* Input Area */}
       <Textarea
         classNames={memoizedClassNames}
-        endContent={endContent}
+        minRows={3}
         value={value_toShowInTextArea}
         onValueChange={onValueChange}
         {...props}
       />
-      <GoogleTranslateBottomContent maybeColorMode={maybeColorMode} state={state} targetLang={targetLang} />
-    </>
+
+      {/* Toolbar Area */}
+      <div className="bg-content2/50 p-2 border-t border-divider/50">
+        <GoogleTranslateToolbar
+          loading={state.t === 'loading'}
+          targetLang={targetLang}
+          value={value_toShowInBottom}
+          onTargetLangChange={setTargetLang}
+          onTranslate={performTranslate}
+        />
+      </div>
+
+      {/* Translation Result Area */}
+      <div className="px-4 pb-4">
+        <GoogleTranslateBottomContent maybeColorMode={maybeColorMode} state={state} targetLang={targetLang} />
+      </div>
+    </div>
   )
 }

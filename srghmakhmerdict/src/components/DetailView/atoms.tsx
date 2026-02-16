@@ -252,6 +252,35 @@ export const CsvListRendererText = React.memo(function CsvListRendererText({
 
 CsvListRendererText.displayName = 'CsvListRendererText'
 
+export const CsvListRendererPronunciation = React.memo(function CsvListRendererPronunciation({
+  items,
+  isKhmerPronunciationHidingEnabled,
+}: {
+  items: NonEmptyArray<NonEmptyStringTrimmed>
+  isKhmerPronunciationHidingEnabled: boolean
+}) {
+  const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
+    false,
+    false,
+    false,
+    isKhmerPronunciationHidingEnabled,
+  )
+
+  return (
+    <ul className={`list-disc list-inside space-y-1 text-foreground/80 ${khmerContentClass}`}>
+      {items.map((item, i) => (
+        <li key={i}>
+          <span className="prose prose-sm max-w-none text-foreground/90 dark:prose-invert text-base">
+            <span className="khmer--ipa">{item}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+})
+
+CsvListRendererPronunciation.displayName = 'CsvListRendererPronunciation'
+
 export const FromRussianWikiRenderer = React.memo(
   ({
     html,

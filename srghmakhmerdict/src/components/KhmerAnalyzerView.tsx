@@ -116,6 +116,7 @@ interface KhmerAnalyzerViewProps {
 }
 
 export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initialText }) => {
+  // console.log('KhmerAnalyzerView render', initialText)
   const { LL } = useI18nContext()
   const [, setLocation] = useLocation()
   const { maybeColorMode, filters } = useSettings()

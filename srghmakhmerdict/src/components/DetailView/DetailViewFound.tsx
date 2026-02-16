@@ -1,4 +1,4 @@
-import { useCallback, memo } from 'react'
+import { useCallback, memo, useMemo } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -10,6 +10,7 @@ import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { useSettings } from '../../providers/SettingsProvider'
 import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
+import { sanitizeTextForAnalyzer } from '../../utils/sanitizeTextForAnalyzer'
 import type { DictionaryLanguage } from '../../types'
 import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { useAppMainView } from '../../hooks/useAppMainView'
@@ -125,7 +126,9 @@ const DetailViewFoundComponent = ({
   const handleOpenKhmerAnalyzer = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
       window.getSelection()?.removeAllRanges()
-      setLocation(`/khmer_analyzer/${encodeURIComponent(selectedText)}`)
+      const sanitized = sanitizeTextForAnalyzer(selectedText)
+
+      setLocation(`/khmer_analyzer/${encodeURIComponent(sanitized)}`)
     },
     [setLocation],
   )
@@ -162,6 +165,10 @@ const DetailViewFoundComponent = ({
     (w: TypedKhmerWord) => handleNavigate(w, 'km'),
     [handleNavigate],
   )
+
+  const automaticRussianPronunciation_km_map_value = useMemo(() => {
+    return mode === 'km' ? km_map.get(word as TypedContainsKhmer) : undefined
+  }, [km_map, word, mode])
 
   // 4. Scaling Style (REMOVED: scaling is now handled via App.css variables)
 
@@ -215,12 +222,13 @@ const DetailViewFoundComponent = ({
                   mode={mode}
                   wiktionary={data.wiktionary}
                 />
-                {mode === 'km' && (
+                {automaticRussianPronunciation_km_map_value && (
                   <AutomaticRussianPronunciation
                     isKhmerPronunciationHidingEnabled={false}
                     isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                     isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                     khmerText={word as TypedContainsKhmer}
+                    km_map_value={automaticRussianPronunciation_km_map_value}
                     onWordClick={automaticRussianPronunciation_onClick}
                   />
                 )}

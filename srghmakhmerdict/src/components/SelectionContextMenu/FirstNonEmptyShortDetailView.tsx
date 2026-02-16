@@ -58,6 +58,14 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
             const khmerWord = strToContainsKhmerOrUndefined(selectedText)
 
             if (khmerWord && km_map.has(khmerWord)) {
+              // eslint-disable-next-line no-console
+              console.error('[DEBUG] Khmer word match mismatch:', {
+                selectedText,
+                khmerWord,
+                res,
+                mode,
+                colorizationMode,
+              })
               throw new Error('Khmer word is in db, but was not found using request, Impossible')
             }
 
@@ -66,12 +74,26 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
           case 'en':
             if (en.has(selectedText)) {
+              // eslint-disable-next-line no-console
+              console.error('[DEBUG] English word match mismatch:', {
+                selectedText,
+                res,
+                mode,
+                colorizationMode,
+              })
               throw new Error('English word is in db, but was not found using request, Impossible')
             }
 
             return
           case 'ru':
             if (ru.has(selectedText)) {
+              // eslint-disable-next-line no-console
+              console.error('[DEBUG] Russian word match mismatch:', {
+                selectedText,
+                res,
+                mode,
+                colorizationMode,
+              })
               throw new Error('Russian word is in db, but was not found using request, Impossible')
             }
 

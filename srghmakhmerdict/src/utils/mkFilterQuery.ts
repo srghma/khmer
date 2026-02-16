@@ -8,6 +8,7 @@ import type { SearchMode } from '../providers/SettingsProvider'
 import type { DictionaryLanguage } from '../types'
 import { isStringLowercaseCyrillic } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-lowercase-cyrillic'
 import { russianToKhmerRegex } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/russianToKhmerRegex'
+// import { isStringLowercaseLatin } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-lowercase-latin'
 
 export type FilterQuery =
   | { t: 'regex'; v: RegExp }
@@ -50,6 +51,25 @@ export function makeFilterQuery(
         }
       }
     }
+
+    // if (isStringLowercaseLatin(lowercased)) {
+    //   try {
+    //     const khmerPattern = englishToKhmerRegex(lowercased)
+
+    //     return {
+    //       t: 'ok',
+    //       v: {
+    //         t: 'regex',
+    //         v: searchMode === 'starts_with' ? new RegExp(`^${khmerPattern}`) : new RegExp(khmerPattern, 'i'),
+    //       },
+    //     }
+    //   } catch (e: unknown) {
+    //     return {
+    //       t: 'error',
+    //       v: unknown_to_errorMessage(e) ?? 'Failed to convert English to Khmer pattern',
+    //     }
+    //   }
+    // }
   }
 
   if (searchMode === 'regex') {

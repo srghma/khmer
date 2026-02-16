@@ -107,10 +107,10 @@ const scrollShadowProps = {
   orientation: 'horizontal' as const,
   // flex-1: Takes all remaining width after Title
   // min-w-0: Allows shrinking below content size (CRITICAL for scroll to trigger)
-  className: 'flex-1  min-w-0 h-full pr-[env(safe-area-inset-right)] !overflow-x-none',
+  className: 'flex-1 min-w-0 h-full pr-[env(safe-area-inset-right)]',
 }
 
-const actionGridClassName = 'grid grid-rows-2 grid-flow-col auto-cols-max gap-1 items-center h-full w-max'
+const actionGridClassName = 'flex items-center gap-1 h-full w-max ml-auto'
 
 // -----------------------------------
 
@@ -132,7 +132,7 @@ const DetailViewHeaderWord = (
       {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
 
       {/* 2. Central Text (Max 40%, Truncated) */}
-      <div className="flex flex-col justify-center max-w-[40%] min-w-0 shrink-0">
+      <div className="flex flex-col justify-center max-w-[40%] min-w-0 shrink-0 mr-auto">
         {h1Html && (
           <h1
             dangerouslySetInnerHTML={h1Html}

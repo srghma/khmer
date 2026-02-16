@@ -1,5 +1,5 @@
 import { split } from 'split-khmer'
-import { assertIsDefined, assertIsDefinedAndReturn } from './asserts'
+import { assertIsDefinedAndReturn } from './asserts'
 
 const firstSeries = new Set('កខចឆដឋណតថបផឝសហឡអ')
 const vowelsDefault = ['a', 'o']

@@ -13,6 +13,7 @@ import { DetailSections } from '../DetailView/DetailSections'
 import { useSettings } from '../../providers/SettingsProvider'
 import { useLocation } from 'wouter'
 import { detectModeFromText } from '../../utils/detectModeFromText'
+import { sanitizeTextForAnalyzer } from '../../utils/sanitizeTextForAnalyzer'
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopup'
 import { type AnkiGameMode } from './types'
@@ -155,7 +156,9 @@ export const AnkiCardDetailView = React.memo(
     const handleOpenKhmerAnalyzer = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
         window.getSelection()?.removeAllRanges()
-        setLocation(`~/khmer_analyzer/${encodeURIComponent(selectedText)}`)
+        const sanitized = sanitizeTextForAnalyzer(selectedText)
+
+        setLocation(`~/khmer_analyzer/${encodeURIComponent(sanitized)}`)
       },
       [setLocation],
     )
@@ -226,6 +229,10 @@ export const AnkiCardDetailView = React.memo(
 
     const answerPlaceholder = useMemo(() => LL.ANKI.ANSWER_PLACEHOLDER({ field: guessField }), [LL, guessField])
 
+    const automaticRussianPronunciation_km_map_value = useMemo(() => {
+      return mode === 'km' ? km_map.get(word as TypedContainsKhmer) : undefined
+    }, [km_map, word, mode])
+
     const content = useMemo(
       () => (
         <>
@@ -275,12 +282,13 @@ export const AnkiCardDetailView = React.memo(
               mode={mode}
               wiktionary={data.wiktionary}
             />
-            {mode === 'km' && (
+            {automaticRussianPronunciation_km_map_value && (
               <AutomaticRussianPronunciation
-                isKhmerPronunciationHidingEnabled={false}
+                isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
                 isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
                 isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
                 khmerText={word as TypedContainsKhmer}
+                km_map_value={automaticRussianPronunciation_km_map_value}
                 onWordClick={handleOpenSearch}
               />
             )}

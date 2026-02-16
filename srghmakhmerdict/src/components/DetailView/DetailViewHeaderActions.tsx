@@ -360,13 +360,13 @@ const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_Se
 
   return (
     <>
-      <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
-      <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <NativeSpeechAction
         mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
+      <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
+      <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <AutoReadAction />
     </>
   )
@@ -419,6 +419,12 @@ const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord
 
   return (
     <>
+      <FavoriteAction isFav={isFav} onToggle={toggleFav} />
+      <NativeSpeechAction
+        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
+        word={word_or_sentence}
+      />
+      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
       <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
       <KhmerLinksAction
@@ -428,13 +434,7 @@ const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord
       />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-      <NativeSpeechAction
-        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
-        word={word_or_sentence}
-      />
-      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <AutoReadAction />
-      <FavoriteAction isFav={isFav} onToggle={toggleFav} />
     </>
   )
 })
@@ -459,6 +459,11 @@ const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_B
 
   return (
     <>
+      <NativeSpeechAction
+        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
+        word={word_or_sentence}
+      />
+      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
       <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
       <KhmerLinksAction
@@ -468,11 +473,6 @@ const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_B
       />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-      <NativeSpeechAction
-        mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
-        word={word_or_sentence}
-      />
-      <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <AutoReadAction />
       <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
     </>
