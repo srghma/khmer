@@ -60,7 +60,7 @@ const fetchWiktionaryHtml = async (
 
 // -- Queue Processor --
 
-const SetOfString_toArraySorted = <T extends string>(s: Set<T>) => {
+const SetOfString_toArraySorted = <T extends string>(s: Set<T>): T[] => {
   // Sort words by length (smallest first)
   return Array.from(s).sort((a, b) => a.length - b.length)
 }

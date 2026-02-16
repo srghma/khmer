@@ -96,3 +96,45 @@ export function* iterateKhmerWordsFromTextPlusNormalizedEtc(text: string): Itera
 
   // yield* Iterator_yieldUnique_usingSet(step5)
 }
+
+// to precess km_Dict words
+export function strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined(x: string): TypedKhmerWord | undefined {
+  const y = x
+    // 1. Remove ZWNJ, ZWSP, and "Ghost" inherent vowels (឴, ឵)
+    .replace(/[\u200B-\u200D\uFEFF\u17B4\u17B5]/g, '')
+
+    // 2. Normalize Obsolete Consonants to Modern equivalents
+    .replace(/ឝ/g, 'ស') // Sha (ឝ) -> Sa (ស)
+    .replace(/ឞ/g, 'ស') // Ssa (ឞ) -> Sa (ស)
+
+    // 3. Normalize Obsolete Independent Vowels
+    .replace(/ឨ/g, 'ឧ') // Obsolete U (ឨ) -> Modern U (ឧ)
+
+    // 4. Remove Khmer Punctuation (U+17D3-U+17D6, U+17D8-U+17DA)
+    // Includes: ៓ (17D3) and existing punctuation
+    .replace(/[\u17D3-\u17D6\u17D8-\u17DA]/g, '')
+
+    // 5. Remove the duplication sign ៗ (U+17D7)
+    .replace(/\u17D7/g, '')
+
+    // 6. Remove Khmer Currency/Symbols (U+17DB-U+17DD, U+17F0-U+17F9)
+    // Includes: ៛ (17DB), ៜ (17DC), ៝ (17DD) and symbols
+    .replace(/[\u17DB-\u17DD\u17F0-\u17F9]/g, '')
+
+    // 7. Remove Khmer Numbers (U+17E0-U+17E9)
+    .replace(/[\u17E0-\u17E9]/g, '')
+
+    // 8. Remove Khmer Lunar Symbols (U+19E0-U+19FF)
+    .replace(/[\u19E0-\u19FF]/g, '')
+
+    // 9. Final trim of any remaining non-Khmer chars on the ends
+    .replace(/^[^\p{Script=Khmer}]+|[^\p{Script=Khmer}]+$/gu, '')
+
+  return strToKhmerWordOrUndefined(y)
+}
+
+export function strToKhmerWord_remove_nonKhmerOnBothEnds_orThrow(x: string): TypedKhmerWord {
+  const x_ = strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined(x)
+  if (!x_) throw new Error('invalid TypedKhmerWord')
+  return x_
+}

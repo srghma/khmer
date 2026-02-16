@@ -185,6 +185,9 @@ importers:
       react-selection-popup:
         specifier: ^0.4.7
         version: 0.4.7(react@19.2.4)
+      slugify-khmer:
+        specifier: ^0.1.3
+        version: 0.1.3
       sort-by:
         specifier: ^1.2.0
         version: 1.2.0
@@ -3361,6 +3364,10 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  magic-string@0.26.7:
+    resolution: {integrity: sha512-hX9XH3ziStPoPhJxLq1syWuZMxbDvGNbVchfrdCtanC7D13888bMFow61x8axrx+GfHLtVeAx2kxL7tTGRl+Ow==}
+    engines: {node: '>=12'}
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -3696,12 +3703,22 @@ packages:
   simple-swizzle@0.2.4:
     resolution: {integrity: sha512-nAu1WFPQSMNr2Zn9PGSZK9AGn4t/y97lEm+MXTtUDwfP0ksAIX4nO+6ruD9Jwut4C49SB1Ws+fbXsm/yScWOHw==}
 
+  slugify-khmer@0.1.3:
+    resolution: {integrity: sha512-mA/TSgrfp99gh8HsueYF+S9BVFNxyOzMdC7+3q8WtNOkXOoW7eCqxyKBOwMn1FghKqaHe2/y//UslLD7btamSQ==}
+
   sort-by@1.2.0:
     resolution: {integrity: sha512-aRyW65r3xMnf4nxJRluCg0H/woJpksU1dQxRtXYzau30sNBOmf5HACpDd9MZDhKh7ALQ5FgSOfMPwZEtUmMqcg==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
+
+  sourcemap-codec@1.4.8:
+    resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
+    deprecated: Please use @jridgewell/sourcemap-codec instead
+
+  split-khmer@1.0.1:
+    resolution: {integrity: sha512-g82jhMS5pxv9ijSlXuRvFT1FbGXWhiRBLq5ML7KWqQ6wD61C+tQcjmkMoDNrmZQucQMp1bknN/Xd28S3kjIvCw==}
 
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
@@ -8150,6 +8167,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  magic-string@0.26.7:
+    dependencies:
+      sourcemap-codec: 1.4.8
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -8522,11 +8543,21 @@ snapshots:
     dependencies:
       is-arrayish: 0.3.4
 
+  slugify-khmer@0.1.3:
+    dependencies:
+      split-khmer: 1.0.1
+
   sort-by@1.2.0:
     dependencies:
       object-path: 0.6.0
 
   source-map-js@1.2.1: {}
+
+  sourcemap-codec@1.4.8: {}
+
+  split-khmer@1.0.1:
+    dependencies:
+      magic-string: 0.26.7
 
   stackback@0.0.2: {}
 

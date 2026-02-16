@@ -35,8 +35,20 @@ export const enrichWithSeries = (tokens: readonly Token[]): readonly EnrichedTok
 
       if (token.type === 'consonant') {
         const def = CONSONANTS.find(c => c.letter === token.v)
-        // Rule 1: Only update series if NOT a subscript
-        if (def && !isSubscript) newSeries = def.series
+        if (def) {
+          const lastType = lastToken?.type
+          // Only reset series if it's the start of a word or follows a vowel (new syllable)
+          const isNewSyllable =
+            !lastToken ||
+            lastType === 'SPACE' ||
+            lastType === 'vowel' ||
+            lastType === 'vowel_combination' ||
+            lastType === 'independent_vowel'
+
+          if (isNewSyllable && !isSubscript) {
+            newSeries = def.series
+          }
+        }
         return { currentSeries: newSeries, tokens: [...acc.tokens, token] }
       }
 

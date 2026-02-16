@@ -35,13 +35,15 @@ const LoadingSpinner = (
 )
 
 const getSidebarClassName = memoizeSync1_Boolean((hasSelectedItem: boolean) => {
-  return `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${hasSelectedItem ? 'hidden md:flex' : 'w-full'
-    }`
+  return `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${
+    hasSelectedItem ? 'hidden md:flex' : 'w-full'
+  }`
 })
 
 const getRightPanelClassName = memoizeSync1_Boolean((hasSelectedItem: boolean) => {
-  return `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${!hasSelectedItem ? 'hidden md:flex' : 'flex'
-    }`
+  return `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${
+    !hasSelectedItem ? 'hidden md:flex' : 'flex'
+  }`
 })
 
 const useCountOfSplitted = (splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined>) => {

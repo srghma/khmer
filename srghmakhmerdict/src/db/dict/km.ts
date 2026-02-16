@@ -1,17 +1,24 @@
 import { invoke } from '@tauri-apps/api/core'
-import { isKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import {
+  isKhmerWord,
+  strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined,
+  type TypedKhmerWord,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { Map_toNonEmptyMap_orThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
-import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  nonEmptyString_afterTrim,
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import {
-  strToContainsKhmerOrThrow__stripAllNonKhmer,
-  type TypedContainsKhmer,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { type TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { WordDetailKmSchema } from './schema'
 import type { KhmerWordsMap, KhmerWordsMapValue, WordDetailKm, ShortDefinitionKm } from './types'
 import { khmerToRussian } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmerToRussian'
+import { slugify } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/slugifyKhmer'
+import type { KhmerToRussianOutput } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmerToRussianOutput'
 
 type KhmerWordRow_Raw = { word: TypedContainsKhmer; is_verified: boolean }
 
@@ -20,12 +27,25 @@ export const getKmWords = memoizeAsync0_throwIfInFly(async (): Promise<KhmerWord
   const map: Map<TypedContainsKhmer, KhmerWordsMapValue> = new Map()
 
   words.forEach(({ word, is_verified }) => {
+    // TODO: add them then app is not doing anything?
+    const ru_translit_: TypedKhmerWord | undefined = strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined(word)
+    const ru_translit: KhmerToRussianOutput | undefined = ru_translit_ ? khmerToRussian(ru_translit_) : undefined
+
+    const en_translit = String_toNonEmptyString_orUndefined_afterTrim(slugify(word, ' '))
+
+    // empty for khmer numbers, a char, etc
+    // if (!en_translit) {
+    //   console.error('en_translit', word)
+    // }
+
     map.set(word, {
       isKhmer: isKhmerWord(word),
-      ru_translit: khmerToRussian(strToContainsKhmerOrThrow__stripAllNonKhmer(word)),
+      ru_translit: ru_translit,
+      en_translit,
       is_verified,
     } satisfies KhmerWordsMapValue)
   })
+
 
   return Map_toNonEmptyMap_orThrow(map)
 })

@@ -56,6 +56,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
         switch (mode) {
           case 'km': {
             const khmerWord = strToContainsKhmerOrUndefined(selectedText)
+
             if (khmerWord && km_map.has(khmerWord)) {
               throw new Error('Khmer word is in db, but was not found using request, Impossible')
             }

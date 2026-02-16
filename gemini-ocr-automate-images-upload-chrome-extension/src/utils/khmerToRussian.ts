@@ -1,37 +1,37 @@
 import { CharArray_mkFromString, type Char } from './char'
 import { CONSONANTS, EXTRA_CONSONANTS, VOWELS, VOWEL_COMBINATIONS, INDEPENDENT_VOWELS } from './khmer-consonants-vovels'
+import type { TypedKhmerWord } from './khmer-word'
 import { tokenize } from './khmer_parse_tokenize'
 import { enrichWithSeries } from './khmer_parse_tokenize_with_series'
-import { String_toNonEmptyString_orUndefined_afterTrim, type NonEmptyStringTrimmed } from './non-empty-string-trimmed'
-import type { TypedContainsKhmer } from './string-contains-khmer-char'
+import { String_toNonEmptyString_orUndefined_afterTrim } from './non-empty-string-trimmed'
+import { strToLowercaseCyrillicWithGroups_orThrow, type KhmerToRussianOutput } from './khmerToRussianOutput'
 
 const getPureTrans = (trans: string) => {
-  // Removes trailing inherent vowels 'а' or 'о'
-  // Also handles cases like '.да' -> '.д', 'тя' -> 'т'
+  // Removes trailing inherent vowels 'а' or 'о', 'я', 'ё'
   return trans.replace(/[ао]$/, '').replace(/я$/, '').replace(/ё$/, '')
 }
 
-/**
- * Transliterates Khmer text to Russian based on phonetic mappings.
- *
- * @param khmerText The Khmer text to transliterate.
- * @returns The Russian transliteration.
- */
-export const khmerToRussian = (khmerText: TypedContainsKhmer): NonEmptyStringTrimmed | undefined => {
+export const khmerToRussian = (khmerText: TypedKhmerWord): KhmerToRussianOutput | undefined => {
   const chars: readonly Char[] = CharArray_mkFromString(khmerText)
   const tokens = tokenize(chars)
   const enrichedTokens = enrichWithSeries(tokens)
 
   let result = ''
 
+  // console.log('--- Starting Transliteration ---')
+  // console.log('Input:', khmerText)
+
   for (let i = 0; i < enrichedTokens.length; i++) {
     const token = enrichedTokens[i]!
     const nextToken = enrichedTokens[i + 1]
+
+    // console.log(`\n[Token ${i}] Type: ${token.type}, Value: ${JSON.stringify(token.v)}`)
 
     switch (token.type) {
       case 'consonant': {
         const def = CONSONANTS.find(c => c.letter === token.v)
         if (!def) {
+          // console.log(`  No definition found for consonant: ${token.v}`)
           result += token.v
           break
         }
@@ -40,15 +40,46 @@ export const khmerToRussian = (khmerText: TypedContainsKhmer): NonEmptyStringTri
         const isSubscript = prevToken?.type === 'diacritic' && prevToken.v === '្'
         const hasVowelNext = nextToken?.type === 'vowel' || nextToken?.type === 'vowel_combination'
         const hasSubscriptNext = nextToken?.type === 'diacritic' && nextToken.v === '្'
-        const isFirstInWord = !prevToken || prevToken.type === 'SPACE'
+        const isBantakNext = nextToken?.type === 'diacritic' && nextToken.v === '់'
+        const isFinal = !nextToken || nextToken.type === 'SPACE' || isBantakNext
 
-        if (!isSubscript && !hasVowelNext && !hasSubscriptNext && isFirstInWord) {
-          // Use full transliteration (includes inherent vowel)
-          result += def.trans
-        } else {
-          // Use pure consonant sound
-          result += getPureTrans(def.trans)
+        let subscriptIsRetroflex = false
+        if (hasSubscriptNext && enrichedTokens[i + 2]) {
+          const subscriptConsonant = enrichedTokens[i + 2]
+          if (subscriptConsonant?.type === 'consonant') {
+            const subscriptDef = CONSONANTS.find(c => c.letter === subscriptConsonant.v)
+            if (subscriptDef && subscriptDef.trans.startsWith('.')) {
+              subscriptIsRetroflex = true
+            }
+          }
         }
+
+        if (hasSubscriptNext && subscriptIsRetroflex) {
+          // console.log(`  Skipping base consonant ${token.v} because next is retroflex subscript`)
+          break
+        }
+
+        const hasOtherConsonants = enrichedTokens.some(
+          (t, idx) => idx !== i && (t.type === 'consonant' || t.type === 'extra_consonant'),
+        )
+
+        const shouldSuppressVowel = hasVowelNext || isSubscript || hasSubscriptNext || (isFinal && hasOtherConsonants)
+
+        const output = shouldSuppressVowel ? getPureTrans(def.trans) : def.trans
+
+        // console.log(`  Consonant Logic:`, {
+        //   letter: token.v,
+        //   trans: def.trans,
+        //   isSubscript,
+        //   hasVowelNext,
+        //   hasSubscriptNext,
+        //   isFinal,
+        //   isBantakNext,
+        //   shouldSuppressVowel,
+        //   output,
+        // })
+
+        result += output
         break
       }
 
@@ -60,7 +91,14 @@ export const khmerToRussian = (khmerText: TypedContainsKhmer): NonEmptyStringTri
           result += token.v.join('')
           break
         }
-        result += def.trans
+        // console.log(`  Extra Consonant: ${token.v.join('')} -> ${def.trans}`)
+
+        const options = def.trans
+          .split(',')
+          .map(x => x.trim())
+          .sort()
+        const output = options.length > 1 ? `(${options.join('|')})` : options[0]
+        result += output
         break
       }
 
@@ -70,7 +108,9 @@ export const khmerToRussian = (khmerText: TypedContainsKhmer): NonEmptyStringTri
           result += token.v
           break
         }
-        result += token.series === 'a' ? def.trans_a : def.trans_o
+        const output = token.series === 'a' ? def.trans_a : def.trans_o
+        // console.log(`  Vowel: ${token.v} (Series ${token.series}) -> ${output}`)
+        result += output
         break
       }
 
@@ -82,27 +122,31 @@ export const khmerToRussian = (khmerText: TypedContainsKhmer): NonEmptyStringTri
           result += token.v.join('')
           break
         }
-        result += token.series === 'a' ? def.trans_a : def.trans_o
+        const output = token.series === 'a' ? def.trans_a : def.trans_o
+        // console.log('  Vowel Combination:', {
+        //   letters: token.v,
+        //   series: token.series,
+        //   output,
+        // })
+        result += output
         break
       }
 
       case 'independent_vowel': {
         const def = INDEPENDENT_VOWELS.find(iv => iv.letters === token.v)
-        if (!def) {
+        if (def) {
+          const options = def.trans.split(',').map(x => x.trim())
+          const output = options.length > 1 ? `(${options.join('|')})` : options[0]
+          // console.log(`  Independent Vowel: ${token.v} -> ${output}`)
+          result += output
+        } else {
           result += token.v
-          break
         }
-        result += def.trans
         break
       }
 
       case 'diacritic': {
-        // '្' is handled in 'consonant' logic as a signal for subscripts.
-        // Other diacritics might be part of combinations or handled here.
-        if (token.v !== '្') {
-          // For now, other diacritics are just ignored or passed as is if not in combinations
-          // Note: 'tokenize' already handles VOWEL_COMBINATIONS which include some diacritics.
-        }
+        // console.log(`  Diacritic: ${token.v} (Handled via suppression logic)`)
         break
       }
 
@@ -110,11 +154,24 @@ export const khmerToRussian = (khmerText: TypedContainsKhmer): NonEmptyStringTri
         result += ' '
         break
 
-      case 'UNKNOWN':
-        result += token.v.join('')
+      case 'UNKNOWN': {
+        const raw = token.v.join('')
+        if (raw === 'ៗ') {
+          const words = result.trim().split(' ')
+          const lastWord = words[words.length - 1]
+          if (lastWord) result += ' ' + lastWord
+          // console.log(`  Duplication: ៗ -> repeated ${lastWord}`)
+        } else {
+          result += raw
+        }
         break
+      }
     }
+    // console.log(`  Current Result Buffer: "${result}"`)
   }
-  // return undefined for chars like ៈ
-  return String_toNonEmptyString_orUndefined_afterTrim(result.replace(/\s+/g, ' '))
+
+  // console.log('\nFinal Buffer Before Cleanup:', result)
+  const x = String_toNonEmptyString_orUndefined_afterTrim(result.replace(/\s+/g, ' '))
+  if (!x) return
+  return strToLowercaseCyrillicWithGroups_orThrow(x)
 }

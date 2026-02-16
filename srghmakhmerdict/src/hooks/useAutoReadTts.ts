@@ -16,7 +16,7 @@ export const useAutoReadTts = (word: NonEmptyStringTrimmed | undefined, language
 
   useEffect(() => {
     let ignore = false
-    const effectId = Math.random().toString(36).substring(7) // Unique ID for this specific effect run
+    // const effectId = Math.random().toString(36).substring(7) // Unique ID for this specific effect run
 
     // console.log(
     //   `[useAutoReadTts][${effectId}] Effect triggered. Word: "${word}", Mode: ${autoReadMode}, Language: ${language}`,
@@ -25,6 +25,7 @@ export const useAutoReadTts = (word: NonEmptyStringTrimmed | undefined, language
     if (!word || autoReadMode === 'disabled') {
       // console.log(`[useAutoReadTts][${effectId}] Exit: Word is empty or mode is disabled.`)
       if (!word) globalLastReadWord.current = undefined
+
       return
     }
 
@@ -48,7 +49,7 @@ export const useAutoReadTts = (word: NonEmptyStringTrimmed | undefined, language
       const error = nativeTtsResultToError(result)
 
       if (error && !ignore) {
-        console.error(`[useAutoReadTts][${effectId}] Native TTS Error:`, error)
+        // console.error(`[useAutoReadTts][${effectId}] Native TTS Error:`, error)
         toast.error(error.title, error.description)
       }
     }
@@ -61,14 +62,14 @@ export const useAutoReadTts = (word: NonEmptyStringTrimmed | undefined, language
 
         if (error && !ignore) {
           if (autoReadMode === 'google_then_native') {
-            console.warn(`[useAutoReadTts][${effectId}] Google TTS failed, falling back to native.`, error)
+            // console.warn(`[useAutoReadTts][${effectId}] Google TTS failed, falling back to native.`, error)
             await speakNative()
           } else {
             toast.error(error.title, error.description)
           }
         }
       } catch (e: unknown) {
-        console.error(`[useAutoReadTts][${effectId}] Google TTS Exception:`, e)
+        // console.error(`[useAutoReadTts][${effectId}] Google TTS Exception:`, e)
         if (autoReadMode === 'google_then_native' && !ignore) {
           await speakNative()
         } else if (!ignore) {

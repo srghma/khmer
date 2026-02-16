@@ -3,7 +3,10 @@ import { Chip } from '@heroui/chip'
 
 // Logic Imports
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import {
+  strToKhmerWord_remove_nonKhmerOnBothEnds_orThrow,
+  type TypedKhmerWord,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { KhmerWordsMapValue } from '../../db/dict/types'
 import { khmerToRussian } from '../../../../gemini-ocr-automate-images-upload-chrome-extension/src/utils/khmerToRussian'
 import { Map_filterKeys } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
@@ -23,11 +26,7 @@ interface RussianPronunciationProps {
 }
 
 const MatchingKhmerWord = memo(function MatchingKhmerWord({ colorizedHtml }: { colorizedHtml: string }) {
-  return (
-    <li
-      dangerouslySetInnerHTML={{ __html: colorizedHtml }}
-    />
-  )
+  return <li dangerouslySetInnerHTML={{ __html: colorizedHtml }} />
 })
 
 export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronunciation({
@@ -41,7 +40,10 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
   const { maybeColorMode } = useSettings()
   const listRef = useRef<HTMLUListElement>(null)
 
-  const ruPronunciation = useMemo(() => khmerToRussian(khmerText), [khmerText])
+  const ruPronunciation = useMemo(
+    () => khmerToRussian(strToKhmerWord_remove_nonKhmerOnBothEnds_orThrow(khmerText)),
+    [khmerText],
+  )
 
   // Find other Khmer words that produce the exact same Russian pronunciation string
   const sameSoundingWords = useMemo(() => {
@@ -95,9 +97,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
 
       {colorizedWords.length > 0 && (
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-tiny font-bold text-default-400 uppercase tracking-tighter">
-            Sounds like:
-          </span>
+          <span className="text-tiny font-bold text-default-400 uppercase tracking-tighter">Sounds like:</span>
           <ul
             ref={listRef}
             className={`flex flex-wrap items-center gap-x-3 gap-y-1 list-none p-0 m-0 ${khmerContentClass}`}

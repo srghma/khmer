@@ -56,3 +56,9 @@ icons should be visibly changed if tab is disabled (it means there is no items)
 also fix the due time in the item of the list , rn I see only text "Due" and it is not on the right of item
 
 also there is a gray rectangle around show answer button - there should be no rectangle
+
+# TODO:
+
+https://www.lexilogos.com/english/cambodian_dictionary.htm
+
+https://app.kakvei.tech/

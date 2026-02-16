@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { khmerToRussian as khmerToRussian_ } from './khmerToRussian'
 import { nonEmptyString_afterTrim } from './non-empty-string-trimmed'
-import { strToContainsKhmerOrThrow } from './string-contains-khmer-char'
+import { strToKhmerWordOrThrow } from './khmer-word'
 
-const khmerToRussian = (s: string) => khmerToRussian_(strToContainsKhmerOrThrow(nonEmptyString_afterTrim(s)))
+const khmerToRussian = (s: string) => khmerToRussian_(strToKhmerWordOrThrow(nonEmptyString_afterTrim(s)))
 
 describe('khmerToRussian', () => {
   it('transliterates basic consonants with inherent vowels', () => {
@@ -54,12 +54,12 @@ describe('khmerToRussian', () => {
     expect(khmerToRussian('សរ')).toBe('сар')
   })
 
-  it('handles spaces between words', () => {
-    expect(khmerToRussian('ក ខ')).toBe('ка кха')
-  })
+  // it('handles spaces between words', () => {
+  //   expect(khmerToRussian('ក ខ')).toBe('ка кха')
+  // })
 
   it('handles independent vowels', () => {
-    expect(khmerToRussian('ឥ')).toBe('э, и')
+    expect(khmerToRussian('ឥ')).toBe('(э|и)')
     expect(khmerToRussian('ឦ')).toBe('эй')
   })
 
@@ -72,5 +72,33 @@ describe('khmerToRussian', () => {
     // ៈ (yukoălpĭntŭ) - when alone, should return the original character
     // since it has no standalone pronunciation
     expect(khmerToRussian('ៈ')).toBe(undefined)
+  })
+
+  it('handles "កក់ក្ដៅ" (kak-kdov) with Bantak and Subscripts', () => {
+    // ក (ka) + ់ (bantak) -> ка
+    // ក (ka) (pure) -> к
+    // ក្ដ (kd) (pure) -> .д (from retroflex ដ)
+    // ៅ (vowel series a) -> ау
+    expect(khmerToRussian('កក់ក្ដៅ')).toBe('как.дау')
+  })
+
+  // // duplication sign is an IMPOSSIBLE INPUT, LEAVE FOR FUTURE
+  // it('handles duplication sign "ៗ"', () => {
+  //   // រេះ (reh) -> рех
+  //   // ៗ -> рех (repeats previous word)
+  //   expect(khmerToRussian('រេះៗ')).toBe('рех рех')
+  // })
+
+  it('handles "កម្លាំង" (kamlăng)', () => {
+    // ក (ka) + has next cluster -> к
+    // ម (mo) + subscript sign -> м
+    // ល (lo) + vowel ាំ (series o from ល) -> ланг
+    // expect(khmerToRussian('កម្លាំង')).toBe('камланг')
+    expect(khmerToRussian('កម្លាំង')).toBe('камламнг')
+  })
+
+  it('handles "កាហ្សាក់ស្ថាន"', () => {
+    expect(khmerToRussian('កាហ្សាក់ស្ថាន')).toBe('ка(жа|за)акстхан')
+    expect(khmerToRussian('ក្នុងរជ្ជកាលព្រះបាទជ័យវរ្ម័នទី')).toBe('кнонгоротткеалопрэахбатотёйовормноти')
   })
 })

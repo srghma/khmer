@@ -10,11 +10,13 @@ import type {
   ShortDefinitionKmSchema,
 } from './schema'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { KhmerToRussianOutput } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmerToRussianOutput'
 
 export type KhmerWordsMapValue = {
   isKhmer: boolean
   is_verified: boolean
-  ru_translit: NonEmptyStringTrimmed | undefined
+  ru_translit: KhmerToRussianOutput | undefined
+  en_translit: NonEmptyStringTrimmed | undefined
 }
 export type KhmerWordsMap = NonEmptyMap<TypedContainsKhmer, KhmerWordsMapValue>
 

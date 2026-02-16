@@ -5,10 +5,9 @@ import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 // TODO rename to TypedOnlyKhmerAndSpace
 export type TypedOnlyKhmer = NonEmptyStringTrimmed & { readonly __brandTypedOnlyKhmer: 'TypedOnlyKhmer' }
 
-// Checks if the string contains NO characters that are NOT Khmer (ignoring whitespace)
+// XXX: unlike TypedKhmerWord may contain whitespace
+
 export const isOnlyKhmer = (value: NonEmptyStringTrimmed): value is TypedOnlyKhmer => {
-  // Regex looks for anything that is NOT Khmer and NOT whitespace. If found, return false.
-  // Using \P{Script=Khmer} would be the inverse, but [^\p{Script=Khmer}] is safer in some contexts.
   return !/[^\p{Script=Khmer}\s]/u.test(value)
 }
 
