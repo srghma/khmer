@@ -2,8 +2,6 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { DictData } from '../initDictionary'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { requestIdleCallbackSafe } from '../utils/requestIdleCallbackSafe'
-import { populateTransliterations } from '../db/dict'
 
 type LoadingStage = 'initializing_db' | 'loading_data' | 'ready' | 'error'
 
@@ -47,23 +45,6 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
         if (mounted) {
           setDictData(data)
           setStage('ready')
-
-          requestIdleCallbackSafe(
-            async () => {
-              try {
-                const km_map = await populateTransliterations(data.km_map)
-
-                setDictData({ ...data, km_map })
-              } catch (e: unknown) {
-                // eslint-disable-next-line no-console
-                console.error('❌ Transliterations population failed:', e)
-                setError(unknown_to_errorMessage(e))
-                setStage('error')
-              }
-              // console.log('✅ Transliterations populated')
-            },
-            { timeout: 5000 },
-          )
 
           // console.log('Provider: Ready')
         }
@@ -115,10 +96,10 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
   return (
     <DictionaryContext.Provider
       value={dictData}
-      // dictData,
-      // loading: stage !== 'ready',
-      // stage
-      // }}
+    // dictData,
+    // loading: stage !== 'ready',
+    // stage
+    // }}
     >
       {children}
     </DictionaryContext.Provider>

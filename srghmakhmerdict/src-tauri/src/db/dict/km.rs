@@ -20,6 +20,10 @@ pub struct KmWord {
     #[sqlx(rename = "Word")]
     pub word: String,
     pub is_verified: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub my_ru_translit: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub my_en_translit: Option<String>,
 }
 
 #[derive(Serialize, sqlx::FromRow, Debug)]
@@ -116,7 +120,9 @@ pub async fn get_km_words(state: State<'_, AppState>) -> Result<Vec<KmWord>, Str
                 OR from_russian_wiki IS NOT NULL
                 OR gorgoniev IS NOT NULL
                 OR en_km_com IS NOT NULL
-            ) AS is_verified
+            ) AS is_verified,
+            my_ru_translit,
+            my_en_translit
          FROM km_Dict
          ORDER BY Word ASC";
 

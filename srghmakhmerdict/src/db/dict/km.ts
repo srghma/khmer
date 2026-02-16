@@ -2,65 +2,42 @@ import { invoke } from '@tauri-apps/api/core'
 import { isKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { Map_toNonEmptyMap_orThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { type TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { WordDetailKmSchema } from './schema'
 import type { KhmerWordsMap, KhmerWordsMapValue, WordDetailKm, ShortDefinitionKm } from './types'
+import type { KhmerToRussianOutput } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmerToRussianOutput'
 
-type KhmerWordRow_Raw = { word: TypedContainsKhmer; is_verified: boolean }
+type KhmerWordRow_Raw = {
+  word: TypedContainsKhmer
+  is_verified: boolean
+  my_ru_translit: KhmerToRussianOutput | null
+  my_en_translit: NonEmptyStringTrimmed | null
+}
 
 export const getKmWords = memoizeAsync0_throwIfInFly(async (): Promise<KhmerWordsMap> => {
+  // const { String_toNonEmptyString_orUndefined_afterTrim } =
+  //   await import('@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed')
+  // const { strToLowercaseCyrillicWithGroups_orUndefined } =
+  //   await import('@gemini-ocr-automate-images-upload-chrome-extension/utils/khmerToRussianOutput')
+
   const words = await invoke<KhmerWordRow_Raw[]>('get_km_words')
   const map: Map<TypedContainsKhmer, KhmerWordsMapValue> = new Map()
 
-  words.forEach(({ word, is_verified }) => {
-    // Transliterations are computed lazily in the background after initial load
+  words.forEach(({ word, is_verified, my_ru_translit, my_en_translit }) => {
     map.set(word, {
       isKhmer: isKhmerWord(word),
-      ru_translit: undefined,
-      en_translit: undefined,
+      // Use the transliterations from the database, converting to proper branded types
+      ru_translit: my_ru_translit ?? undefined,
+      en_translit: my_en_translit ?? undefined,
       is_verified,
     } satisfies KhmerWordsMapValue)
   })
 
   return Map_toNonEmptyMap_orThrow(map)
 })
-
-/**
- * Populates transliterations for all words in the map.
- * This should be called after initial load when the app is idle.
- */
-export const populateTransliterations = async (map: KhmerWordsMap): Promise<KhmerWordsMap> => {
-  const { strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined } =
-    await import('@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word')
-  const { khmerToRussian } = await import('@gemini-ocr-automate-images-upload-chrome-extension/utils/khmerToRussian')
-  const { slugify } = await import('@gemini-ocr-automate-images-upload-chrome-extension/utils/slugifyKhmer')
-  const { String_toNonEmptyString_orUndefined_afterTrim } =
-    await import('@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed')
-
-  // Cast to writable Map to allow modifications
-  const writableMap: Map<TypedContainsKhmer, KhmerWordsMapValue> = new Map()
-
-  for (const [word, value] of map.entries()) {
-    // Skip if already populated
-    if (value.ru_translit !== undefined || value.en_translit !== undefined) continue
-
-    const ru_translit_ = strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined(word)
-    const ru_translit = ru_translit_ ? khmerToRussian(ru_translit_) : undefined
-    const en_translit = String_toNonEmptyString_orUndefined_afterTrim(slugify(word, ' '))
-
-    // Update the map entry in-place
-    writableMap.set(word, {
-      ...value,
-      ru_translit,
-      en_translit,
-    })
-  }
-
-  return Map_toNonEmptyMap_orThrow(writableMap)
-}
 
 export function* yieldOnlyVerifiedKhmerWords(map: KhmerWordsMap): Generator<NonEmptyStringTrimmed> {
   for (const [word, value] of map.entries()) {
