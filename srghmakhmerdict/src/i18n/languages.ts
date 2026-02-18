@@ -6,7 +6,9 @@ export const allLanguages = <T extends Locales[]>(...args: T & ([Locales] extend
 
 export const LANGUAGES = allLanguages('en', 'ru', 'uk', 'km')
 
-export type LanguagesOrAuto = 'auto' | Locales
+export const LANGUAGES_OR_AUTO = ['auto', ...LANGUAGES] as const
+
+export type LanguagesOrAuto = (typeof LANGUAGES_OR_AUTO)[number]
 
 export function isLanguagesOrAuto(value: string): value is LanguagesOrAuto {
   return value === 'auto' || isLocale(value)
