@@ -5,10 +5,7 @@ import { stringToLanguagesOrAutoOrThrow, LANGUAGES_OR_AUTO } from '../i18n/langu
 import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { SharedSelection } from '@heroui/system'
 import { herouiSharedSelection_getFirst_string } from '../utils/herouiSharedSelection_getFirst_string'
-import {
-  assertIsDefinedAndReturn,
-  assertNever,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { tab_title_ru } from './SidebarHeader'
 
 export const LanguageSelector = memo(() => {
