@@ -5,6 +5,16 @@ import type { DictionaryLanguage } from '../../types'
 import type { FavoriteItem } from './item'
 import { reviewCard_calculateReviewUpdates } from '../../components/Anki/utils'
 
+function expectAndGetExactlyOneRow<T>(what: string, rows: T[]): T {
+  if (rows.length === 0) throw new Error(`${what} should already exist`)
+  if (rows.length > 1) throw new Error(`${what} should be unique, but got ${rows.length}`)
+  const c = rows[0]
+
+  if (!c) throw new Error(`${what} is empty`)
+
+  return c
+}
+
 export async function getCurrent(word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<FavoriteItem> {
   const db = await getUserDb()
 
@@ -14,15 +24,7 @@ export async function getCurrent(word: NonEmptyStringTrimmed, language: Dictiona
   ])
 
   // Validation
-  const current = (() => {
-    if (rows.length === 0) throw new Error('Card should already exist')
-    if (rows.length > 1) throw new Error(`Card should be unique, but got ${rows.length}`)
-    const c = rows[0]
-
-    if (!c) throw new Error(`Card is empty`)
-
-    return c
-  })()
+  const current = expectAndGetExactlyOneRow('Card', rows)
 
   return current
 }

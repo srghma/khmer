@@ -541,3 +541,8 @@ export function Map_moveIndexToStart_arrayBased<K, V>(map: ReadonlyMap<K, V>, in
 //   map.clear()
 //   for (const e of rebuilt) map.set(e[0], e[1])
 // }
+
+export function Map_sortStringKeys<K extends PropertyKey, V>(map: ReadonlyMap<K, V>): Map<K, V> {
+  const sorted = Array.from(map.entries()).sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+  return new Map(sorted)
+}

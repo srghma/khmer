@@ -5,10 +5,18 @@ import {
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type KhmerWordsMap } from '../../db/dict'
-import { aSeriesSet, vowelsGrid, consonantsGrid, supplementaryConsonants, independentVowels } from './data'
+import {
+  aSeriesSet,
+  vowelsGrid,
+  consonantsGrid,
+  supplementaryConsonants,
+  independentVowels,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-table-grid-data'
 import { WordDeckModal, type DeckData } from './WordDeckModal'
 import { buildGraphemeIndex } from './buildGraphemeIndex'
 import { cn } from '@heroui/theme'
+import { Array_isNonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
+import { useAutoReadCaller } from '../../hooks/useAutoReadTts'
 
 // --- Memoized Components ---
 
@@ -65,13 +73,29 @@ const ConsonantBlock = memo(
   }) => {
     const isSeriesA = aSeriesSet.has(consonant)
 
+    // 1. Initialize the speak function
+    const speak = useAutoReadCaller('google_then_native')
+
+    // 2. Implement the handler
+    const handleReadHeaderCharUsingGoogleOrNative = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation()
+        // We pass 'km' for Khmer language
+        speak(consonant, 'km')
+      },
+      [consonant, speak],
+    )
+
     return (
       <div className="border-2 border-default-300 dark:border-default-100 bg-content1 mb-2 break-inside-avoid shadow-sm">
-        <div
-          className={`text-center text-2xl font-bold py-1 font-khmer ${isSeriesA ? 'text-danger-500' : 'text-primary-500'}`}
+        <button
+          className={`w-full text-center text-2xl font-bold py-1 font-khmer transition-colors hover:bg-default-100 ${
+            isSeriesA ? 'text-danger-500' : 'text-primary-500'
+          }`}
+          onClick={handleReadHeaderCharUsingGoogleOrNative}
         >
           {consonant}
-        </div>
+        </button>
         <table className="w-full table-fixed border-collapse">
           <tbody>
             {vowelsGrid.map((row, rIdx) => (
@@ -116,12 +140,18 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
     return buildGraphemeIndex(wordsMap)
   }, [wordsMap])
 
+  // 1. Initialize the speak function
+  const speak = useAutoReadCaller('google_then_native')
+
   const handleCellClick = useCallback(
     (combo: NonEmptyStringTrimmed) => {
       if (!graphemeIndex) return
-      const words = graphemeIndex.index.get(combo) || []
+      const words = graphemeIndex.index.get(combo)
+
+      if (!words || !Array_isNonEmptyArray(words)) return
 
       setSelectedDeck({ title: combo, words })
+      void speak(combo, 'km' as any)
     },
     [graphemeIndex],
   )

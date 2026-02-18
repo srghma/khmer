@@ -1,97 +1,78 @@
-import { useEffect } from 'react'
-import { useSettings } from '../providers/SettingsProvider'
-import { executeGoogleTts, googleTtsResultToError } from '../utils/tts/google'
+import { useCallback, useEffect, useRef } from 'react'
+import { useSettings, type AutoReadMode } from '../providers/SettingsProvider'
 import { useAppToast } from '../providers/ToastProvider'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { ToTranslateLanguage } from '../utils/googleTranslate/toTranslateLanguage'
-import { unknown_to_errorMessage } from '../utils/errorMessage'
-import { executeNativeTts, nativeTtsResultToError } from '../utils/tts/native'
-import { map_ToTranslateLanguage_to_BCP47LanguageTagName } from '../utils/my-bcp-47'
+import { googleTtsResultToError } from '../utils/tts/google'
+import { nativeTtsResultToError } from '../utils/tts/native'
+import { executeTtsOrchestrator } from '../utils/tts/googleOrNative'
 
-const globalLastReadWord = { current: undefined as string | undefined }
+const globalLastReadWord = { current: undefined as NonEmptyStringTrimmed | undefined }
+
+export const useAutoReadCaller = (autoReadMode: AutoReadMode) => {
+  const toast = useAppToast()
+
+  return useCallback(
+    async (word: NonEmptyStringTrimmed, language: ToTranslateLanguage, signal?: AbortSignal) => {
+      if (!word || autoReadMode === 'disabled' || globalLastReadWord.current === word) return
+      globalLastReadWord.current = word
+
+      const result = await executeTtsOrchestrator(word, language, autoReadMode, signal)
+
+      if (signal?.aborted || result.t === 'success' || result.t === 'aborted') return
+
+      // Map orchestrator results back to toast-friendly errors
+      switch (result.t) {
+        case 'google_error': {
+          const err = googleTtsResultToError(result.error)
+
+          if (err) toast.error(err.title, err.description)
+          break
+        }
+        case 'native_error': {
+          const err = nativeTtsResultToError(result.error)
+
+          if (err) toast.error(err.title, err.description)
+          break
+        }
+        case 'google_then_native_both_error': {
+          const gErr = googleTtsResultToError(result.googleError)
+          const nErr = nativeTtsResultToError(result.nativeError)
+
+          toast.error(
+            nErr?.title ?? ('TTS Failed' as NonEmptyStringTrimmed),
+            `${gErr?.description ?? ''} | ${nErr?.description ?? ''}` as NonEmptyStringTrimmed,
+          )
+          break
+        }
+      }
+    },
+    [autoReadMode, toast],
+  )
+}
 
 export const useAutoReadTts = (word: NonEmptyStringTrimmed | undefined, language: ToTranslateLanguage) => {
   const { autoReadMode } = useSettings()
-  const toast = useAppToast()
+  const speak = useAutoReadCaller(autoReadMode)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
-    let ignore = false
-    // const effectId = Math.random().toString(36).substring(7) // Unique ID for this specific effect run
+    abortControllerRef.current?.abort()
 
-    // console.log(
-    //   `[useAutoReadTts][${effectId}] Effect triggered. Word: "${word}", Mode: ${autoReadMode}, Language: ${language}`,
-    // )
-
-    if (!word || autoReadMode === 'disabled') {
-      // console.log(`[useAutoReadTts][${effectId}] Exit: Word is empty or mode is disabled.`)
-      if (!word) globalLastReadWord.current = undefined
-
-      return
-    }
-
-    if (globalLastReadWord.current === word) {
-      // console.log(
-      // `[useAutoReadTts][${effectId}] Exit: Word "${word}" already matches globalLastReadWord. Skipping to prevent duplicate.`,
-      // )
-      return
-    }
-
-    // console.log(
-    //   `[useAutoReadTts][${effectId}] New word detected. Updating ref from "${globalLastReadWord.current}" to "${word}"`,
-    // )
-    globalLastReadWord.current = word
-
-    const bcp47Language = map_ToTranslateLanguage_to_BCP47LanguageTagName[language]
-
-    const speakNative = async () => {
-      // console.log(`[useAutoReadTts][${effectId}] Executing Native TTS for: "${word}"`)
-      const result = await executeNativeTts(word, bcp47Language)
-      const error = nativeTtsResultToError(result)
-
-      if (error && !ignore) {
-        // console.error(`[useAutoReadTts][${effectId}] Native TTS Error:`, error)
-        toast.error(error.title, error.description)
-      }
-    }
-
-    const speakGoogle = async () => {
-      // console.log(`[useAutoReadTts][${effectId}] Executing Google TTS for: "${word}"`)
-      try {
-        const result = await executeGoogleTts(word, language)
-        const error = googleTtsResultToError(result)
-
-        if (error && !ignore) {
-          if (autoReadMode === 'google_then_native') {
-            // console.warn(`[useAutoReadTts][${effectId}] Google TTS failed, falling back to native.`, error)
-            await speakNative()
-          } else {
-            toast.error(error.title, error.description)
-          }
-        }
-      } catch (e: unknown) {
-        // console.error(`[useAutoReadTts][${effectId}] Google TTS Exception:`, e)
-        if (autoReadMode === 'google_then_native' && !ignore) {
-          await speakNative()
-        } else if (!ignore) {
-          toast.error('Google TTS Error' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
-        }
-      }
-    }
-
-    // Logic for choosing engine
-    if (autoReadMode === 'native_only') {
-      void speakNative()
+    if (!word) {
+      globalLastReadWord.current = undefined
     } else {
-      void speakGoogle()
+      const controller = new AbortController()
+
+      abortControllerRef.current = controller
+      void speak(word, language, controller.signal)
     }
 
     return () => {
-      // console.log(`[useAutoReadTts][${effectId}] Cleanup logic running for: "${word}"`)
-      ignore = true
+      abortControllerRef.current?.abort()
       if (typeof window !== 'undefined' && window.speechSynthesis) {
-        // console.log(`[useAutoReadTts][${effectId}] window.speechSynthesis.cancel() called.`)
         window.speechSynthesis.cancel()
       }
     }
-  }, [word, language, autoReadMode, toast])
+  }, [word, language, speak])
 }

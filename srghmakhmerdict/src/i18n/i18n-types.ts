@@ -122,7 +122,7 @@ type RootTranslation = {
 			 */
 			AUTO: string
 			/**
-			 * S​i​d​e​b​a​r​ ​/​ ​L​i​s​t​ ​S​i​z​e
+			 * U​I​ ​S​i​z​e
 			 */
 			UI_SIZE: string
 			/**
@@ -412,6 +412,56 @@ type RootTranslation = {
 			 * E​n​/​R​u
 			 */
 			EN_RU: string
+		}
+		IMPORT: {
+			/**
+			 * I​m​p​o​r​t​ ​W​o​r​d​s
+			 */
+			TITLE: string
+			/**
+			 * E​n​t​e​r​ ​o​n​e​ ​w​o​r​d​ ​p​e​r​ ​l​i​n​e​.​ ​W​e​'​l​l​ ​a​u​t​o​m​a​t​i​c​a​l​l​y​ ​d​e​t​e​c​t​ ​t​h​e​ ​l​a​n​g​u​a​g​e​.
+			 */
+			DESCRIPTION: string
+			/**
+			 * ស​ួ​ស​្​ត​ី​
+		​H​e​l​l​o​
+		​П​р​и​в​е​т
+			 */
+			PLACEHOLDER: string
+			/**
+			 * I​m​p​o​r​t
+			 */
+			BUTTON: string
+			/**
+			 * I​m​p​o​r​t​ ​S​u​m​m​a​r​y
+			 */
+			SUMMARY_TITLE: string
+			/**
+			 * S​u​c​c​e​s​s
+			 */
+			SUCCESS: string
+			/**
+			 * S​k​i​p​p​e​d​ ​(​a​l​r​e​a​d​y​ ​e​x​i​s​t​s​)
+			 */
+			SKIPPED: string
+			/**
+			 * N​o​t​ ​f​o​u​n​d​ ​i​n​ ​d​i​c​t​i​o​n​a​r​y
+			 */
+			NOT_FOUND: string
+		}
+		EXPORT: {
+			/**
+			 * E​x​p​o​r​t​ ​W​o​r​d​s
+			 */
+			TITLE: string
+			/**
+			 * E​x​p​o​r​t​ ​a​l​l​ ​y​o​u​r​ ​f​a​v​o​r​i​t​e​ ​w​o​r​d​s​ ​a​s​ ​a​ ​l​i​s​t​.
+			 */
+			DESCRIPTION: string
+			/**
+			 * E​x​p​o​r​t
+			 */
+			BUTTON: string
 		}
 	}
 	SIDEBAR: {
@@ -924,7 +974,7 @@ export type TranslationFunctions = {
 			 */
 			AUTO: () => LocalizedString
 			/**
-			 * Sidebar / List Size
+			 * UI Size
 			 */
 			UI_SIZE: () => LocalizedString
 			/**
@@ -1211,6 +1261,56 @@ export type TranslationFunctions = {
 			 * En/Ru
 			 */
 			EN_RU: () => LocalizedString
+		}
+		IMPORT: {
+			/**
+			 * Import Words
+			 */
+			TITLE: () => LocalizedString
+			/**
+			 * Enter one word per line. We'll automatically detect the language.
+			 */
+			DESCRIPTION: () => LocalizedString
+			/**
+			 * សួស្តី
+		Hello
+		Привет
+			 */
+			PLACEHOLDER: () => LocalizedString
+			/**
+			 * Import
+			 */
+			BUTTON: () => LocalizedString
+			/**
+			 * Import Summary
+			 */
+			SUMMARY_TITLE: () => LocalizedString
+			/**
+			 * Success
+			 */
+			SUCCESS: () => LocalizedString
+			/**
+			 * Skipped (already exists)
+			 */
+			SKIPPED: () => LocalizedString
+			/**
+			 * Not found in dictionary
+			 */
+			NOT_FOUND: () => LocalizedString
+		}
+		EXPORT: {
+			/**
+			 * Export Words
+			 */
+			TITLE: () => LocalizedString
+			/**
+			 * Export all your favorite words as a list.
+			 */
+			DESCRIPTION: () => LocalizedString
+			/**
+			 * Export
+			 */
+			BUTTON: () => LocalizedString
 		}
 	}
 	SIDEBAR: {

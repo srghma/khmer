@@ -24,6 +24,7 @@ interface FavoritesContextType {
   deleteAllFavorites: () => Promise<void>
   reviewCard: (word: NonEmptyStringTrimmed, language: DictionaryLanguage, grade: Grade) => Promise<FavoriteItem>
   isFavorite: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => boolean
+  refreshFavorites: () => Promise<void>
 }
 
 const FavoritesContext = createContext<FavoritesContextType | null>(null)
@@ -44,27 +45,21 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const mutex = useRef<Promise<unknown>>(Promise.resolve())
   const toast = useAppToast()
 
-  useEffect(() => {
-    let mounted = true
-
-    getFavoritesDb()
-      .then(data => {
-        if (mounted) {
-          setFavorites(data)
-          setLoading(false)
-        }
-      })
-      .catch(e => {
-        if (mounted) {
-          toast.error('Failed to load favorites' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      mounted = false
+  const refreshFavorites = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await getFavoritesDb()
+      setFavorites(data)
+    } catch (e) {
+      toast.error('Failed to load favorites' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+    } finally {
+      setLoading(false)
     }
   }, [toast])
+
+  useEffect(() => {
+    refreshFavorites()
+  }, [refreshFavorites])
 
   const runMutation = useCallback(async <T,>(fn: () => Promise<T>): Promise<T> => {
     // Chain the new mutation to the existing promise chain
@@ -73,7 +68,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     })
 
     // Update the mutex to wait for this new mutation, catching errors to ensure the chain continues
-    mutex.current = resultPromise.catch(() => {})
+    mutex.current = resultPromise.catch(() => { })
 
     return resultPromise
   }, [])
@@ -224,8 +219,19 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteAllFavorites,
       reviewCard,
       isFavorite,
+      refreshFavorites,
     }),
-    [favorites, loading, addFavorite, removeFavorite, toggleFavorite, deleteAllFavorites, reviewCard, isFavorite],
+    [
+      favorites,
+      loading,
+      addFavorite,
+      removeFavorite,
+      toggleFavorite,
+      deleteAllFavorites,
+      reviewCard,
+      isFavorite,
+      refreshFavorites,
+    ],
   )
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>

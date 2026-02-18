@@ -15,8 +15,9 @@ import type { KhmerToRussianOutput } from '@gemini-ocr-automate-images-upload-ch
 export type KhmerWordsMapValue = {
   isKhmer: boolean
   is_verified: boolean
-  ru_translit: KhmerToRussianOutput | undefined
-  en_translit: NonEmptyStringTrimmed | undefined
+  ru_translit?: KhmerToRussianOutput
+  en_translit?: NonEmptyStringTrimmed
+  Wiktionary_ipa_or_from_csv_pronunciations?: NonEmptyStringTrimmed
 }
 export type KhmerWordsMap = NonEmptyMap<TypedContainsKhmer, KhmerWordsMapValue>
 

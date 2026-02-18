@@ -130,6 +130,21 @@ const en = {
       RUSSIAN: 'Russian',
       EN_RU: 'En/Ru',
     },
+    IMPORT: {
+      TITLE: 'Import Words',
+      DESCRIPTION: "Enter one word per line. We'll automatically detect the language.",
+      PLACEHOLDER: 'សួស្តី\nHello\nПривет',
+      BUTTON: 'Import',
+      SUMMARY_TITLE: 'Import Summary',
+      SUCCESS: 'Success',
+      SKIPPED: 'Skipped (already exists)',
+      NOT_FOUND: 'Not found in dictionary',
+    },
+    EXPORT: {
+      TITLE: 'Export Words',
+      DESCRIPTION: 'Export all your favorite words as a list.',
+      BUTTON: 'Export',
+    },
   },
   SIDEBAR: {
     LOADING_DICT: 'Loading Dictionary...',

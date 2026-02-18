@@ -98,9 +98,7 @@ export const ResultDisplay = memo(({ result, targetLang, maybeColorMode }: Resul
             className={`font-medium text-medium font-khmer leading-relaxed select-text whitespace-normal break-all ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content}`}
           />
         ) : (
-          <div className="font-medium text-medium select-text whitespace-normal break-all">
-            {result.text}
-          </div>
+          <div className="font-medium text-medium select-text whitespace-normal break-all">{result.text}</div>
         )}
 
         {result.transliteration && (

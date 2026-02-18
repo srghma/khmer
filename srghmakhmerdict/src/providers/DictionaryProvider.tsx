@@ -96,10 +96,10 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
   return (
     <DictionaryContext.Provider
       value={dictData}
-    // dictData,
-    // loading: stage !== 'ready',
-    // stage
-    // }}
+      // dictData,
+      // loading: stage !== 'ready',
+      // stage
+      // }}
     >
       {children}
     </DictionaryContext.Provider>

@@ -25,6 +25,9 @@ interface WordListKhmerProps {
   readonly searchMode: SearchMode
 }
 
+import { useDictionary } from '../providers/DictionaryProvider'
+import { type TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+
 export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   data,
   onWordClick,
@@ -34,6 +37,7 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
   searchMode,
 }: WordListKhmerProps) => {
   const { LL } = useI18nContext()
+  const { km_map } = useDictionary()
   // Memoize lengths for sidebar (kept here as it's specific to Sidebar UI prop)
   const lengthsData = useMemo(() => makeShortInfoAboutLengths(data), [data])
 
@@ -97,16 +101,21 @@ export const WordListKhmerImpl: React.FC<WordListKhmerProps> = ({
         )
       }
 
+      const pronunciation = km_map.get(item.word as TypedContainsKhmer)?.Wiktionary_ipa_or_from_csv_pronunciations
+
       return (
         <button
           className={`h-full flex items-center px-6 border-b py-1 border-divider hover:brightness-95 dark:hover:brightness-110 w-full text-left transition-all ${item.bgClass}`}
           onClick={onClick}
         >
-          <span className={`text-foreground-900 leading-snug text-base font-khmer`}>{renderWordItem(item.word)}</span>
+          <span className={`text-foreground-900 leading-snug text-base font-khmer flex-1`}>
+            {renderWordItem(item.word)}
+          </span>
+          {pronunciation && <span className="text-default-400 text-sm font-mono truncate ml-2">{pronunciation}</span>}
         </button>
       )
     },
-    [onWordClick, renderWordItem],
+    [onWordClick, renderWordItem, km_map],
   )
 
   const { scaling_ui } = useSettings()

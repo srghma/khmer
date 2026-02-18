@@ -64,12 +64,22 @@ export const useAnkiNavigation = () => {
     setLocation(`~/${settingsLanguage}`)
   }, [setLocation, settingsLanguage])
 
+  const navigateToImport = useCallback(() => {
+    setLocation(`/anki/import`)
+  }, [setLocation])
+
+  const navigateToExport = useCallback(() => {
+    setLocation(`/anki/export`)
+  }, [setLocation])
+
   return {
     urlLanguage,
     selectedId,
     navigateToLanguage,
     navigateToWord,
     exitAnki,
+    navigateToImport,
+    navigateToExport,
   }
 }
 

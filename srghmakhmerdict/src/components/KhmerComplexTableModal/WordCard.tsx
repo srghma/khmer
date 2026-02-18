@@ -39,7 +39,7 @@ export const WordCard = memo(
           ))}
         </div>
 
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <div className="flex gap-1 shrink-0">
           <Tooltip closeDelay={0} content="Speak">
             <button
               className="p-1.5 text-default-400 hover:text-primary hover:bg-primary/10 rounded-full"

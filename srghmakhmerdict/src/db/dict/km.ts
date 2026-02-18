@@ -15,6 +15,7 @@ type KhmerWordRow_Raw = {
   is_verified: boolean
   my_ru_translit: KhmerToRussianOutput | null
   my_en_translit: NonEmptyStringTrimmed | null
+  Wiktionary_ipa_or_from_csv_pronunciations: NonEmptyStringTrimmed | null
 }
 
 export const getKmWords = memoizeAsync0_throwIfInFly(async (): Promise<KhmerWordsMap> => {
@@ -26,14 +27,20 @@ export const getKmWords = memoizeAsync0_throwIfInFly(async (): Promise<KhmerWord
   const words = await invoke<KhmerWordRow_Raw[]>('get_km_words')
   const map: Map<TypedContainsKhmer, KhmerWordsMapValue> = new Map()
 
-  words.forEach(({ word, is_verified, my_ru_translit, my_en_translit }) => {
-    map.set(word, {
+  words.forEach(({ word, is_verified, my_ru_translit, my_en_translit, Wiktionary_ipa_or_from_csv_pronunciations }) => {
+    const obj: KhmerWordsMapValue = {
       isKhmer: isKhmerWord(word),
       // Use the transliterations from the database, converting to proper branded types
-      ru_translit: my_ru_translit ?? undefined,
-      en_translit: my_en_translit ?? undefined,
       is_verified,
-    } satisfies KhmerWordsMapValue)
+    }
+
+    if (my_ru_translit) obj.ru_translit = my_ru_translit
+    if (my_en_translit) obj.en_translit = my_en_translit
+    if (Wiktionary_ipa_or_from_csv_pronunciations) {
+      obj.Wiktionary_ipa_or_from_csv_pronunciations = Wiktionary_ipa_or_from_csv_pronunciations
+    }
+
+    map.set(word, obj)
   })
 
   return Map_toNonEmptyMap_orThrow(map)

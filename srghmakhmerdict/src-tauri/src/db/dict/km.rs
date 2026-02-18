@@ -24,6 +24,10 @@ pub struct KmWord {
     pub my_ru_translit: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub my_en_translit: Option<String>,
+    #[serde(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
+    #[sqlx(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wiktionary_ipa_or_from_csv_pronunciations: Option<String>,
 }
 
 #[derive(Serialize, sqlx::FromRow, Debug)]
@@ -122,7 +126,11 @@ pub async fn get_km_words(state: State<'_, AppState>) -> Result<Vec<KmWord>, Str
                 OR en_km_com IS NOT NULL
             ) AS is_verified,
             my_ru_translit,
-            my_en_translit
+            my_en_translit,
+            COALESCE(
+                Wiktionary_ipa,
+                (SELECT GROUP_CONCAT(value, ', ') FROM json_each(COALESCE(from_csv_pronunciations, '[]')))
+            ) AS Wiktionary_ipa_or_from_csv_pronunciations
          FROM km_Dict
          ORDER BY Word ASC";
 

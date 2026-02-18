@@ -10,6 +10,14 @@ export function Set_filterMap<T, U>(set: Set<T>, f: (item: T) => Option<U>): Set
   }
   return result
 }
+export function Set_filterMap_usingUndefined<T, U>(set: Set<T>, f: (item: T) => U | undefined): Set<U> {
+  const result: Set<U> = new Set()
+  for (const item of set) {
+    const opt = f(item)
+    if (opt !== undefined) result.add(opt)
+  }
+  return result
+}
 
 export function Set_mapToArray<T, U>(set: Set<T>, fn: (x: T) => U): U[] {
   const result: U[] = []
@@ -183,4 +191,12 @@ export function Set_mkOrLogIfArrayIsNotUnique<T extends PropertyKey>(entries: re
   const { seen, duplicates } = Set_mkOrCollectIfArrayIsNotUnique(entries)
   if (duplicates.size > 0) console.error(`Array contains duplicate entries: ${[...duplicates].join(', ')}`)
   return seen
+}
+
+export function Set_sortStringKeys<T extends PropertyKey>(set: Set<T>): Set<T> {
+  return new Set([...set].sort())
+}
+
+export function Set_sortStringKeysPlusUndefined<T extends PropertyKey>(set: Set<T | undefined>): Set<T | undefined> {
+  return new Set([...set].sort())
 }

@@ -7,7 +7,7 @@ import {
 import { unknown_to_errorMessage } from '../errorMessage'
 import type { BCP47LanguageTagName } from '../my-bcp-47'
 
-export type TtsExecutionResult =
+export type NativeTtsExecutionResult =
   | { t: 'success_using_tauri_plugin' }
   | { t: 'success_using_speechSynthesis'; tauriError: unknown }
   | { t: 'error_using_tauri_plugin_and_no_speechSynthesis'; tauriError: unknown }
@@ -35,7 +35,7 @@ async function waitForTauriTts(): Promise<void> {
 export const executeNativeTts = async (
   text: NonEmptyStringTrimmed,
   langIso: BCP47LanguageTagName,
-): Promise<TtsExecutionResult> => {
+): Promise<NativeTtsExecutionResult> => {
   try {
     await speak({
       text: text,
@@ -75,7 +75,7 @@ export const executeNativeTts = async (
 //////////////////////////////////////////
 
 export function nativeTtsResultToError(
-  result: TtsExecutionResult,
+  result: NativeTtsExecutionResult,
 ): { title: NonEmptyStringTrimmed; description: NonEmptyStringTrimmed | undefined } | undefined {
   if (result.t === 'success_using_tauri_plugin' || result.t === 'success_using_speechSynthesis') {
     return undefined

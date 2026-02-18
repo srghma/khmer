@@ -6,14 +6,15 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 // TanStack Virtual
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { WordCard } from './WordCard'
+import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 
 export interface DeckData {
   title: NonEmptyStringTrimmed
-  words: NonEmptyStringTrimmed[]
+  words: NonEmptyArray<NonEmptyStringTrimmed>
 }
 
 const modalClassNames = {
-  base: 'h-[85vh] flex flex-col',
+  base: 'flex flex-col',
   body: 'p-0 overflow-hidden flex-1',
 }
 
@@ -78,7 +79,7 @@ export const WordDeckModal = memo(({ onClose, data }: { onClose: () => void; dat
   )
 
   return (
-    <Modal backdrop="blur" classNames={modalClassNames} isOpen={true} size="2xl" onClose={onClose}>
+    <Modal backdrop="blur" classNames={modalClassNames} isOpen={true} size="full" onClose={onClose}>
       <ModalContent className="scaling-details">
         <ModalHeader className="flex flex-col gap-1 border-b border-divider shrink-0">
           <div className="flex items-baseline gap-3">

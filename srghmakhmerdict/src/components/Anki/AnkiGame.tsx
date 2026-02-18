@@ -17,6 +17,9 @@ import { AnkiPlayArea } from './AnkiPlayArea'
 import { allFavorites_split_sorted } from './utils'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { useAnkiNavigation } from './useAnkiNavigation'
+import { AnkiImport } from './Import'
+import { AnkiExport } from './Export'
+import { useAnkiRoute } from './useAnkiRoute'
 
 import { memoizeSync1_Boolean } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
 import type { FavoriteItem } from '../../db/favorite/item'
@@ -35,15 +38,13 @@ const LoadingSpinner = (
 )
 
 const getSidebarClassName = memoizeSync1_Boolean((hasSelectedItem: boolean) => {
-  return `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${
-    hasSelectedItem ? 'hidden md:flex' : 'w-full'
-  }`
+  return `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${hasSelectedItem ? 'hidden md:flex' : 'w-full'
+    }`
 })
 
 const getRightPanelClassName = memoizeSync1_Boolean((hasSelectedItem: boolean) => {
-  return `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${
-    !hasSelectedItem ? 'hidden md:flex' : 'flex'
-  }`
+  return `flex-1 flex flex-col bg-background relative overflow-hidden transition-all ${!hasSelectedItem ? 'hidden md:flex' : 'flex'
+    } w-full md:w-auto`
 })
 
 const useCountOfSplitted = (splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined>) => {
@@ -74,6 +75,7 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
   // useAnkiAutoRedirect(allFavorites_splitted)
 
   const { LL } = useI18nContext()
+  const { subPage } = useAnkiRoute()
   const { urlLanguage, selectedId, navigateToWord, navigateToLanguage, exitAnki } = useAnkiNavigation()
 
   const currentLanguage_favoriteItems = assertIsDefinedAndReturn(allFavorites_splitted[urlLanguage])
@@ -119,8 +121,8 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
     [initialData, reviewCard, now, navigateToWord, navigateToLanguage, urlLanguage, toast, LL],
   )
 
-  const sidebarClassName = useMemo(() => getSidebarClassName(!!selectedId), [selectedId])
-  const rightPanelClassName = useMemo(() => getRightPanelClassName(!!selectedId), [selectedId])
+  const sidebarClassName = useMemo(() => getSidebarClassName(!!selectedId || !!subPage), [selectedId, subPage])
+  const rightPanelClassName = useMemo(() => getRightPanelClassName(!!selectedId || !!subPage), [selectedId, subPage])
 
   const itemData = useMemo(() => {
     if (!selectedId || initialData === 'loading') return undefined
@@ -129,6 +131,9 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
   }, [selectedId, initialData])
 
   const rightPanelContent = useMemo(() => {
+    if (subPage === 'import') return <AnkiImport />
+    if (subPage === 'export') return <AnkiExport />
+
     if (selectedId) {
       if (!itemData) {
         return (
@@ -148,7 +153,7 @@ const AnkiGameStep2 = React.memo(function AnkiGameStep2({ allFavorites_splitted 
         <p>{LL.ANKI.SELECT_CARD()}</p>
       </div>
     )
-  }, [exitAnki, selectedId, itemData, km_map, handleRate, LL])
+  }, [exitAnki, selectedId, itemData, km_map, handleRate, LL, subPage])
 
   return (
     <div className="flex h-full w-full md:h-full bg-background overflow-hidden font-inter text-foreground h-[100dvh]">
@@ -181,18 +186,19 @@ const AnkiGameInner = React.memo(function AnkiGameInner(props: AnkiGameStep2Prop
   const { urlLanguage, navigateToLanguage } = useAnkiNavigation()
 
   const currentLanguage_favoriteItems = allFavorites_splitted[urlLanguage]
+  const { subPage } = useAnkiRoute()
 
   useEffect(() => {
-    if (!currentLanguage_favoriteItems) {
+    if (!currentLanguage_favoriteItems && !subPage) {
       const nextLang = getBestAvailableLanguage(allFavorites_splitted)
 
       if (nextLang !== urlLanguage) {
         navigateToLanguage(nextLang)
       }
     }
-  }, [currentLanguage_favoriteItems, allFavorites_splitted, urlLanguage, navigateToLanguage])
+  }, [currentLanguage_favoriteItems, allFavorites_splitted, urlLanguage, navigateToLanguage, subPage])
 
-  if (!currentLanguage_favoriteItems) {
+  if (!currentLanguage_favoriteItems && !subPage) {
     return LoadingSpinner
   }
 
@@ -212,6 +218,28 @@ export const AnkiGame = React.memo(function AnkiGame() {
 
   if (loading) return LoadingSpinner
   if (!allFavorites_splitted || !Array_isNonEmptyArray(allFavorites)) {
+    const { subPage } = useAnkiRoute()
+
+    if (subPage === 'import') {
+      return (
+        <div className="fixed inset-0 z-[100] bg-background flex flex-col">
+          <AnkiHeader
+            activeDict="en" // dummy
+            direction="GUESSING_NON_KHMER" // dummy
+            en_dueCount_today={0}
+            en_dueCount_total={0}
+            kh_dueCount_today={0}
+            kh_dueCount_total={0}
+            ru_dueCount_today={0}
+            ru_dueCount_total={0}
+            onDirectionChange={() => { }}
+            onExit={() => { window.location.hash = '' }} // or some other way to exit
+          />
+          <AnkiImport />
+        </div>
+      )
+    }
+
     return (
       <div className="flex h-full items-center justify-center">
         <p>{LL.ANKI.NO_FAVORITES()}</p>

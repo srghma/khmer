@@ -5,11 +5,13 @@ import { stringToDictionaryLanguageOrThrow, type DictionaryLanguage } from '../.
 import { IoClose } from 'react-icons/io5'
 import { Button } from '@heroui/button'
 import { type AnkiDirection } from './types'
+import { HiCog6Tooth, HiArrowDownTray } from 'react-icons/hi2'
 
 // Reusing icons/titles from SidebarHeader
 import { tab_title_en, tab_title_km, tab_title_ru } from '../SidebarHeader'
 import { unknown_shouldBeStringOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string'
 import { useAnkiNavigation } from './useAnkiNavigation'
+import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 interface AnkiHeaderProps {
   activeDict: DictionaryLanguage
@@ -56,8 +58,6 @@ const tabsClassNames = {
   cursor: 'bg-secondary',
 }
 
-import { useI18nContext } from '../../i18n/i18n-react-custom'
-
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
     activeDict,
@@ -71,7 +71,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     kh_dueCount_total,
     onExit,
   }) => {
-    const { navigateToLanguage } = useAnkiNavigation()
+    const { navigateToLanguage, navigateToImport, navigateToExport } = useAnkiNavigation()
     const { LL } = useI18nContext()
 
     const isGuessingKhmer = direction === 'GUESSING_KHMER'
@@ -129,10 +129,10 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
             {isGuessingKhmer
               ? LL.ANKI.LANGUAGES.KHMER()
               : {
-                  en: LL.ANKI.LANGUAGES.ENGLISH(),
-                  ru: LL.ANKI.LANGUAGES.RUSSIAN(),
-                  km: LL.ANKI.LANGUAGES.EN_RU(),
-                }[activeDict]}
+                en: LL.ANKI.LANGUAGES.ENGLISH(),
+                ru: LL.ANKI.LANGUAGES.RUSSIAN(),
+                km: LL.ANKI.LANGUAGES.EN_RU(),
+              }[activeDict]}
           </span>
         </div>
       ),
@@ -161,16 +161,42 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
             </Tabs>
           </div>
 
-          <Button
-            isIconOnly
-            className="hover:scale-150 active:scale-70 transition-transform"
-            radius="full"
-            size="lg"
-            variant="light"
-            onPress={onExit}
-          >
-            <IoClose className="text-xl" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              isIconOnly
+              className="hover:scale-110 active:scale-95 transition-transform"
+              radius="full"
+              size="lg"
+              variant="light"
+              onPress={navigateToExport}
+              title={LL.ANKI.EXPORT.TITLE()}
+            >
+              <HiArrowDownTray className="text-xl text-default-500" />
+            </Button>
+
+            <Button
+              isIconOnly
+              className="hover:scale-110 active:scale-95 transition-transform"
+              radius="full"
+              size="lg"
+              variant="light"
+              onPress={navigateToImport}
+              title={LL.ANKI.IMPORT.TITLE()}
+            >
+              <HiCog6Tooth className="text-xl text-default-500" />
+            </Button>
+
+            <Button
+              isIconOnly
+              className="hover:scale-110 active:scale-95 transition-transform"
+              radius="full"
+              size="lg"
+              variant="light"
+              onPress={onExit}
+            >
+              <IoClose className="text-xl" />
+            </Button>
+          </div>
         </div>
       </div>
     )

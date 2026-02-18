@@ -1,8 +1,9 @@
-import { getUserDb, getDictDb } from './core'
+import { getUserDb } from './core'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../types'
 import { type NonEmptyMap } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import { FavoriteItem_mk, type FavoriteItem } from './favorite/item'
+import { isWordInDict } from './dict/is_in_db'
 
 export const removeFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
   const db = await getUserDb()
@@ -37,14 +38,6 @@ export const removeFavoritesMany = async (
   }
 }
 
-export const isWordInDict = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
-  const dictDb = await getDictDb()
-  const table = language === 'km' ? 'km_Dict' : language === 'en' ? 'en_Dict' : 'ru_Dict'
-  const existenceRows = await dictDb.select<{ c: number }[]>(`SELECT 1 as c FROM ${table} WHERE Word = $1`, [word])
-
-  return existenceRows.length > 0
-}
-
 export const addFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
   if (!(await isWordInDict(word, language))) {
     throw new Error(`Word "${word}" not found in ${language} dictionary`)
@@ -57,8 +50,8 @@ export const addFavorite = async (word: NonEmptyStringTrimmed, language: Diction
   const item = FavoriteItem_mk(word, language, now)
 
   await db.execute(
+    // BEGIN;
     `
-BEGIN;
 
 INSERT INTO favorites (
   word,
@@ -72,17 +65,17 @@ INSERT INTO favorites (
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT(word, language) DO UPDATE
   SET timestamp = excluded.timestamp;
-
-DELETE FROM favorites
-WHERE rowid NOT IN (
-  SELECT rowid
-  FROM favorites
-  ORDER BY timestamp DESC
-  LIMIT 1000
-);
-
-COMMIT;
 `,
+    // DELETE FROM favorites
+    // WHERE rowid NOT IN (
+    //   SELECT rowid
+    //   FROM favorites
+    //   ORDER BY timestamp DESC
+    //   LIMIT 20000
+    // );
+
+    // COMMIT;
+
     [item.word, item.language, item.timestamp, item.stability, item.difficulty, item.due, item.last_review],
   )
 }

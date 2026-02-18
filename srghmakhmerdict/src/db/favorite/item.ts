@@ -34,11 +34,17 @@ export const FavoriteItem_mk = (
   last_review: null,
 })
 
+export const FavoriteItem_wordLanguageEq = (
+  word: NonEmptyStringTrimmed,
+  language: DictionaryLanguage,
+  item: FavoriteItem,
+) => item.word === word && item.language === language
+
 export const favoriteItemArray_containsWordLanguage = (
   allFavorites: readonly FavoriteItem[],
   word: NonEmptyStringTrimmed,
   word_language: DictionaryLanguage,
-) => allFavorites.some(f => f.word === word && f.language === word_language)
+) => allFavorites.some(f => FavoriteItem_wordLanguageEq(word, word_language, f))
 
 /**
  * Purely removes an item from the array.
@@ -48,7 +54,7 @@ export function favoriteItemArray_remove(
   word: NonEmptyStringTrimmed,
   word_language: DictionaryLanguage,
 ): FavoriteItem[] {
-  return allFavorites.filter(f => !(f.word === word && f.language === word_language))
+  return allFavorites.filter(f => !FavoriteItem_wordLanguageEq(word, word_language, f))
 }
 
 /**

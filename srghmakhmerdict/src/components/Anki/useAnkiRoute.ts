@@ -10,6 +10,7 @@ import { useAnkiSettings } from './useAnkiSettings'
 export interface AnkiRouteParams {
   urlLanguage: DictionaryLanguage
   selectedId: NonEmptyStringTrimmed | undefined
+  subPage?: 'import' | 'export'
 }
 
 export const useAnkiRoute = (): AnkiRouteParams => {
@@ -35,6 +36,14 @@ export const useAnkiRoute = (): AnkiRouteParams => {
 
     const langStr = match[1]
     const cardIdStr = match[2]
+
+    if (langStr === 'import' || langStr === 'export') {
+      return {
+        urlLanguage: settingsLanguage,
+        selectedId: undefined,
+        subPage: langStr as 'import' | 'export',
+      }
+    }
 
     let urlLanguage: DictionaryLanguage
 
