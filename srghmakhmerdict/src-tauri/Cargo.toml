@@ -39,6 +39,7 @@ tauri-plugin-opener = "2"
 tauri-plugin-iap = "0.7"
 # tauri-plugin-in-app-review = "0.1"
 tauri-plugin-in-app-review = { git = "https://github.com/srghma/tauri-plugin-in-app-review", rev = "4f1149ec12b90219590f12b575a382befcd74e81" }
+tauri-plugin-dialog = "2"
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"] # or "postgres", or "mysql"

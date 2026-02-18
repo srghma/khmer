@@ -26,6 +26,8 @@ export const DetailFetcher = React.memo(
     userAnswer,
     setUserAnswer,
     onReveal,
+    additional_html_front,
+    additional_html_back,
   }: {
     language: DictionaryLanguage
     word: NonEmptyStringTrimmed
@@ -36,6 +38,8 @@ export const DetailFetcher = React.memo(
     userAnswer: string
     setUserAnswer: Dispatch<SetStateAction<string>>
     onReveal: () => void
+    additional_html_front: NonEmptyStringTrimmed | undefined
+    additional_html_back: NonEmptyStringTrimmed | undefined
   }) => {
     const { LL } = useI18nContext()
     const result = useWordData(word, language)
@@ -49,6 +53,8 @@ export const DetailFetcher = React.memo(
 
     return (
       <AnkiCardDetailView
+        additional_html_back={additional_html_back}
+        additional_html_front={additional_html_front}
         ankiGameMode={ankiGameMode}
         data={d}
         isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}

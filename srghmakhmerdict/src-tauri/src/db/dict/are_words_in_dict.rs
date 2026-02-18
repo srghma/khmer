@@ -1,6 +1,6 @@
-use crate::app_state::AppState;
-use tauri::{command, State};
 use super::common;
+use crate::app_state::AppState;
+use tauri::{State, command};
 
 #[derive(serde::Serialize)]
 pub struct InAndNotInDb {
@@ -48,7 +48,10 @@ async fn check_words(
     }
 
     let placeholders = common::get_placeholders(words.len());
-    let sql = format!("SELECT Word FROM {} WHERE Word IN ({})", table, placeholders);
+    let sql = format!(
+        "SELECT Word FROM {} WHERE Word IN ({})",
+        table, placeholders
+    );
 
     let mut query = sqlx::query_as::<sqlx::Sqlite, common::WordRow>(&sql);
     for word in &words {

@@ -1,4 +1,4 @@
-use sqlx::{SqlitePool};
+use sqlx::SqlitePool;
 use tokio::sync::RwLock;
 
 pub struct AppState {

@@ -53,6 +53,8 @@ export const AnkiPlayArea = React.memo(({ itemData, onRate }: AnkiPlayAreaProps)
     <div className="flex flex-col h-full w-full bg-background overflow-hidden relative">
       <div className="flex-1 min-h-0 relative scaling-details">
         <DetailFetcher
+          additional_html_back={item.additional_html_back ?? undefined}
+          additional_html_front={item.additional_html_front ?? undefined}
           ankiGameMode={mode}
           isKhmerWordsHidingEnabled={isRevealed ? isKhmerWordsHidingEnabled_global : isKhmerWordsHidingEnabled}
           isNonKhmerWordsHidingEnabled={isRevealed ? isNonKhmerWordsHidingEnabled_global : isNonKhmerWordsHidingEnabled}

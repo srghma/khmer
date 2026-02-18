@@ -14,6 +14,9 @@ export interface FavoriteItem {
   // readonly reps: number
   // readonly lapses: number
   // readonly state: number // 0=New, 1=Learning, 2=Review, 3=Relearning
+
+  readonly additional_html_front: NonEmptyStringTrimmed | null
+  readonly additional_html_back: NonEmptyStringTrimmed | null
 }
 
 /**
@@ -24,6 +27,8 @@ export const FavoriteItem_mk = (
   word: NonEmptyStringTrimmed,
   language: DictionaryLanguage,
   timestamp: number,
+  additional_html_front: NonEmptyStringTrimmed | undefined,
+  additional_html_back: NonEmptyStringTrimmed | undefined,
 ): FavoriteItem => ({
   word,
   language,
@@ -32,6 +37,8 @@ export const FavoriteItem_mk = (
   difficulty: 0,
   due: timestamp, // Due immediately upon adding
   last_review: null,
+  additional_html_front: additional_html_front ?? null,
+  additional_html_back: additional_html_back ?? null,
 })
 
 export const FavoriteItem_wordLanguageEq = (
@@ -65,6 +72,11 @@ export function favoriteItemArray_add(
   word: NonEmptyStringTrimmed,
   word_language: DictionaryLanguage,
   nowTimestamp: () => number,
+  additional_html_front: NonEmptyStringTrimmed | undefined,
+  additional_html_back: NonEmptyStringTrimmed | undefined,
 ): FavoriteItem[] {
-  return [FavoriteItem_mk(word, word_language, nowTimestamp()), ...allFavorites]
+  return [
+    FavoriteItem_mk(word, word_language, nowTimestamp(), additional_html_front, additional_html_back),
+    ...allFavorites,
+  ]
 }

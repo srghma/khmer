@@ -30,6 +30,8 @@ import { useAppToast } from '../../providers/ToastProvider'
 import { useAutoReadTts } from '../../hooks/useAutoReadTts'
 import { AutomaticRussianPronunciation } from '../DetailView/AutomaticRussianPronunciation'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { EditableHtmlField } from './EditableHtmlField'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 const SelectionMenuBodyLocalWrapper = React.memo(
   ({
@@ -77,6 +79,8 @@ export const AnkiCardDetailView = React.memo(
     userAnswer,
     setUserAnswer,
     onReveal,
+    additional_html_front,
+    additional_html_back,
   }: {
     word: NonEmptyStringTrimmed
     data: WordDetailEnOrRuOrKm
@@ -88,8 +92,11 @@ export const AnkiCardDetailView = React.memo(
     userAnswer: string
     setUserAnswer: Dispatch<SetStateAction<string>>
     onReveal: () => void
+    additional_html_front: NonEmptyStringTrimmed | undefined
+    additional_html_back: NonEmptyStringTrimmed | undefined
   }) => {
     const { LL } = useI18nContext()
+    const { updateFavoriteHtml } = useFavorites()
     // 1. Logic
     const { km_map } = useDictionary()
     const { isAutoFocusAnswerEnabled, setIsAutoFocusAnswerEnabled } = useAnkiSettings()
@@ -128,15 +135,6 @@ export const AnkiCardDetailView = React.memo(
         }[ankiGameMode],
       )
     }, [ankiGameMode, word, data])
-
-    // // 2. Styling
-    // const detailsStyle = useMemo(
-    //   () => ({
-    //     fontSize: `${scaling_details}px`,
-    //     fontFamily: KHMER_FONT_FAMILY[khmerFontName],
-    //   }),
-    //   [scaling_details, khmerFontName],
-    // )
 
     // 3. Selection / Popup Handlers
 
@@ -233,9 +231,24 @@ export const AnkiCardDetailView = React.memo(
       return mode === 'km' ? km_map.get(word as TypedContainsKhmer) : undefined
     }, [km_map, word, mode])
 
+    const handleSaveFront = useCallback(
+      async (newHtml: NonEmptyStringTrimmed | undefined) => {
+        await updateFavoriteHtml(word, mode, 'additional_html_front', newHtml)
+      },
+      [word, mode, updateFavoriteHtml],
+    )
+
+    const handleSaveBack = useCallback(
+      async (newHtml: NonEmptyStringTrimmed | undefined) => {
+        await updateFavoriteHtml(word, mode, 'additional_html_back', newHtml)
+      },
+      [word, mode, updateFavoriteHtml],
+    )
+
     const content = useMemo(
       () => (
         <>
+          {/* Back: Revealed State - Show Diff */}
           {isRevealed && userAnswer_ && (
             <div className="px-6 py-3 border-b border-divider bg-default-50/50">
               <div className={cn('uppercase font-black tracking-widest text-default-400 mb-1', 'text-xs')}>
@@ -246,12 +259,22 @@ export const AnkiCardDetailView = React.memo(
           )}
 
           <CardBody className="p-6 pt-0 gap-6">
-            {!isRevealed && (
-              <div className="flex justify-center mb-2">
+            {/* Front: Custom HTML + Input Area */}
+            {/* NOTE: We only show the Front HTML if !isRevealed OR if it exists, to match Anki logic.
+                But for editing purposes, maybe we want it visible in back too?
+                Anki usually shows Front on Back as well. Let's show both on Back for context/editing.
+            */}
+
+            <div className="flex flex-col gap-4 justify-center">
+              {/* Front Note Field - Always visible/editable in Back mode, or only in Front?
+                  Typical Anki: Front is visible in Back.
+                  Let's make it editable in both states.
+              */}
+              {!isRevealed && (
                 <Input
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus={isAutoFocusAnswerEnabled}
-                  className="m font-khmer"
+                  className="mt-2 font-khmer"
                   placeholder={answerPlaceholder}
                   size="sm"
                   value={userAnswer}
@@ -259,8 +282,35 @@ export const AnkiCardDetailView = React.memo(
                   onKeyDown={handleKeyDown}
                   onValueChange={setUserAnswer}
                 />
-              </div>
+              )}
+            </div>
+
+            <EditableHtmlField
+              className={isRevealed ? 'bg-default-50/30' : 'bg-primary-50/20 border-primary/20'}
+              initialValue={additional_html_front}
+              isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
+              isKhmerWordsHidingEnabled={isRevealed ? isKhmerWordsHidingEnabled_prop : isKhmerWordsHidingEnabled_prop}
+              isNonKhmerWordsHidingEnabled={
+                isRevealed ? isNonKhmerWordsHidingEnabled_prop : isNonKhmerWordsHidingEnabled_prop
+              }
+              label={LL.ANKI.FIELDS.FRONT_NOTE()}
+              onSave={handleSaveFront}
+            />
+
+            {/* Back: Custom HTML (Only visible when revealed) */}
+            {isRevealed && (
+              <EditableHtmlField
+                className="bg-default-100/50 border-default-200"
+                initialValue={additional_html_back}
+                isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
+                isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
+                isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
+                label={LL.ANKI.FIELDS.BACK_NOTE()}
+                onSave={handleSaveBack}
+              />
             )}
+
+            {/* Dictionary Data Sections */}
             <DetailSections
               desc={data.desc}
               desc_en_only={data.desc_en_only}
@@ -282,6 +332,7 @@ export const AnkiCardDetailView = React.memo(
               mode={mode}
               wiktionary={data.wiktionary}
             />
+
             {automaticRussianPronunciation_km_map_value && (
               <AutomaticRussianPronunciation
                 isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
@@ -300,18 +351,25 @@ export const AnkiCardDetailView = React.memo(
         userAnswer_,
         guessLabel,
         expectedTarget,
+        additional_html_front,
+        handleSaveFront,
+        isKhmerWordsHidingEnabled_prop,
+        isNonKhmerWordsHidingEnabled_prop,
+        LL,
         isAutoFocusAnswerEnabled,
         answerPlaceholder,
         userAnswer,
         handleKeyDown,
         setUserAnswer,
+        additional_html_back,
+        handleSaveBack,
         data,
         handlePassOnNavigate,
-        isKhmerWordsHidingEnabled_prop,
-        isNonKhmerWordsHidingEnabled_prop,
         km_map,
         maybeColorMode,
         mode,
+        automaticRussianPronunciation_km_map_value,
+        handleOpenSearch,
       ],
     )
 

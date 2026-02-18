@@ -6,11 +6,13 @@ import type { Locales, Translations } from './i18n-types.js'
 import { loadedFormatters, loadedLocales, locales } from './i18n-util.js'
 
 import en from './en/index.js'
+import km from './km/index.js'
 import ru from './ru/index.js'
 import uk from './uk/index.js'
 
 const localeTranslations = {
 	en,
+	km,
 	ru,
 	uk,
 }

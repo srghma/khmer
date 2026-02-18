@@ -1,8 +1,11 @@
+use super::common::{
+    RuShortDefinitionSource, ShortDefinitionRu, WordRow, fetch_many, get_placeholders,
+    to_optional_map, to_optional_map_wrap, to_strict_map, validate_words_not_empty,
+};
 use crate::app_state::AppState;
 use serde::Serialize;
 use std::collections::HashMap;
 use tauri::{State, command};
-use super::common::{WordRow, ShortDefinitionRu, RuShortDefinitionSource, validate_words_not_empty, get_placeholders, to_strict_map, to_optional_map, to_optional_map_wrap, fetch_many};
 
 const RU_SHORT_DESC_SOURCE: &str = "1";
 
@@ -92,7 +95,10 @@ pub async fn ru_for_many_full_details_throws_if_word_not_found(
     validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT * FROM ru_Dict WHERE Word IN ({})", get_placeholders(words.len()));
+    let sql = format!(
+        "SELECT * FROM ru_Dict WHERE Word IN ({})",
+        get_placeholders(words.len())
+    );
 
     let rows: Vec<RuDetailRaw> = fetch_many(&pool, &words, sql).await?;
 
@@ -107,11 +113,19 @@ pub async fn ru_for_many_full_details_none_if_word_not_found(
     validate_words_not_empty(&words)?;
 
     let pool = state.get_pool().await?;
-    let sql = format!("SELECT * FROM ru_Dict WHERE Word IN ({})", get_placeholders(words.len()));
+    let sql = format!(
+        "SELECT * FROM ru_Dict WHERE Word IN ({})",
+        get_placeholders(words.len())
+    );
 
     let rows: Vec<RuDetailRaw> = fetch_many(&pool, &words, sql).await?;
 
-    Ok(to_optional_map_wrap(words, rows, |r| r.word.clone(), WordDetailRu::from))
+    Ok(to_optional_map_wrap(
+        words,
+        rows,
+        |r| r.word.clone(),
+        WordDetailRu::from,
+    ))
 }
 
 #[command]
@@ -130,7 +144,17 @@ pub async fn ru_for_many_short_description_none_if_word_not_found(
 
     let rows: Vec<RuWordDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    Ok(to_optional_map(words, rows, |r| r.word.clone(), |r| Some(ShortDefinitionRu { definition: r.definition, source: r.source })))
+    Ok(to_optional_map(
+        words,
+        rows,
+        |r| r.word.clone(),
+        |r| {
+            Some(ShortDefinitionRu {
+                definition: r.definition,
+                source: r.source,
+            })
+        },
+    ))
 }
 
 #[command]
@@ -149,5 +173,13 @@ pub async fn ru_for_many_short_description_throws_if_word_not_found(
 
     let rows: Vec<RuWordDetailShortRow> = fetch_many(&pool, &words, sql).await?;
 
-    to_strict_map(words, rows, |r| r.word.clone(), |r| ShortDefinitionRu { definition: r.definition, source: r.source })
+    to_strict_map(
+        words,
+        rows,
+        |r| r.word.clone(),
+        |r| ShortDefinitionRu {
+            definition: r.definition,
+            source: r.source,
+        },
+    )
 }

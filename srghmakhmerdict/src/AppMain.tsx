@@ -93,13 +93,13 @@ export function AppMain() {
         switch (currentView.type) {
           case 'about':
             return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details">
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details h-[100dvh]">
                 <AboutView />
               </div>
             )
           case 'khmer-analyzer':
             return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details">
+              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details h-[100dvh]">
                 <KhmerAnalyzerView initialText={currentView.text} />
               </div>
             )
@@ -110,7 +110,7 @@ export function AppMain() {
           case 'favorites-list':
           case 'settings':
             return (
-              <div className="flex-1 overflow-hidden scaling-details">
+              <div className="flex-1 overflow-hidden scaling-details h-[100dvh]">
                 <RightPanel
                   lastSelectedWord={lastSelectedWord}
                   maybeColorMode={maybeColorMode}

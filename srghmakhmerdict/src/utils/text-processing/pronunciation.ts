@@ -1,8 +1,6 @@
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
-const LATIN_CHAR_REGEX = /[A-Za-z\u00C0-\u017F\u0180-\u024F\u0300-\u036F\u02B0-\u02FF\u1E00-\u1EFF]/
-
 /**
  * Wiktionary (En/Ru) specific pronunciation and transliteration wrapping.
  */
@@ -48,32 +46,74 @@ export const wrapRussianWikiPronunciations = (html: string): string => {
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
 
-  // Recursive function to find and wrap Latin-looking text nodes
-  const processNode = (node: Node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent || ''
+  // Helper: Recursive function to wrap text nodes in a span
+  const wrapTextNodes = (element: Node) => {
+    // If text node and has content
+    if (element.nodeType === Node.TEXT_NODE) {
+      const text = element.textContent || ''
 
-      if (LATIN_CHAR_REGEX.test(text) && text.trim().length > 0) {
+      if (text.trim().length > 0) {
         const span = doc.createElement('span')
 
         span.className = 'khmer--ipa'
         span.textContent = text
-        node.parentNode?.replaceChild(span, node)
+        element.parentNode?.replaceChild(span, element)
       }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      const el = node as HTMLElement
 
-      // Skip already processed or if it's a script/style
-      if (el.classList.contains('khmer--ipa') || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return
+      return
+    }
 
-      // If the element itself contains only Latin text and no children (besides text)
-      // we might want to wrap it entirely if it's small, or just its text nodes.
-      // Let's just process children for now.
-      Array.from(el.childNodes).forEach(processNode)
+    // If element, recurse (unless it's already wrapped or a script/style)
+    if (element.nodeType === Node.ELEMENT_NODE) {
+      const el = element as HTMLElement
+
+      if (
+        el.classList.contains('khmer--ipa') ||
+        ['SCRIPT', 'STYLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(el.tagName)
+      ) {
+        return
+      }
+
+      // Convert childNodes to array to safely iterate while modifying
+      Array.from(el.childNodes).forEach(wrapTextNodes)
     }
   }
 
-  Array.from(doc.body.childNodes).forEach(processNode)
+  // 1. Select all headers (Wiktionary usually uses h3 or h4 for sections)
+  const headers = Array.from(doc.querySelectorAll('h3, h4, h5'))
+
+  for (const header of headers) {
+    const headerText = header.textContent?.trim().toLowerCase() || ''
+
+    // 2. Check for "Произношение" (case-insensitive)
+    if (headerText.includes('произношение')) {
+      // 3. Determine the "row" or container.
+      // In modern MediaWiki, <h3> is often inside <div class="mw-heading mw-heading3">
+      let currentElement: Element | null = header.closest('.mw-heading')
+
+      if (!currentElement) currentElement = header // Fallback for older structures
+
+      // 4. Iterate over subsequent siblings until we hit the next section
+      if (currentElement) {
+        let sibling = currentElement.nextElementSibling
+
+        while (sibling) {
+          // Stop if we hit another header or a new heading div
+          const isHeader = /^H[1-6]$/.test(sibling.tagName)
+          const isHeadingDiv = sibling.classList.contains('mw-heading')
+
+          if (isHeader || isHeadingDiv) {
+            break
+          }
+
+          // 5. Wrap text inside this sibling (e.g., the <ul> containing the IPA)
+          wrapTextNodes(sibling)
+
+          sibling = sibling.nextElementSibling
+        }
+      }
+    }
+  }
 
   return doc.body.innerHTML
 }

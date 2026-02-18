@@ -28,10 +28,15 @@ const TabItemContent = memo(function TabItemContent({
   isDisabled: boolean
 }) {
   return (
-    <div className={cn('flex items-center gap-2 transition-all duration-200', isDisabled && 'grayscale opacity-30')}>
+    <div
+      className={cn(
+        'flex flex-col items-center gap-0.5 transition-all duration-200',
+        isDisabled && 'grayscale opacity-30',
+      )}
+    >
       <div className={cn('transition-all origin-center text-xl', isDisabled && 'scale-90')}>{icon}</div>
       {total > 0 && (
-        <span className={cn('font-mono font-black tabular-nums px-1 rounded-sm text-xs')}>
+        <span className={cn('font-mono font-black tabular-nums px-1 rounded-sm text-[10px] leading-3')}>
           {today}/{total}
         </span>
       )}
@@ -85,11 +90,13 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
 
       if (keyStr === 'toggle') {
         onDirectionChange(isGuessingKhmer ? 'GUESSING_NON_KHMER' : 'GUESSING_KHMER')
+
         return
       }
 
       if (keyStr === 'settings') {
         navigateToSettings()
+
         return
       }
 

@@ -42,6 +42,9 @@ pub fn run() {
                     -- lapses INTEGER NOT NULL DEFAULT 0,
                     -- state INTEGER NOT NULL DEFAULT 0, -- 0=New, 1=Learning, 2=Review, 3=Relearning
 
+                    additional_html_front TEXT CHECK(additional_html_front != ''),
+                    additional_html_back TEXT CHECK(additional_html_back != ''),
+
                     PRIMARY KEY (word, language)
                 );
         ",
@@ -49,8 +52,8 @@ pub fn run() {
     }];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        // 1. REGISTER CUSTOM PROTOCOL with Debug Logging
         .register_uri_scheme_protocol("imglocal", move |ctx, request| {
             protocols::handle_local_assets(
                 ctx.app_handle(),

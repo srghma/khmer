@@ -7,6 +7,7 @@ import {
   getFavorites as getFavoritesDb,
 } from '../db/favorite'
 import { reviewCard as reviewCardDb } from '../db/favorite/anki'
+import { updateFavoriteHtml as updateFavoriteHtmlDb } from '../db/favorite/anki_html'
 import { reviewCard_calculateReviewUpdates } from '../components/Anki/utils'
 import { FavoriteItem_mk, type FavoriteItem } from '../db/favorite/item'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -14,6 +15,9 @@ import type { DictionaryLanguage } from '../types'
 import type { Grade } from 'femto-fsrs'
 import { useAppToast } from './ToastProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
+import { importWordsToAnki as importWordsToAnkiDb } from '../db/favorite/anki_import'
+import type { MaybeFrontBack } from '../db/favorite/bulkInsertFavorites_front_back_html'
+import type { PartitionedMaps_Split_Imported } from '../db/favorite/anki_import/process'
 
 interface FavoritesContextType {
   favorites: FavoriteItem[]
@@ -24,7 +28,14 @@ interface FavoritesContextType {
   deleteAllFavorites: () => Promise<void>
   reviewCard: (word: NonEmptyStringTrimmed, language: DictionaryLanguage, grade: Grade) => Promise<FavoriteItem>
   isFavorite: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => boolean
-  refreshFavorites: () => Promise<void>
+  updateFavoriteHtml: (
+    word: NonEmptyStringTrimmed,
+    language: DictionaryLanguage,
+    update_to: 'additional_html_front' | 'additional_html_back',
+    data: NonEmptyStringTrimmed | undefined,
+  ) => Promise<void>
+  importFavorites: (input: NonEmptyStringTrimmed) => Promise<PartitionedMaps_Split_Imported<MaybeFrontBack | undefined>>
+  // refreshFavorites: () => Promise<void>
 }
 
 const FavoritesContext = createContext<FavoritesContextType | null>(null)
@@ -63,12 +74,10 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [refreshFavorites])
 
   const runMutation = useCallback(async <T,>(fn: () => Promise<T>): Promise<T> => {
-    // Chain the new mutation to the existing promise chain
     const resultPromise = mutex.current.then(async () => {
       return fn()
     })
 
-    // Update the mutex to wait for this new mutation, catching errors to ensure the chain continues
     mutex.current = resultPromise.catch(() => {})
 
     return resultPromise
@@ -77,14 +86,14 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addFavorite = useCallback(
     async (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => {
       return runMutation(async () => {
-        // Optimistic update
-        const newItem = FavoriteItem_mk(word, language, Date.now())
+        // Optimistic update: New favorites via UI have no custom HTML
+        const newItem = FavoriteItem_mk(word, language, Date.now(), undefined, undefined)
         const prevState = favorites
 
         setFavorites(prev => [newItem, ...prev.filter(item => !(item.word === word && item.language === language))])
 
         try {
-          await addFavoriteDb(word, language)
+          await addFavoriteDb(word, language, Date.now(), undefined, undefined)
         } catch (e) {
           setFavorites(prevState)
           toast.error('Failed to add favorite' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
@@ -128,14 +137,15 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (exists) {
           optimisticState = favorites.filter((_, idx) => idx !== existingIndex)
         } else {
-          const newItem = FavoriteItem_mk(word, language, Date.now())
+          // Optimistic update: New favorites via UI have no custom HTML
+          const newItem = FavoriteItem_mk(word, language, Date.now(), undefined, undefined)
 
           optimisticState = [newItem, ...favorites]
         }
         setFavorites(optimisticState)
 
         try {
-          const result = await toggleFavoriteDb(word, language)
+          const result = await toggleFavoriteDb(word, language, Date.now(), undefined, undefined)
 
           return result
         } catch (e) {
@@ -210,6 +220,71 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [favorites],
   )
 
+  const updateFavoriteHtml = useCallback(
+    async (
+      word: NonEmptyStringTrimmed,
+      language: DictionaryLanguage,
+      update_to: 'additional_html_front' | 'additional_html_back',
+      data: NonEmptyStringTrimmed | undefined,
+    ) => {
+      return runMutation(async () => {
+        const prevState = favorites
+
+        // Optimistic Update
+        setFavorites(prev =>
+          prev.map(item => (item.word === word && item.language === language ? { ...item, [update_to]: data } : item)),
+        )
+
+        try {
+          await updateFavoriteHtmlDb(word, language, update_to, data)
+        } catch (e) {
+          setFavorites(prevState)
+          toast.error('Failed to update note' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+          throw e
+        }
+      })
+    },
+    [favorites, runMutation, toast],
+  )
+
+  const importFavorites = useCallback(
+    async (input: NonEmptyStringTrimmed) => {
+      return runMutation(async () => {
+        try {
+          const res = await importWordsToAnkiDb(input)
+
+          // Re-fetch data from DB
+          const newData = await getFavoritesDb()
+
+          // Smart update: Only replace objects that have actually changed
+          // to preserve referential integrity for unchanged items
+          setFavorites(prev => {
+            return newData.map(newItem => {
+              const existing = prev.find(p => p.word === newItem.word && p.language === newItem.language)
+
+              if (
+                existing &&
+                existing.additional_html_front === newItem.additional_html_front &&
+                existing.additional_html_back === newItem.additional_html_back &&
+                existing.last_review === newItem.last_review
+              ) {
+                return existing // Keep old reference
+              }
+
+              return newItem
+            })
+          })
+
+          return res
+        } catch (e) {
+          toast.error('Import failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+          throw e
+        }
+      })
+    },
+    [runMutation, toast],
+  )
+
   const value = useMemo(
     () => ({
       favorites,
@@ -221,6 +296,8 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       reviewCard,
       isFavorite,
       refreshFavorites,
+      updateFavoriteHtml,
+      importFavorites,
     }),
     [
       favorites,
@@ -231,7 +308,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteAllFavorites,
       reviewCard,
       isFavorite,
-      refreshFavorites,
+      // refreshFavorites,
+      updateFavoriteHtml,
+      importFavorites,
     ],
   )
 

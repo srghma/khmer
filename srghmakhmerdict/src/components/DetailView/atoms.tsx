@@ -1,6 +1,6 @@
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import React, { useMemo } from 'react'
+import React, { memo, useMemo } from 'react'
 import { colorizeHtml } from '../../utils/text-processing/html'
 import { colorizeHtml_nonEmptyArray } from './utils'
 import styles from './hide-broken-images.module.css'
@@ -10,6 +10,16 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { colorizeText } from '../../utils/text-processing/text'
 import { processHtmlForPronunciationHiding, type PronunciationSource } from '../../utils/text-processing/pronunciation'
+
+export const SectionTitleWithRightContent = memo(
+  ({ children, rightContent }: { children: React.ReactNode; rightContent?: React.ReactNode }) => (
+    <div className="flex justify-between items-center border-b border-divider mb-[0.75em] pb-1 min-h-[28px]">
+      <div className="text-xs uppercase tracking-wider font-bold text-default-400">{children}</div>
+      {rightContent}
+    </div>
+  ),
+)
+SectionTitleWithRightContent.displayName = 'SectionTitle'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
   <div

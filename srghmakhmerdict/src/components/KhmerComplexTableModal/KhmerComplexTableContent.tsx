@@ -43,7 +43,7 @@ const MatrixCell = memo(
           `}
           disabled={count === 0}
           onClick={e => {
-            e.stopPropagation() // <--- CRITICAL FIX: Stop event from closing the modal immediately
+            e.stopPropagation()
             if (count > 0) onClick(combo)
           }}
         >

@@ -1,7 +1,7 @@
 use crate::app_state::AppState;
 use flate2::read::GzDecoder;
+use sqlx::Row;
 use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::{Row};
 use std::fs;
 use std::io::Cursor;
 use std::path::PathBuf;

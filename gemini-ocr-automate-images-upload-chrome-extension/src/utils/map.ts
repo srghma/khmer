@@ -9,7 +9,7 @@ export function Map_every<K, V>(map: ReadonlyMap<K, V>, predicate: (k: K, v: V) 
   return true
 }
 
-export function Map_keysToSet<K, V>(map: ReadonlyMap<K, V>): Set<K> {
+export function Map_keysToSet<K extends string, V>(map: ReadonlyMap<K, V>): Set<K> {
   return new Set(map.keys())
 }
 
@@ -202,7 +202,10 @@ export function Map_filterMap<K, V, U>(map: ReadonlyMap<K, V>, f: (key: K, value
   return result
 }
 
-export function Map_filter<K, V>(map: ReadonlyMap<K, V>, predicate: (key: K, value: V) => boolean): Map<K, V> {
+export function Map_filter<K extends string, V>(
+  map: ReadonlyMap<K, V>,
+  predicate: (key: K, value: V) => boolean,
+): Map<K, V> {
   const result = new Map<K, V>()
   for (const [k, v] of map) {
     if (predicate(k, v)) {
@@ -376,10 +379,10 @@ export function zipMaps3Strict<K, A, B, C>(
   if (leftoversA.size > 0 || leftoversB.size > 0 || leftoversC.size > 0) {
     throw new Error(
       `zipMaps3Strict: maps must have identical keys. ` +
-      `Missing or extra keys → ` +
-      `A: [${Array.from(leftoversA.keys()).join(', ')}], ` +
-      `B: [${Array.from(leftoversB.keys()).join(', ')}], ` +
-      `C: [${Array.from(leftoversC.keys()).join(', ')}]`,
+        `Missing or extra keys → ` +
+        `A: [${Array.from(leftoversA.keys()).join(', ')}], ` +
+        `B: [${Array.from(leftoversB.keys()).join(', ')}], ` +
+        `C: [${Array.from(leftoversC.keys()).join(', ')}]`,
     )
   }
 
@@ -545,4 +548,55 @@ export function Map_moveIndexToStart_arrayBased<K, V>(map: ReadonlyMap<K, V>, in
 export function Map_sortStringKeys<K extends PropertyKey, V>(map: ReadonlyMap<K, V>): Map<K, V> {
   const sorted = Array.from(map.entries()).sort((a, b) => String(a[0]).localeCompare(String(b[0])))
   return new Map(sorted)
+}
+
+/**
+ * Creates a new Map containing only the keys present in the provided array.
+ * Iterates over the array to ensure O(N) where N is the number of keys to pick.
+ */
+export function Map_intersectionWithArray<K, V>(map: ReadonlyMap<K, V>, keys: readonly K[]): Map<K, V> {
+  const result = new Map<K, V>()
+  for (const key of keys) {
+    const value = map.get(key)
+    // Check .has() to correctly handle cases where the value itself is 'undefined'
+    if (value !== undefined || map.has(key)) {
+      result.set(key, value!)
+    }
+  }
+  return result
+}
+
+/**
+ * Splits a Map based on an Array of keys into three parts:
+ * 1. intersected: Entries where the key exists in both the Map and the Array.
+ * 2. missingKeys: Keys present in the Array but not found in the Map.
+ * 3. leftoversFromMap: Entries present in the Map whose keys were NOT in the Array.
+ */
+export function Map_intersectionWithArray_vennDiagram<K, V>(
+  map: ReadonlyMap<K, V>,
+  keys: readonly K[],
+): [Map<K, V>, Map<K, V>, K[]] {
+  const intersected = new Map<K, V>()
+  const missingKeys: K[] = []
+  const leftoversFromMap = new Map(map)
+
+  // We use a Set to handle duplicate keys in the input 'keys' array
+  // to prevent them from being counted as 'missing' once deleted from leftovers
+  const processedKeys = new Set<K>()
+
+  for (const key of keys) {
+    if (processedKeys.has(key)) continue
+    processedKeys.add(key)
+
+    const value = leftoversFromMap.get(key)
+
+    if (value !== undefined || leftoversFromMap.has(key)) {
+      intersected.set(key, value as V)
+      leftoversFromMap.delete(key)
+    } else {
+      missingKeys.push(key)
+    }
+  }
+
+  return [leftoversFromMap, intersected, missingKeys]
 }

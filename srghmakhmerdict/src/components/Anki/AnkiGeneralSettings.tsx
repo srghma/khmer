@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Card, CardBody, CardHeader, Switch } from '@heroui/react'
+import { Card, CardBody, CardHeader } from '@heroui/react'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 export const AnkiGeneralSettings = memo(() => {
@@ -14,9 +14,7 @@ export const AnkiGeneralSettings = memo(() => {
         <CardBody className="gap-6 px-6 py-6">
           <div className="flex justify-between items-center">
             <div className="flex flex-col">
-              <span className="font-medium text-foreground text-base">
-                Nothing is selected
-              </span>
+              <span className="font-medium text-foreground text-base">Nothing is selected</span>
             </div>
           </div>
         </CardBody>

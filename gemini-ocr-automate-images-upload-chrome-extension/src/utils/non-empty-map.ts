@@ -1,3 +1,4 @@
+import { Map_keysToSet } from './map'
 import type { NonEmptyArray } from './non-empty-array'
 import type { NonEmptySet } from './non-empty-set'
 import { Option_none, Option_some, type Option } from './types'
@@ -51,6 +52,6 @@ export function NonEmptyMap_keys<K extends PropertyKey, V>(r: NonEmptyMap<K, V>)
   return Object.keys(r) as unknown as NonEmptyArray<K>
 }
 
-export function NonEmptyMap_keysSet<K extends PropertyKey, V>(r: NonEmptyMap<K, V>): NonEmptySet<K> {
-  return new Set(Object.keys(r)) as unknown as NonEmptySet<K>
-}
+export const NonEmptyMap_keysToSet = Map_keysToSet as unknown as <K extends PropertyKey, V>(
+  r: NonEmptyMap<K, V>,
+) => NonEmptySet<K>

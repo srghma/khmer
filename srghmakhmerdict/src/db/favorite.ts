@@ -38,16 +38,21 @@ export const removeFavoritesMany = async (
   }
 }
 
-export const addFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<void> => {
+export const addFavorite = async (
+  word: NonEmptyStringTrimmed,
+  language: DictionaryLanguage,
+  now: number,
+  additional_html_front: NonEmptyStringTrimmed | undefined,
+  additional_html_back: NonEmptyStringTrimmed | undefined,
+): Promise<void> => {
   if (!(await isWordInDict(word, language))) {
     throw new Error(`Word "${word}" not found in ${language} dictionary`)
   }
 
   const db = await getUserDb()
-  const now = Date.now()
 
   // 1. Create the default item structure using your pure constructor
-  const item = FavoriteItem_mk(word, language, now)
+  const item = FavoriteItem_mk(word, language, now, additional_html_front, additional_html_back)
 
   await db.execute(
     // BEGIN;
@@ -80,14 +85,20 @@ ON CONFLICT(word, language) DO UPDATE
   )
 }
 
-export const toggleFavorite = async (word: NonEmptyStringTrimmed, language: DictionaryLanguage): Promise<boolean> => {
+export const toggleFavorite = async (
+  word: NonEmptyStringTrimmed,
+  language: DictionaryLanguage,
+  now: number,
+  additional_html_front: NonEmptyStringTrimmed | undefined,
+  additional_html_back: NonEmptyStringTrimmed | undefined,
+): Promise<boolean> => {
   const wasRemoved = await removeFavorite(word, language)
 
   if (wasRemoved) {
     return false
   }
 
-  await addFavorite(word, language)
+  await addFavorite(word, language, now, additional_html_front, additional_html_back)
 
   return true
 }
@@ -106,7 +117,7 @@ export const getFavorites = async (): Promise<FavoriteItem[]> => {
   const db = await getUserDb()
 
   const rows = await db.select<FavoriteItem[]>(
-    `SELECT word, language, timestamp, stability, difficulty, due, last_review
+    `SELECT word, language, timestamp, stability, difficulty, due, last_review, additional_html_front, additional_html_back
 FROM favorites ORDER BY timestamp DESC`,
   )
 

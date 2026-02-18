@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use tauri::{command, State};
+use tauri::{State, command};
 
 #[command]
 pub async fn is_word_in_dict(

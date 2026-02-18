@@ -7,6 +7,7 @@ export type BaseLocale = 'en'
 
 export type Locales =
 	| 'en'
+	| 'km'
 	| 'ru'
 	| 'uk'
 
@@ -469,6 +470,16 @@ type RootTranslation = {
 			 */
 			TITLE: string
 		}
+		FIELDS: {
+			/**
+			 * F​r​o​n​t​ ​N​o​t​e
+			 */
+			FRONT_NOTE: string
+			/**
+			 * B​a​c​k​ ​N​o​t​e
+			 */
+			BACK_NOTE: string
+		}
 	}
 	SIDEBAR: {
 		/**
@@ -738,6 +749,30 @@ type RootTranslation = {
 		 * A​u​t​o​f​o​c​u​s​ ​a​n​s​w​e​r​ ​f​i​e​l​d​:​ ​O​F​F
 		 */
 		AUTOFOCUS_OFF: string
+		/**
+		 * E​n​t​e​r​ ​t​e​x​t​ ​o​r​ ​H​T​M​L​.​.​.
+		 */
+		ENTER_HTML_OR_TEXT: string
+		/**
+		 * C​a​n​c​e​l
+		 */
+		CANCEL: string
+		/**
+		 * S​a​v​e
+		 */
+		SAVE: string
+		/**
+		 * E​d​i​t
+		 */
+		EDIT: string
+		/**
+		 * A​d​d
+		 */
+		ADD: string
+		/**
+		 * A​d​d​ ​N​o​t​e
+		 */
+		ADD_NOTE: string
 	}
 	AUTOREAD: {
 		/**
@@ -1324,6 +1359,16 @@ export type TranslationFunctions = {
 			 */
 			TITLE: () => LocalizedString
 		}
+		FIELDS: {
+			/**
+			 * Front Note
+			 */
+			FRONT_NOTE: () => LocalizedString
+			/**
+			 * Back Note
+			 */
+			BACK_NOTE: () => LocalizedString
+		}
 	}
 	SIDEBAR: {
 		/**
@@ -1588,6 +1633,30 @@ export type TranslationFunctions = {
 		 * Autofocus answer field: OFF
 		 */
 		AUTOFOCUS_OFF: () => LocalizedString
+		/**
+		 * Enter text or HTML...
+		 */
+		ENTER_HTML_OR_TEXT: () => LocalizedString
+		/**
+		 * Cancel
+		 */
+		CANCEL: () => LocalizedString
+		/**
+		 * Save
+		 */
+		SAVE: () => LocalizedString
+		/**
+		 * Edit
+		 */
+		EDIT: () => LocalizedString
+		/**
+		 * Add
+		 */
+		ADD: () => LocalizedString
+		/**
+		 * Add Note
+		 */
+		ADD_NOTE: () => LocalizedString
 	}
 	AUTOREAD: {
 		/**

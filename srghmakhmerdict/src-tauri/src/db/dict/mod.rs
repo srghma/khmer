@@ -1,12 +1,12 @@
+pub mod are_words_in_dict;
 pub mod common;
 pub mod en;
+pub mod is_word_in_dict;
 pub mod km;
 pub mod ru;
-pub mod are_words_in_dict;
-pub mod is_word_in_dict;
 
 use crate::app_state::AppState;
-use tauri::{command, State};
+use tauri::{State, command};
 
 #[derive(serde::Serialize)]
 pub struct DbStatus {

@@ -148,6 +148,10 @@ const uk = {
     SETTINGS: {
       TITLE: 'Налаштування Anki',
     },
+    FIELDS: {
+      FRONT_NOTE: 'Примітка (Спереду)',
+      BACK_NOTE: 'Примітка (Ззаду)',
+    },
   },
   SIDEBAR: {
     LOADING_DICT: 'Завантаження словника...',
@@ -229,6 +233,12 @@ const uk = {
     FAV_REMOVE: 'Видалити з обраного',
     AUTOFOCUS_ON: 'Автофокус на полі відповіді: УВІМК',
     AUTOFOCUS_OFF: 'Автофокус на полі відповіді: ВИМК',
+    ENTER_HTML_OR_TEXT: 'Введіть текст або HTML...',
+    CANCEL: 'Скасувати',
+    SAVE: 'Зберегти',
+    EDIT: 'Редагувати',
+    ADD: 'Додати',
+    ADD_NOTE: 'Додати примітку',
   },
   AUTOREAD: {
     TITLE: 'Авточитання при показі',

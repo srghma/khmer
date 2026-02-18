@@ -4,7 +4,7 @@ import { isLocale } from './i18n-util'
 export const allLanguages = <T extends Locales[]>(...args: T & ([Locales] extends [T[number]] ? unknown : never)) =>
   args
 
-export const LANGUAGES = allLanguages('en', 'ru', 'uk')
+export const LANGUAGES = allLanguages('en', 'ru', 'uk', 'km')
 
 export type LanguagesOrAuto = 'auto' | Locales
 

@@ -148,6 +148,10 @@ const en = {
     SETTINGS: {
       TITLE: 'Anki Settings',
     },
+    FIELDS: {
+      FRONT_NOTE: 'Front Note',
+      BACK_NOTE: 'Back Note',
+    },
   },
   SIDEBAR: {
     LOADING_DICT: 'Loading Dictionary...',
@@ -229,6 +233,12 @@ const en = {
     FAV_REMOVE: 'Remove from favorites',
     AUTOFOCUS_ON: 'Autofocus answer field: ON',
     AUTOFOCUS_OFF: 'Autofocus answer field: OFF',
+    ENTER_HTML_OR_TEXT: 'Enter text or HTML...',
+    CANCEL: 'Cancel',
+    SAVE: 'Save',
+    EDIT: 'Edit',
+    ADD: 'Add',
+    ADD_NOTE: 'Add Note',
   },
   AUTOREAD: {
     TITLE: 'Auto-read on reveal',

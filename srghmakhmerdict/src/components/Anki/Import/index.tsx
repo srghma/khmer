@@ -1,14 +1,54 @@
-import { useState, memo } from 'react'
+import { useState, memo, useCallback } from 'react'
 import { Textarea, Button, Card, CardBody, CardHeader } from '@heroui/react'
-import { importWordsToAnki, type ImportResult } from '../../../db/favorite/anki_import'
+import { HiDocumentArrowUp } from 'react-icons/hi2' // Add an icon
+import { open } from '@tauri-apps/plugin-dialog' // Tauri Dialog
+import { readTextFile } from '@tauri-apps/plugin-fs' // Tauri FS
 import { useFavorites } from '../../../providers/FavoritesProvider'
 import { useI18nContext } from '../../../i18n/i18n-react-custom'
-import type { DictionaryLanguage } from '../../../types'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useAppToast } from '../../../providers/ToastProvider'
+import { unknown_to_errorMessage } from '../../../utils/errorMessage'
+import type {
+  InAndNotInDbThese_MaybeImported,
+  PartitionedMaps_Split_Imported,
+} from '../../../db/favorite/anki_import/process'
 
-const SummarySection = ({ title, data }: { title: string; data: ImportResult[DictionaryLanguage] }) => {
+// Helper to convert the "Talking Type" into simple UI stats
+function getStats<V>(result: InAndNotInDbThese_MaybeImported<NonEmptyStringTrimmed, V> | undefined) {
+  if (!result) return null
+
+  let success = 0
+  let skipped = 0
+  let notFoundWords: string[] = []
+
+  // Check Dictionary Status (Outer These)
+  if (result.t === 'in_db' || result.t === 'both') {
+    const importPart = result.in_db
+
+    // Check Database Status (Inner These)
+    if (importPart.t === 'imported' || importPart.t === 'both') {
+      success = importPart.imported.size
+    }
+    if (importPart.t === 'skipped' || importPart.t === 'both') {
+      skipped = importPart.skipped.size
+    }
+  }
+
+  if (result.t === 'not_in_db' || result.t === 'both') {
+    notFoundWords = Array.from(result.not_in_db.keys())
+  }
+
+  return { success, skipped, notFoundWords }
+}
+
+const SummarySection = ({ title, data }: { title: string; data: ReturnType<typeof getStats> }) => {
   const { LL } = useI18nContext()
 
-  if (data.success === 0 && data.skipped === 0 && data.notFound.length === 0) return null
+  if (!data) return null
+  if (data.success === 0 && data.skipped === 0 && data.notFoundWords.length === 0) return null
 
   return (
     <div className="flex flex-col gap-1">
@@ -19,60 +59,106 @@ const SummarySection = ({ title, data }: { title: string; data: ImportResult[Dic
         <span className="text-warning">{LL.ANKI.IMPORT.SKIPPED()}:</span>
         <span className="font-mono font-bold text-right">{data.skipped}</span>
         <span className="text-danger">{LL.ANKI.IMPORT.NOT_FOUND()}:</span>
-        <span className="font-mono font-bold text-right">{data.notFound.length}</span>
+        <span className="font-mono font-bold text-right">{data.notFoundWords.length}</span>
       </div>
-      {data.notFound.length > 0 && (
-        <div className="mt-2 p-2 bg-danger/10 text-danger rounded text-xs break-words">{data.notFound.join(', ')}</div>
+      {data.notFoundWords.length > 0 && (
+        <div className="mt-2 p-2 bg-danger/10 text-danger rounded text-xs break-words">
+          {data.notFoundWords.join(', ')}
+        </div>
       )}
     </div>
   )
 }
 
-export const AnkiImport = memo(() => {
+export const AnkiImport = memo(function AnkiImport() {
   const [input, setInput] = useState('')
-  const [summary, setSummary] = useState<ImportResult | null>(null)
+  const [summary, setSummary] = useState<PartitionedMaps_Split_Imported<any> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const { refreshFavorites } = useFavorites()
+  const { importFavorites } = useFavorites()
   const { LL } = useI18nContext()
+  const toast = useAppToast()
+
+  const handleFileSelect = useCallback(async () => {
+    try {
+      // 1. Open File Dialog
+      const selected = await open({
+        multiple: false,
+        directory: false,
+        filters: [
+          {
+            name: 'Text',
+            extensions: ['txt', 'csv', 'md'],
+          },
+        ],
+      })
+
+      if (selected && typeof selected === 'string') {
+        // 2. Read file content
+        const content = await readTextFile(selected)
+
+        setInput(content)
+      }
+    } catch (error) {
+      toast.error('File selection failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(error))
+    }
+  }, [])
 
   const handleImport = async () => {
+    const input_ = String_toNonEmptyString_orUndefined_afterTrim(input)
+
+    if (!input_) return
     setIsLoading(true)
     try {
-      const res = await importWordsToAnki(input)
+      const res = await importFavorites(input_)
 
       setSummary(res)
-      await refreshFavorites()
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <>
-      <Textarea
-        classNames={{
-          input: 'font-mono text-sm leading-relaxed',
-          label: 'font-bold text-default-700 mb-2',
-        }}
-        label={LL.ANKI.IMPORT.TITLE()}
-        labelPlacement="outside"
-        maxRows={15}
-        minRows={8}
-        placeholder={LL.ANKI.IMPORT.PLACEHOLDER()}
-        value={input}
-        variant="flat"
-        onValueChange={setInput}
-      />
-      <Button
-        className="font-black uppercase tracking-wider shadow-lg shadow-primary/20"
-        color="primary"
-        isDisabled={!input.trim()}
-        isLoading={isLoading}
-        size="lg"
-        onPress={handleImport}
-      >
-        {LL.ANKI.IMPORT.BUTTON()}
-      </Button>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-end">
+        <div className="flex-1">
+          <Textarea
+            classNames={{
+              input: 'font-mono text-sm leading-relaxed',
+              label: 'font-bold text-default-700 mb-2',
+            }}
+            label={LL.ANKI.IMPORT.TITLE()}
+            labelPlacement="outside"
+            maxRows={15}
+            minRows={8}
+            placeholder={LL.ANKI.IMPORT.PLACEHOLDER()}
+            value={input}
+            variant="flat"
+            onValueChange={setInput}
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          className="font-semibold"
+          color="default"
+          startContent={<HiDocumentArrowUp size={20} />}
+          variant="flat"
+          onPress={handleFileSelect}
+        >
+          Select File
+        </Button>
+
+        <Button
+          className="flex-1 font-black uppercase tracking-wider shadow-lg shadow-primary/20"
+          color="primary"
+          isDisabled={!input.trim()}
+          isLoading={isLoading}
+          onPress={handleImport}
+        >
+          {LL.ANKI.IMPORT.BUTTON()}
+        </Button>
+      </div>
 
       {summary && (
         <Card className="border border-success/20 bg-success-50/5" shadow="sm">
@@ -82,16 +168,12 @@ export const AnkiImport = memo(() => {
             </h2>
           </CardHeader>
           <CardBody className="gap-8 px-6 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <SummarySection data={summary.en} title={LL.ANKI.LANGUAGES.ENGLISH()} />
-              <SummarySection data={summary.km} title={LL.ANKI.LANGUAGES.KHMER()} />
-              <SummarySection data={summary.ru} title={LL.ANKI.LANGUAGES.RUSSIAN()} />
-            </div>
+            <SummarySection data={getStats(summary.en)} title={LL.ANKI.LANGUAGES.ENGLISH()} />
+            <SummarySection data={getStats(summary.km)} title={LL.ANKI.LANGUAGES.KHMER()} />
+            <SummarySection data={getStats(summary.ru)} title={LL.ANKI.LANGUAGES.RUSSIAN()} />
           </CardBody>
         </Card>
       )}
-    </>
+    </div>
   )
 })
-
-AnkiImport.displayName = 'AnkiImport'
