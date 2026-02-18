@@ -2,14 +2,8 @@ pub mod common;
 pub mod en;
 pub mod km;
 pub mod ru;
-
-// New modules
 pub mod are_words_in_dict;
 pub mod is_word_in_dict;
-
-// Re-export commands for easier access in main.rs
-pub use are_words_in_dict::are_words_in_dict;
-pub use is_word_in_dict::is_word_in_dict;
 
 use crate::app_state::AppState;
 use tauri::{command, State};
