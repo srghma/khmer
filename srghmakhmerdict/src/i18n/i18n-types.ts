@@ -463,6 +463,12 @@ type RootTranslation = {
 			 */
 			BUTTON: string
 		}
+		SETTINGS: {
+			/**
+			 * A​n​k​i​ ​S​e​t​t​i​n​g​s
+			 */
+			TITLE: string
+		}
 	}
 	SIDEBAR: {
 		/**
@@ -1311,6 +1317,12 @@ export type TranslationFunctions = {
 			 * Export
 			 */
 			BUTTON: () => LocalizedString
+		}
+		SETTINGS: {
+			/**
+			 * Anki Settings
+			 */
+			TITLE: () => LocalizedString
 		}
 	}
 	SIDEBAR: {

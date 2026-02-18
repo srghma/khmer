@@ -145,6 +145,9 @@ const uk = {
       DESCRIPTION: 'Експортувати всі ваші обрані слова списком.',
       BUTTON: 'Експортувати',
     },
+    SETTINGS: {
+      TITLE: 'Налаштування Anki',
+    },
   },
   SIDEBAR: {
     LOADING_DICT: 'Завантаження словника...',

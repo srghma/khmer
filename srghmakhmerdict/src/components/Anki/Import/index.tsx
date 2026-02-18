@@ -48,39 +48,31 @@ export const AnkiImport = memo(() => {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 w-full max-w-2xl mx-auto h-full overflow-y-auto scrollbar-hide">
-      <Card className="border border-divider" shadow="sm">
-        <CardHeader className="flex flex-col items-start px-6 pt-6 pb-0">
-          <h2 className="text-2xl font-black uppercase tracking-tight text-foreground">{LL.ANKI.IMPORT.TITLE()}</h2>
-          <p className="text-default-500 text-sm mt-1">{LL.ANKI.IMPORT.DESCRIPTION()}</p>
-        </CardHeader>
-        <CardBody className="gap-6 px-6 py-6">
-          <Textarea
-            classNames={{
-              input: 'font-mono text-sm leading-relaxed',
-              label: 'font-bold text-default-700 mb-2',
-            }}
-            label={LL.ANKI.IMPORT.TITLE()}
-            labelPlacement="outside"
-            maxRows={15}
-            minRows={8}
-            placeholder={LL.ANKI.IMPORT.PLACEHOLDER()}
-            value={input}
-            variant="flat"
-            onValueChange={setInput}
-          />
-          <Button
-            className="font-black uppercase tracking-wider shadow-lg shadow-primary/20"
-            color="primary"
-            isDisabled={!input.trim()}
-            isLoading={isLoading}
-            size="lg"
-            onPress={handleImport}
-          >
-            {LL.ANKI.IMPORT.BUTTON()}
-          </Button>
-        </CardBody>
-      </Card>
+    <>
+      <Textarea
+        classNames={{
+          input: 'font-mono text-sm leading-relaxed',
+          label: 'font-bold text-default-700 mb-2',
+        }}
+        label={LL.ANKI.IMPORT.TITLE()}
+        labelPlacement="outside"
+        maxRows={15}
+        minRows={8}
+        placeholder={LL.ANKI.IMPORT.PLACEHOLDER()}
+        value={input}
+        variant="flat"
+        onValueChange={setInput}
+      />
+      <Button
+        className="font-black uppercase tracking-wider shadow-lg shadow-primary/20"
+        color="primary"
+        isDisabled={!input.trim()}
+        isLoading={isLoading}
+        size="lg"
+        onPress={handleImport}
+      >
+        {LL.ANKI.IMPORT.BUTTON()}
+      </Button>
 
       {summary && (
         <Card className="border border-success/20 bg-success-50/5" shadow="sm">
@@ -98,7 +90,7 @@ export const AnkiImport = memo(() => {
           </CardBody>
         </Card>
       )}
-    </div>
+    </>
   )
 })
 

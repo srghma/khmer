@@ -145,6 +145,9 @@ const en = {
       DESCRIPTION: 'Export all your favorite words as a list.',
       BUTTON: 'Export',
     },
+    SETTINGS: {
+      TITLE: 'Anki Settings',
+    },
   },
   SIDEBAR: {
     LOADING_DICT: 'Loading Dictionary...',

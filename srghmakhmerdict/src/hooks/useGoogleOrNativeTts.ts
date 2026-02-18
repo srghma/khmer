@@ -50,17 +50,20 @@ export function useGoogleOrNativeTts(
       switch (result.t) {
         case 'google_error': {
           const err = googleTtsResultToError(result.error)
+
           if (err) toast.error(err.title, err.description)
           break
         }
         case 'native_error': {
           const err = nativeTtsResultToError(result.error)
+
           if (err) toast.error(err.title, err.description)
           break
         }
         case 'google_then_native_both_error': {
           const gErr = googleTtsResultToError(result.googleError)
           const nErr = nativeTtsResultToError(result.nativeError)
+
           toast.error(
             nErr?.title ?? ('TTS Failed' as NonEmptyStringTrimmed),
             `${gErr?.description ?? ''} | ${nErr?.description ?? ''}` as NonEmptyStringTrimmed,

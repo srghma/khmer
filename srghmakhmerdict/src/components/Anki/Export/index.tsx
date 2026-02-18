@@ -1,5 +1,5 @@
 import { useState, memo, useCallback } from 'react'
-import { Textarea, Button, Card, CardBody, CardHeader } from '@heroui/react'
+import { Textarea, Button } from '@heroui/react'
 import { getAnkiExportData } from '../../../db/favorite/anki_export'
 import { useI18nContext } from '../../../i18n/i18n-react-custom'
 import { useAppToast } from '../../../providers/ToastProvider'
@@ -41,58 +41,39 @@ export const AnkiExport = memo(() => {
     }
   }, [output, toast])
 
-  const handleClear = useCallback(() => {
-    setOutput('')
-  }, [])
-
-  return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 w-full max-w-2xl mx-auto h-full overflow-y-auto scrollbar-hide">
-      <Card className="border border-divider" shadow="sm">
-        <CardHeader className="flex flex-col items-start px-6 pt-6 pb-0">
-          <h2 className="text-2xl font-black uppercase tracking-tight text-foreground">{LL.ANKI.EXPORT.TITLE()}</h2>
-          <p className="text-default-500 text-sm mt-1">{LL.ANKI.EXPORT.DESCRIPTION()}</p>
-        </CardHeader>
-        <CardBody className="gap-6 px-6 py-6">
-          {!output ? (
-            <Button
-              className="font-black uppercase tracking-wider shadow-lg shadow-primary/20"
-              color="primary"
-              isLoading={isLoading}
-              size="lg"
-              startContent={<HiArrowDownTray className="text-xl" />}
-              onPress={handleExport}
-            >
-              {LL.ANKI.EXPORT.BUTTON()}
-            </Button>
-          ) : (
-            <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <Textarea
-                readOnly
-                classNames={TextareaClassNames}
-                label="Exported Words"
-                labelPlacement="outside"
-                maxRows={20}
-                minRows={10}
-                value={output}
-                variant="flat"
-              />
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1 font-black uppercase tracking-wider"
-                  color="secondary"
-                  startContent={<HiClipboardDocumentList className="text-xl" />}
-                  onPress={handleCopy}
-                >
-                  Copy to Clipboard
-                </Button>
-                <Button className="font-bold border border-divider" variant="flat" onPress={handleClear}>
-                  Clear
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardBody>
-      </Card>
+  return !output ? (
+    <Button
+      className="font-black uppercase tracking-wider shadow-lg shadow-primary/20"
+      color="primary"
+      isLoading={isLoading}
+      size="lg"
+      startContent={<HiArrowDownTray className="text-xl" />}
+      onPress={handleExport}
+    >
+      {LL.ANKI.EXPORT.BUTTON()}
+    </Button>
+  ) : (
+    <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <Textarea
+        readOnly
+        classNames={TextareaClassNames}
+        label="Exported Words"
+        labelPlacement="outside"
+        maxRows={20}
+        minRows={10}
+        value={output}
+        variant="flat"
+      />
+      <div className="flex gap-2">
+        <Button
+          className="flex-1 font-black uppercase tracking-wider"
+          color="secondary"
+          startContent={<HiClipboardDocumentList className="text-xl" />}
+          onPress={handleCopy}
+        >
+          Copy to Clipboard
+        </Button>
+      </div>
     </div>
   )
 })

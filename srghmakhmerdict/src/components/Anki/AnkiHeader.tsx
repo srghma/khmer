@@ -5,26 +5,13 @@ import { stringToDictionaryLanguageOrThrow, type DictionaryLanguage } from '../.
 import { IoClose } from 'react-icons/io5'
 import { Button } from '@heroui/button'
 import { type AnkiDirection } from './types'
-import { HiCog6Tooth, HiArrowDownTray } from 'react-icons/hi2'
+import { HiCog6Tooth } from 'react-icons/hi2'
 
 // Reusing icons/titles from SidebarHeader
 import { tab_title_en, tab_title_km, tab_title_ru } from '../SidebarHeader'
 import { unknown_shouldBeStringOrThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string'
 import { useAnkiNavigation } from './useAnkiNavigation'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
-
-interface AnkiHeaderProps {
-  activeDict: DictionaryLanguage
-  direction: AnkiDirection
-  onDirectionChange: (mode: AnkiDirection) => void
-  en_dueCount_today: number
-  ru_dueCount_today: number
-  kh_dueCount_today: number
-  en_dueCount_total: number
-  ru_dueCount_total: number
-  kh_dueCount_total: number
-  onExit: () => void
-}
 
 /**
  * Wraps the icon and counts to apply a "disabled" visual effect
@@ -58,8 +45,25 @@ const tabsClassNames = {
   cursor: 'bg-secondary',
 }
 
+type AnkiPage = DictionaryLanguage | 'settings'
+
+interface AnkiHeaderProps {
+  currentPage: AnkiPage
+  activeDict: DictionaryLanguage
+  direction: AnkiDirection
+  onDirectionChange: (mode: AnkiDirection) => void
+  en_dueCount_today: number
+  ru_dueCount_today: number
+  kh_dueCount_today: number
+  en_dueCount_total: number
+  ru_dueCount_total: number
+  kh_dueCount_total: number
+  onExit: () => void
+}
+
 export const AnkiHeader = memo<AnkiHeaderProps>(
   ({
+    currentPage,
     activeDict,
     direction,
     onDirectionChange,
@@ -71,7 +75,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
     kh_dueCount_total,
     onExit,
   }) => {
-    const { navigateToLanguage, navigateToImport, navigateToExport } = useAnkiNavigation()
+    const { navigateToLanguage, navigateToSettings } = useAnkiNavigation()
     const { LL } = useI18nContext()
 
     const isGuessingKhmer = direction === 'GUESSING_KHMER'
@@ -81,9 +85,14 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
 
       if (keyStr === 'toggle') {
         onDirectionChange(isGuessingKhmer ? 'GUESSING_NON_KHMER' : 'GUESSING_KHMER')
-
         return
       }
+
+      if (keyStr === 'settings') {
+        navigateToSettings()
+        return
+      }
+
       navigateToLanguage(stringToDictionaryLanguageOrThrow(keyStr))
     }
 
@@ -129,10 +138,10 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
             {isGuessingKhmer
               ? LL.ANKI.LANGUAGES.KHMER()
               : {
-                en: LL.ANKI.LANGUAGES.ENGLISH(),
-                ru: LL.ANKI.LANGUAGES.RUSSIAN(),
-                km: LL.ANKI.LANGUAGES.EN_RU(),
-              }[activeDict]}
+                  en: LL.ANKI.LANGUAGES.ENGLISH(),
+                  ru: LL.ANKI.LANGUAGES.RUSSIAN(),
+                  km: LL.ANKI.LANGUAGES.EN_RU(),
+                }[activeDict]}
           </span>
         </div>
       ),
@@ -150,10 +159,11 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
               classNames={tabsClassNames}
               color="secondary"
               radius="sm"
-              selectedKey={activeDict}
+              selectedKey={currentPage}
               variant="underlined"
               onSelectionChange={tabs_onSelectionChange}
             >
+              <Tab key="settings" title={<HiCog6Tooth className="text-xl" />} />
               <Tab key="en" disabled={en_dueCount_total === 0} title={title_en} />
               <Tab key="km" disabled={kh_dueCount_total === 0} title={title_km} />
               <Tab key="ru" disabled={ru_dueCount_total === 0} title={title_ru} />
@@ -164,31 +174,7 @@ export const AnkiHeader = memo<AnkiHeaderProps>(
           <div className="flex gap-1">
             <Button
               isIconOnly
-              className="hover:scale-110 active:scale-95 transition-transform"
-              radius="full"
-              size="lg"
-              variant="light"
-              onPress={navigateToExport}
-              title={LL.ANKI.EXPORT.TITLE()}
-            >
-              <HiArrowDownTray className="text-xl text-default-500" />
-            </Button>
-
-            <Button
-              isIconOnly
-              className="hover:scale-110 active:scale-95 transition-transform"
-              radius="full"
-              size="lg"
-              variant="light"
-              onPress={navigateToImport}
-              title={LL.ANKI.IMPORT.TITLE()}
-            >
-              <HiCog6Tooth className="text-xl text-default-500" />
-            </Button>
-
-            <Button
-              isIconOnly
-              className="hover:scale-110 active:scale-95 transition-transform"
+              className="transition-transform hover:scale-110 active:scale-95"
               radius="full"
               size="lg"
               variant="light"

@@ -145,6 +145,9 @@ const ru = {
       DESCRIPTION: 'Экспортировать все ваши избранные слова списком.',
       BUTTON: 'Экспортировать',
     },
+    SETTINGS: {
+      TITLE: 'Настройки Anki',
+    },
   },
   SIDEBAR: {
     LOADING_DICT: 'Загрузка словаря...',

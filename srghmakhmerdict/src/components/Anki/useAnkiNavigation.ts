@@ -1,63 +1,31 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useLocation } from 'wouter'
-import { useAnkiSettings } from './useAnkiSettings'
-import { useAnkiRoute } from './useAnkiRoute'
 import { type DictionaryLanguage } from '../../types'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { stringToDictionaryLanguageOrThrow } from '../../types'
+import { useAnkiRoute } from './useAnkiRoute'
+import { useAnkiSettings } from './useAnkiSettings'
 
 export const useAnkiNavigation = () => {
-  const [location, setLocation] = useLocation()
+  const [, setLocation] = useLocation()
+  const route = useAnkiRoute()
+  const { language: settingsLanguage } = useAnkiSettings()
 
-  const { urlLanguage, selectedId } = useAnkiRoute()
-  const { language: settingsLanguage, setLanguage: setSettingsLanguage } = useAnkiSettings()
-
-  useEffect(() => {
-    const relativeLocation = location.replace(/^\/?anki/, '')
-    const match = relativeLocation.match(/^\/?([^/]+)?(?:\/([^/]+))?$/)
-    const langStr = match?.[1]
-
-    if (langStr) {
-      try {
-        const lang = stringToDictionaryLanguageOrThrow(langStr)
-
-        if (lang !== settingsLanguage) {
-          setSettingsLanguage(lang)
-        }
-      } catch (e) {
-        // ignore invalid lang in URL
-      }
-    }
-  }, [location, settingsLanguage, setSettingsLanguage])
-
-  useEffect(() => {
-    const relativeLocation = location.replace(/^\/?anki/, '')
-    const match = relativeLocation.match(/^\/?([^/]+)?(?:\/([^/]+))?$/)
-    const langStr = match?.[1]
-
-    if (!langStr && urlLanguage) {
-      setLocation(`/anki/${urlLanguage}`, { replace: true })
-    }
-  }, [location, urlLanguage, setLocation])
+  // Derive the current language from route (falls back to settings)
+  const urlLanguage: DictionaryLanguage = route.t === 'word' ? route.urlLanguage : settingsLanguage
+  const selectedId: NonEmptyStringTrimmed | undefined = route.t === 'word' ? route.selectedId : undefined
 
   const navigateToLanguage = useCallback(
     (lang: DictionaryLanguage) => {
-      setLocation(`/anki/${lang}`)
+      setLocation(`~/anki/${lang}`)
     },
     [setLocation],
   )
 
   const navigateToWord = useCallback(
-    (word: NonEmptyStringTrimmed, lang: DictionaryLanguage = settingsLanguage) => {
-      const targetPath = `/anki/${lang}/${encodeURIComponent(word)}`
-
-      if (lang === urlLanguage) {
-        setLocation(targetPath, { replace: true })
-      } else {
-        setLocation(targetPath)
-      }
+    (wordId: NonEmptyStringTrimmed) => {
+      setLocation(`~/anki/${urlLanguage}/${wordId}`)
     },
-    [setLocation, settingsLanguage, urlLanguage],
+    [setLocation, urlLanguage],
   )
 
   const exitAnki = useCallback(() => {
@@ -65,14 +33,20 @@ export const useAnkiNavigation = () => {
   }, [setLocation, settingsLanguage])
 
   const navigateToImport = useCallback(() => {
-    setLocation(`/anki/import`)
+    setLocation(`~/anki/settings/import`)
   }, [setLocation])
 
   const navigateToExport = useCallback(() => {
-    setLocation(`/anki/export`)
+    setLocation(`~/anki/settings/export`)
+  }, [setLocation])
+
+  const navigateToSettings = useCallback(() => {
+    // Navigates to root settings (Menu)
+    setLocation(`~/anki/settings`)
   }, [setLocation])
 
   return {
+    route,
     urlLanguage,
     selectedId,
     navigateToLanguage,
@@ -80,33 +54,6 @@ export const useAnkiNavigation = () => {
     exitAnki,
     navigateToImport,
     navigateToExport,
+    navigateToSettings,
   }
 }
-
-// export const useAnkiAutoRedirect = (
-//   allFavorites_splitted: NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined> | undefined,
-// ) => {
-//   const [location, setLocation] = useLocation()
-//   const { urlLanguage, selectedId, isSessionFinished } = useAnkiRoute()
-//   const pulseStore = useAnkiPulseStore()
-//   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot)
-
-//   console.log('useAnkiAutoRedirect', { location, selectedId, isSessionFinished, allFavorites_splitted })
-
-//   useEffect(() => {
-//     if (location === `/` && !selectedId && !isSessionFinished && allFavorites_splitted) {
-//       console.log('trying to select first due')
-//       const favoritesForLang = allFavorites_splitted[urlLanguage]
-//       console.log('favoritesForLang', favoritesForLang)
-
-//       if (favoritesForLang) {
-//         const nextDueItem = favoritesForLang.find(item => item.due <= now)
-//         console.log('nextDueItem', nextDueItem)
-
-//         if (nextDueItem) {
-//           setLocation(`/anki/${urlLanguage}/${encodeURIComponent(nextDueItem.word)}`, { replace: true })
-//         }
-//       }
-//     }
-//   }, [urlLanguage, selectedId, isSessionFinished, allFavorites_splitted, now, setLocation])
-// }

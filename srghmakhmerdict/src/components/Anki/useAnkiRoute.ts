@@ -1,64 +1,61 @@
 import { useLocation } from 'wouter'
-import { useMemo } from 'react'
-import { stringToDictionaryLanguageOrThrow, type DictionaryLanguage } from '../../types'
 import {
-  nonEmptyString_afterTrim,
+  String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { type DictionaryLanguage, DICTIONARY_LANGUAGES } from '../../types'
 import { useAnkiSettings } from './useAnkiSettings'
 
-export interface AnkiRouteParams {
-  urlLanguage: DictionaryLanguage
-  selectedId: NonEmptyStringTrimmed | undefined
-  subPage?: 'import' | 'export'
-}
+export type AnkiSettingsSubPage = 'import' | 'export'
+
+export type AnkiRouteParams =
+  | { t: 'word'; urlLanguage: DictionaryLanguage; selectedId: NonEmptyStringTrimmed | undefined }
+  | { t: 'settings'; subPage: AnkiSettingsSubPage | undefined }
 
 export const useAnkiRoute = (): AnkiRouteParams => {
   const [location] = useLocation()
   const { language: settingsLanguage } = useAnkiSettings()
 
-  return useMemo(() => {
-    // Since we are likely in a nested route, but useLocation returns absolute path,
-    // we should strip the /anki prefix if it exists to parse relative parts.
-    const relativeLocation = location.replace(/^\/?anki/, '')
+  // Strip leading /anki prefix
+  const relativeLocation = location.replace(/^\/anki/, '')
 
-    // Match relative parts: /:lang?/:word?
-    // Examples (relative):
-    // '' or '/' -> lang: undefined, card: undefined
-    // '/en' -> lang: en, card: undefined
-    // '/en/word' -> lang: en, card: word
-    const match = relativeLocation.match(/^\/?([^/]+)?(?:\/([^/]+))?$/)
-
-    if (!match) {
-      console.error('[useAnkiRoute] Invalid route format:', { location, relativeLocation })
-      throw new Error(`Invalid Anki route format: ${location}`)
-    }
-
-    const langStr = match[1]
-    const cardIdStr = match[2]
-
-    if (langStr === 'import' || langStr === 'export') {
-      return {
-        urlLanguage: settingsLanguage,
-        selectedId: undefined,
-        subPage: langStr as 'import' | 'export',
-      }
-    }
-
-    let urlLanguage: DictionaryLanguage
-
-    if (langStr) {
-      urlLanguage = stringToDictionaryLanguageOrThrow(langStr)
-    } else {
-      // Fallback to settings if language is missing from URL
-      urlLanguage = settingsLanguage
-    }
-
-    const selectedId = cardIdStr ? nonEmptyString_afterTrim(decodeURIComponent(cardIdStr)) : undefined
-
+  // Handle /anki, /anki/, or empty after /anki
+  if (!relativeLocation || relativeLocation === '/') {
     return {
-      urlLanguage,
-      selectedId,
+      t: 'word',
+      urlLanguage: settingsLanguage,
+      selectedId: undefined,
     }
-  }, [location, settingsLanguage])
+  }
+
+  const pathParts = relativeLocation.split('/').filter(Boolean)
+  const firstPart = pathParts[0]
+
+  // Handle /anki/settings...
+  if (firstPart === 'settings') {
+    const sub = pathParts[1]
+
+    if (sub === 'import') return { t: 'settings', subPage: 'import' }
+    if (sub === 'export') return { t: 'settings', subPage: 'export' }
+
+    // /anki/settings -> subPage undefined (Menu view on mobile)
+    return { t: 'settings', subPage: undefined }
+  }
+
+  // Handle /anki/:lang/:word?
+  const lang = DICTIONARY_LANGUAGES.find(l => l === firstPart)
+
+  if (lang) {
+    const rawWord = pathParts[1]
+    const word = rawWord ? String_toNonEmptyString_orUndefined_afterTrim(decodeURIComponent(rawWord)) : undefined
+
+    return { t: 'word', urlLanguage: lang, selectedId: word }
+  }
+
+  // Default fallback
+  return {
+    t: 'word',
+    urlLanguage: settingsLanguage,
+    selectedId: undefined,
+  }
 }
