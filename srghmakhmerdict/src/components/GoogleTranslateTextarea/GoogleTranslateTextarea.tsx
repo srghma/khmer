@@ -40,6 +40,8 @@ const GoogleTranslateToolbar = memo(function GoogleTranslateToolbar({
 }: GoogleTranslateToolbarProps) {
   const inputMode = useMemo(() => (value ? detectModeFromText(value) : undefined) ?? 'km', [value])
 
+  const translateButtonIsDisabled = !value || loading
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-1">
       {/* Left: Speech Actions */}
@@ -69,6 +71,7 @@ const GoogleTranslateToolbar = memo(function GoogleTranslateToolbar({
           <Button
             className="font-bold px-4"
             isLoading={loading}
+            isDisabled={translateButtonIsDisabled}
             startContent={!loading && <HiTranslate className="text-lg" />}
             onPress={onTranslate}
           >
