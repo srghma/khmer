@@ -32,6 +32,7 @@ import { AutomaticRussianPronunciation } from '../DetailView/AutomaticRussianPro
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { EditableHtmlField } from './EditableHtmlField'
 import { useFavorites } from '../../providers/FavoritesProvider'
+import { makeKhmerAnalyzerUrl } from '../../utils/url-navigation'
 
 const SelectionMenuBodyLocalWrapper = React.memo(
   ({
@@ -154,9 +155,7 @@ export const AnkiCardDetailView = React.memo(
     const handleOpenKhmerAnalyzer = useCallback(
       (selectedText: NonEmptyStringTrimmed) => {
         window.getSelection()?.removeAllRanges()
-        const sanitized = sanitizeTextForAnalyzer(selectedText)
-
-        setLocation(`~/khmer_analyzer/${encodeURIComponent(sanitized)}`)
+        setLocation(makeKhmerAnalyzerUrl(sanitizeTextForAnalyzer(selectedText)))
       },
       [setLocation],
     )

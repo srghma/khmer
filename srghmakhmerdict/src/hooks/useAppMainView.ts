@@ -1,9 +1,18 @@
 import { tryDecode } from '../utils/tryDecode'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { type AppTab, type DictionaryLanguage } from '../types'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  stringToDictionaryLanguageOrThrow,
+  stringToDictionaryLanguageOrUndefined,
+  type AppTab,
+  type DictionaryLanguage,
+} from '../types'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import { getUrlSearchParam, KHMER_ANALYZER_PARAM_TEXT } from '../utils/url-navigation'
 
 const AppMainView__history_list = { type: 'history-list' } as const
 const AppMainView__favorites_list = { type: 'favorites-list' } as const
@@ -24,8 +33,6 @@ export const useAppMainView = () => {
   const [location] = useLocation()
 
   const currentView = useMemo((): AppMainView => {
-    // console.log('[Router Debug] useAppMainView location:', location)
-
     // 1. Special routes
     if (location === '/history') return AppMainView__history_list
     if (location === '/favorites') return AppMainView__favorites_list
@@ -33,10 +40,9 @@ export const useAppMainView = () => {
     if (location === '/about') return { type: 'about' }
     if (location === '/khmer_complex_table') return { type: 'khmer-complex-table' }
 
-    const analyzerMatch = location.match(/^\/khmer_analyzer(?:\/(.+))?$/)
-
-    if (analyzerMatch) {
-      const text = analyzerMatch[1] ? (tryDecode(analyzerMatch[1]) as NonEmptyStringTrimmed) : undefined
+    if (location === '/khmer_analyzer') {
+      const rawText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT)
+      const text = String_toNonEmptyString_orUndefined_afterTrim(rawText || '')
 
       return { type: 'khmer-analyzer', text }
     }
@@ -45,12 +51,22 @@ export const useAppMainView = () => {
     const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/(.+)$/)
 
     if (detailListMatch) {
-      // console.log('[Router Debug] Matched Detail List Regex:', detailListMatch)
       const type = detailListMatch[1] as 'history' | 'favorites'
-      const mode = detailListMatch[2] as DictionaryLanguage
-      const word = tryDecode(detailListMatch[3] || '') as NonEmptyStringTrimmed
+
+      // Safe parsing of Language
+      const modeStr = detailListMatch[2] ?? ''
+      const mode = stringToDictionaryLanguageOrUndefined(modeStr)
+      if (!mode) {
+        // Fallback if language code is invalid
+        return { type: 'dashboard', mode: 'en' }
+      }
+
+      // Safe parsing of Word
+      const rawWord = tryDecode(detailListMatch[3] || '')
+      const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
 
       if (!word) {
+        // If word is empty after trim, fallback to dashboard
         return { type: 'dashboard', mode: 'en' }
       }
 
@@ -61,14 +77,13 @@ export const useAppMainView = () => {
     const langMatch = location.match(/^\/(en|ru|km)(?:\/(.+))?$/)
 
     if (langMatch) {
-      // console.log('[Router Debug] Matched Language/Dashboard Regex:', langMatch)
-      const mode = langMatch[1] as DictionaryLanguage
-      const word = langMatch[2] ? (tryDecode(langMatch[2]) as NonEmptyStringTrimmed) : undefined
+      const mode = stringToDictionaryLanguageOrThrow(langMatch[1] ?? '')
+
+      const rawWord = langMatch[2] ? tryDecode(langMatch[2]) : ''
+      const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
 
       return { type: 'dashboard', word, mode }
     }
-
-    // console.log('[Router Debug] No match, fallback to Dashboard')
 
     return { type: 'dashboard', mode: 'en' }
   }, [location])

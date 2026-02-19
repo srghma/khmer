@@ -21,6 +21,7 @@ import { useAutoReadTts } from '../../hooks/useAutoReadTts'
 import { AutomaticRussianPronunciation } from './AutomaticRussianPronunciation'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { makeKhmerAnalyzerUrl } from '../../utils/url-navigation'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -126,9 +127,7 @@ const DetailViewFoundComponent = ({
   const handleOpenKhmerAnalyzer = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
       window.getSelection()?.removeAllRanges()
-      const sanitized = sanitizeTextForAnalyzer(selectedText)
-
-      setLocation(`/khmer_analyzer/${encodeURIComponent(sanitized)}`)
+      setLocation(makeKhmerAnalyzerUrl(sanitizeTextForAnalyzer(selectedText)))
     },
     [setLocation],
   )

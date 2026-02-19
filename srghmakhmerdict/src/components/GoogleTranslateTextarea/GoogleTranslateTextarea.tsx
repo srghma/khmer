@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo, useCallback } from 'react'
+import { useEffect, useMemo, memo, useCallback } from 'react'
 import { Textarea, type TextAreaProps } from '@heroui/input'
 import { Button, ButtonGroup } from '@heroui/button'
 import { HiTranslate } from 'react-icons/hi'

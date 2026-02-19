@@ -1,4 +1,4 @@
-import React, { useCallback, memo, useEffect, useState, useRef } from 'react'
+import React, { useCallback, memo, useEffect, useRef, useState } from 'react'
 import { Button } from '@heroui/button'
 import { HiArrowLeft } from 'react-icons/hi2'
 import { useLocation } from 'wouter'
@@ -17,6 +17,7 @@ import { SegmentationPreview } from './KhmerAnalyzerModal/SegmentationPreview'
 import { useKhmerAnalysis, type KhmerAnalysisResult } from './KhmerAnalyzerModal/useKhmerAnalysis'
 import { useDebounce } from 'use-debounce'
 import { useI18nContext } from '../i18n/i18n-react-custom'
+import { getUrlSearchParam, KHMER_ANALYZER_PARAM_TEXT, makeKhmerAnalyzerUrl } from '../utils/url-navigation'
 
 interface HeaderTogglerOfSegmenterProps {
   title: string
@@ -115,37 +116,38 @@ interface KhmerAnalyzerViewProps {
   initialText?: NonEmptyStringTrimmed
 }
 
-export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initialText }) => {
-  console.log('[KhmerAnalyzerView] Render. initialText:', JSON.stringify(initialText))
-
+// NOTE: initialText prop is effectively ignored in favor of the URL query param,
+// maintaining the pattern from the previous implementation but cleaner.
+export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initialText: _ignored }) => {
   const { LL } = useI18nContext()
   const [, setLocation] = useLocation()
   const { maybeColorMode, filters } = useSettings()
 
-  const [analyzedText, setAnalyzedText] = useState<string>(initialText ?? '')
-  const [debouncedAnalyzedText] = useDebounce(analyzedText, 500)
+  const [text, setText] = useState<string>(() => getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
+  const [debouncedText] = useDebounce(text, 500)
   const isFirstRender = useRef(true)
 
+  // Sync URL when debounced text changes
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
     }
-
-    const targetUrl = debouncedAnalyzedText
-      ? `/khmer_analyzer/${encodeURIComponent(debouncedAnalyzedText)}`
-      : '/khmer_analyzer'
-
-    console.log('[KhmerAnalyzerView] Updating Location to:', targetUrl)
+    const targetUrl = makeKhmerAnalyzerUrl(debouncedText)
     setLocation(targetUrl, { replace: true })
-  }, [debouncedAnalyzedText, setLocation])
+  }, [debouncedText, setLocation])
 
+  // Sync state when URL changes (Back/Forward)
   useEffect(() => {
-    console.log('[KhmerAnalyzerView] Syncing state from initialText:', JSON.stringify(initialText))
-    if (initialText !== undefined && initialText !== analyzedText) {
-      setAnalyzedText(initialText)
+    const handlePopState = () => {
+      const urlText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? ''
+      if (urlText !== text) {
+        setText(urlText)
+      }
     }
-  }, [initialText])
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [text])
 
   const handleBack = useCallback(() => {
     safeBack(setLocation)
@@ -153,28 +155,15 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
 
   const handleNavigate = useCallback(
     (word: NonEmptyStringTrimmed) => {
-      setLocation(`/km/${encodeURIComponent(word)}`)
+      setLocation(`~/km/${encodeURIComponent(word)}`)
     },
     [setLocation],
   )
 
-  // Wrap in try-catch to see if useKhmerAnalysis is the one crashing
-  let res: KhmerAnalysisResult
-  try {
-    res = useKhmerAnalysis(analyzedText, filters.km.mode === 'all' ? 'km' : 'km')
-    console.log('[KhmerAnalyzerView] Analysis Result Status:', res.t)
-  } catch (err) {
-    console.error('[KhmerAnalyzerView] CRITICAL ERROR in useKhmerAnalysis:', err)
-    return (
-      <Alert color="danger" title="Analysis Crash">
-        Check Console for details
-      </Alert>
-    )
-  }
+  const res = useKhmerAnalysis(text, filters.km.mode === 'all' ? 'km' : 'km')
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
-      {/* Header */}
       <div className="flex shrink-0 items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1rem+env(safe-area-inset-top))]">
         <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
           <HiArrowLeft className="w-6 h-6" />
@@ -182,7 +171,6 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
         <h1 className="text-xl font-bold">{LL.ANALYZER.TITLE()}</h1>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
           <GoogleTranslateTextarea
@@ -193,9 +181,9 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
             minRows={3}
             placeholder={LL.ANALYZER.PLACEHOLDER()}
             value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
-            value_toShowInTextArea={analyzedText}
+            value_toShowInTextArea={text}
             variant="faded"
-            onValueChange={setAnalyzedText}
+            onValueChange={setText}
           />
 
           <KhmerAnalysisResults res={res} onKhmerWordClick={handleNavigate} />
