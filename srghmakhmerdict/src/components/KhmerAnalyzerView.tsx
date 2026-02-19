@@ -116,7 +116,8 @@ interface KhmerAnalyzerViewProps {
 }
 
 export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initialText }) => {
-  // console.log('KhmerAnalyzerView render', initialText)
+  console.log('[KhmerAnalyzerView] Render. initialText:', JSON.stringify(initialText))
+
   const { LL } = useI18nContext()
   const [, setLocation] = useLocation()
   const { maybeColorMode, filters } = useSettings()
@@ -125,11 +126,9 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   const [debouncedAnalyzedText] = useDebounce(analyzedText, 500)
   const isFirstRender = useRef(true)
 
-  // Update URL based on debounced text
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
-
       return
     }
 
@@ -137,11 +136,12 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
       ? `/khmer_analyzer/${encodeURIComponent(debouncedAnalyzedText)}`
       : '/khmer_analyzer'
 
+    console.log('[KhmerAnalyzerView] Updating Location to:', targetUrl)
     setLocation(targetUrl, { replace: true })
   }, [debouncedAnalyzedText, setLocation])
 
-  // Sync state if initialText changes from outside (e.g. browser back/forward)
   useEffect(() => {
+    console.log('[KhmerAnalyzerView] Syncing state from initialText:', JSON.stringify(initialText))
     if (initialText !== undefined && initialText !== analyzedText) {
       setAnalyzedText(initialText)
     }
@@ -158,7 +158,19 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     [setLocation],
   )
 
-  const res = useKhmerAnalysis(analyzedText, filters.km.mode === 'all' ? 'km' : 'km')
+  // Wrap in try-catch to see if useKhmerAnalysis is the one crashing
+  let res: KhmerAnalysisResult
+  try {
+    res = useKhmerAnalysis(analyzedText, filters.km.mode === 'all' ? 'km' : 'km')
+    console.log('[KhmerAnalyzerView] Analysis Result Status:', res.t)
+  } catch (err) {
+    console.error('[KhmerAnalyzerView] CRITICAL ERROR in useKhmerAnalysis:', err)
+    return (
+      <Alert color="danger" title="Analysis Crash">
+        Check Console for details
+      </Alert>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">

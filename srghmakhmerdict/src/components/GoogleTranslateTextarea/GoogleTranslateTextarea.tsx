@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo, memo } from 'react'
+import { useState, useEffect, useMemo, memo, useCallback } from 'react'
 import { Textarea, type TextAreaProps } from '@heroui/input'
 import { Button, ButtonGroup } from '@heroui/button'
 import { HiTranslate } from 'react-icons/hi'
+import { HiArrowsRightLeft } from 'react-icons/hi2'
 
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -14,6 +15,7 @@ import { NativeSpeechAction } from '../DetailView/Tooltips/NativeSpeechAction'
 import { Alert } from '@heroui/alert'
 import type { ToTranslateLanguage } from '../../utils/googleTranslate/toTranslateLanguage'
 import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
+import { useSmartTargetLanguage } from './useSmartTargetLanguage'
 
 // ---------------------------------------------------------------------------
 // Sub-Component: Toolbar
@@ -25,39 +27,59 @@ interface GoogleTranslateToolbarProps {
   targetLang: ToTranslateLanguage
   onTargetLangChange: (lang: ToTranslateLanguage) => void
   onTranslate: () => void
+  onSwap: (() => void) | undefined
 }
 
-const GoogleTranslateToolbar = memo(
-  ({ value, loading, targetLang, onTargetLangChange, onTranslate }: GoogleTranslateToolbarProps) => {
-    const inputMode = useMemo(() => (value ? detectModeFromText(value) : undefined) ?? 'km', [value])
+const GoogleTranslateToolbar = memo(function GoogleTranslateToolbar({
+  value,
+  loading,
+  targetLang,
+  onTargetLangChange,
+  onTranslate,
+  onSwap,
+}: GoogleTranslateToolbarProps) {
+  const inputMode = useMemo(() => (value ? detectModeFromText(value) : undefined) ?? 'km', [value])
 
-    return (
-      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-        {/* Left: Speech Actions */}
-        <div className="flex items-center gap-1">
-          <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[inputMode]} word={value} />
-          <GoogleSpeechAction mode={inputMode} word={value} />
-          <span className="text-tiny uppercase text-default-400 font-bold ml-1 tracking-wider">{inputMode}</span>
-        </div>
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+      {/* Left: Speech Actions */}
+      <div className="flex items-center gap-1">
+        <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[inputMode]} word={value} />
+        <GoogleSpeechAction mode={inputMode} word={value} />
+        <span className="text-tiny uppercase text-default-400 font-bold ml-1 tracking-wider">{inputMode}</span>
 
-        {/* Right: Language + Translate button */}
-        <div className="flex items-center gap-2 max-w-full sm:max-w-[50%]">
-          <ButtonGroup className="shadow-sm" color="primary" size="sm" variant="flat">
-            <Button
-              className="font-bold px-4"
-              isLoading={loading}
-              startContent={!loading && <HiTranslate className="text-lg" />}
-              onPress={onTranslate}
-            >
-              Translate to
-            </Button>
-            <LanguageSelector targetLang={targetLang} onSelect={onTargetLangChange} />
-          </ButtonGroup>
-        </div>
+        {/* Swap Button */}
+        {onSwap && (
+          <Button
+            isIconOnly
+            className="ml-2 text-default-400 hover:text-primary"
+            size="sm"
+            title="Swap text and languages"
+            variant="light"
+            onPress={onSwap}
+          >
+            <HiArrowsRightLeft className="text-lg" />
+          </Button>
+        )}
       </div>
-    )
-  },
-)
+
+      {/* Right: Language + Translate button */}
+      <div className="flex items-center gap-2 max-w-full sm:max-w-[50%]">
+        <ButtonGroup className="shadow-sm" color="primary" size="sm" variant="flat">
+          <Button
+            className="font-bold px-4"
+            isLoading={loading}
+            startContent={!loading && <HiTranslate className="text-lg" />}
+            onPress={onTranslate}
+          >
+            Translate to
+          </Button>
+          <LanguageSelector targetLang={targetLang} onSelect={onTargetLangChange} />
+        </ButtonGroup>
+      </div>
+    </div>
+  )
+})
 
 GoogleTranslateToolbar.displayName = 'GoogleTranslateToolbar'
 
@@ -110,7 +132,7 @@ interface GoogleTranslateTextareaProps extends Pick<
   value_toShowInBottom: NonEmptyStringTrimmed | undefined
 }
 
-export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = ({
+export const GoogleTranslateTextarea = memo(function GoogleTranslateTextarea({
   value_toShowInTextArea,
   value_toShowInBottom,
   onValueChange,
@@ -118,9 +140,26 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
   maybeColorMode,
   classNames,
   ...props
-}) => {
-  const [targetLang, setTargetLang] = useState<ToTranslateLanguage>(defaultTargetLang)
+}: GoogleTranslateTextareaProps) {
+  // Use the new smart hook
+  const [targetLang, setTargetLang] = useSmartTargetLanguage(value_toShowInTextArea, defaultTargetLang)
+
   const { state, performTranslate, clearResult } = useGoogleTranslation(value_toShowInBottom, 'auto', targetLang)
+
+  const handleSwap = useCallback(() => {
+    if (state.t !== 'success' || !state.result.text) return
+
+    const newText = state.result.text
+    const currentSource = value_toShowInBottom ? detectModeFromText(value_toShowInBottom) : 'en'
+
+    // 1. Update text
+    onValueChange?.(newText)
+
+    // 2. Update target lang (this counts as a manual override/explicit setting)
+    if (currentSource) {
+      setTargetLang(currentSource as ToTranslateLanguage)
+    }
+  }, [state, value_toShowInBottom, onValueChange, setTargetLang])
 
   useEffect(() => {
     clearResult()
@@ -137,7 +176,6 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
 
   return (
     <div className="flex flex-col w-full bg-content1 rounded-xl shadow-sm border border-divider overflow-hidden">
-      {/* Input Area */}
       <Textarea
         classNames={memoizedClassNames}
         minRows={3}
@@ -146,21 +184,20 @@ export const GoogleTranslateTextarea: React.FC<GoogleTranslateTextareaProps> = (
         {...props}
       />
 
-      {/* Toolbar Area */}
       <div className="bg-content2/50 p-2 border-t border-divider/50">
         <GoogleTranslateToolbar
           loading={state.t === 'loading'}
           targetLang={targetLang}
           value={value_toShowInBottom}
-          onTargetLangChange={setTargetLang}
+          onSwap={state.t === 'success' ? handleSwap : undefined}
+          onTargetLangChange={setTargetLang} // hook handles the manual override logic
           onTranslate={performTranslate}
         />
       </div>
 
-      {/* Translation Result Area */}
       <div className="px-4 pb-4">
         <GoogleTranslateBottomContent maybeColorMode={maybeColorMode} state={state} targetLang={targetLang} />
       </div>
     </div>
   )
-}
+})

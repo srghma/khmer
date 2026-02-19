@@ -31,13 +31,23 @@ interface LanguageSelectorProps {
 export const LanguageSelector = memo(({ targetLang, onSelect }: LanguageSelectorProps) => {
   const selectedKeys = useMemo(() => new Set([targetLang]), [targetLang])
 
+  // Sort languages to put Khmer (km) first
+  const sortedLanguageEntries = useMemo(() => {
+    const entries = Record_entriesToArray(ToTranslateLanguage_codeNameRecord, (code, name) => ({ code, name }))
+
+    return entries.sort((a, b) => {
+      if (a.code === 'km') return -1
+      if (b.code === 'km') return 1
+
+      return a.name.localeCompare(b.name)
+    })
+  }, [])
+
   const handleSelectionChange = React.useCallback(
     (keys: SharedSelection) => {
-      // Safe extraction without casting assumption
       const selected = herouiSharedSelection_getFirst_string(keys)
 
       if (!selected) return
-
       onSelect(stringToToTranslateLanguageOrThrow(selected))
     },
     [onSelect],
@@ -59,13 +69,14 @@ export const LanguageSelector = memo(({ targetLang, onSelect }: LanguageSelector
         selectionMode="single"
         onSelectionChange={handleSelectionChange}
       >
-        {Record_entriesToArray(ToTranslateLanguage_codeNameRecord, (code, name) => (
+        {sortedLanguageEntries.map(({ code, name }) => (
           <DropdownItem key={code}>{name}</DropdownItem>
         ))}
       </DropdownMenu>
     </Dropdown>
   )
 })
+
 LanguageSelector.displayName = 'LanguageSelector'
 
 interface ResultDisplayProps {

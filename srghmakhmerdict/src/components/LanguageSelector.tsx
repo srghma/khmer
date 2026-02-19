@@ -23,6 +23,7 @@ export const LanguageSelector = memo(() => {
   const handleSelectionChange = useCallback(
     (keys: SharedSelection) => {
       const val = herouiSharedSelection_getFirst_string(keys)
+
       if (val) {
         setLocation(stringToLanguagesOrAutoOrThrow(val))
       }
