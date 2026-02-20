@@ -164,6 +164,6 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 
 FirstNonEmptyShortDetailView.displayName = 'FirstNonEmptyShortDetailView'
 function isWordInKmMap(khmerWord: TypedContainsKhmer, km_map: KhmerWordsMap) {
-  throw new Error('Function not implemented.')
+  return km_map.has(khmerWord)
 }
 

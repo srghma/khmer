@@ -7,36 +7,39 @@ import { createExternalStore } from '../utils/createExternalStore'
 
 const NATIVE_TTS_SPEAKING = { isSpeaking: true } as const
 
-export type NativeTtsState = typeof NATIVE_TTS_SPEAKING | { isSpeaking: false; speak: () => Promise<void> }
+export type NativeTtsState =
+  | typeof NATIVE_TTS_SPEAKING
+  | { isSpeaking: false; speak: (word: NonEmptyStringTrimmed, lang: BCP47LanguageTagName) => Promise<void> }
 
 const nativeSpeakingStore = createExternalStore<boolean>(false)
 
-export function useNativeTts(word: NonEmptyStringTrimmed | undefined, lang: BCP47LanguageTagName): NativeTtsState {
+export function useNativeTts(): NativeTtsState {
   const toast = useAppToast()
 
   // Subscribe to the global native speaking state
   const isSpeaking = useSyncExternalStore(nativeSpeakingStore.subscribe, nativeSpeakingStore.getSnapshot)
 
-  const speak = useCallback(async () => {
-    if (!word) throw new Error('useNativeTts.speak was called with empty word - expected - disable button')
-
-    if (nativeSpeakingStore.getSnapshot()) {
-      throw new Error('useNativeTts.speak was called while speaking - expected - disable button')
-    }
-
-    nativeSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(true)
-    try {
-      const result = await executeNativeTts(word, lang)
-
-      const err = nativeTtsResultToError(result)
-
-      if (err) {
-        toast.error(err.title, err.description)
+  const speak = useCallback(
+    async (word: NonEmptyStringTrimmed, lang: BCP47LanguageTagName) => {
+      if (nativeSpeakingStore.getSnapshot()) {
+        throw new Error('useNativeTts.speak was called while speaking - expected - disable button')
       }
-    } finally {
-      nativeSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(false)
-    }
-  }, [word, lang, toast])
+
+      nativeSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(true)
+      try {
+        const result = await executeNativeTts(word, lang)
+
+        const err = nativeTtsResultToError(result)
+
+        if (err) {
+          toast.error(err.title, err.description)
+        }
+      } finally {
+        nativeSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(false)
+      }
+    },
+    [toast],
+  )
 
   return useMemo((): NativeTtsState => {
     if (isSpeaking) return NATIVE_TTS_SPEAKING

@@ -29,19 +29,26 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   const tts = useGoogleOrNativeTts()
   const toast = useAppToast()
 
-  // 1. Play TTS when the Popover state changes to "open"
-  const handlePopoverOpenChange = useCallback(
-    (isOpen: boolean) => {
-      if (!isOpen) return
-      if (tts.t === 'ready') {
-        tts.speak(word, 'km').catch((err: unknown) => {
-          toast.error('TTS Failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(err))
-        })
-      } else {
-        toast.warn('TTS is not ready' as NonEmptyStringTrimmed, 'Offline?' as NonEmptyStringTrimmed)
+  // 1. Controlled state as per HeroUI docs
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  // 2. Wrap the state change to trigger TTS immediately
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      setIsOpen(open)
+
+      // Trigger TTS immediately when the signal to open is received
+      if (open) {
+        if (tts.t === 'ready') {
+          tts.speak(word, 'km').catch((err: unknown) => {
+            toast.error('TTS Failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(err))
+          })
+        } else if (tts.t !== 'speaking') {
+          toast.warn('TTS is not ready' as NonEmptyStringTrimmed, 'Offline?' as NonEmptyStringTrimmed)
+        }
       }
     },
-    [word, tts],
+    [word, tts, toast],
   )
 
   const dangerouslySetInnerHTML = useMemo(
@@ -58,20 +65,21 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
     <div
       className={`inline-flex flex-col items-center mx-[2px] align-top vertical-align-top relative group ${styles_srghma_khmer_dict_content.srghma_khmer_dict_content}`}
     >
-      {/* 1. The Khmer Word - Now only triggers the optional onClick prop */}
+      {/* 1. The Khmer Word */}
       <button className={`text-lg leading-normal cursor-text select-text ${wordClass}`} onClick={onClick}>
         {word}
       </button>
 
-      {/* 2. The Definition Slot (Popover) */}
+      {/* 2. The Definition Slot (Controlled Popover) */}
       {dangerouslySetInnerHTML && (
         <div className="relative w-full flex justify-center mt-1">
           <Popover
             backdrop="transparent"
+            isOpen={isOpen}
             offset={10}
             placement="bottom"
             showArrow={true}
-            onOpenChange={handlePopoverOpenChange} // <--- Trigger sound here
+            onOpenChange={handleOpenChange}
           >
             <PopoverTrigger>
               <button
@@ -99,5 +107,3 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
     </div>
   )
 })
-
-KhmerWordUnit.displayName = 'KhmerWordUnit'

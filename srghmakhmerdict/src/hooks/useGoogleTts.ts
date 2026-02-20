@@ -9,45 +9,44 @@ import { useOnline } from './useOnline'
 
 const GOOGLE_TTS_OFFLINE = { t: 'offline' } as const
 const GOOGLE_TTS_SPEAKING = { t: 'online_and_speaking' } as const
-const GOOGLE_TTS_DISABLED = { t: 'disabled' } as const
 
 export type GoogleTtsState =
   | typeof GOOGLE_TTS_OFFLINE
   | typeof GOOGLE_TTS_SPEAKING
-  | typeof GOOGLE_TTS_DISABLED
-  | { t: 'online'; speak: () => Promise<void> }
+  | { t: 'online'; speak: (word: NonEmptyStringTrimmed, mode: ToTranslateLanguage) => Promise<void> }
 
 const googleSpeakingStore = createExternalStore<boolean>(false)
 
-export function useGoogleTts(word: NonEmptyStringTrimmed | undefined, mode: ToTranslateLanguage): GoogleTtsState {
+export function useGoogleTts(): GoogleTtsState {
   const toast = useAppToast()
   const isOnline = useOnline()
 
   // No useEffect, no manual listener management
   const isSpeaking = useSyncExternalStore(googleSpeakingStore.subscribe, googleSpeakingStore.getSnapshot)
 
-  const speak = useCallback(async () => {
-    if (!word) throw new Error('useGoogleTts.speak was called with empty word - expected - disable button')
-    if (googleSpeakingStore.getSnapshot()) {
-      throw new Error('useGoogleTts.speak was called while speaking - expected - disable button')
-    }
+  const speak = useCallback(
+    async (word: NonEmptyStringTrimmed, mode: ToTranslateLanguage) => {
+      if (googleSpeakingStore.getSnapshot()) {
+        throw new Error('useGoogleTts.speak was called while speaking - expected - disable button')
+      }
 
-    googleSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(true)
-    try {
-      const result = await executeGoogleTts(word, mode)
-      const err = googleTtsResultToError(result)
+      googleSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(true)
+      try {
+        const result = await executeGoogleTts(word, mode)
+        const err = googleTtsResultToError(result)
 
-      if (err) toast.error(err.title, err.description)
-    } finally {
-      googleSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(false)
-    }
-  }, [word, mode, toast])
+        if (err) toast.error(err.title, err.description)
+      } finally {
+        googleSpeakingStore.replaceStateWith_emitOnlyIfDifferentRef(false)
+      }
+    },
+    [toast],
+  )
 
   return useMemo(() => {
     if (!isOnline) return GOOGLE_TTS_OFFLINE
-    if (!word) return GOOGLE_TTS_DISABLED
     if (isSpeaking) return GOOGLE_TTS_SPEAKING
 
     return { t: 'online', speak }
-  }, [word, isSpeaking, speak, isOnline])
+  }, [isSpeaking, speak, isOnline])
 }
