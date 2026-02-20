@@ -10,37 +10,41 @@ const stopPropagation: MouseEventHandler =
   // | PressEventHandler
   e => e.stopPropagation()
 
-export const FavoriteToggleButton = memo(
-  ({ word, mode }: { word: NonEmptyStringTrimmed; mode: DictionaryLanguage }) => {
-    const { toggleFavorite } = useFavorites()
-    const isFav = useIsFavorite(word, mode)
+export const FavoriteToggleButton = memo(function FavoriteToggleButton({
+  word,
+  mode,
+}: {
+  word: NonEmptyStringTrimmed
+  mode: DictionaryLanguage
+}) {
+  const { toggleFavorite } = useFavorites()
+  const isFav = useIsFavorite(word, mode)
 
-    // We already moved toast logic to provider
-    const toggleFav = useCallback(async () => {
-      try {
-        await toggleFavorite(word, mode)
-      } catch (_e) {
-        // Toast is handled in provider
-      }
-    }, [toggleFavorite, word, mode])
+  // We already moved toast logic to provider
+  const toggleFav = useCallback(async () => {
+    try {
+      await toggleFavorite(word, mode)
+    } catch (_e) {
+      // Toast is handled in provider
+    }
+  }, [toggleFavorite, word, mode])
 
-    return (
-      <Button
-        isIconOnly
-        aria-label="Toggle Favorite"
-        radius="full"
-        size="sm"
-        variant="light"
-        onClick={stopPropagation}
-        // onPointerDown={stopPropagation}
-        // onPointerUp={stopPropagation}
-        onPress={toggleFav}
-        // onPressStart={stopPropagation}
-      >
-        {isFav ? <FaStar className="text-warning text-lg" /> : <FaRegStar className="text-default-400 text-lg" />}
-      </Button>
-    )
-  },
-)
+  return (
+    <Button
+      isIconOnly
+      aria-label="Toggle Favorite"
+      radius="full"
+      size="sm"
+      variant="light"
+      onClick={stopPropagation}
+      // onPointerDown={stopPropagation}
+      // onPointerUp={stopPropagation}
+      onPress={toggleFav}
+      // onPressStart={stopPropagation}
+    >
+      {isFav ? <FaStar className="text-warning text-lg" /> : <FaRegStar className="text-default-400 text-lg" />}
+    </Button>
+  )
+})
 
 FavoriteToggleButton.displayName = 'FavoriteToggleButton'

@@ -15,59 +15,57 @@ const DetailFetcher_loading = (
   </div>
 )
 
-export const DetailFetcher = React.memo(
-  ({
-    language,
-    word,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
-    isRevealed,
-    ankiGameMode,
-    userAnswer,
-    setUserAnswer,
-    onReveal,
-    additional_html_front,
-    additional_html_back,
-  }: {
-    language: DictionaryLanguage
-    word: NonEmptyStringTrimmed
-    isKhmerWordsHidingEnabled: boolean
-    isNonKhmerWordsHidingEnabled: boolean
-    isRevealed: boolean
-    ankiGameMode: AnkiGameMode
-    userAnswer: string
-    setUserAnswer: Dispatch<SetStateAction<string>>
-    onReveal: () => void
-    additional_html_front: NonEmptyStringTrimmed | undefined
-    additional_html_back: NonEmptyStringTrimmed | undefined
-  }) => {
-    const { LL } = useI18nContext()
-    const result = useWordData(word, language)
+export const DetailFetcher = React.memo(function DetailFetcher({
+  language,
+  word,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+  isRevealed,
+  ankiGameMode,
+  userAnswer,
+  setUserAnswer,
+  onReveal,
+  additional_html_front,
+  additional_html_back,
+}: {
+  language: DictionaryLanguage
+  word: NonEmptyStringTrimmed
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+  isRevealed: boolean
+  ankiGameMode: AnkiGameMode
+  userAnswer: string
+  setUserAnswer: Dispatch<SetStateAction<string>>
+  onReveal: () => void
+  additional_html_front: NonEmptyStringTrimmed | undefined
+  additional_html_back: NonEmptyStringTrimmed | undefined
+}) {
+  const { LL } = useI18nContext()
+  const result = useWordData(word, language)
 
-    if (result.t === 'loading') return DetailFetcher_loading
-    if (result.t === 'not_found') {
-      return <div className="text-danger text-center p-4">{LL.ANKI.FETCH_FAILED()}</div>
-    }
+  if (result.t === 'loading') return DetailFetcher_loading
+  if (result.t === 'not_found') {
+    return <div className="text-danger text-center p-4">{LL.ANKI.FETCH_FAILED()}</div>
+  }
 
-    const d: WordDetailEnOrRuOrKm = result.detail
+  const d: WordDetailEnOrRuOrKm = result.detail
 
-    return (
-      <AnkiCardDetailView
-        additional_html_back={additional_html_back}
-        additional_html_front={additional_html_front}
-        ankiGameMode={ankiGameMode}
-        data={d}
-        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-        isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
-        isRevealed={isRevealed}
-        mode={language}
-        setUserAnswer={setUserAnswer}
-        userAnswer={userAnswer}
-        word={word}
-        onReveal={onReveal}
-      />
-    )
-  },
-)
+  return (
+    <AnkiCardDetailView
+      additional_html_back={additional_html_back}
+      additional_html_front={additional_html_front}
+      ankiGameMode={ankiGameMode}
+      data={d}
+      isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+      isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+      isRevealed={isRevealed}
+      mode={language}
+      setUserAnswer={setUserAnswer}
+      userAnswer={userAnswer}
+      word={word}
+      onReveal={onReveal}
+    />
+  )
+})
 
 DetailFetcher.displayName = 'DetailFetcher'

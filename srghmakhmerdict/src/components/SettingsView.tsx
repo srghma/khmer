@@ -38,65 +38,63 @@ const selectClassNames = {
   value: `font-medium text-base`,
 }
 // Pure component for selects
-const FilterSelect = memo(
-  ({
-    label,
-    value,
-    onChange,
-  }: {
-    label: string
-    value: DictFilterSettings_Km_Mode
-    onChange: (val: DictFilterSettings_Km_Mode) => void
-  }) => {
-    const { LL }: { LL: TranslationFunctions } = useI18nContext()
+const FilterSelect = memo(function FilterSelect({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: DictFilterSettings_Km_Mode
+  onChange: (val: DictFilterSettings_Km_Mode) => void
+}) {
+  const { LL }: { LL: TranslationFunctions } = useI18nContext()
 
-    const handleSelectionChange = useCallback(
-      (keys: SharedSelection) => {
-        const val = herouiSharedSelection_getFirst_string(keys)
+  const handleSelectionChange = useCallback(
+    (keys: SharedSelection) => {
+      const val = herouiSharedSelection_getFirst_string(keys)
 
-        if (val) onChange(stringToDictFilterSettingsKmModeOrThrow(val))
-      },
-      [onChange],
-    )
+      if (val) onChange(stringToDictFilterSettingsKmModeOrThrow(val))
+    },
+    [onChange],
+  )
 
-    const renderValue = useCallback((items: SelectedItems<object>) => {
-      return items.map(item => (
-        <div key={item.key} className="flex items-center gap-1">
-          {item.rendered}
-        </div>
-      ))
-    }, [])
-
-    return (
-      <div className="flex justify-between items-center py-1 gap-4">
-        <span className="text-foreground/80 shrink-0 text-base">{label}</span>
-        <Select
-          disallowEmptySelection
-          aria-label={label}
-          className="max-w-[200px]"
-          classNames={selectClassNames}
-          listboxProps={{ className: 'text-base' }}
-          popoverProps={{ className: 'text-base' }}
-          renderValue={renderValue}
-          selectedKeys={new Set([value])}
-          size="sm"
-          variant="flat"
-          onSelectionChange={handleSelectionChange}
-        >
-          {DICT_FILTER_SETTINGS_KM_MODES.map(mode => {
-            const labelValue = mode === 'all' ? LL.SETTINGS.LABELS.ALL() : LL.SETTINGS.LABELS.ONLY_VERIFIED()
-
-            return (
-              <SelectItem key={mode} textValue={labelValue}>
-                {labelValue}
-              </SelectItem>
-            )
-          })}
-        </Select>
+  const renderValue = useCallback((items: SelectedItems<object>) => {
+    return items.map(item => (
+      <div key={item.key} className="flex items-center gap-1">
+        {item.rendered}
       </div>
-    )
-  },
-)
+    ))
+  }, [])
+
+  return (
+    <div className="flex justify-between items-center py-1 gap-4">
+      <span className="text-foreground/80 shrink-0 text-base">{label}</span>
+      <Select
+        disallowEmptySelection
+        aria-label={label}
+        className="max-w-[200px]"
+        classNames={selectClassNames}
+        listboxProps={{ className: 'text-base' }}
+        popoverProps={{ className: 'text-base' }}
+        renderValue={renderValue}
+        selectedKeys={new Set([value])}
+        size="sm"
+        variant="flat"
+        onSelectionChange={handleSelectionChange}
+      >
+        {DICT_FILTER_SETTINGS_KM_MODES.map(mode => {
+          const labelValue = mode === 'all' ? LL.SETTINGS.LABELS.ALL() : LL.SETTINGS.LABELS.ONLY_VERIFIED()
+
+          return (
+            <SelectItem key={mode} textValue={labelValue}>
+              {labelValue}
+            </SelectItem>
+          )
+        })}
+      </Select>
+    </div>
+  )
+})
 
 FilterSelect.displayName = 'FilterSelect'
 

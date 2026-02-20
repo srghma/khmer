@@ -232,7 +232,13 @@ ColorizationAction.displayName = 'ColorizationAction'
 /**
  * 7. FAVORITE TOGGLE
  */
-export const FavoriteAction = memo(({ isFav, onToggle }: { isFav: boolean; onToggle: () => void }) => {
+export const FavoriteAction = memo(function FavoriteAction({
+  isFav,
+  onToggle,
+}: {
+  isFav: boolean
+  onToggle: () => void
+}) {
   const { LL } = useI18nContext()
 
   return (
@@ -361,7 +367,9 @@ export type DetailViewActionsProps =
   | DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown
   | DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown
 
-const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_SentenceAnalyzer) => {
+const DetailViewActionsSentenceAnalyzer = memo(function DetailViewActionsSentenceAnalyzer(
+  props: DetailViewActionsProps_SentenceAnalyzer,
+) {
   const {
     isKhmerLinksEnabled,
     toggleKhmerLinks,
@@ -387,32 +395,32 @@ const DetailViewActionsSentenceAnalyzer = memo((props: DetailViewActionsProps_Se
 
 DetailViewActionsSentenceAnalyzer.displayName = 'DetailViewActionsSentenceAnalyzer'
 
-const DetailViewActionsAnkiFrontShown = memo(
-  (props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
-    return (
-      <>
-        <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />
-        <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
-      </>
-    )
-  },
-)
+const DetailViewActionsAnkiFrontShown = memo(function DetailViewActionsAnkiFrontShown(
+  props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_Shown,
+) {
+  return (
+    <>
+      <ColorizationAction colorMode={props.maybeColorMode} onChange={props.setMaybeColorMode} />
+      <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
+    </>
+  )
+})
 
 DetailViewActionsAnkiFrontShown.displayName = 'DetailViewActionsAnkiFrontShown'
 
-const DetailViewActionsAnkiFrontNotShown = memo(
-  (props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
-    return (
-      <>
-        <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
-      </>
-    )
-  },
-)
+const DetailViewActionsAnkiFrontNotShown = memo(function DetailViewActionsAnkiFrontNotShown(
+  props: DetailViewActionsProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown,
+) {
+  return (
+    <>
+      <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
+    </>
+  )
+})
 
 DetailViewActionsAnkiFrontNotShown.displayName = 'DetailViewActionsAnkiFrontNotShown'
 
-const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord) => {
+const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(props: DetailViewActionsProps_KnownWord) {
   const {
     maybeColorMode,
     setMaybeColorMode,
@@ -454,7 +462,7 @@ const DetailViewActionsKnownWord = memo((props: DetailViewActionsProps_KnownWord
 
 DetailViewActionsKnownWord.displayName = 'DetailViewActionsKnownWord'
 
-const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_Back) => {
+const DetailViewActionsAnkiBack = memo(function DetailViewActionsAnkiBack(props: DetailViewActionsProps_AnkiGame_Back) {
   const {
     maybeColorMode,
     setMaybeColorMode,

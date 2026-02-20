@@ -20,40 +20,38 @@ import { useAutoReadCaller } from '../../hooks/useAutoReadTts'
 
 // --- Memoized Components ---
 
-const MatrixCell = memo(
-  ({
-    consonant,
-    vowelRaw,
-    count,
-    onClick,
-  }: {
-    consonant: NonEmptyStringTrimmed
-    vowelRaw: string
-    count: number
-    onClick: (combo: NonEmptyStringTrimmed) => void
-  }) => {
-    if (!vowelRaw) return <td className="border border-divider/50 bg-content2/50" />
-    const combo = nonEmptyString_afterTrim(consonant + cleanVowel(vowelRaw))
+const MatrixCell = memo(function MatrixCell({
+  consonant,
+  vowelRaw,
+  count,
+  onClick,
+}: {
+  consonant: NonEmptyStringTrimmed
+  vowelRaw: string
+  count: number
+  onClick: (combo: NonEmptyStringTrimmed) => void
+}) {
+  if (!vowelRaw) return <td className="border border-divider/50 bg-content2/50" />
+  const combo = nonEmptyString_afterTrim(consonant + cleanVowel(vowelRaw))
 
-    return (
-      <td className="border border-divider/50 p-0 h-[40px] align-middle">
-        <button
-          className={`w-full h-full flex flex-col items-center justify-center transition-colors
+  return (
+    <td className="border border-divider/50 p-0 h-[40px] align-middle">
+      <button
+        className={`w-full h-full flex flex-col items-center justify-center transition-colors
             ${count === 0 ? 'opacity-30 cursor-default' : 'cursor-pointer hover:bg-primary/20 hover:text-primary active:scale-95'}
           `}
-          disabled={count === 0}
-          onClick={e => {
-            e.stopPropagation()
-            if (count > 0) onClick(combo)
-          }}
-        >
-          <span className="font-khmer text-sm leading-none">{combo}</span>
-          {count > 0 && <span className={cn('text-default-400 font-mono leading-none mt-0.5 text-tiny')}>{count}</span>}
-        </button>
-      </td>
-    )
-  },
-)
+        disabled={count === 0}
+        onClick={e => {
+          e.stopPropagation()
+          if (count > 0) onClick(combo)
+        }}
+      >
+        <span className="font-khmer text-sm leading-none">{combo}</span>
+        {count > 0 && <span className={cn('text-default-400 font-mono leading-none mt-0.5 text-tiny')}>{count}</span>}
+      </button>
+    </td>
+  )
+})
 
 MatrixCell.displayName = 'MatrixCell'
 
@@ -61,66 +59,64 @@ type GraphemeIndex = Map<string, NonEmptyStringTrimmed[]>
 
 const cleanVowel = (v: string) => v.replace(/^អ/, '')
 
-const ConsonantBlock = memo(
-  ({
-    consonant,
-    index,
-    onClick,
-  }: {
-    consonant: NonEmptyStringTrimmed
-    index: GraphemeIndex | null
-    onClick: (combo: NonEmptyStringTrimmed) => void
-  }) => {
-    const isSeriesA = aSeriesSet.has(consonant)
+const ConsonantBlock = memo(function ConsonantBlock({
+  consonant,
+  index,
+  onClick,
+}: {
+  consonant: NonEmptyStringTrimmed
+  index: GraphemeIndex | null
+  onClick: (combo: NonEmptyStringTrimmed) => void
+}) {
+  const isSeriesA = aSeriesSet.has(consonant)
 
-    // 1. Initialize the speak function
-    const speak = useAutoReadCaller('google_then_native')
+  // 1. Initialize the speak function
+  const speak = useAutoReadCaller('google_then_native')
 
-    // 2. Implement the handler
-    const handleReadHeaderCharUsingGoogleOrNative = useCallback(
-      (e: React.MouseEvent) => {
-        e.stopPropagation()
-        // We pass 'km' for Khmer language
-        speak(consonant, 'km')
-      },
-      [consonant, speak],
-    )
+  // 2. Implement the handler
+  const handleReadHeaderCharUsingGoogleOrNative = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      // We pass 'km' for Khmer language
+      speak(consonant, 'km')
+    },
+    [consonant, speak],
+  )
 
-    return (
-      <div className="border-2 border-default-300 dark:border-default-100 bg-content1 mb-2 break-inside-avoid shadow-sm">
-        <button
-          className={`w-full text-center text-2xl font-bold py-1 font-khmer transition-colors hover:bg-default-100 ${
-            isSeriesA ? 'text-danger-500' : 'text-primary-500'
-          }`}
-          onClick={handleReadHeaderCharUsingGoogleOrNative}
-        >
-          {consonant}
-        </button>
-        <table className="w-full table-fixed border-collapse">
-          <tbody>
-            {vowelsGrid.map((row, rIdx) => (
-              <tr key={rIdx}>
-                {row.map(v => {
-                  const combo = consonant + cleanVowel(v)
+  return (
+    <div className="border-2 border-default-300 dark:border-default-100 bg-content1 mb-2 break-inside-avoid shadow-sm">
+      <button
+        className={`w-full text-center text-2xl font-bold py-1 font-khmer transition-colors hover:bg-default-100 ${
+          isSeriesA ? 'text-danger-500' : 'text-primary-500'
+        }`}
+        onClick={handleReadHeaderCharUsingGoogleOrNative}
+      >
+        {consonant}
+      </button>
+      <table className="w-full table-fixed border-collapse">
+        <tbody>
+          {vowelsGrid.map((row, rIdx) => (
+            <tr key={rIdx}>
+              {row.map(v => {
+                const combo = consonant + cleanVowel(v)
 
-                  return (
-                    <MatrixCell
-                      key={`c-${combo}`}
-                      consonant={consonant}
-                      count={index?.get(combo)?.length ?? 0}
-                      vowelRaw={v}
-                      onClick={onClick}
-                    />
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )
-  },
-)
+                return (
+                  <MatrixCell
+                    key={`c-${combo}`}
+                    consonant={consonant}
+                    count={index?.get(combo)?.length ?? 0}
+                    vowelRaw={v}
+                    onClick={onClick}
+                  />
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+})
 
 ConsonantBlock.displayName = 'ConsonantBlock'
 
@@ -130,7 +126,9 @@ export interface KhmerComplexTableContentProps {
   wordsMap: KhmerWordsMap
 }
 
-export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> = ({ wordsMap }) => {
+export const KhmerComplexTableContent = memo(function KhmerComplexTableContent({
+  wordsMap,
+}: KhmerComplexTableContentProps) {
   const [selectedDeck, setSelectedDeck] = useState<DeckData | null>(null)
 
   // Build Index using useMemo
@@ -151,9 +149,9 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
       if (!words || !Array_isNonEmptyArray(words)) return
 
       setSelectedDeck({ title: combo, words })
-      void speak(combo, 'km' as any)
+      void speak(combo, 'km')
     },
-    [graphemeIndex],
+    [graphemeIndex, speak],
   )
 
   const handleCloseDeck = useCallback(() => setSelectedDeck(null), [])
@@ -245,4 +243,4 @@ export const KhmerComplexTableContent: React.FC<KhmerComplexTableContentProps> =
       {selectedDeck && <WordDeckModal data={selectedDeck} onClose={handleCloseDeck} />}
     </div>
   )
-}
+})

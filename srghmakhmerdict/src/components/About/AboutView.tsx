@@ -14,7 +14,7 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import type { TranslationFunctions } from '../../i18n/i18n-types'
 
-const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const SuccessModal = memo(function SuccessModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { LL }: { LL: TranslationFunctions } = useI18nContext()
   const handleSuccess = useCallback(() => {
     onClose()
@@ -48,7 +48,13 @@ const SuccessModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
 SuccessModal.displayName = 'SuccessModal'
 
-const CancellationModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const CancellationModal = memo(function CancellationModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean
+  onClose: () => void
+}) {
   const { LL }: { LL: TranslationFunctions } = useI18nContext()
 
   return (

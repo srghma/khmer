@@ -15,14 +15,21 @@ import { colorizeText } from '../../utils/text-processing/text'
 import { processHtmlForPronunciationHiding, type PronunciationSource } from '../../utils/text-processing/pronunciation'
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
 
-export const SectionTitleWithRightContent = memo(
-  ({ children, rightContent }: { children: React.ReactNode; rightContent?: React.ReactNode }) => (
+export const SectionTitleWithRightContent = memo(function SectionTitleWithRightContent({
+  children,
+  rightContent,
+}: {
+  children: React.ReactNode
+  rightContent?: React.ReactNode
+}) {
+  return (
     <div className="flex justify-between items-center border-b border-divider mb-[0.75em] pb-1 min-h-[28px]">
       <div className="text-xs uppercase tracking-wider font-bold text-default-400">{children}</div>
       {rightContent}
     </div>
-  ),
-)
+  )
+})
+
 SectionTitleWithRightContent.displayName = 'SectionTitle'
 
 export const SectionTitle = React.memo(({ children }: { children: React.ReactNode }) => (
@@ -40,21 +47,23 @@ type RenderHtmlProps = {
   className?: string
 }
 
-export const RenderHtml = React.memo(
-  ({ html, className, ref }: RenderHtmlProps & { ref: React.RefObject<HTMLDivElement | null> }) => {
-    const dangerousHtml = React.useMemo(() => (html ? { __html: html } : undefined), [html])
+export const RenderHtml = React.memo(function RenderHtml({
+  html,
+  className,
+  ref,
+}: RenderHtmlProps & { ref: React.RefObject<HTMLDivElement | null> }) {
+  const dangerousHtml = React.useMemo(() => (html ? { __html: html } : undefined), [html])
 
-    if (!dangerousHtml) return null
+  if (!dangerousHtml) return null
 
-    return (
-      <div
-        dangerouslySetInnerHTML={dangerousHtml}
-        ref={ref} // ref comes from props
-        className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert ${className} text-base`}
-      />
-    )
-  },
-)
+  return (
+    <div
+      dangerouslySetInnerHTML={dangerousHtml}
+      ref={ref} // ref comes from props
+      className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert ${className} text-base`}
+    />
+  )
+})
 
 RenderHtml.displayName = 'RenderHtml'
 
@@ -97,70 +106,68 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
   )
 })
 
-export const RenderHtmlColorized = React.memo(
-  ({
+export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
+  html,
+  hideBrokenImages_enable,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
+  pronunciationSource,
+  dictionaryMode_lonelyWordShouldBeSpilt,
+}: {
+  html: NonEmptyStringTrimmed | undefined
+  hideBrokenImages_enable: boolean
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
+  pronunciationSource: PronunciationSource | undefined
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
+}) {
+  const { maybeColorMode } = useSettings()
+  const { km_map } = useDictionary()
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const processedHtml = useMemo(() => {
+    if (!html) return html
+
+    const html_withPronunciations = pronunciationSource
+      ? processHtmlForPronunciationHiding(html, isKhmerPronunciationHidingEnabled, pronunciationSource)
+      : html
+
+    return colorizeHtml(html_withPronunciations, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
+  }, [
     html,
-    hideBrokenImages_enable,
+    maybeColorMode,
+    km_map,
+    isKhmerPronunciationHidingEnabled,
+    pronunciationSource,
+    dictionaryMode_lonelyWordShouldBeSpilt,
+  ])
+
+  const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
+
+  const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
+    !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
+  )
+
+  useKhmerAndNonKhmerClickListener(
+    containerRef,
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
-    pronunciationSource,
-    dictionaryMode_lonelyWordShouldBeSpilt,
-  }: {
-    html: NonEmptyStringTrimmed | undefined
-    hideBrokenImages_enable: boolean
-    isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
-    isKhmerWordsHidingEnabled: boolean
-    isNonKhmerWordsHidingEnabled: boolean
-    isKhmerPronunciationHidingEnabled: boolean
-    pronunciationSource: PronunciationSource | undefined
-    dictionaryMode_lonelyWordShouldBeSpilt: boolean
-  }) => {
-    const { maybeColorMode } = useSettings()
-    const { km_map } = useDictionary()
-    const containerRef = React.useRef<HTMLDivElement>(null)
-    const processedHtml = useMemo(() => {
-      if (!html) return html
+  )
 
-      const html_withPronunciations = pronunciationSource
-        ? processHtmlForPronunciationHiding(html, isKhmerPronunciationHidingEnabled, pronunciationSource)
-        : html
+  if (!processedHtml) return null
 
-      return colorizeHtml(html_withPronunciations, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
-    }, [
-      html,
-      maybeColorMode,
-      km_map,
-      isKhmerPronunciationHidingEnabled,
-      pronunciationSource,
-      dictionaryMode_lonelyWordShouldBeSpilt,
-    ])
-
-    const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
-
-    const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
-      !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-      isKhmerWordsHidingEnabled,
-      isNonKhmerWordsHidingEnabled,
-      isKhmerPronunciationHidingEnabled,
-    )
-
-    useKhmerAndNonKhmerClickListener(
-      containerRef,
-      isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-      isKhmerWordsHidingEnabled,
-      isNonKhmerWordsHidingEnabled,
-      isKhmerPronunciationHidingEnabled,
-    )
-
-    if (!processedHtml) return null
-
-    return (
-      <RenderHtml ref={containerRef} className={`${hideBrokenImagesClass} ${khmerContentClass}`} html={processedHtml} />
-    )
-  },
-)
+  return (
+    <RenderHtml ref={containerRef} className={`${hideBrokenImagesClass} ${khmerContentClass}`} html={processedHtml} />
+  )
+})
 
 RenderHtmlColorized.displayName = 'RenderHtmlColorized'
 
@@ -175,84 +182,86 @@ type CsvListRendererHtmlProps = {
   ulClassName?: string
 }
 
-export const CsvListRendererHtml = React.memo(
-  ({ items, ulClassName, ref }: CsvListRendererHtmlProps & { ref: React.RefObject<HTMLUListElement | null> }) => (
+export const CsvListRendererHtml = React.memo(function CsvListRendererHtml({
+  items,
+  ulClassName,
+  ref,
+}: CsvListRendererHtmlProps & { ref: React.RefObject<HTMLUListElement | null> }) {
+  return (
     <ul ref={ref} className={`list-disc list-inside space-y-1 text-foreground/80 ${ulClassName}`}>
       {items.map((item, i) => (
         <HtmlListItem key={i} html={item} />
       ))}
     </ul>
-  ),
-)
+  )
+})
 
 CsvListRendererHtml.displayName = 'CsvListRendererHtml'
 
-export const CsvListRendererColorized = React.memo(
-  ({
-    items,
+export const CsvListRendererColorized = React.memo(function CsvListRendererColorized({
+  items,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
+  pronunciationSource,
+  dictionaryMode_lonelyWordShouldBeSpilt,
+}: {
+  items: NonEmptyArray<NonEmptyStringTrimmed> | undefined
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
+  pronunciationSource: PronunciationSource | undefined
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
+}) {
+  const { km_map } = useDictionary()
+  const { maybeColorMode } = useSettings()
+  const listRef = React.useRef<HTMLUListElement>(null)
+
+  const processedItems = useMemo(
+    () =>
+      colorizeHtml_nonEmptyArray(
+        undefined_lift(Array_toNonEmptyArray_unsafe)(
+          items?.map(i =>
+            pronunciationSource
+              ? processHtmlForPronunciationHiding(i, isKhmerPronunciationHidingEnabled, pronunciationSource)
+              : i,
+          ),
+        ),
+        maybeColorMode,
+        km_map,
+        dictionaryMode_lonelyWordShouldBeSpilt,
+      ),
+    [
+      items,
+      maybeColorMode,
+      km_map,
+      isKhmerPronunciationHidingEnabled,
+      pronunciationSource,
+      dictionaryMode_lonelyWordShouldBeSpilt,
+    ],
+  )
+
+  const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
+    !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
+    isKhmerPronunciationHidingEnabled,
+  )
+
+  useKhmerAndNonKhmerClickListener(
+    listRef,
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
-    pronunciationSource,
-    dictionaryMode_lonelyWordShouldBeSpilt,
-  }: {
-    items: NonEmptyArray<NonEmptyStringTrimmed> | undefined
-    isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
-    isKhmerWordsHidingEnabled: boolean
-    isNonKhmerWordsHidingEnabled: boolean
-    isKhmerPronunciationHidingEnabled: boolean
-    pronunciationSource: PronunciationSource | undefined
-    dictionaryMode_lonelyWordShouldBeSpilt: boolean
-  }) => {
-    const { km_map } = useDictionary()
-    const { maybeColorMode } = useSettings()
-    const listRef = React.useRef<HTMLUListElement>(null)
+  )
 
-    const processedItems = useMemo(
-      () =>
-        colorizeHtml_nonEmptyArray(
-          undefined_lift(Array_toNonEmptyArray_unsafe)(
-            items?.map(i =>
-              pronunciationSource
-                ? processHtmlForPronunciationHiding(i, isKhmerPronunciationHidingEnabled, pronunciationSource)
-                : i,
-            ),
-          ),
-          maybeColorMode,
-          km_map,
-          dictionaryMode_lonelyWordShouldBeSpilt,
-        ),
-      [
-        items,
-        maybeColorMode,
-        km_map,
-        isKhmerPronunciationHidingEnabled,
-        pronunciationSource,
-        dictionaryMode_lonelyWordShouldBeSpilt,
-      ],
-    )
+  if (!processedItems) return null
 
-    const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
-      !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-      isKhmerWordsHidingEnabled,
-      isNonKhmerWordsHidingEnabled,
-      isKhmerPronunciationHidingEnabled,
-    )
-
-    useKhmerAndNonKhmerClickListener(
-      listRef,
-      isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-      isKhmerWordsHidingEnabled,
-      isNonKhmerWordsHidingEnabled,
-      isKhmerPronunciationHidingEnabled,
-    )
-
-    if (!processedItems) return null
-
-    return <CsvListRendererHtml ref={listRef} items={processedItems} ulClassName={khmerContentClass} />
-  },
-)
+  return <CsvListRendererHtml ref={listRef} items={processedItems} ulClassName={khmerContentClass} />
+})
 
 CsvListRendererColorized.displayName = 'CsvListRendererColorized'
 
@@ -324,68 +333,64 @@ export const CsvListRendererPronunciation = React.memo(function CsvListRendererP
 
 CsvListRendererPronunciation.displayName = 'CsvListRendererPronunciation'
 
-export const FromRussianWikiRenderer = React.memo(
-  ({
-    html,
-    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
-    isKhmerPronunciationHidingEnabled,
-    dictionaryMode_lonelyWordShouldBeSpilt,
-  }: {
-    html: NonEmptyStringTrimmed | undefined
-    isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
-    isKhmerWordsHidingEnabled: boolean
-    isNonKhmerWordsHidingEnabled: boolean
-    isKhmerPronunciationHidingEnabled: boolean
-    dictionaryMode_lonelyWordShouldBeSpilt: boolean
-  }) => {
-    return (
-      <RenderHtmlColorized
-        dictionaryMode_lonelyWordShouldBeSpilt={dictionaryMode_lonelyWordShouldBeSpilt}
-        hideBrokenImages_enable={false}
-        html={html}
-        isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
-        isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-        isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
-        pronunciationSource="russian_wiki"
-      />
-    )
-  },
-)
+export const FromRussianWikiRenderer = React.memo(function FromRussianWikiRenderer({
+  html,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
+  dictionaryMode_lonelyWordShouldBeSpilt,
+}: {
+  html: NonEmptyStringTrimmed | undefined
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
+}) {
+  return (
+    <RenderHtmlColorized
+      dictionaryMode_lonelyWordShouldBeSpilt={dictionaryMode_lonelyWordShouldBeSpilt}
+      hideBrokenImages_enable={false}
+      html={html}
+      isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
+      isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
+      isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+      isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+      pronunciationSource="russian_wiki"
+    />
+  )
+})
 
 FromRussianWikiRenderer.displayName = 'FromRussianWikiRenderer'
 
-export const GorgonievRenderer = React.memo(
-  ({
-    html,
-    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
-    isKhmerPronunciationHidingEnabled,
-    dictionaryMode_lonelyWordShouldBeSpilt,
-  }: {
-    html: NonEmptyStringTrimmed | undefined
-    isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
-    isKhmerWordsHidingEnabled: boolean
-    isNonKhmerWordsHidingEnabled: boolean
-    isKhmerPronunciationHidingEnabled: boolean
-    dictionaryMode_lonelyWordShouldBeSpilt: boolean
-  }) => {
-    return (
-      <RenderHtmlColorized
-        dictionaryMode_lonelyWordShouldBeSpilt={dictionaryMode_lonelyWordShouldBeSpilt}
-        hideBrokenImages_enable={false}
-        html={html}
-        isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
-        isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-        isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
-        pronunciationSource="gorgoniev"
-      />
-    )
-  },
-)
+export const GorgonievRenderer = React.memo(function GorgonievRenderer({
+  html,
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+  isKhmerWordsHidingEnabled,
+  isNonKhmerWordsHidingEnabled,
+  isKhmerPronunciationHidingEnabled,
+  dictionaryMode_lonelyWordShouldBeSpilt,
+}: {
+  html: NonEmptyStringTrimmed | undefined
+  isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
+  isKhmerWordsHidingEnabled: boolean
+  isNonKhmerWordsHidingEnabled: boolean
+  isKhmerPronunciationHidingEnabled: boolean
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
+}) {
+  return (
+    <RenderHtmlColorized
+      dictionaryMode_lonelyWordShouldBeSpilt={dictionaryMode_lonelyWordShouldBeSpilt}
+      hideBrokenImages_enable={false}
+      html={html}
+      isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
+      isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
+      isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+      isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+      pronunciationSource="gorgoniev"
+    />
+  )
+})
 
 GorgonievRenderer.displayName = 'GorgonievRenderer'

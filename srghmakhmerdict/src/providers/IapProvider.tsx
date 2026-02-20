@@ -45,7 +45,7 @@ export const IapProvider = memo(function IapProvider({ children }: { children: R
         const fetchedProducts = await getProducts([...DONATION_PRODUCT_IDS], 'inapp')
 
         // GetProductsResponse likely contains products array
-        setProducts((fetchedProducts as any).products ?? fetchedProducts)
+        setProducts(fetchedProducts.products)
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('[IAP] Failed to fetch products:', error)

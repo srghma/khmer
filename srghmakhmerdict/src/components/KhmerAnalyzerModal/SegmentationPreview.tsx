@@ -24,7 +24,13 @@ interface KhmerWordPartProps {
   onWordClick: ((v: TypedKhmerWord) => void) | undefined
 }
 
-const KhmerWordPart = memo(({ item, colorIndex, km_map, maybeColorMode, onWordClick }: KhmerWordPartProps) => {
+const KhmerWordPart = memo(function KhmerWordPart({
+  item,
+  colorIndex,
+  km_map,
+  maybeColorMode,
+  onWordClick,
+}: KhmerWordPartProps) {
   // Resolve item structure
   const isObj = typeof item === 'object'
   const w = isObj ? item.w : item

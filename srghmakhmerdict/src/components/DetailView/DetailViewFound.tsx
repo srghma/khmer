@@ -37,37 +37,32 @@ interface DetailViewFoundProps {
   backButton_goBack: (() => void) | undefined
 }
 
-const SelectionMenuBodyLocalWrapper = memo(
-  ({
-    selectedText,
-    mode,
-    handleOpenKhmerAnalyzer,
-    handleOpenSearch,
-  }: {
-    selectedText: NonEmptyStringTrimmed
-    mode: DictionaryLanguage
-    handleOpenKhmerAnalyzer: (text: NonEmptyStringTrimmed) => void
-    handleOpenSearch: (text: NonEmptyStringTrimmed) => void
-  }) => {
-    const onClosePopupAndKhmerAnalyzerModal = useCallback(
-      () => handleOpenKhmerAnalyzer(selectedText),
-      [handleOpenKhmerAnalyzer, selectedText],
-    )
-    const onClosePopupAndOpenSearch = useCallback(
-      () => handleOpenSearch(selectedText),
-      [handleOpenSearch, selectedText],
-    )
+const SelectionMenuBodyLocalWrapper = memo(function SelectionMenuBodyLocalWrapper({
+  selectedText,
+  mode,
+  handleOpenKhmerAnalyzer,
+  handleOpenSearch,
+}: {
+  selectedText: NonEmptyStringTrimmed
+  mode: DictionaryLanguage
+  handleOpenKhmerAnalyzer: (text: NonEmptyStringTrimmed) => void
+  handleOpenSearch: (text: NonEmptyStringTrimmed) => void
+}) {
+  const onClosePopupAndKhmerAnalyzerModal = useCallback(
+    () => handleOpenKhmerAnalyzer(selectedText),
+    [handleOpenKhmerAnalyzer, selectedText],
+  )
+  const onClosePopupAndOpenSearch = useCallback(() => handleOpenSearch(selectedText), [handleOpenSearch, selectedText])
 
-    return (
-      <SelectionMenuBody
-        currentMode={mode}
-        selectedText={selectedText}
-        onClosePopupAndKhmerAnalyzerModal={onClosePopupAndKhmerAnalyzerModal}
-        onClosePopupAndOpenSearch={onClosePopupAndOpenSearch}
-      />
-    )
-  },
-)
+  return (
+    <SelectionMenuBody
+      currentMode={mode}
+      selectedText={selectedText}
+      onClosePopupAndKhmerAnalyzerModal={onClosePopupAndKhmerAnalyzerModal}
+      onClosePopupAndOpenSearch={onClosePopupAndOpenSearch}
+    />
+  )
+})
 
 SelectionMenuBodyLocalWrapper.displayName = 'SelectionMenuBodyLocalWrapper'
 

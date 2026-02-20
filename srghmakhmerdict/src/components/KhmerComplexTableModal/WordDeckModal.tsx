@@ -54,7 +54,7 @@ const WordDeckItem = memo(function WordDeckItem({
   )
 })
 
-export const WordDeckModal = memo(({ onClose, data }: { onClose: () => void; data: DeckData }) => {
+export const WordDeckModal = memo(function WordDeckModal({ onClose, data }: { onClose: () => void; data: DeckData }) {
   // Use state instead of ref to ensure virtualizer updates when modal content mounts
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null)
 

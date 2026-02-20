@@ -31,7 +31,13 @@ interface AnkiRatingButtonProps {
   onRate: (rating: Grade) => void
 }
 
-const AnkiRatingButton = React.memo(({ rating, label, color, intervalLabel, onRate }: AnkiRatingButtonProps) => {
+const AnkiRatingButton = React.memo(function AnkiRatingButton({
+  rating,
+  label,
+  color,
+  intervalLabel,
+  onRate,
+}: AnkiRatingButtonProps) {
   return (
     <div className="flex flex-col gap-1">
       <Button color={color} variant="flat" onPress={() => onRate(rating)}>

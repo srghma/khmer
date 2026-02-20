@@ -96,33 +96,35 @@ interface GoogleTranslateBottomContentProps {
   maybeColorMode: MaybeColorizationMode
 }
 
-const GoogleTranslateBottomContent = memo(
-  ({ state, targetLang, maybeColorMode }: GoogleTranslateBottomContentProps) => {
-    if (state.t === 'idle') return null
+const GoogleTranslateBottomContent = memo(function GoogleTranslateBottomContent({
+  state,
+  targetLang,
+  maybeColorMode,
+}: GoogleTranslateBottomContentProps) {
+  if (state.t === 'idle') return null
 
-    if (state.t === 'error') {
-      return (
-        <div className="pt-4">
-          <Alert color="danger" description={state.description} title={state.title} variant="flat" />
-        </div>
-      )
-    }
-
-    if (state.t === 'loading') return <div className="pt-4">{LoadingStatus}</div>
-
+  if (state.t === 'error') {
     return (
-      <div className="flex flex-col gap-3 pt-4 border-t border-divider mt-2">
-        <div className="text-tiny font-bold text-default-400 uppercase tracking-widest px-1">Translation</div>
-        <ResultDisplay
-          dictionaryMode_lonelyWordShouldBeSpilt={false}
-          maybeColorMode={maybeColorMode}
-          result={state.result}
-          targetLang={targetLang}
-        />
+      <div className="pt-4">
+        <Alert color="danger" description={state.description} title={state.title} variant="flat" />
       </div>
     )
-  },
-)
+  }
+
+  if (state.t === 'loading') return <div className="pt-4">{LoadingStatus}</div>
+
+  return (
+    <div className="flex flex-col gap-3 pt-4 border-t border-divider mt-2">
+      <div className="text-tiny font-bold text-default-400 uppercase tracking-widest px-1">Translation</div>
+      <ResultDisplay
+        dictionaryMode_lonelyWordShouldBeSpilt={false}
+        maybeColorMode={maybeColorMode}
+        result={state.result}
+        targetLang={targetLang}
+      />
+    </div>
+  )
+})
 
 GoogleTranslateBottomContent.displayName = 'GoogleTranslateBottomContent'
 

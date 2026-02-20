@@ -66,7 +66,7 @@ const SeriesDualDisplay = ({
 /**
  * Renders a single parsed token (The Box)
  */
-const TokenRenderer = React.memo(({ token }: { token: Token }) => {
+const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Token }) {
   const handleSpeak = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent parent sentence TTS
     const text =
@@ -231,27 +231,31 @@ TokenRenderer.displayName = 'TokenRenderer'
 
 // --- Sub-Component: Khmer Word Block ---
 
-const KhmerWordBlock = React.memo(
-  ({ word, definition }: { word: TypedKhmerWord; definition?: NonEmptyStringTrimmed }) => {
-    const enrichedTokens = useMemo(() => {
-      const chars = CharArray_mkFromString(word)
-      const tokens = tokenize(chars)
+const KhmerWordBlock = React.memo(function KhmerWordBlock({
+  word,
+  definition,
+}: {
+  word: TypedKhmerWord
+  definition?: NonEmptyStringTrimmed
+}) {
+  const enrichedTokens = useMemo(() => {
+    const chars = CharArray_mkFromString(word)
+    const tokens = tokenize(chars)
 
-      return enrichWithSeries(tokens)
-    }, [word])
+    return enrichWithSeries(tokens)
+  }, [word])
 
-    return (
-      <div className={`flex flex-col items-center ${enrichedTokens.length < 2 ? 'max-w-[80px]' : ''}`}>
-        <div className="flex flex-wrap gap-1.5 items-stretch bg-default-50/50 rounded-lg p-1 border border-transparent hover:border-default-200 transition-colors">
-          {enrichedTokens.map((token, idx) => (
-            <TokenRenderer key={idx} token={token} />
-          ))}
-        </div>
-        {definition && <DefinitionPopup definitionHtml={definition} />}
+  return (
+    <div className={`flex flex-col items-center ${enrichedTokens.length < 2 ? 'max-w-[80px]' : ''}`}>
+      <div className="flex flex-wrap gap-1.5 items-stretch bg-default-50/50 rounded-lg p-1 border border-transparent hover:border-default-200 transition-colors">
+        {enrichedTokens.map((token, idx) => (
+          <TokenRenderer key={idx} token={token} />
+        ))}
       </div>
-    )
-  },
-)
+      {definition && <DefinitionPopup definitionHtml={definition} />}
+    </div>
+  )
+})
 
 KhmerWordBlock.displayName = 'KhmerWordBlock'
 

@@ -3,6 +3,8 @@ import { TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
 import * as fs from 'fs'
 import { CONFIG, getDB, sleep } from './common'
+// @ts-ignore-next
+import input from 'input'
 import { workScraper } from './scraper'
 import { workPoster } from './poster'
 import { workTranslator } from './translator'
@@ -22,9 +24,7 @@ async function main() {
   await client.start({
     phoneNumber: async () => CONFIG.phoneNumber,
     password: async () => CONFIG.password,
-    phoneCode: async () => {
-      throw new Error('Session expired. Run scraper.ts manually once.')
-    },
+    phoneCode: async () => await input.text('Code: '),
     onError: console.error,
   })
 
