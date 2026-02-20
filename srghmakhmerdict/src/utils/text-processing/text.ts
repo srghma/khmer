@@ -90,11 +90,11 @@ export function* yieldTextSegments(
       const words =
         mode === 'dictionary'
           ? khmerSentenceToWords_usingDictionary(
-            match,
-            dictionaryMode_lonelyWordShouldBeSpilt
-              ? (s: TypedKhmerWord) => s !== match && isWordInKmMap(s, km_map)
-              : (s: TypedKhmerWord) => isWordInKmMap(s, km_map),
-          )
+              match,
+              dictionaryMode_lonelyWordShouldBeSpilt
+                ? (s: TypedKhmerWord) => s !== match && isWordInKmMap(s, km_map)
+                : (s: TypedKhmerWord) => isWordInKmMap(s, km_map),
+            )
           : khmerSentenceToWords_usingSegmenter(match)
 
       yield { t: 'khmer', words }

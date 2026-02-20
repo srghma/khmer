@@ -63,6 +63,25 @@ export function stringToDictFilterSettingsKmModeOrThrow(value: string): DictFilt
   return stringToEnumOrThrow(value, DICT_FILTER_SETTINGS_KM_MODES, 'DictFilterSettings_Km_Mode')
 }
 
+// KhmerAnalyzerEnabledSegmenters
+export const KHMER_ANALYZER_ENABLED_SEGMENTERS = ['segmenter', 'dictionary', 'both'] as const
+
+export type KhmerAnalyzerEnabledSegmenters = (typeof KHMER_ANALYZER_ENABLED_SEGMENTERS)[number]
+
+export function isKhmerAnalyzerEnabledSegmenters(value: string): value is KhmerAnalyzerEnabledSegmenters {
+  return isEnumValue(value, KHMER_ANALYZER_ENABLED_SEGMENTERS)
+}
+
+export function stringToKhmerAnalyzerEnabledSegmentersOrUndefined(
+  value: string,
+): KhmerAnalyzerEnabledSegmenters | undefined {
+  return stringToEnumOrUndefined(value, KHMER_ANALYZER_ENABLED_SEGMENTERS)
+}
+
+export function stringToKhmerAnalyzerEnabledSegmentersOrThrow(value: string): KhmerAnalyzerEnabledSegmenters {
+  return stringToEnumOrThrow(value, KHMER_ANALYZER_ENABLED_SEGMENTERS, 'KhmerAnalyzerEnabledSegmenters')
+}
+
 export interface DictFilterSettings {
   km: {
     mode: DictFilterSettings_Km_Mode
@@ -131,6 +150,16 @@ export interface SettingsContextType {
 
   location: LanguagesOrAuto
   setLocation: (v: LanguagesOrAuto | ((prev: LanguagesOrAuto | undefined) => LanguagesOrAuto)) => void
+
+  khmerAnalyzerEnabledSegmenters: KhmerAnalyzerEnabledSegmenters
+  setKhmerAnalyzerEnabledSegmenters: (
+    v:
+      | KhmerAnalyzerEnabledSegmenters
+      | ((prev: KhmerAnalyzerEnabledSegmenters | undefined) => KhmerAnalyzerEnabledSegmenters),
+  ) => void
+
+  khmerAnalyzerMarkdownEnabled: boolean
+  setKhmerAnalyzerMarkdownEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -212,6 +241,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: 'auto',
   })
 
+  const [khmerAnalyzerEnabledSegmenters, setKhmerAnalyzerEnabledSegmenters] =
+    useLocalStorageState<KhmerAnalyzerEnabledSegmenters>('srghmakhmerdict__khmer_analyzer_enabled_segmenters', {
+      defaultValue: 'segmenter',
+    })
+
+  const [khmerAnalyzerMarkdownEnabled, setKhmerAnalyzerMarkdownEnabled] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__khmer_analyzer_markdown_enabled',
+    { defaultValue: false },
+  )
+
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
@@ -262,6 +301,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setAutoReadMode,
       location: location ?? 'auto',
       setLocation,
+      khmerAnalyzerEnabledSegmenters: khmerAnalyzerEnabledSegmenters ?? 'segmenter',
+      setKhmerAnalyzerEnabledSegmenters,
+      khmerAnalyzerMarkdownEnabled: khmerAnalyzerMarkdownEnabled ?? false,
+      setKhmerAnalyzerMarkdownEnabled,
     }),
     [
       searchMode,
@@ -297,6 +340,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setAutoReadMode,
       location,
       setLocation,
+      khmerAnalyzerEnabledSegmenters,
+      setKhmerAnalyzerEnabledSegmenters,
+      khmerAnalyzerMarkdownEnabled,
+      setKhmerAnalyzerMarkdownEnabled,
     ],
   )
 

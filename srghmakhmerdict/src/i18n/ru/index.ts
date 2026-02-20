@@ -95,6 +95,13 @@ const ru = {
     DEFS_FETCH_FAILED: 'Ошибка загрузки определений',
     DEFS_FETCH_ERROR: 'Произошла неизвестная ошибка при загрузке определений.',
     EXPAND_DEFINITION: 'Нажмите, чтобы развернуть определение',
+    MARKDOWN_ERROR_EMPTY: 'Результат обработки Markdown пуст.',
+    MARKDOWN_ERROR: 'Произошла ошибка при обработке Markdown.',
+    SEGMENTER_LABEL: 'Сегментаторы',
+    INTL_SEGMENTER: 'Стандартный (Intl)',
+    APP_DICT: 'Словарь приложения',
+    BOTH: 'Оба',
+    MARKDOWN_LABEL: 'Markdown',
   },
   ANKI: {
     NO_FAVORITES: 'Избранное пусто. Добавьте слова в избранное, чтобы начать обучение.',

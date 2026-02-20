@@ -4,7 +4,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
-import { memoizeAsync1Lru } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
+import { memoizeAsyncSetOfStringsLru } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 
 // --- Actions (Core Fetch Cycle) ---
 
@@ -20,11 +20,7 @@ export type Unsubscribe = () => void
 
 // --- Core Implementation ---
 
-const hashOfSetOfTypedKhmerWords = (arg: NonEmptySet<TypedKhmerWord>): string => {
-  return Array.from(arg).sort().join(',')
-}
-
-const getKmWordsDetailShort_memoized = memoizeAsync1Lru(getKmWordsDetailShort, 3, hashOfSetOfTypedKhmerWords)
+const getKmWordsDetailShort_memoized = memoizeAsyncSetOfStringsLru(getKmWordsDetailShort, 3000)
 
 /**
  * Starts the fetch process for a valid set of words.
@@ -42,8 +38,6 @@ export const startKhmerDefinitionFetch = (
   // 2. Perform Async Work
   getKmWordsDetailShort_memoized(uniqueWords)
     .then(res => {
-      // const cleanRes = Record_stripNullValuesOrThrow(res) // all words should be found
-
       if (active) {
         dispatch({ type: 'FETCH_SUCCESS', payload: res })
       }

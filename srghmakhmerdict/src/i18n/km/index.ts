@@ -93,6 +93,13 @@ const km = {
     DEFS_FETCH_FAILED: 'កំហុសក្នុងការទាញយកនិយមន័យ',
     DEFS_FETCH_ERROR: 'កំហុសមិនស្គាល់មួយបានកើតឡើងនៅពេលទាញយកនិយមន័យ។',
     EXPAND_DEFINITION: 'ចុចដើម្បីពង្រីកនិយមន័យ',
+    MARKDOWN_ERROR_EMPTY: 'លទ្ធផល Markdown ទទេបន្ទាប់ពីការបំប្លែង។',
+    MARKDOWN_ERROR: 'មានកំហុសបានកើតឡើងខណៈពេលបំប្លែង Markdown។',
+    SEGMENTER_LABEL: 'អ្នកបែងចែកពាក្យ',
+    INTL_SEGMENTER: 'Intl Segmenter',
+    APP_DICT: 'វចនានុក្រមកម្មវិធី',
+    BOTH: 'ទាំងពីរ',
+    MARKDOWN_LABEL: 'Markdown',
   },
   ANKI: {
     NO_FAVORITES: 'ចំណូលចិត្តទទេរ។ បន្ថែមពាក្យទៅចំណូលចិត្តដើម្បីចាប់ផ្តើមរៀន។',

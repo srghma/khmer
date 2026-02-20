@@ -49,6 +49,9 @@ pub struct ShortDefinitionRu {
 pub struct ShortDefinitionKm {
     pub definition: String,
     pub source: KmShortDefinitionSource,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[sqlx(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
+    pub wiktionary_ipa_or_from_csv_pronunciations: Option<String>,
 }
 
 pub fn parse_json_opt(raw: Option<String>) -> Option<Vec<String>> {

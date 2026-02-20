@@ -12,10 +12,7 @@ interface NativeSpeechActionProps {
   mode: BCP47LanguageTagName
 }
 
-export const NativeSpeechAction = memo(function NativeSpeechAction({
-  word,
-  mode,
-}: NativeSpeechActionProps) {
+export const NativeSpeechAction = memo(function NativeSpeechAction({ word, mode }: NativeSpeechActionProps) {
   const { LL } = useI18nContext()
   const state = useNativeTts()
 
@@ -27,13 +24,7 @@ export const NativeSpeechAction = memo(function NativeSpeechAction({
 
   return (
     <TooltipMobileFriendly closeDelay={0} content={LL.SPEECH.NATIVE()}>
-      <Button
-        isIconOnly
-        isDisabled={!word || state.isSpeaking}
-        radius="full"
-        variant="light"
-        onPress={handlePress}
-      >
+      <Button isIconOnly isDisabled={!word || state.isSpeaking} radius="full" variant="light" onPress={handlePress}>
         <NativeSpeakerIcon isSpeaking={state.isSpeaking} />
       </Button>
     </TooltipMobileFriendly>

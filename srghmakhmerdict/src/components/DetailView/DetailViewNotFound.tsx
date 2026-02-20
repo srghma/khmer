@@ -26,7 +26,6 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
   const { LL } = useI18nContext()
   const [analyzedText, setAnalyzedText] = useState<string>(word)
   // 1. Analyze the unknown text
-  const res = useKhmerAnalysis(analyzedText, mode)
 
   const {
     isKhmerLinksEnabled,
@@ -36,8 +35,10 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
     khmerFontName,
     setKhmerFontName,
     maybeColorMode,
+    khmerAnalyzerEnabledSegmenters,
   } = useSettings()
 
+  const res = useKhmerAnalysis(analyzedText, mode, khmerAnalyzerEnabledSegmenters)
   // // 2. Styling
   // const cardStyle = useMemo(
   //   () => ({

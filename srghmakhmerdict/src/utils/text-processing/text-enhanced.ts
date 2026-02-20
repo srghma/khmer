@@ -9,7 +9,11 @@ import type { TextSegment } from './text'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { ShortDefinition } from '../../db/dict'
 
-export type TextSegmentEnhancedKhmerWord = { w: TypedKhmerWord; def: NonEmptyStringTrimmed }
+export type TextSegmentEnhancedKhmerWord = {
+  w: TypedKhmerWord
+  def: NonEmptyStringTrimmed
+  wiktionaryIpa?: NonEmptyStringTrimmed
+}
 export type TextSegmentEnhanced =
   | { t: 'khmer'; words: NonEmptyArray<TypedKhmerWord | TextSegmentEnhancedKhmerWord> }
   | { t: 'notKhmer'; v: NonEmptyStringTrimmed }
@@ -32,7 +36,15 @@ export const enhanceSegments = (
           const res = definitions[w]
 
           // If we have a non-null definition, return the enhanced object
-          if (res) return { w, def: res.definition }
+          if (res) {
+            const part: TextSegmentEnhancedKhmerWord = { w, def: res.definition }
+
+            if ('wiktionary_ipa_or_from_csv_pronunciations' in res && res.wiktionary_ipa_or_from_csv_pronunciations) {
+              part.wiktionaryIpa = res.wiktionary_ipa_or_from_csv_pronunciations
+            }
+
+            return part
+          }
 
           // Otherwise, return the raw TypedKhmerWord to satisfy the union
           return w

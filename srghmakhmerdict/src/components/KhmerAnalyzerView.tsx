@@ -1,6 +1,6 @@
-import React, { useCallback, memo, useEffect, useRef, useState } from 'react'
+import React, { useCallback, memo, useEffect, useRef, useState, useMemo } from 'react'
 import { Button } from '@heroui/button'
-import { HiArrowLeft } from 'react-icons/hi2'
+import { HiArrowLeft, HiCog6Tooth } from 'react-icons/hi2'
 import { useLocation } from 'wouter'
 import { safeBack } from '../utils/safeBack'
 import { GoogleTranslateTextarea } from './GoogleTranslateTextarea/GoogleTranslateTextarea'
@@ -18,50 +18,115 @@ import { useKhmerAnalysis, type KhmerAnalysisResult } from './KhmerAnalyzerModal
 import { useDebounce } from 'use-debounce'
 import { useI18nContext } from '../i18n/i18n-react-custom'
 import { getUrlSearchParam, KHMER_ANALYZER_PARAM_TEXT, makeKhmerAnalyzerUrl } from '../utils/url-navigation'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
+import { Switch } from '@heroui/switch'
+import type { SharedSelection } from '@heroui/system'
+import { herouiSharedSelection_getFirst_string } from '../utils/herouiSharedSelection_getFirst_string'
+import { stringToKhmerAnalyzerEnabledSegmentersOrThrow } from '../providers/SettingsProvider'
+import { RenderHtmlColorized } from './DetailView/atoms'
+import { basicMarkdownToHtml } from '../utils/text-processing/markdown'
 
 interface HeaderTogglerOfSegmenterProps {
-  title: string
-  initiallySelected: 'dict' | 'intl'
-  segmentsDict: NonEmptyArray<TextSegment | TextSegmentEnhanced>
-  segmentsIntl: NonEmptyArray<TextSegment | TextSegmentEnhanced>
   children: (data: NonEmptyArray<TextSegment | TextSegmentEnhanced>) => React.ReactNode
+  initiallySelected: 'dict' | 'intl'
+  segmentsDict: NonEmptyArray<TextSegment | TextSegmentEnhanced> | undefined
+  segmentsIntl: NonEmptyArray<TextSegment | TextSegmentEnhanced> | undefined
+  title: string
 }
 
 export function HeaderTogglerOfSegmenter({
-  title,
+  children,
+  initiallySelected,
   segmentsDict,
   segmentsIntl,
-  initiallySelected,
-  children,
+  title,
 }: HeaderTogglerOfSegmenterProps) {
   const { LL } = useI18nContext()
-  const [selected, setSelected] = useState(initiallySelected)
-  const isDict = selected === 'dict'
+  const [selected, setSelected] = useState<'dict' | 'intl'>(() => {
+    if (initiallySelected === 'dict' && segmentsDict) return 'dict'
+    if (initiallySelected === 'intl' && segmentsIntl) return 'intl'
+
+    return segmentsDict ? 'dict' : 'intl'
+  })
+
+  // If both are missing (should not happen if WITH_KHMER), just return null
+  if (!segmentsDict && !segmentsIntl) return null
+
+  // If one is missing, don't show the toggle button
+  const canToggle = !!segmentsDict && !!segmentsIntl
+  const isDict = selected === 'dict' && !!segmentsDict
+  const activeSegments = isDict ? segmentsDict : segmentsIntl
+
+  if (!activeSegments) return null
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <h4 className="text-small font-bold uppercase text-default-500 tracking-wider">{title}</h4>
-        <button
-          className="text-tiny bg-default-100 hover:bg-default-200 px-2 py-0.5 rounded-full border border-default-300 transition-colors text-primary font-medium"
-          type="button"
-          onClick={() => setSelected(isDict ? 'intl' : 'dict')}
-        >
-          {isDict ? LL.ANALYZER.USING_APP_DICT() : LL.ANALYZER.USING_INTL_SEGMENTER()}
-        </button>
+        <h4 className="text-small font-bold uppercase tracking-wider text-default-500">{title}</h4>
+        {canToggle && (
+          <button
+            className="text-tiny text-primary border border-default-300 bg-default-100 hover:bg-default-200 rounded-full px-2 py-0.5 font-medium transition-colors"
+            type="button"
+            onClick={() => setSelected(prev => (prev === 'dict' ? 'intl' : 'dict'))}
+          >
+            {isDict ? LL.ANALYZER.USING_APP_DICT() : LL.ANALYZER.USING_INTL_SEGMENTER()}
+          </button>
+        )}
       </div>
-      {children(isDict ? segmentsDict : segmentsIntl)}
+      {children(activeSegments)}
     </div>
   )
 }
 
-interface KhmerAnalysisResultsProps {
-  res: KhmerAnalysisResult
+const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
+  markdown,
+  onKhmerWordClick,
+}: {
+  markdown: NonEmptyStringTrimmed
   onKhmerWordClick: ((word: TypedKhmerWord) => void) | undefined
+}) {
+  const { LL } = useI18nContext()
+
+  const html = useMemo(() => basicMarkdownToHtml(markdown), [markdown])
+
+  if (html.t === 'empty') {
+    return (
+      <Alert color="warning" variant="flat">
+        {LL.ANALYZER.MARKDOWN_ERROR_EMPTY()}
+      </Alert>
+    )
+  }
+
+  if (html.t === 'error') {
+    return (
+      <Alert color="danger" variant="flat">
+        {LL.ANALYZER.MARKDOWN_ERROR()}
+      </Alert>
+    )
+  }
+
+  return (
+    <RenderHtmlColorized
+      dictionaryMode_lonelyWordShouldBeSpilt={false}
+      hideBrokenImages_enable={false}
+      html={html.v}
+      isKhmerLinksEnabled_ifTrue_passOnNavigateKm={onKhmerWordClick}
+      isKhmerPronunciationHidingEnabled={false}
+      isKhmerWordsHidingEnabled={false}
+      isNonKhmerWordsHidingEnabled={false}
+      pronunciationSource={undefined}
+    />
+  )
+})
+
+interface KhmerAnalysisResultsProps {
+  onKhmerWordClick: ((word: TypedKhmerWord) => void) | undefined
+  res: KhmerAnalysisResult
 }
 
-export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res, onKhmerWordClick }) => {
+export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ onKhmerWordClick, res }) => {
   const { LL } = useI18nContext()
+  const { khmerAnalyzerMarkdownEnabled } = useSettings()
 
   if (res.t === 'empty_text') {
     return <div className="py-10 text-center text-default-400 italic">{LL.ANALYZER.EMPTY_TEXT()}</div>
@@ -76,38 +141,54 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({ res,
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
-        <div className="flex items-center gap-3 text-small text-primary animate-pulse">
-          <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
-        </div>
+    <div className="flex flex-col gap-6">
+      {(res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' ||
+        res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' ||
+        res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success') && (
+        <>
+          {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
+            <div className="flex items-center gap-3 text-small text-primary animate-pulse">
+              <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
+            </div>
+          )}
+
+          {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
+            <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
+              {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
+            </Alert>
+          )}
+
+          {khmerAnalyzerMarkdownEnabled && (
+            <div className="p-4 rounded-medium border border-divider bg-content2/30">
+              <RenderMarkdownColorized markdown={res.analyzedText} onKhmerWordClick={onKhmerWordClick} />
+            </div>
+          )}
+
+          <HeaderTogglerOfSegmenter
+            initiallySelected="dict"
+            segmentsDict={res.segmentsDict}
+            segmentsIntl={res.segmentsIntl}
+            title={LL.ANALYZER.SEGMENTATION()}
+          >
+            {segments => (
+              <SegmentationPreview
+                maybeColorMode="dictionary"
+                segments={segments}
+                onKhmerWordClick={onKhmerWordClick}
+              />
+            )}
+          </HeaderTogglerOfSegmenter>
+
+          <HeaderTogglerOfSegmenter
+            initiallySelected="intl"
+            segmentsDict={res.segmentsDict}
+            segmentsIntl={res.segmentsIntl}
+            title={LL.ANALYZER.CHARACTER_ANALYSIS()}
+          >
+            {segments => <KhmerAnalyzer segments={segments} />}
+          </HeaderTogglerOfSegmenter>
+        </>
       )}
-
-      {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
-        <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
-          {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
-        </Alert>
-      )}
-
-      <HeaderTogglerOfSegmenter
-        initiallySelected="dict"
-        segmentsDict={res.segmentsDict}
-        segmentsIntl={res.segmentsIntl}
-        title={LL.ANALYZER.SEGMENTATION()}
-      >
-        {segments => (
-          <SegmentationPreview maybeColorMode="dictionary" segments={segments} onKhmerWordClick={onKhmerWordClick} />
-        )}
-      </HeaderTogglerOfSegmenter>
-
-      <HeaderTogglerOfSegmenter
-        initiallySelected="intl"
-        segmentsDict={res.segmentsDict}
-        segmentsIntl={res.segmentsIntl}
-        title={LL.ANALYZER.CHARACTER_ANALYSIS()}
-      >
-        {segments => <KhmerAnalyzer segments={segments} />}
-      </HeaderTogglerOfSegmenter>
     </div>
   )
 }
@@ -116,18 +197,22 @@ interface KhmerAnalyzerViewProps {
   initialText?: NonEmptyStringTrimmed
 }
 
-// NOTE: initialText prop is effectively ignored in favor of the URL query param,
-// maintaining the pattern from the previous implementation but cleaner.
 export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initialText: _ignored }) => {
   const { LL } = useI18nContext()
   const [, setLocation] = useLocation()
-  const { maybeColorMode, filters } = useSettings()
+  const {
+    filters,
+    khmerAnalyzerEnabledSegmenters,
+    khmerAnalyzerMarkdownEnabled,
+    maybeColorMode,
+    setKhmerAnalyzerEnabledSegmenters,
+    setKhmerAnalyzerMarkdownEnabled,
+  } = useSettings()
 
-  const [text, setText] = useState<string>(() => getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
-  const [debouncedText] = useDebounce(text, 500)
+  const [text_, setText] = useState<string>(() => getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
+  const [debouncedText] = useDebounce(text_, 1500)
   const isFirstRender = useRef(true)
 
-  // Sync URL when debounced text changes
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
@@ -139,12 +224,11 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     setLocation(targetUrl, { replace: true })
   }, [debouncedText, setLocation])
 
-  // Sync state when URL changes (Back/Forward)
   useEffect(() => {
     const handlePopState = () => {
       const urlText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? ''
 
-      if (urlText !== text) {
+      if (urlText !== debouncedText) {
         setText(urlText)
       }
     }
@@ -152,7 +236,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     window.addEventListener('popstate', handlePopState)
 
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [text])
+  }, [debouncedText])
 
   const handleBack = useCallback(() => {
     safeBack(setLocation)
@@ -165,7 +249,17 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     [setLocation],
   )
 
-  const res = useKhmerAnalysis(text, filters.km.mode === 'all' ? 'km' : 'km')
+  const handleSegmenterChange = useCallback(
+    (keys: SharedSelection) => {
+      const selected = herouiSharedSelection_getFirst_string(keys)
+
+      if (!selected) return
+      setKhmerAnalyzerEnabledSegmenters(stringToKhmerAnalyzerEnabledSegmentersOrThrow(selected))
+    },
+    [setKhmerAnalyzerEnabledSegmenters],
+  )
+
+  const res = useKhmerAnalysis(debouncedText, filters.km.mode === 'all' ? 'km' : 'km', khmerAnalyzerEnabledSegmenters)
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
@@ -178,18 +272,60 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
-          <GoogleTranslateTextarea
-            defaultTargetLang="en"
-            labelPlacement="outside"
-            maxRows={10}
-            maybeColorMode={maybeColorMode}
-            minRows={3}
-            placeholder={LL.ANALYZER.PLACEHOLDER()}
-            value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
-            value_toShowInTextArea={text}
-            variant="faded"
-            onValueChange={setText}
-          />
+          <div className="flex flex-col gap-3">
+            <GoogleTranslateTextarea
+              defaultTargetLang="en"
+              labelPlacement="outside"
+              maxRows={10}
+              maybeColorMode={maybeColorMode}
+              minRows={3}
+              placeholder={LL.ANALYZER.PLACEHOLDER()}
+              value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
+              value_toShowInTextArea={debouncedText}
+              variant="faded"
+              onValueChange={setText}
+            />
+
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-4">
+                <Dropdown placement="bottom-start">
+                  <DropdownTrigger>
+                    <Button
+                      className="text-default-500"
+                      size="sm"
+                      startContent={<HiCog6Tooth size={18} />}
+                      variant="flat"
+                    >
+                      {LL.ANALYZER.SEGMENTER_LABEL()}:{' '}
+                      <span className="text-primary font-bold uppercase">{khmerAnalyzerEnabledSegmenters}</span>
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    disallowEmptySelection
+                    aria-label="Select Segmenters"
+                    selectedKeys={new Set([khmerAnalyzerEnabledSegmenters])}
+                    selectionMode="single"
+                    onSelectionChange={handleSegmenterChange}
+                  >
+                    <DropdownItem key="segmenter">{LL.ANALYZER.INTL_SEGMENTER()}</DropdownItem>
+                    <DropdownItem key="dictionary">{LL.ANALYZER.APP_DICT()}</DropdownItem>
+                    <DropdownItem key="both">{LL.ANALYZER.BOTH()}</DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-tiny font-bold uppercase tracking-wider text-default-400">
+                    {LL.ANALYZER.MARKDOWN_LABEL()}
+                  </span>
+                  <Switch
+                    isSelected={khmerAnalyzerMarkdownEnabled}
+                    size="sm"
+                    onValueChange={setKhmerAnalyzerMarkdownEnabled}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <KhmerAnalysisResults res={res} onKhmerWordClick={handleNavigate} />
         </div>

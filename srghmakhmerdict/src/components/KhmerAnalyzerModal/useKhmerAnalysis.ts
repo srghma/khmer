@@ -21,36 +21,37 @@ export const KhmerAnalysisResult__empty_text = { t: 'empty_text' } as const
 export type KhmerAnalysisResult =
   | typeof KhmerAnalysisResult__empty_text
   | {
-      t: 'non_empty_text_without_at_least_one_khmer_char'
-      analyzedText: NonEmptyStringTrimmed
-      analyzedText_language: DictionaryLanguage
-    }
+    t: 'non_empty_text_without_at_least_one_khmer_char'
+    analyzedText: NonEmptyStringTrimmed
+    analyzedText_language: DictionaryLanguage
+  }
   | {
-      t: 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading'
-      analyzedText: TypedContainsKhmer
-      analyzedText_language: 'km'
-      segmentsDict: NonEmptyArray<TextSegment>
-      segmentsIntl: NonEmptyArray<TextSegment>
-    }
+    t: 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading'
+    analyzedText: TypedContainsKhmer
+    analyzedText_language: 'km'
+    segmentsDict: NonEmptyArray<TextSegment> | undefined
+    segmentsIntl: NonEmptyArray<TextSegment> | undefined
+  }
   | {
-      t: 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored'
-      analyzedText: TypedContainsKhmer
-      analyzedText_language: 'km'
-      segmentsDict: NonEmptyArray<TextSegment>
-      segmentsIntl: NonEmptyArray<TextSegment>
-      e: NonEmptyStringTrimmed | undefined
-    }
+    t: 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored'
+    analyzedText: TypedContainsKhmer
+    analyzedText_language: 'km'
+    segmentsDict: NonEmptyArray<TextSegment> | undefined
+    segmentsIntl: NonEmptyArray<TextSegment> | undefined
+    e: NonEmptyStringTrimmed | undefined
+  }
   | {
-      t: 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
-      analyzedText: TypedContainsKhmer
-      analyzedText_language: 'km'
-      segmentsDict: NonEmptyArray<TextSegmentEnhanced>
-      segmentsIntl: NonEmptyArray<TextSegmentEnhanced>
-    }
+    t: 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
+    analyzedText: TypedContainsKhmer
+    analyzedText_language: 'km'
+    segmentsDict: NonEmptyArray<TextSegmentEnhanced> | undefined
+    segmentsIntl: NonEmptyArray<TextSegmentEnhanced> | undefined
+  }
 
 export const useKhmerAnalysis = (
   analyzedText: string,
   initialText_language_fallback: DictionaryLanguage,
+  enabledSegmenters: 'segmenter' | 'dictionary' | 'both',
 ): KhmerAnalysisResult => {
   const { km_map } = useDictionary()
   const phase1 = useMemo(() => {
@@ -69,15 +70,26 @@ export const useKhmerAnalysis = (
     }
 
     // 1. Generate segment arrays (needed for the UI)
-    const segmentsIntlRaw = generateTextSegments(analyzedText_withKhmer, 'segmenter', km_map, false)
-    const segmentsDictRaw = generateTextSegments(analyzedText_withKhmer, 'dictionary', km_map, false)
+    const segmentsIntlRaw =
+      enabledSegmenters === 'segmenter' || enabledSegmenters === 'both'
+        ? generateTextSegments(analyzedText_withKhmer, 'segmenter', km_map, false)
+        : undefined
+    const segmentsDictRaw =
+      enabledSegmenters === 'dictionary' || enabledSegmenters === 'both'
+        ? generateTextSegments(analyzedText_withKhmer, 'dictionary', km_map, false)
+        : undefined
 
+    console.log('segmentsIntlRaw', segmentsIntlRaw)
+    console.log('segmentsDictRaw', segmentsDictRaw)
     // 2. Use generators to extract and merge unique words into one Set in a single pass
-    // This replaces: union(extract(arr1), extract(arr2))
-    const uniqueWords = NonEmptySet_union_maybeUndefined_onCollisionIgnore_fromIterables(
-      yieldUniqueKhmerWords(segmentsIntlRaw),
-      yieldUniqueKhmerWords(segmentsDictRaw),
-    )
+    const iterables = []
+
+    if (segmentsDictRaw) iterables.push(yieldUniqueKhmerWords(segmentsDictRaw))
+    if (segmentsIntlRaw) iterables.push(yieldUniqueKhmerWords(segmentsIntlRaw))
+
+    const uniqueWords = NonEmptySet_union_maybeUndefined_onCollisionIgnore_fromIterables(...iterables)
+
+    console.log('uniqueWords', uniqueWords)
 
     return {
       t: 'WITH_KHMER' as const, // Internal tag for Phase 2
@@ -86,7 +98,7 @@ export const useKhmerAnalysis = (
       segmentsDictRaw,
       uniqueWords,
     }
-  }, [analyzedText, initialText_language_fallback])
+  }, [analyzedText, initialText_language_fallback, enabledSegmenters, km_map])
 
   const defsResult = useKhmerDefinitions(phase1.t === 'WITH_KHMER' ? phase1.uniqueWords : undefined)
 
@@ -98,6 +110,8 @@ export const useKhmerAnalysis = (
     }
 
     const { analyzedText, segmentsIntlRaw, segmentsDictRaw } = phase1
+
+    console.log('defsResult', defsResult)
 
     switch (defsResult.t) {
       case 'idle':
@@ -125,8 +139,8 @@ export const useKhmerAnalysis = (
           t: 'non_empty_text_with_at_least_one_khmer_char__defs_request_success',
           analyzedText,
           analyzedText_language: 'km',
-          segmentsIntl: enhanceSegments(segmentsIntlRaw, defsResult.definitions),
-          segmentsDict: enhanceSegments(segmentsDictRaw, defsResult.definitions),
+          segmentsIntl: segmentsIntlRaw ? enhanceSegments(segmentsIntlRaw, defsResult.definitions) : undefined,
+          segmentsDict: segmentsDictRaw ? enhanceSegments(segmentsDictRaw, defsResult.definitions) : undefined,
           definitions: defsResult.definitions,
         }
     }

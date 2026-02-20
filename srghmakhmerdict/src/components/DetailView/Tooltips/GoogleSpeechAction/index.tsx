@@ -12,10 +12,7 @@ interface GoogleSpeechActionProps {
   mode: ToTranslateLanguage
 }
 
-export const GoogleSpeechAction = memo(function GoogleSpeechAction({
-  word,
-  mode,
-}: GoogleSpeechActionProps) {
+export const GoogleSpeechAction = memo(function GoogleSpeechAction({ word, mode }: GoogleSpeechActionProps) {
   const { LL } = useI18nContext()
   const state = useGoogleTts()
 

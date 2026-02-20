@@ -307,6 +307,34 @@ type RootTranslation = {
 		 * C​l​i​c​k​ ​t​o​ ​e​x​p​a​n​d​ ​d​e​f​i​n​i​t​i​o​n
 		 */
 		EXPAND_DEFINITION: string
+		/**
+		 * M​a​r​k​d​o​w​n​ ​o​u​t​p​u​t​ ​i​s​ ​e​m​p​t​y​ ​a​f​t​e​r​ ​p​a​r​s​i​n​g​.
+		 */
+		MARKDOWN_ERROR_EMPTY: string
+		/**
+		 * A​n​ ​e​r​r​o​r​ ​o​c​c​u​r​r​e​d​ ​w​h​i​l​e​ ​p​a​r​s​i​n​g​ ​M​a​r​k​d​o​w​n​.
+		 */
+		MARKDOWN_ERROR: string
+		/**
+		 * S​e​g​m​e​n​t​e​r​s
+		 */
+		SEGMENTER_LABEL: string
+		/**
+		 * I​n​t​l​ ​S​e​g​m​e​n​t​e​r
+		 */
+		INTL_SEGMENTER: string
+		/**
+		 * A​p​p​ ​D​i​c​t​i​o​n​a​r​y
+		 */
+		APP_DICT: string
+		/**
+		 * B​o​t​h
+		 */
+		BOTH: string
+		/**
+		 * M​a​r​k​d​o​w​n
+		 */
+		MARKDOWN_LABEL: string
 	}
 	ANKI: {
 		/**
@@ -1199,6 +1227,34 @@ export type TranslationFunctions = {
 		 * Click to expand definition
 		 */
 		EXPAND_DEFINITION: () => LocalizedString
+		/**
+		 * Markdown output is empty after parsing.
+		 */
+		MARKDOWN_ERROR_EMPTY: () => LocalizedString
+		/**
+		 * An error occurred while parsing Markdown.
+		 */
+		MARKDOWN_ERROR: () => LocalizedString
+		/**
+		 * Segmenters
+		 */
+		SEGMENTER_LABEL: () => LocalizedString
+		/**
+		 * Intl Segmenter
+		 */
+		INTL_SEGMENTER: () => LocalizedString
+		/**
+		 * App Dictionary
+		 */
+		APP_DICT: () => LocalizedString
+		/**
+		 * Both
+		 */
+		BOTH: () => LocalizedString
+		/**
+		 * Markdown
+		 */
+		MARKDOWN_LABEL: () => LocalizedString
 	}
 	ANKI: {
 		/**

@@ -95,6 +95,13 @@ const uk = {
     DEFS_FETCH_FAILED: 'Помилка завантаження визначень',
     DEFS_FETCH_ERROR: 'Сталася невідома помилка при завантаженні визначень.',
     EXPAND_DEFINITION: 'Натисніть, щоб розгорнути визначення',
+    MARKDOWN_ERROR_EMPTY: 'Результат обробки Markdown порожній.',
+    MARKDOWN_ERROR: 'Сталася помилка при обробці Markdown.',
+    SEGMENTER_LABEL: 'Сегментатори',
+    INTL_SEGMENTER: 'Стандартний (Intl)',
+    APP_DICT: 'Словник додатка',
+    BOTH: 'Обидва',
+    MARKDOWN_LABEL: 'Markdown',
   },
   ANKI: {
     NO_FAVORITES: 'Обране пусте. Додайте слова в обране, щоб почати навчання.',

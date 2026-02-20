@@ -9,14 +9,15 @@ import type { ShortDefinition } from '../db/dict'
 
 // --- State Shape ---
 
+const UseKhmerDefinitionsResult_idle = { t: 'idle' } as const
+const UseKhmerDefinitionsResult_loading = { t: 'loading' } as const
+
 export type UseKhmerDefinitionsResult =
-  | { t: 'idle' }
-  | { t: 'loading' }
+  | typeof UseKhmerDefinitionsResult_idle
+  | typeof UseKhmerDefinitionsResult_loading
   | { t: 'request_error'; e: NonEmptyStringTrimmed | undefined }
   | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> }
 
-const UseKhmerDefinitionsResult_idle: UseKhmerDefinitionsResult = { t: 'idle' }
-const UseKhmerDefinitionsResult_loading: UseKhmerDefinitionsResult = { t: 'loading' }
 
 // --- Hook Actions ---
 // Combines Core Actions with Hook-specific lifecycle actions (RESET)

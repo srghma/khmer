@@ -18,7 +18,7 @@ const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
 NotKhmerPart.displayName = 'NotKhmerPart'
 
 interface KhmerWordPartProps {
-  item: TypedKhmerWord | { w: TypedKhmerWord; def?: NonEmptyStringTrimmed }
+  item: TypedKhmerWord | { w: TypedKhmerWord; def?: NonEmptyStringTrimmed; wiktionaryIpa?: NonEmptyStringTrimmed }
   colorIndex: number
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
@@ -36,6 +36,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
   const isObj = typeof item === 'object'
   const w = isObj ? item.w : item
   const def = isObj ? item.def : undefined
+  const wiktionaryIpa = isObj ? item.wiktionaryIpa : undefined
 
   // Memoize the colorization logic
   const colorization = React.useMemo(() => {
@@ -49,8 +50,8 @@ const KhmerWordPart = memo(function KhmerWordPart({
     () =>
       onWordClick
         ? () => {
-          onWordClick(w)
-        }
+            onWordClick(w)
+          }
         : undefined,
     [onWordClick, w],
   )
@@ -60,6 +61,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
       colorIndex={colorIndex}
       colorization={colorization}
       definitionHtml={def}
+      wiktionaryIpa={wiktionaryIpa}
       word={w}
       onClick={handleClick}
     />

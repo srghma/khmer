@@ -196,6 +196,8 @@ pub struct WordKmWordsDetailShortRow {
     pub word: String,
     pub definition: String,
     pub source: KmShortDefinitionSource,
+    #[sqlx(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
+    pub wiktionary_ipa_or_from_csv_pronunciations: Option<String>,
 }
 
 #[command]
@@ -206,15 +208,19 @@ pub async fn km_for_many_short_description_none_if_word_not_found(
     // for analyzer page
     validate_words_not_empty(&words)?;
 
+    println!("words: {:#?}", words);
+
     let pool = state.get_pool().await?;
     let sql = format!(
-        "SELECT Word, {} as definition, {} as source FROM km_Dict WHERE Word IN ({})",
+        "SELECT Word, {} as definition, {} as source, COALESCE(Wiktionary_ipa, (SELECT GROUP_CONCAT(value, ', ') FROM json_each(COALESCE(from_csv_pronunciations, '[]')))) AS Wiktionary_ipa_or_from_csv_pronunciations FROM km_Dict WHERE Word IN ({})",
         KM_SHORT_DESC_COALESCE,
         KM_SHORT_DESC_SOURCE,
         get_placeholders(words.len())
     );
 
     let rows: Vec<WordKmWordsDetailShortRow> = fetch_many(&pool, &words, sql).await?;
+
+    println!("rows: {}", rows.len());
 
     Ok(to_optional_map(
         words,
@@ -224,6 +230,7 @@ pub async fn km_for_many_short_description_none_if_word_not_found(
             Some(ShortDefinitionKm {
                 definition: r.definition,
                 source: r.source,
+                wiktionary_ipa_or_from_csv_pronunciations: r.wiktionary_ipa_or_from_csv_pronunciations,
             })
         },
     ))
@@ -238,7 +245,7 @@ pub async fn km_for_many_short_description_throws_if_word_not_found(
 
     let pool = state.get_pool().await?;
     let sql = format!(
-        "SELECT Word, {} as definition, {} as source FROM km_Dict WHERE Word IN ({})",
+        "SELECT Word, {} as definition, {} as source, COALESCE(Wiktionary_ipa, (SELECT GROUP_CONCAT(value, ', ') FROM json_each(COALESCE(from_csv_pronunciations, '[]')))) AS Wiktionary_ipa_or_from_csv_pronunciations FROM km_Dict WHERE Word IN ({})",
         KM_SHORT_DESC_COALESCE,
         KM_SHORT_DESC_SOURCE,
         get_placeholders(words.len())
@@ -253,6 +260,7 @@ pub async fn km_for_many_short_description_throws_if_word_not_found(
         |r| ShortDefinitionKm {
             definition: r.definition,
             source: r.source,
+            wiktionary_ipa_or_from_csv_pronunciations: r.wiktionary_ipa_or_from_csv_pronunciations,
         },
     )
 }

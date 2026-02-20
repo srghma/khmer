@@ -95,6 +95,13 @@ const en = {
     DEFS_FETCH_FAILED: 'Error fetching definitions',
     DEFS_FETCH_ERROR: 'An unknown error occurred while fetching definitions.',
     EXPAND_DEFINITION: 'Click to expand definition',
+    MARKDOWN_ERROR_EMPTY: 'Markdown output is empty after parsing.',
+    MARKDOWN_ERROR: 'An error occurred while parsing Markdown.',
+    SEGMENTER_LABEL: 'Segmenters',
+    INTL_SEGMENTER: 'Intl Segmenter',
+    APP_DICT: 'App Dictionary',
+    BOTH: 'Both',
+    MARKDOWN_LABEL: 'Markdown',
   },
   ANKI: {
     NO_FAVORITES: 'Favorites is empty. Add words to favorites to start learning.',

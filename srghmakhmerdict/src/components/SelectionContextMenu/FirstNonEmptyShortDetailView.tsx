@@ -166,4 +166,3 @@ FirstNonEmptyShortDetailView.displayName = 'FirstNonEmptyShortDetailView'
 function isWordInKmMap(khmerWord: TypedContainsKhmer, km_map: KhmerWordsMap) {
   return km_map.has(khmerWord)
 }
-

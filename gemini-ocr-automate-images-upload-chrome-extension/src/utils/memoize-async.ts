@@ -1,3 +1,6 @@
+import { Record_toNonEmptyRecord_orThrow, type NonEmptyRecord } from "./non-empty-record"
+import { Set_toNonEmptySet_orUndefined, type NonEmptySet } from "./non-empty-set"
+
 export function memoizeAsync0_throwIfInFly<R>(fn: () => Promise<R>): () => Promise<R> {
   let cached: R | undefined
   let hasValue = false
@@ -154,5 +157,92 @@ export function memoizeAsync1Lru<T, R>(
     }
 
     return promise
+  }
+}
+
+/**
+ * Memoizes a function that fetches values for a set of strings.
+ * Uses a serialized queue (mutex) to prevent redundant concurrent fetches.
+ * Implements LRU eviction using Map insertion order.
+ */
+export function memoizeAsyncSetOfStringsLru<S extends string, V>(
+  fetchMore: (arg: NonEmptySet<S>) => Promise<NonEmptyRecord<S, V>>,
+  capacity: number,
+): (arg: NonEmptySet<S>) => Promise<NonEmptyRecord<S, V>> {
+  const cache = new Map<S, V>()
+
+  // A promise chain that acts as our mutex queue
+  let mutex: Promise<void> = Promise.resolve()
+
+  return async (arg: NonEmptySet<S>): Promise<NonEmptyRecord<S, V>> => {
+    // 1. Move existing keys to the end of the Map (Mark as Most Recently Used)
+    for (const key of arg) {
+      if (cache.has(key)) {
+        const value = cache.get(key)!
+        cache.delete(key)
+        cache.set(key, value)
+      }
+    }
+
+    // 2. Synchronize access to the "Fetch & Populate" phase
+    // We create a 'release' trigger to manually advance the mutex chain
+    let releaseLock!: () => void
+    const lockAcquired = new Promise<void>((resolve) => {
+      releaseLock = resolve
+    })
+
+    const previousLock = mutex
+    mutex = previousLock.then(() => lockAcquired, () => lockAcquired)
+
+    try {
+      // Wait for our turn in the queue
+      await previousLock
+
+      // Re-check missing keys now that we are inside the lock
+      // (Concurrent identical calls will find the data already cached by the first caller)
+      const missingKeys = new Set<S>()
+      for (const key of arg) {
+        if (!cache.has(key)) {
+          missingKeys.add(key)
+        }
+      }
+
+      const nonEmptyMissing = Set_toNonEmptySet_orUndefined(missingKeys)
+
+      if (nonEmptyMissing) {
+        const fetched = await fetchMore(nonEmptyMissing)
+
+        for (const key in fetched) {
+          const sKey = key as S
+          const val = fetched[sKey]
+
+          // Add to cache (MRU position)
+          cache.set(sKey, val)
+
+          // LRU Eviction: If we exceed capacity, remove the oldest entry (first key in Map)
+          if (cache.size > capacity) {
+            const oldestKey = cache.keys().next().value
+            if (oldestKey !== undefined) {
+              cache.delete(oldestKey)
+            }
+          }
+        }
+      }
+    } finally {
+      // releaseLock() ensures the next caller in the mutex chain can proceed
+      // even if fetchMore threw an error.
+      releaseLock()
+    }
+
+    // 3. Construct the final record from the now-populated cache
+    const result: Record<S, V> = {} as Record<S, V>
+    for (const key of arg) {
+      const value = cache.get(key)
+      if (value !== undefined) {
+        result[key] = value
+      }
+    }
+
+    return Record_toNonEmptyRecord_orThrow<S, V>(result)
   }
 }

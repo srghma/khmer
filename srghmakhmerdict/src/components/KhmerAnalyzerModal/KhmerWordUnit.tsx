@@ -11,19 +11,21 @@ import { unknown_to_errorMessage } from '../../utils/errorMessage'
 import { useAppToast } from '../../providers/ToastProvider'
 
 interface KhmerWordUnitProps {
-  word: TypedKhmerWord
-  definitionHtml: NonEmptyStringTrimmed | undefined
   colorIndex: number
-  onClick: (() => void) | undefined
   colorization: 'none' | 'isKnown' | 'isNotKnown'
+  definitionHtml: NonEmptyStringTrimmed | undefined
+  onClick: (() => void) | undefined
+  wiktionaryIpa: NonEmptyStringTrimmed | undefined
+  word: TypedKhmerWord
 }
 
 export const KhmerWordUnit = React.memo(function KhmerWordUnit({
-  word,
-  definitionHtml,
   colorIndex,
   colorization,
+  definitionHtml,
   onClick,
+  wiktionaryIpa,
+  word,
 }: KhmerWordUnitProps) {
   const { LL } = useI18nContext()
   const tts = useGoogleOrNativeTts()
@@ -70,6 +72,12 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
         {word}
       </button>
 
+      {wiktionaryIpa && (
+        <span className="text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary">
+          {wiktionaryIpa}
+        </span>
+      )}
+
       {/* 2. The Definition Slot (Controlled Popover) */}
       {dangerouslySetInnerHTML && (
         <div className="relative w-full flex justify-center mt-1">
@@ -83,8 +91,9 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
           >
             <PopoverTrigger>
               <button
-                className={`w-full min-w-[60px] max-w-[80px] h-[2.6em] px-1 rounded-sm bg-default-200/60 hover:bg-default-300/60 cursor-pointer select-none overflow-hidden outline-none transition-opacity ${tts.t === 'speaking' ? 'opacity-50 animate-pulse' : 'opacity-100'
-                  }`}
+                className={`w-full min-w-[60px] max-w-[80px] h-[2.6em] px-1 rounded-sm bg-default-200/60 hover:bg-default-300/60 cursor-pointer select-none overflow-hidden outline-none transition-opacity ${
+                  tts.t === 'speaking' ? 'opacity-50 animate-pulse' : 'opacity-100'
+                }`}
                 title={LL.ANALYZER.EXPAND_DEFINITION()}
                 type="button"
               >

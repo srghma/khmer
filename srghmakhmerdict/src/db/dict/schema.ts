@@ -53,4 +53,5 @@ export const ShortDefinitionKmSourceSchema = z.enum([
 export const ShortDefinitionKmSchema = z.strictObject({
   definition: NonEmptyStringTrimmedSchema,
   source: ShortDefinitionKmSourceSchema,
+  wiktionary_ipa_or_from_csv_pronunciations: z.optional(NonEmptyStringTrimmedSchema),
 })

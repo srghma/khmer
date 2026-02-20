@@ -240,3 +240,61 @@
   background-color: var(--kw-0);
   opacity: 0.5;
 }
+
+/* ========================================= */
+/* TABLE STYLING                             */
+/* ========================================= */
+
+.srghma_khmer_dict_content :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.srghma_khmer_dict_content :global(th),
+.srghma_khmer_dict_content :global(td) {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  /* Gray-200 */
+}
+
+:global(.dark) .srghma_khmer_dict_content :global(th),
+:global(.dark) .srghma_khmer_dict_content :global(td) {
+  border-color: #3f3f46;
+  /* Zinc-700 */
+}
+
+.srghma_khmer_dict_content :global(th) {
+  background-color: #f9fafb;
+  /* Gray-50 */
+  font-weight: 600;
+  text-align: left;
+}
+
+:global(.dark) .srghma_khmer_dict_content :global(th) {
+  background-color: #18181b;
+  /* Zinc-900 */
+}
+
+.srghma_khmer_dict_content :global(tr:nth-child(even)) {
+  background-color: #f3f4f6;
+  /* Gray-100 */
+}
+
+:global(.dark) .srghma_khmer_dict_content :global(tr:nth-child(even)) {
+  background-color: #27272a;
+  /* Zinc-800 */
+}
+
+.srghma_khmer_dict_content :global(tr:hover) {
+  background-color: #f0fdf4;
+  /* Green-50 */
+}
+
+:global(.dark) .srghma_khmer_dict_content :global(tr:hover) {
+  background-color: #064e3b20;
+  /* Subtle Green */
+}
