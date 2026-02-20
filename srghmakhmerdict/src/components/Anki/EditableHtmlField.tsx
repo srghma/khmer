@@ -18,6 +18,11 @@ interface EditableHtmlFieldProps {
   isKhmerPronunciationHidingEnabled: boolean
 }
 
+const textareaClassNames = {
+  input: 'font-mono text-sm',
+  inputWrapper: 'border-divider hover:border-primary/50 focus-within:!border-primary',
+}
+
 export const EditableHtmlField = memo(function EditableHtmlField({
   initialValue,
   onSave,
@@ -89,10 +94,7 @@ export const EditableHtmlField = memo(function EditableHtmlField({
         </SectionTitleWithRightContent>
         <Textarea
           autoFocus
-          classNames={{
-            input: 'font-mono text-sm',
-            inputWrapper: 'border-divider hover:border-primary/50 focus-within:!border-primary',
-          }}
+          classNames={textareaClassNames}
           maxRows={12}
           minRows={2}
           placeholder={LL.ACTIONS.ENTER_HTML_OR_TEXT()}

@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react' // Added useCallback
 import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { getKhmerWordCssClass } from '../../utils/text-processing/word-renderer'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import styles_srghma_khmer_dict_content from '../../srghma_khmer_dict_content.module.css'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
-
-// --- Sub-Component: KhmerWordUnit ---
+// Import the TTS hook
+import { useGoogleOrNativeTts } from '../../hooks/useGoogleOrNativeTts'
 
 interface KhmerWordUnitProps {
   word: TypedKhmerWord
@@ -24,7 +24,22 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   onClick,
 }: KhmerWordUnitProps) {
   const { LL } = useI18nContext()
-  // Determine styles based on props
+
+  // 1. Initialize TTS for Khmer language
+  // Assuming 'km' is the language code for Khmer in your ToTranslateLanguage type
+  const tts = useGoogleOrNativeTts()
+
+  // 2. Combine the original onClick with the TTS speak action
+  const handleWordClick = useCallback(async () => {
+    // Execute original click logic (e.g., selection or opening details)
+    onClick?.()
+
+    // Play audio if the word is ready and not already speaking
+    if (tts.t === 'ready') {
+      await tts.speak(word, 'km')
+    }
+  }, [onClick, tts])
+
   const dangerouslySetInnerHTML = useMemo(
     () => (definitionHtml ? { __html: definitionHtml } : undefined),
     [definitionHtml],
@@ -40,7 +55,13 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
       className={`inline-flex flex-col items-center mx-[2px] align-top vertical-align-top relative group ${styles_srghma_khmer_dict_content.srghma_khmer_dict_content}`}
     >
       {/* 1. The Khmer Word */}
-      <button className={`text-lg leading-normal cursor-text select-text ${wordClass}`} onClick={onClick}>
+      <button
+        className={`text-lg leading-normal cursor-text select-text transition-opacity ${wordClass} ${
+          tts.t === 'speaking' ? 'opacity-50 animate-pulse' : 'opacity-100'
+        }`}
+        disabled={!word || tts.t === 'speaking'}
+        onClick={handleWordClick}
+      >
         {word}
       </button>
 
@@ -54,7 +75,6 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
                 title={LL.ANALYZER.EXPAND_DEFINITION()}
                 type="button"
               >
-                {/* Collapsed Content: Plain HTML, Clamped to 2 lines */}
                 <div
                   dangerouslySetInnerHTML={dangerouslySetInnerHTML}
                   className={`text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary`}

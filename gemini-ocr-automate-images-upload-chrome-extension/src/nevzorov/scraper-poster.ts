@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import { CONFIG, getDB, sleep } from './common'
 // @ts-ignore-next
 import input from 'input'
-import { workScraper } from './scraper'
+// import { workScraper } from './scraper'
 import { workPoster } from './poster'
 import { workTranslator } from './translator'
 
