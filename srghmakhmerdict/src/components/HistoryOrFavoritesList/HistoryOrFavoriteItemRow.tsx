@@ -12,6 +12,7 @@ import { colorizeText } from '../../utils/text-processing/text'
 import { TrashIcon, ChevronIcon } from './SharedComponents'
 import { tab_title_ru } from '../SidebarHeader'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { isWordInKmMap } from '../../utils/isWordInKmMap'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -60,7 +61,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
         case 'km': {
           const khmerWord = strToContainsKhmerOrUndefined(word)
 
-          return !khmerWord || !km_map.has(khmerWord)
+          return !khmerWord || !isWordInKmMap(khmerWord, km_map)
         }
 
         case 'en':

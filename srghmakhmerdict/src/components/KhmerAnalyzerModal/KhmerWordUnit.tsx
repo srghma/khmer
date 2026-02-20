@@ -7,6 +7,8 @@ import styles_srghma_khmer_dict_content from '../../srghma_khmer_dict_content.mo
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 // Import the TTS hook
 import { useGoogleOrNativeTts } from '../../hooks/useGoogleOrNativeTts'
+import { unknown_to_errorMessage } from '../../utils/errorMessage'
+import { useAppToast } from '../../providers/ToastProvider'
 
 interface KhmerWordUnitProps {
   word: TypedKhmerWord
@@ -24,21 +26,23 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   onClick,
 }: KhmerWordUnitProps) {
   const { LL } = useI18nContext()
-
-  // 1. Initialize TTS for Khmer language
-  // Assuming 'km' is the language code for Khmer in your ToTranslateLanguage type
   const tts = useGoogleOrNativeTts()
+  const toast = useAppToast()
 
-  // 2. Combine the original onClick with the TTS speak action
-  const handleWordClick = useCallback(async () => {
-    // Execute original click logic (e.g., selection or opening details)
-    onClick?.()
-
-    // Play audio if the word is ready and not already speaking
-    if (tts.t === 'ready') {
-      await tts.speak(word, 'km')
-    }
-  }, [onClick, tts])
+  // 1. Play TTS when the Popover state changes to "open"
+  const handlePopoverOpenChange = useCallback(
+    (isOpen: boolean) => {
+      if (!isOpen) return
+      if (tts.t === 'ready') {
+        tts.speak(word, 'km').catch((err: unknown) => {
+          toast.error('TTS Failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(err))
+        })
+      } else {
+        toast.warn('TTS is not ready' as NonEmptyStringTrimmed, 'Offline?' as NonEmptyStringTrimmed)
+      }
+    },
+    [word, tts],
+  )
 
   const dangerouslySetInnerHTML = useMemo(
     () => (definitionHtml ? { __html: definitionHtml } : undefined),
@@ -54,24 +58,25 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
     <div
       className={`inline-flex flex-col items-center mx-[2px] align-top vertical-align-top relative group ${styles_srghma_khmer_dict_content.srghma_khmer_dict_content}`}
     >
-      {/* 1. The Khmer Word */}
-      <button
-        className={`text-lg leading-normal cursor-text select-text transition-opacity ${wordClass} ${
-          tts.t === 'speaking' ? 'opacity-50 animate-pulse' : 'opacity-100'
-        }`}
-        disabled={!word || tts.t === 'speaking'}
-        onClick={handleWordClick}
-      >
+      {/* 1. The Khmer Word - Now only triggers the optional onClick prop */}
+      <button className={`text-lg leading-normal cursor-text select-text ${wordClass}`} onClick={onClick}>
         {word}
       </button>
 
       {/* 2. The Definition Slot (Popover) */}
       {dangerouslySetInnerHTML && (
         <div className="relative w-full flex justify-center mt-1">
-          <Popover backdrop="transparent" offset={10} placement="bottom" showArrow={true}>
+          <Popover
+            backdrop="transparent"
+            offset={10}
+            placement="bottom"
+            showArrow={true}
+            onOpenChange={handlePopoverOpenChange} // <--- Trigger sound here
+          >
             <PopoverTrigger>
               <button
-                className="w-full min-w-[60px] max-w-[80px] h-[2.6em] px-1 rounded-sm bg-default-200/60 hover:bg-default-300/60 cursor-pointer select-none overflow-hidden outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2"
+                className={`w-full min-w-[60px] max-w-[80px] h-[2.6em] px-1 rounded-sm bg-default-200/60 hover:bg-default-300/60 cursor-pointer select-none overflow-hidden outline-none transition-opacity ${tts.t === 'speaking' ? 'opacity-50 animate-pulse' : 'opacity-100'
+                  }`}
                 title={LL.ANALYZER.EXPAND_DEFINITION()}
                 type="button"
               >

@@ -7,12 +7,13 @@ import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { WordDetailEnOrRuOrKm } from '../../db/dict/index'
+import type { KhmerWordsMap, WordDetailEnOrRuOrKm } from '../../db/dict/index'
 import { truncateHtmlSafe } from './truncateHtmlSafe'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 import {
   isContainsKhmer,
   strToContainsKhmerOrUndefined,
+  type TypedContainsKhmer,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { ColorizationMode } from '../../utils/text-processing/utils'
 import { useDictionary } from '../../providers/DictionaryProvider'
@@ -44,7 +45,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
     const fallback = useMemo(() => {
       const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
       const khmerWord = strToContainsKhmerOrUndefined(selectedText)
-      const known = khmerWord && km_map.has(khmerWord)
+      const known = khmerWord && isWordInKmMap(khmerWord, km_map)
 
       return (
         <span className="font-medium group-hover:text-primary transition-colors">
@@ -63,7 +64,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
           case 'km': {
             const khmerWord = strToContainsKhmerOrUndefined(selectedText)
 
-            if (khmerWord && km_map.has(khmerWord)) {
+            if (khmerWord && isWordInKmMap(khmerWord, km_map)) {
               // eslint-disable-next-line no-console
               console.error('[DEBUG] Khmer word match mismatch:', {
                 selectedText,
@@ -162,3 +163,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 )
 
 FirstNonEmptyShortDetailView.displayName = 'FirstNonEmptyShortDetailView'
+function isWordInKmMap(khmerWord: TypedContainsKhmer, km_map: KhmerWordsMap) {
+  throw new Error('Function not implemented.')
+}
+

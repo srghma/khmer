@@ -9,6 +9,7 @@ import { KhmerWordUnit } from './KhmerWordUnit'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { isWordInKmMap } from '../../utils/isWordInKmMap'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
   <span className="align-top mt-1 inline-block text-foreground/80">{text}</span>
@@ -40,7 +41,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
   const colorization = React.useMemo(() => {
     if (maybeColorMode === 'none') return 'none'
 
-    return km_map.has(w) ? 'isKnown' : 'isNotKnown'
+    return isWordInKmMap(w, km_map) ? 'isKnown' : 'isNotKnown'
   }, [maybeColorMode, km_map, w])
 
   // Stable click handler
@@ -48,8 +49,8 @@ const KhmerWordPart = memo(function KhmerWordPart({
     () =>
       onWordClick
         ? () => {
-            onWordClick(w)
-          }
+          onWordClick(w)
+        }
         : undefined,
     [onWordClick, w],
   )

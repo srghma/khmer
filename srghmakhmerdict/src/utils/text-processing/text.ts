@@ -23,6 +23,7 @@ import {
   type NonEmptySet,
   Set_toNonEmptySet_orUndefined,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import { isWordInKmMap } from '../isWordInKmMap'
 
 const HTML_DETECTION_REGEX = /<[a-z][\s\S]*>/i
 
@@ -89,11 +90,11 @@ export function* yieldTextSegments(
       const words =
         mode === 'dictionary'
           ? khmerSentenceToWords_usingDictionary(
-              match,
-              dictionaryMode_lonelyWordShouldBeSpilt
-                ? (s: TypedKhmerWord) => s !== match && km_map.has(s)
-                : (s: TypedKhmerWord) => km_map.has(s),
-            )
+            match,
+            dictionaryMode_lonelyWordShouldBeSpilt
+              ? (s: TypedKhmerWord) => s !== match && isWordInKmMap(s, km_map)
+              : (s: TypedKhmerWord) => isWordInKmMap(s, km_map),
+          )
           : khmerSentenceToWords_usingSegmenter(match)
 
       yield { t: 'khmer', words }
@@ -136,7 +137,7 @@ export function* yieldColorizedChunks(
     }
 
     for (const w of segment.words) {
-      yield renderKhmerWordSpan(w, wordCounter.current, km_map.has(w), mode)
+      yield renderKhmerWordSpan(w, wordCounter.current, isWordInKmMap(w, km_map), mode)
       wordCounter.current++
     }
   }
