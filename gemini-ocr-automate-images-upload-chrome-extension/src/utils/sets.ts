@@ -90,7 +90,7 @@ export function Set_eq<T>(set1: Set<T>, set2: Set<T>): boolean {
   return true
 }
 
-export function Set_diff<T2, T1 extends T2>(setA: Set<T1>, setB: Set<T2>): Set<T1> {
+export function Set_diff<T2, T1 extends T2>(setA: ReadonlySet<T1>, setB: Set<T2>): Set<T1> {
   // return new Set([...setA].filter(x => !setB.has(x)))
   const result = new Set<T1>()
   for (const x of setA) {

@@ -5,7 +5,9 @@ import type { NativeTtsState } from '../../../../hooks/useNativeTts'
 import { NativeSpeakerIcon } from '../../../Icons/NativeSpeakerIcon'
 import { useI18nContext } from '../../../../i18n/i18n-react-custom'
 
-export const NativeSpeechActionPresentation = memo((state: NativeTtsState & { isDisabled: boolean }) => {
+export const NativeSpeechActionPresentation = memo(function NativeSpeechActionPresentation(
+  state: NativeTtsState & { isDisabled: boolean },
+) {
   const { LL } = useI18nContext()
   const handlePress = !state.isSpeaking ? state.speak : undefined
 

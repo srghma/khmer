@@ -15,10 +15,12 @@ export const translateSrt = async (
     strs,
     languageFrom,
     languageTo,
+    // onSuccess,
   }: {
     readonly strs: NonEmptySet<NonEmptyStringTrimmed>
     readonly languageFrom: LanguageCode
     readonly languageTo: LanguageCode
+    // readonly onSuccess: (original: NonEmptyStringTrimmed, translation: NonEmptyStringTrimmed) => void
   },
 ): Promise<NonEmptyMap<NonEmptyStringTrimmed, NonEmptyStringTrimmed>> => {
   // 2. Fetch Cached Translations

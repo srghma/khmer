@@ -204,6 +204,7 @@ export interface EnKmHtmlRendererProps {
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
 }
 
 export const EnKmHtmlRenderer = ({
@@ -212,6 +213,7 @@ export const EnKmHtmlRenderer = ({
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
   isKhmerPronunciationHidingEnabled,
+  dictionaryMode_lonelyWordShouldBeSpilt,
 }: EnKmHtmlRendererProps) => {
   const { imageMode, maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
@@ -224,10 +226,15 @@ export const EnKmHtmlRenderer = ({
 
     const html_withChangedUrls = processHtmlImages(html_withWrappedImages, imageMode)
 
-    const html_colorized = colorizeHtml(html_withChangedUrls, maybeColorMode, km_map)
+    const html_colorized = colorizeHtml(
+      html_withChangedUrls,
+      maybeColorMode,
+      km_map,
+      dictionaryMode_lonelyWordShouldBeSpilt,
+    )
 
     return { __html: html_colorized }
-  }, [html, ocrMap, km_map, maybeColorMode, imageMode])
+  }, [html, ocrMap, km_map, maybeColorMode, imageMode, dictionaryMode_lonelyWordShouldBeSpilt])
 
   const toast = useAppToast()
 

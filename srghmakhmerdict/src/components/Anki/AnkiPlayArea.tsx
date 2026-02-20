@@ -19,7 +19,7 @@ interface AnkiPlayAreaProps {
   onRate: (rating: Grade) => void
 }
 
-export const AnkiPlayArea = React.memo(({ itemData, onRate }: AnkiPlayAreaProps) => {
+export const AnkiPlayArea = React.memo(function AnkiPlayArea({ itemData, onRate }: AnkiPlayAreaProps) {
   const pulseStore = useAnkiPulseStore()
   const now = useSyncExternalStore(pulseStore.subscribe, pulseStore.getSnapshot) as number
 

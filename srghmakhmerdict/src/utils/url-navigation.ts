@@ -11,6 +11,7 @@ export const makeKhmerAnalyzerUrl = (text: string | undefined | null): string =>
   }
 
   const params = new URLSearchParams()
+
   params.set(KHMER_ANALYZER_PARAM_TEXT, text.trim())
 
   return `${KHMER_ANALYZER_PATH}?${params.toString()}`
@@ -21,5 +22,6 @@ export const makeKhmerAnalyzerUrl = (text: string | undefined | null): string =>
  */
 export const getUrlSearchParam = (key: string): string | null => {
   const params = new URLSearchParams(window.location.search)
+
   return params.get(key)
 }

@@ -10,6 +10,7 @@ export const colorizeHtml = (
   html: NonEmptyStringTrimmed,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): TypedContainsKhmer => {
   const wordCounterRef = { current: 0 }
 
@@ -18,7 +19,7 @@ export const colorizeHtml = (
     html,
     (textContent: NonEmptyString): NonEmptyString => {
       // 1. Get the generator for segments
-      const segmentsGenerator = yieldTextSegments(textContent, mode, km_map)
+      const segmentsGenerator = yieldTextSegments(textContent, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
 
       // 2. Consume generator directly into the colorizer
       // This avoids creating the Segment array entirely within the text node processing
@@ -36,6 +37,7 @@ export const colorizeHtml_allowUndefined = (
   html: TypedContainsKhmer | undefined,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): TypedContainsKhmer | undefined => {
-  return html ? colorizeHtml(html, mode, km_map) : undefined
+  return html ? colorizeHtml(html, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt) : undefined
 }

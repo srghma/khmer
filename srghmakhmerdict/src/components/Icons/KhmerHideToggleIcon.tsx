@@ -12,7 +12,10 @@ interface KhmerHideToggleIconProps {
   isEnabled: boolean // true = Words are hidden (Skeleton mode)
 }
 
-export const KhmerHideToggleIcon = memo(({ className, isEnabled }: KhmerHideToggleIconProps) => {
+export const KhmerHideToggleIcon = memo(function KhmerHideToggleIcon({
+  className,
+  isEnabled,
+}: KhmerHideToggleIconProps) {
   const Icon = isEnabled ? RiEyeOffFill : RiEyeFill
 
   return (

@@ -140,12 +140,14 @@ export const EditableHtmlField = memo(
 
         {initialValue && (
           <RenderHtmlColorized
+            dictionaryMode_lonelyWordShouldBeSpilt={false}
             hideBrokenImages_enable={false}
             html={initialValue}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
             isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
             isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+            pronunciationSource={undefined}
           />
         )}
       </div>

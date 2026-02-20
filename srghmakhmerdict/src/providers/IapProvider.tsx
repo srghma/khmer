@@ -31,7 +31,7 @@ export function useIap() {
   return context
 }
 
-export const IapProvider = memo(({ children }: { children: React.ReactNode }) => {
+export const IapProvider = memo(function IapProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isPurchasing, setIsPurchasing] = useState(false)

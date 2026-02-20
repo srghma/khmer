@@ -19,6 +19,7 @@ export const useSmartTargetLanguage = (text: string, initialTarget: ToTranslateL
     // If text is cleared, reset the manual override flag
     if (!trimmed) {
       setIsManualOverride(false)
+
       return
     }
 

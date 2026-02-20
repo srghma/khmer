@@ -22,6 +22,7 @@ interface FirstNonEmptyShortDetailViewProps {
   selectedText: NonEmptyStringTrimmed
   mode: DictionaryLanguage
   colorizationMode: ColorizationMode
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
 }
 
 export const Loading = (
@@ -32,7 +33,12 @@ export const Loading = (
 )
 
 export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailViewProps> = React.memo(
-  ({ selectedText, mode, colorizationMode }) => {
+  function FirstNonEmptyShortDetailView({
+    selectedText,
+    mode,
+    colorizationMode,
+    dictionaryMode_lonelyWordShouldBeSpilt,
+  }) {
     const { km_map, en, ru } = useDictionary()
 
     const fallback = useMemo(() => {
@@ -127,10 +133,10 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
       if (!truncated) return null
       if (!km_map || !isContainsKhmer(truncated)) return { __html: truncated }
 
-      const colorized = colorizeHtml(truncated, colorizationMode, km_map)
+      const colorized = colorizeHtml(truncated, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
 
       return { __html: colorized }
-    }, [rawContent, colorizationMode, km_map])
+    }, [rawContent, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt])
 
     // 3. Handle Discriminated Union States
     if (res.t === 'loading') return Loading

@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { Card, CardBody, CardHeader } from '@heroui/react'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 
-export const AnkiGeneralSettings = memo(() => {
+export const AnkiGeneralSettings = memo(function AnkiGeneralSettings() {
   const { LL } = useI18nContext()
 
   return (

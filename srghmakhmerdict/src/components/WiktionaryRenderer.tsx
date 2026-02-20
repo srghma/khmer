@@ -15,7 +15,11 @@ import { useDictionary } from '../providers/DictionaryProvider'
 
 import { processHtmlForPronunciationHiding } from '../utils/text-processing/pronunciation'
 
-export const useWiktionaryContent = (html: NonEmptyStringTrimmed, isKhmerPronunciationHidingEnabled: boolean) => {
+export const useWiktionaryContent = (
+  html: NonEmptyStringTrimmed,
+  isKhmerPronunciationHidingEnabled: boolean,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
+) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
 
@@ -26,8 +30,10 @@ export const useWiktionaryContent = (html: NonEmptyStringTrimmed, isKhmerPronunc
       'wiktionary',
     )
 
-    return { __html: colorizeHtml(html_withPronunciations, maybeColorMode, km_map) }
-  }, [html, maybeColorMode, km_map, isKhmerPronunciationHidingEnabled])
+    return {
+      __html: colorizeHtml(html_withPronunciations, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt),
+    }
+  }, [html, maybeColorMode, km_map, isKhmerPronunciationHidingEnabled, dictionaryMode_lonelyWordShouldBeSpilt])
 }
 
 const useWikiLinkHandler = (
@@ -134,6 +140,7 @@ interface WiktionaryRendererProps {
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
 }
 
 export const WiktionaryRenderer = ({
@@ -144,11 +151,12 @@ export const WiktionaryRenderer = ({
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
   isKhmerPronunciationHidingEnabled,
+  dictionaryMode_lonelyWordShouldBeSpilt,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // 1. Process HTML (Colorization)
-  const content = useWiktionaryContent(html, isKhmerPronunciationHidingEnabled)
+  const content = useWiktionaryContent(html, isKhmerPronunciationHidingEnabled, dictionaryMode_lonelyWordShouldBeSpilt)
 
   const toast = useAppToast()
 

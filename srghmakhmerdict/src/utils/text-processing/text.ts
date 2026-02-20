@@ -67,11 +67,16 @@ export const segmentsToUniqueKhmerWords = (
 
 /**
  * GENERATOR: Yields segments one by one.
+ *
+ *
+ * if we are in "khmer analyzer" - user provides sentences, e.g. "latin khmer1khmer2 latin" - dictionaryMode_lonelyWordShouldBeSpilt should be false
+ * if we are rendering header - it can be "khmer1" or "khmer1khmer2" or "khmer1khmer2 latin"
  */
 export function* yieldTextSegments(
   text: NonEmptyString,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): Generator<TextSegment> {
   // Capture Khmer blocks
   const rawParts = text.split(/(\p{Script=Khmer}+)/u)
@@ -83,7 +88,12 @@ export function* yieldTextSegments(
       const match = part as TypedKhmerWord
       const words =
         mode === 'dictionary'
-          ? khmerSentenceToWords_usingDictionary(match, (s: TypedKhmerWord) => s !== match && km_map.has(s))
+          ? khmerSentenceToWords_usingDictionary(
+              match,
+              dictionaryMode_lonelyWordShouldBeSpilt
+                ? (s: TypedKhmerWord) => s !== match && km_map.has(s)
+                : (s: TypedKhmerWord) => km_map.has(s),
+            )
           : khmerSentenceToWords_usingSegmenter(match)
 
       yield { t: 'khmer', words }
@@ -138,13 +148,16 @@ export const generateTextSegments = (
   text: NonEmptyString, // Accept full string (not pre-trimmed)
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): NonEmptyArray<TextSegment> => {
   if (HTML_DETECTION_REGEX.test(text)) {
     throw new Error(`Invalid input: HTML detected.`)
   }
   const safeText = escapeHtml(text)
 
-  return Array_toNonEmptyArray_orThrow([...yieldTextSegments(safeText, mode, km_map)])
+  return Array_toNonEmptyArray_orThrow([
+    ...yieldTextSegments(safeText, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt),
+  ])
 }
 
 export const colorizeSegments_usingWordCounterRef = (
@@ -174,8 +187,9 @@ export const colorizeText = (
   text: NonEmptyStringTrimmed,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): NonEmptyString => {
-  const segments = yieldTextSegments(escapeHtml(text), mode, km_map)
+  const segments = yieldTextSegments(escapeHtml(text), mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
 
   return colorizeSegments(segments, km_map, mode)
 }
@@ -184,6 +198,7 @@ export const colorizeText_allowUndefined = (
   text: NonEmptyStringTrimmed | undefined,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): NonEmptyString | undefined => {
-  return text ? colorizeText(text, mode, km_map) : undefined
+  return text ? colorizeText(text, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt) : undefined
 }

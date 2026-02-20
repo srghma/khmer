@@ -8,7 +8,7 @@ import { herouiSharedSelection_getFirst_string } from '../utils/herouiSharedSele
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { tab_title_ru } from './SidebarHeader'
 
-export const LanguageSelector = memo(() => {
+export const LanguageSelector = memo(function LanguageSelector() {
   const { LL, isLocaleLoading } = useI18nContext()
   const { location, setLocation } = useSettings()
 

@@ -16,7 +16,7 @@ const isAutoReadMode = (key: string): key is AutoReadMode => {
   return ['disabled', 'google_then_native', 'google_only', 'native_only'].includes(key)
 }
 
-export const AutoReadAction = memo(() => {
+export const AutoReadAction = memo(function AutoReadAction() {
   const { LL } = useI18nContext()
   const { autoReadMode, setAutoReadMode } = useSettings()
 

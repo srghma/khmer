@@ -21,7 +21,7 @@ const CompositeIcon = (
   </>
 )
 
-export const GoogleSpeakerIcon = React.memo((props: GoogleTtsState & { className?: string }) => {
+export const GoogleSpeakerIcon = React.memo(function GoogleSpeakerIcon(props: GoogleTtsState & { className?: string }) {
   const isOffline = props.t === 'offline'
   const isDisabled = props.t === 'disabled'
   const isSpeaking = props.t === 'online_and_speaking'

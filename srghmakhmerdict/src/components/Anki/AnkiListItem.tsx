@@ -47,12 +47,14 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
       case 'km:GUESSING_NON_KHMER': {
         return (
           <RenderHtmlColorized
+            dictionaryMode_lonelyWordShouldBeSpilt={true}
             hideBrokenImages_enable={false}
             html={v}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
+            pronunciationSource={undefined}
           />
         )
       }
@@ -69,12 +71,14 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
 
         return (
           <RenderHtmlColorized
+            dictionaryMode_lonelyWordShouldBeSpilt={false}
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
+            pronunciationSource={undefined}
           />
         )
       }
@@ -86,12 +90,14 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
 
         return (
           <RenderHtmlColorized
+            dictionaryMode_lonelyWordShouldBeSpilt={false}
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
+            pronunciationSource={undefined}
           />
         )
       }
@@ -103,12 +109,14 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
 
         return (
           <RenderHtmlColorized
+            dictionaryMode_lonelyWordShouldBeSpilt={false}
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
             isKhmerWordsHidingEnabled={false}
             isNonKhmerWordsHidingEnabled={false}
+            pronunciationSource={undefined}
           />
         )
       }

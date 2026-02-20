@@ -51,7 +51,7 @@ interface AnkiRevealButtonProps {
   onReveal: () => void
 }
 
-export const AnkiRevealButton = React.memo(({ disabled, onReveal }: AnkiRevealButtonProps) => {
+export const AnkiRevealButton = React.memo(function AnkiRevealButton({ disabled, onReveal }: AnkiRevealButtonProps) {
   const { LL } = useI18nContext()
 
   return (
@@ -75,7 +75,7 @@ interface AnkiRatingButtonsProps {
   onRate: (rating: Grade) => void
 }
 
-export const AnkiRatingButtons = React.memo(({ buttons, onRate }: AnkiRatingButtonsProps) => {
+export const AnkiRatingButtons = React.memo(function AnkiRatingButtons({ buttons, onRate }: AnkiRatingButtonsProps) {
   const { LL } = useI18nContext()
   const ratings = useMemo(() => getRatings(LL), [LL])
 

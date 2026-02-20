@@ -28,7 +28,7 @@ interface LanguageSelectorProps {
   onSelect: (lang: ToTranslateLanguage) => void
 }
 
-export const LanguageSelector = memo(({ targetLang, onSelect }: LanguageSelectorProps) => {
+export const LanguageSelector = memo(function LanguageSelector({ targetLang, onSelect }: LanguageSelectorProps) {
   const selectedKeys = useMemo(() => new Set([targetLang]), [targetLang])
 
   // Sort languages to put Khmer (km) first
@@ -83,15 +83,21 @@ interface ResultDisplayProps {
   result: TranslateResultSuccess
   targetLang: ToTranslateLanguage
   maybeColorMode: MaybeColorizationMode
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean
 }
 
-export const ResultDisplay = memo(({ result, targetLang, maybeColorMode }: ResultDisplayProps) => {
+export const ResultDisplay = memo(function ResultDisplay({
+  result,
+  targetLang,
+  maybeColorMode,
+  dictionaryMode_lonelyWordShouldBeSpilt,
+}: ResultDisplayProps) {
   const { km_map } = useDictionary()
   const resultHtml = useMemo(() => {
     if (!result.text) return undefined
 
-    return { __html: colorizeHtml(result.text, maybeColorMode, km_map) }
-  }, [result.text, maybeColorMode, km_map])
+    return { __html: colorizeHtml(result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt) }
+  }, [result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt])
 
   return (
     <div className="bg-default-100/50 border border-default-200 rounded-medium p-3 animate-in fade-in duration-200 block">

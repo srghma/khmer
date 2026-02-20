@@ -20,7 +20,10 @@ interface HistoryListOnlyProps {
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }
 
-export const HistoryListOnly = React.memo(({ maybeColorMode, onNavigate }: HistoryListOnlyProps) => {
+export const HistoryListOnly = React.memo(function HistoryListOnly({
+  maybeColorMode,
+  onNavigate,
+}: HistoryListOnlyProps) {
   const { LL } = useI18nContext()
   const { history: items, loading, removeHistoryItem, deleteAllHistory } = useHistory()
   const { handleDelete, handleClearAll } = useListLogic(removeHistoryItem, deleteAllHistory)

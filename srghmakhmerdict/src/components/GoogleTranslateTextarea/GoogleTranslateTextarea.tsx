@@ -70,8 +70,8 @@ const GoogleTranslateToolbar = memo(function GoogleTranslateToolbar({
         <ButtonGroup className="shadow-sm" color="primary" size="sm" variant="flat">
           <Button
             className="font-bold px-4"
-            isLoading={loading}
             isDisabled={translateButtonIsDisabled}
+            isLoading={loading}
             startContent={!loading && <HiTranslate className="text-lg" />}
             onPress={onTranslate}
           >
@@ -113,7 +113,12 @@ const GoogleTranslateBottomContent = memo(
     return (
       <div className="flex flex-col gap-3 pt-4 border-t border-divider mt-2">
         <div className="text-tiny font-bold text-default-400 uppercase tracking-widest px-1">Translation</div>
-        <ResultDisplay maybeColorMode={maybeColorMode} result={state.result} targetLang={targetLang} />
+        <ResultDisplay
+          dictionaryMode_lonelyWordShouldBeSpilt={false}
+          maybeColorMode={maybeColorMode}
+          result={state.result}
+          targetLang={targetLang}
+        />
       </div>
     )
   },

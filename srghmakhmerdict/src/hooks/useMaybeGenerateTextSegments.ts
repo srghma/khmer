@@ -9,10 +9,11 @@ export const useMaybeGenerateTextSegments = (
   text: TypedContainsKhmer | undefined,
   colorMode: ColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): NonEmptyArray<TextSegment> | undefined => {
   return useMemo(() => {
     if (!text) return undefined
 
-    return generateTextSegments(text, colorMode, km_map)
-  }, [text, km_map, colorMode])
+    return generateTextSegments(text, colorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
+  }, [text, km_map, colorMode, dictionaryMode_lonelyWordShouldBeSpilt])
 }

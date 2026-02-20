@@ -115,7 +115,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     if (matches.size === 0) return undefined
 
     return Set_mapToArray(matches, word => ({
-      colorizedHtml: colorizeText(word, maybeColorMode, km_map),
+      colorizedHtml: colorizeText(word, maybeColorMode, km_map, false),
       word,
     }))
   }, [km_map_value.ru_translit, km_map, khmerText, maybeColorMode])
@@ -137,7 +137,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     if (matches.size === 0) return undefined
 
     return Set_mapToArray(matches, word => ({
-      colorizedHtml: colorizeText(word, maybeColorMode, km_map),
+      colorizedHtml: colorizeText(word, maybeColorMode, km_map, false),
       word,
     }))
   }, [km_map_value.en_translit, km_map_value.ru_translit, km_map, khmerText, maybeColorMode])

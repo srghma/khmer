@@ -42,7 +42,13 @@ const getLangHint = (tab: AppTab): DictionaryLanguage => {
   }
 }
 
-export const SearchBar = memo(({ onSearch, searchMode, count, initialValue, activeTab }: SearchBarProps) => {
+export const SearchBar = memo(function SearchBar({
+  onSearch,
+  searchMode,
+  count,
+  initialValue,
+  activeTab,
+}: SearchBarProps) {
   const { LL } = useI18nContext()
   const [localValue, setLocalValue] = useState<string>(initialValue ?? '')
 

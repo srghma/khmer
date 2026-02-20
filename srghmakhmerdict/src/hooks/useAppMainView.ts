@@ -56,6 +56,7 @@ export const useAppMainView = () => {
       // Safe parsing of Language
       const modeStr = detailListMatch[2] ?? ''
       const mode = stringToDictionaryLanguageOrUndefined(modeStr)
+
       if (!mode) {
         // Fallback if language code is invalid
         return { type: 'dashboard', mode: 'en' }

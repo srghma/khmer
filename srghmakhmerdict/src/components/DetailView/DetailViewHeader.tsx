@@ -16,7 +16,7 @@ interface DetailViewBackButtonProps {
   // desktopOnlyStyles_showButton: boolean
 }
 
-export const DetailViewBackButton = React.memo(({ onPress }: DetailViewBackButtonProps) => {
+export const DetailViewBackButton = React.memo(function DetailViewBackButton({ onPress }: DetailViewBackButtonProps) {
   return (
     <Button isIconOnly className={`mr-1 text-default-500 -ml-2 md:hidden shrink-0`} variant="light" onPress={onPress}>
       <HiArrowLeft className="w-6 h-6" />

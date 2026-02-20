@@ -39,7 +39,7 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
 
       if (!k) return undefined
 
-      return generateTextSegments(k, 'segmenter', km_map)
+      return generateTextSegments(k, 'segmenter', km_map, false)
     }, [selectedText, km_map])
 
     const resolvedMode = useMemo(() => detectModeFromText(selectedText) ?? currentMode, [selectedText, currentMode])
@@ -49,7 +49,12 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
         <div className="flex flex-col p-1 w-full min-w-[240px] gap-0.5">
           {/* 1. Search Item */}
           <MenuButton icon={HiMagnifyingGlass_} onClick={onClosePopupAndOpenSearch}>
-            <FirstNonEmptyShortDetailView colorizationMode="segmenter" mode={currentMode} selectedText={selectedText} />
+            <FirstNonEmptyShortDetailView
+              colorizationMode="segmenter"
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
+              mode={currentMode}
+              selectedText={selectedText}
+            />
           </MenuButton>
 
           {/* 2. Native Speak - Now using Global Hook Component */}

@@ -18,7 +18,7 @@ export const ChevronIcon = React.memo(() => (
 ))
 ChevronIcon.displayName = 'ChevronIcon'
 
-export const LoadingState = React.memo(() => {
+export const LoadingState = React.memo(function LoadingState() {
   const { LL } = useI18nContext()
 
   return (
@@ -29,7 +29,7 @@ export const LoadingState = React.memo(() => {
 })
 LoadingState.displayName = 'LoadingState'
 
-export const EmptyState = React.memo(({ type }: { type: 'history' | 'favorites' }) => {
+export const EmptyState = React.memo(function EmptyState({ type }: { type: 'history' | 'favorites' }) {
   const { LL } = useI18nContext()
 
   return (

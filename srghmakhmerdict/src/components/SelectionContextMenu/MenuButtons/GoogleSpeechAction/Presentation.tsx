@@ -3,7 +3,9 @@ import { GoogleSpeakerIcon } from '../../../Icons/GoogleSpeakerIcon'
 import { type GoogleTtsState } from '../../../../hooks/useGoogleTts'
 import { MenuButton } from '../../MenuButton' // Assuming you extract MenuButton
 
-export const GoogleSpeechActionPresentation = memo((state: GoogleTtsState & { isDisabled: boolean }) => {
+export const GoogleSpeechActionPresentation = memo(function GoogleSpeechActionPresentation(
+  state: GoogleTtsState & { isDisabled: boolean },
+) {
   const isOffline = state.t === 'offline'
   const handlePress = state.t === 'online' ? state.speak : undefined
 

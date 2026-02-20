@@ -5,7 +5,9 @@ import { GoogleSpeakerIcon } from '../../../Icons/GoogleSpeakerIcon'
 import { type GoogleTtsState } from '../../../../hooks/useGoogleTts'
 import { useI18nContext } from '../../../../i18n/i18n-react-custom'
 
-export const GoogleSpeechActionPresentation = memo((state: GoogleTtsState & { isDisabled: boolean }) => {
+export const GoogleSpeechActionPresentation = memo(function GoogleSpeechActionPresentation(
+  state: GoogleTtsState & { isDisabled: boolean },
+) {
   const { LL } = useI18nContext()
   const isOffline = state.t === 'offline'
   const isSpeaking = state.t === 'online_and_speaking'

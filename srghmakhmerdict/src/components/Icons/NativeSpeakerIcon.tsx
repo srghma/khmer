@@ -8,7 +8,10 @@ interface NativeSpeakerIconProps {
   className?: string
 }
 
-export const NativeSpeakerIcon = React.memo(({ isSpeaking, className }: NativeSpeakerIconProps) => {
+export const NativeSpeakerIcon = React.memo(function NativeSpeakerIcon({
+  isSpeaking,
+  className,
+}: NativeSpeakerIconProps) {
   return (
     <div
       className={clsx(

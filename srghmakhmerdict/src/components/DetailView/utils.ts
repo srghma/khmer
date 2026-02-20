@@ -11,8 +11,11 @@ export const colorizeHtml_nonEmptyArray = (
   items: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
   colorMode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
+  dictionaryMode_lonelyWordShouldBeSpilt: boolean,
 ): NonEmptyArray<NonEmptyStringTrimmed> | undefined => {
   if (!items) return undefined
 
-  return Array_toNonEmptyArray_orThrow(items.map(item => colorizeHtml(item, colorMode, km_map)))
+  return Array_toNonEmptyArray_orThrow(
+    items.map(item => colorizeHtml(item, colorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)),
+  )
 }

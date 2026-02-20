@@ -11,7 +11,7 @@ interface KhmerDiffProps {
 
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 
-export const KhmerDiff = React.memo(({ inDictExpected, userProvider, className }: KhmerDiffProps) => {
+export const KhmerDiff = React.memo(function KhmerDiff({ inDictExpected, userProvider, className }: KhmerDiffProps) {
   const { LL } = useI18nContext()
   const diffs = useMemo(() => {
     // diffChars(oldValue, newValue)

@@ -9,7 +9,7 @@ interface NativeSpeechActionProps {
   mode: BCP47LanguageTagName
 }
 
-export const NativeSpeechAction = memo(({ word, mode }: NativeSpeechActionProps) => {
+export const NativeSpeechAction = memo(function NativeSpeechAction({ word, mode }: NativeSpeechActionProps) {
   const isDisabled = !word
 
   return <NativeSpeechActionPresentation {...useNativeTts(word, mode)} isDisabled={isDisabled} />

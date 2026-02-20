@@ -15,7 +15,7 @@ const TextareaClassNames = {
   label: 'font-bold text-default-700 mb-2',
 }
 
-export const AnkiExport = memo(() => {
+export const AnkiExport = memo(function AnkiExport() {
   const [output, setOutput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { LL } = useI18nContext()

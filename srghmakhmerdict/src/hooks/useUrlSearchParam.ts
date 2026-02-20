@@ -18,12 +18,14 @@ export const useUrlSearchParam = (paramKey: string) => {
   useEffect(() => {
     const handlePopState = () => {
       const newValue = getUrlSearchParam(paramKey) ?? ''
+
       if (newValue !== value) {
         setValue(newValue)
       }
     }
 
     window.addEventListener('popstate', handlePopState)
+
     return () => window.removeEventListener('popstate', handlePopState)
   }, [paramKey, value])
 

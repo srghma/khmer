@@ -131,9 +131,11 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
+
       return
     }
     const targetUrl = makeKhmerAnalyzerUrl(debouncedText)
+
     setLocation(targetUrl, { replace: true })
   }, [debouncedText, setLocation])
 
@@ -141,11 +143,14 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   useEffect(() => {
     const handlePopState = () => {
       const urlText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? ''
+
       if (urlText !== text) {
         setText(urlText)
       }
     }
+
     window.addEventListener('popstate', handlePopState)
+
     return () => window.removeEventListener('popstate', handlePopState)
   }, [text])
 

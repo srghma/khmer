@@ -126,8 +126,8 @@ export async function translateBulk({
     return results
   } finally {
     pool.releasePage(page)
-    console.log('trying to close')
-    await pagePool.close()
-    console.log('trying to close success')
+    // console.log('trying to close')
+    // await pagePool.close()
+    // console.log('trying to close success')
   }
 }

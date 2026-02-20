@@ -69,8 +69,8 @@ export const useKhmerAnalysis = (
     }
 
     // 1. Generate segment arrays (needed for the UI)
-    const segmentsIntlRaw = generateTextSegments(analyzedText_withKhmer, 'segmenter', km_map)
-    const segmentsDictRaw = generateTextSegments(analyzedText_withKhmer, 'dictionary', km_map)
+    const segmentsIntlRaw = generateTextSegments(analyzedText_withKhmer, 'segmenter', km_map, false)
+    const segmentsDictRaw = generateTextSegments(analyzedText_withKhmer, 'dictionary', km_map, false)
 
     // 2. Use generators to extract and merge unique words into one Set in a single pass
     // This replaces: union(extract(arr1), extract(arr2))

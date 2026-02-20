@@ -81,12 +81,14 @@ export const DetailSections = React.memo(
           <div className="mb-1">
             <SectionTitle>{LL.DETAIL.SECTION.DEFINITION()}</SectionTitle>
             <RenderHtmlColorized
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               hideBrokenImages_enable={true}
               html={desc}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+              pronunciationSource={undefined}
             />
           </div>
         )}
@@ -95,6 +97,7 @@ export const DetailSections = React.memo(
           <div className="mb-1">
             <SectionTitle>{LL.DETAIL.SECTION.EN_KM()}</SectionTitle>
             <EnKmHtmlRenderer
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               html={en_km_com}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
@@ -110,11 +113,13 @@ export const DetailSections = React.memo(
             {from_csv_variants && (
               <div className="mb-1">
                 <CsvListRendererColorized
+                  dictionaryMode_lonelyWordShouldBeSpilt={false}
                   isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                   isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   items={from_csv_variants}
+                  pronunciationSource={undefined}
                 />
               </div>
             )}
@@ -126,11 +131,13 @@ export const DetailSections = React.memo(
                   </span>
                 </div>
                 <CsvListRendererColorized
+                  dictionaryMode_lonelyWordShouldBeSpilt={false}
                   isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                   isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   items={from_csv_noun_forms}
+                  pronunciationSource={undefined}
                 />
               </>
             )}
@@ -148,12 +155,14 @@ export const DetailSections = React.memo(
               </>
             )}
             <RenderHtmlColorized
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               hideBrokenImages_enable={false}
               html={from_csv_raw_html}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+              pronunciationSource={undefined}
             />
           </div>
         )}
@@ -163,6 +172,7 @@ export const DetailSections = React.memo(
             <SectionTitle>{LL.DETAIL.SECTION.WIKTIONARY()}</SectionTitle>
             <WiktionaryRenderer
               currentMode={mode}
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               html={wiktionary}
               isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled_ifTrue_passOnNavigate}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
@@ -177,6 +187,7 @@ export const DetailSections = React.memo(
           <div className="mb-1">
             <SectionTitle>{LL.DETAIL.SECTION.RU_WIKI()}</SectionTitle>
             <FromRussianWikiRenderer
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               html={from_russian_wiki}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
@@ -190,6 +201,7 @@ export const DetailSections = React.memo(
           <div className="mb-1">
             <SectionTitle>{LL.DETAIL.SECTION.GORGONIEV()}</SectionTitle>
             <GorgonievRenderer
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               html={gorgoniev}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
@@ -203,22 +215,26 @@ export const DetailSections = React.memo(
           <div className="mb-1">
             <SectionTitle>{LL.DETAIL.SECTION.CHUON_NATH()}</SectionTitle>
             <RenderHtmlColorized
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               hideBrokenImages_enable={false}
               html={from_chuon_nath}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+              pronunciationSource={undefined}
             />
             {from_chuon_nath_translated && (
               <div className="mt-3 pt-3 border-t border-divider">
                 <RenderHtmlColorized
+                  dictionaryMode_lonelyWordShouldBeSpilt={false}
                   hideBrokenImages_enable={false}
                   html={from_chuon_nath_translated}
                   isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                   isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+                  pronunciationSource={undefined}
                 />
               </div>
             )}
@@ -229,12 +245,14 @@ export const DetailSections = React.memo(
           <div className="mb-1">
             <SectionTitle>{LL.DETAIL.SECTION.DEFINITION_EN()}</SectionTitle>
             <RenderHtmlColorized
+              dictionaryMode_lonelyWordShouldBeSpilt={false}
               hideBrokenImages_enable={true}
               html={desc_en_only}
               isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
               isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
               isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
               isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+              pronunciationSource={undefined}
             />
           </div>
         )}

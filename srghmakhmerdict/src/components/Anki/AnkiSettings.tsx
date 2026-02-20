@@ -5,7 +5,7 @@ import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { useAnkiNavigation } from './useAnkiNavigation'
 import { useAnkiRoute } from './useAnkiRoute'
 
-export const AnkiSettingsMenu = memo(() => {
+export const AnkiSettingsMenu = memo(function AnkiSettingsMenu() {
   const { LL } = useI18nContext()
   const { navigateToImport, navigateToExport } = useAnkiNavigation()
   const route = useAnkiRoute()

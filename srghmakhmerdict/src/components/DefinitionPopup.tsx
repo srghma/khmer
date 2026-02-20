@@ -6,7 +6,7 @@ interface DefinitionPopupProps {
   definitionHtml: string
 }
 
-export const DefinitionPopup = React.memo(({ definitionHtml }: DefinitionPopupProps) => {
+export const DefinitionPopup = React.memo(function DefinitionPopup({ definitionHtml }: DefinitionPopupProps) {
   const { LL } = useI18nContext()
   const dangerouslySetInnerHTML = useMemo(() => ({ __html: definitionHtml }), [definitionHtml])
 

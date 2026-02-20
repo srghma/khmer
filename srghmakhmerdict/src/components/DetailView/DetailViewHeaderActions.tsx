@@ -37,7 +37,10 @@ export interface KhmerWordsHidingActionProps {
   onToggle: () => void
 }
 
-export const KhmerWordsHidingAction = memo(({ isEnabled, onToggle }: KhmerWordsHidingActionProps) => {
+export const KhmerWordsHidingAction = memo(function KhmerWordsHidingAction({
+  isEnabled,
+  onToggle,
+}: KhmerWordsHidingActionProps) {
   const { LL } = useI18nContext()
 
   return (
@@ -64,7 +67,10 @@ export interface NonKhmerWordsHidingActionProps {
   onToggle: () => void
 }
 
-export const NonKhmerWordsHidingAction = memo(({ isEnabled, onToggle }: NonKhmerWordsHidingActionProps) => {
+export const NonKhmerWordsHidingAction = memo(function NonKhmerWordsHidingAction({
+  isEnabled,
+  onToggle,
+}: NonKhmerWordsHidingActionProps) {
   const { LL } = useI18nContext()
 
   return (
@@ -92,7 +98,11 @@ export interface KhmerLinksActionProps {
   onToggle: () => void
 }
 
-export const KhmerLinksAction = memo(({ isEnabled, isDisabled, onToggle }: KhmerLinksActionProps) => {
+export const KhmerLinksAction = memo(function KhmerLinksAction({
+  isEnabled,
+  isDisabled,
+  onToggle,
+}: KhmerLinksActionProps) {
   const { LL } = useI18nContext()
 
   return (
@@ -124,7 +134,7 @@ export interface KhmerFontActionProps {
   onChange: (v: KhmerFontName) => void
 }
 
-export const KhmerFontAction = memo(({ khmerFontName, onChange }: KhmerFontActionProps) => {
+export const KhmerFontAction = memo(function KhmerFontAction({ khmerFontName, onChange }: KhmerFontActionProps) {
   const { LL } = useI18nContext()
   const selectedKeys = useMemo(() => [khmerFontName], [khmerFontName])
 
@@ -178,7 +188,7 @@ export interface ColorizationActionProps {
   onChange: (v: MaybeColorizationMode) => void
 }
 
-export const ColorizationAction = memo(({ colorMode, onChange }: ColorizationActionProps) => {
+export const ColorizationAction = memo(function ColorizationAction({ colorMode, onChange }: ColorizationActionProps) {
   const { LL } = useI18nContext()
   const selectedKeys = useMemo(() => [colorMode], [colorMode])
 
@@ -254,7 +264,10 @@ export interface AutoFocusAnswerActionProps {
   onToggle: () => void
 }
 
-export const AutoFocusAnswerAction = memo(({ isEnabled, onToggle }: AutoFocusAnswerActionProps) => {
+export const AutoFocusAnswerAction = memo(function AutoFocusAnswerAction({
+  isEnabled,
+  onToggle,
+}: AutoFocusAnswerActionProps) {
   const { LL } = useI18nContext()
 
   return (
@@ -481,7 +494,7 @@ const DetailViewActionsAnkiBack = memo((props: DetailViewActionsProps_AnkiGame_B
 
 DetailViewActionsAnkiBack.displayName = 'DetailViewActionsAnkiBack'
 
-export const DetailViewActions = memo((props: DetailViewActionsProps) => {
+export const DetailViewActions = memo(function DetailViewActions(props: DetailViewActionsProps) {
   switch (props.type) {
     case 'sentence_analyzer':
       return <DetailViewActionsSentenceAnalyzer {...props} />
