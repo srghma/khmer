@@ -48,6 +48,8 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
     khmerAnalyzerEnabledSegmenters,
     isShowShortDetailAboutKhmerWordEnabled,
     toggleShowShortDetailAboutKhmerWord,
+    khmerAnalyzerSegmentationEnabled,
+    khmerAnalyzerCharacterAnalysisEnabled,
   } = useSettings()
 
   const res = useKhmerAnalysis(debouncedText, mode, khmerAnalyzerEnabledSegmenters)
@@ -113,8 +115,10 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
         />
 
         <KhmerAnalysisResults
+          isCharacterAnalysisEnabled={khmerAnalyzerCharacterAnalysisEnabled}
           isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
           isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+          isSegmentationEnabled={khmerAnalyzerSegmentationEnabled}
           isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
           res={res}
           onKhmerWordClick={handleKhmerWordClick}

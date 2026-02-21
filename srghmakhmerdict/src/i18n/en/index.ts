@@ -102,6 +102,8 @@ const en = {
     APP_DICT: 'App Dictionary',
     BOTH: 'Both',
     MARKDOWN_LABEL: 'Markdown',
+    SEGMENTATION_LABEL: 'Segmentation',
+    CHARACTER_ANALYSIS_LABEL: 'Char Analysis',
   },
   ANKI: {
     NO_FAVORITES: 'Favorites is empty. Add words to favorites to start learning.',

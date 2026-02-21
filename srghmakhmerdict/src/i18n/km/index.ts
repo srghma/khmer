@@ -100,6 +100,8 @@ const km = {
     APP_DICT: 'វចនានុក្រមកម្មវិធី',
     BOTH: 'ទាំងពីរ',
     MARKDOWN_LABEL: 'Markdown',
+    SEGMENTATION_LABEL: 'ការបំបែក',
+    CHARACTER_ANALYSIS_LABEL: 'វិភាគតួអក្សរ',
   },
   ANKI: {
     NO_FAVORITES: 'ចំណូលចិត្តទទេរ។ បន្ថែមពាក្យទៅចំណូលចិត្តដើម្បីចាប់ផ្តើមរៀន។',

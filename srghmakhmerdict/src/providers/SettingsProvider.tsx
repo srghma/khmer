@@ -161,6 +161,12 @@ export interface SettingsContextType {
   khmerAnalyzerMarkdownEnabled: boolean
   setKhmerAnalyzerMarkdownEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
 
+  khmerAnalyzerSegmentationEnabled: boolean
+  setKhmerAnalyzerSegmentationEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+
+  khmerAnalyzerCharacterAnalysisEnabled: boolean
+  setKhmerAnalyzerCharacterAnalysisEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+
   isShowShortDetailAboutKhmerWordEnabled: boolean
   setIsShowShortDetailAboutKhmerWordEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   toggleShowShortDetailAboutKhmerWord: () => void
@@ -255,6 +261,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     { defaultValue: false },
   )
 
+  const [khmerAnalyzerSegmentationEnabled, setKhmerAnalyzerSegmentationEnabled] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__khmer_analyzer_segmentation_enabled',
+    { defaultValue: true },
+  )
+
+  const [khmerAnalyzerCharacterAnalysisEnabled, setKhmerAnalyzerCharacterAnalysisEnabled] =
+    useLocalStorageState<boolean>('srghmakhmerdict__khmer_analyzer_character_analysis_enabled', {
+      defaultValue: true,
+    })
+
   const [isShowShortDetailAboutKhmerWordEnabled, setIsShowShortDetailAboutKhmerWordEnabled] =
     useLocalStorageState<boolean>('srghmakhmerdict__is_show_short_detail_about_khmer_word_enabled', {
       defaultValue: false,
@@ -319,6 +335,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       khmerAnalyzerMarkdownEnabled: khmerAnalyzerMarkdownEnabled ?? false,
       setKhmerAnalyzerMarkdownEnabled,
 
+      khmerAnalyzerSegmentationEnabled: khmerAnalyzerSegmentationEnabled ?? true,
+      setKhmerAnalyzerSegmentationEnabled,
+
+      khmerAnalyzerCharacterAnalysisEnabled: khmerAnalyzerCharacterAnalysisEnabled ?? true,
+      setKhmerAnalyzerCharacterAnalysisEnabled,
+
       isShowShortDetailAboutKhmerWordEnabled: isShowShortDetailAboutKhmerWordEnabled ?? false,
       setIsShowShortDetailAboutKhmerWordEnabled,
       toggleShowShortDetailAboutKhmerWord,
@@ -361,6 +383,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerAnalyzerEnabledSegmenters,
       khmerAnalyzerMarkdownEnabled,
       setKhmerAnalyzerMarkdownEnabled,
+
+      khmerAnalyzerSegmentationEnabled,
+      setKhmerAnalyzerSegmentationEnabled,
+
+      khmerAnalyzerCharacterAnalysisEnabled,
+      setKhmerAnalyzerCharacterAnalysisEnabled,
 
       isShowShortDetailAboutKhmerWordEnabled,
       setIsShowShortDetailAboutKhmerWordEnabled,

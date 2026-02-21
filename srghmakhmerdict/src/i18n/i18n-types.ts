@@ -335,6 +335,14 @@ type RootTranslation = {
 		 * M​a​r​k​d​o​w​n
 		 */
 		MARKDOWN_LABEL: string
+		/**
+		 * S​e​g​m​e​n​t​a​t​i​o​n
+		 */
+		SEGMENTATION_LABEL: string
+		/**
+		 * C​h​a​r​ ​A​n​a​l​y​s​i​s
+		 */
+		CHARACTER_ANALYSIS_LABEL: string
 	}
 	ANKI: {
 		/**
@@ -1263,6 +1271,14 @@ export type TranslationFunctions = {
 		 * Markdown
 		 */
 		MARKDOWN_LABEL: () => LocalizedString
+		/**
+		 * Segmentation
+		 */
+		SEGMENTATION_LABEL: () => LocalizedString
+		/**
+		 * Char Analysis
+		 */
+		CHARACTER_ANALYSIS_LABEL: () => LocalizedString
 	}
 	ANKI: {
 		/**

@@ -102,6 +102,8 @@ const uk = {
     APP_DICT: 'Словник додатка',
     BOTH: 'Обидва',
     MARKDOWN_LABEL: 'Markdown',
+    SEGMENTATION_LABEL: 'Сегментація',
+    CHARACTER_ANALYSIS_LABEL: 'Аналіз символів',
   },
   ANKI: {
     NO_FAVORITES: 'Обране пусте. Додайте слова в обране, щоб почати навчання.',

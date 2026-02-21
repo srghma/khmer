@@ -102,6 +102,8 @@ const ru = {
     APP_DICT: 'Словарь приложения',
     BOTH: 'Оба',
     MARKDOWN_LABEL: 'Markdown',
+    SEGMENTATION_LABEL: 'Сегментация',
+    CHARACTER_ANALYSIS_LABEL: 'Анализ символов',
   },
   ANKI: {
     NO_FAVORITES: 'Избранное пусто. Добавьте слова в избранное, чтобы начать обучение.',
