@@ -18,7 +18,8 @@ import {
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
 import { type MaybeColorizationMode } from './utils'
 import { renderKhmerWordSpan, renderNonKhmerSpan } from './word-renderer'
-
+import type { ShortDefinition } from '../../db/dict'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import {
   type NonEmptySet,
   Set_toNonEmptySet_orUndefined,
@@ -124,6 +125,8 @@ export function* yieldColorizedChunks(
   km_map: KhmerWordsMap,
   wordCounter: { current: number },
   mode: MaybeColorizationMode,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined,
+  excludeWord?: TypedKhmerWord,
 ): Generator<NonEmptyString> {
   for (const segment of segments) {
     if (segment.t === 'whitespace') {
@@ -137,7 +140,15 @@ export function* yieldColorizedChunks(
     }
 
     for (const w of segment.words) {
-      yield renderKhmerWordSpan(w, wordCounter.current, isWordInKmMap(w, km_map), mode)
+      const shortDef = shortDefinitions?.[w]
+      const extraInfo = shortDef
+        ? {
+            ipa: (shortDef as any).wiktionary_ipa_or_from_csv_pronunciations || undefined,
+            def: shortDef.definition,
+          }
+        : undefined
+
+      yield renderKhmerWordSpan(w, wordCounter.current, isWordInKmMap(w, km_map), mode, extraInfo, excludeWord)
       wordCounter.current++
     }
   }
@@ -166,10 +177,12 @@ export const colorizeSegments_usingWordCounterRef = (
   km_map: KhmerWordsMap,
   wordCounter: { current: number },
   mode: MaybeColorizationMode,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined,
+  excludeWord?: TypedKhmerWord,
 ): NonEmptyString => {
   let result = ''
 
-  for (const chunk of yieldColorizedChunks(segments, km_map, wordCounter, mode)) {
+  for (const chunk of yieldColorizedChunks(segments, km_map, wordCounter, mode, shortDefinitions, excludeWord)) {
     result += chunk
   }
 
@@ -180,8 +193,10 @@ export const colorizeSegments = (
   segments: Iterable<TextSegment>,
   km_map: KhmerWordsMap,
   mode: MaybeColorizationMode,
+  shortDefinitions?: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>,
+  excludeWord?: TypedKhmerWord,
 ): NonEmptyString => {
-  return colorizeSegments_usingWordCounterRef(segments, km_map, { current: 0 }, mode)
+  return colorizeSegments_usingWordCounterRef(segments, km_map, { current: 0 }, mode, shortDefinitions, excludeWord)
 }
 
 export const colorizeText = (
@@ -189,10 +204,12 @@ export const colorizeText = (
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
+  shortDefinitions?: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>,
+  excludeWord?: TypedKhmerWord,
 ): NonEmptyString => {
   const segments = yieldTextSegments(escapeHtml(text), mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
 
-  return colorizeSegments(segments, km_map, mode)
+  return colorizeSegments(segments, km_map, mode, shortDefinitions, excludeWord)
 }
 
 export const colorizeText_allowUndefined = (
@@ -200,6 +217,10 @@ export const colorizeText_allowUndefined = (
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
+  shortDefinitions?: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>,
+  excludeWord?: TypedKhmerWord,
 ): NonEmptyString | undefined => {
-  return text ? colorizeText(text, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt) : undefined
+  return text
+    ? colorizeText(text, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, shortDefinitions, excludeWord)
+    : undefined
 }

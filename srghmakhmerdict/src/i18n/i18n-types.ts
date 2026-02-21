@@ -801,6 +801,14 @@ type RootTranslation = {
 		 * A​d​d​ ​N​o​t​e
 		 */
 		ADD_NOTE: string
+		/**
+		 * H​i​d​e​ ​s​h​o​r​t​ ​d​e​t​a​i​l​s
+		 */
+		HIDE_SHORT_DETAIL: string
+		/**
+		 * S​h​o​w​ ​s​h​o​r​t​ ​d​e​t​a​i​l​s
+		 */
+		SHOW_SHORT_DETAIL: string
 	}
 	AUTOREAD: {
 		/**
@@ -1713,6 +1721,14 @@ export type TranslationFunctions = {
 		 * Add Note
 		 */
 		ADD_NOTE: () => LocalizedString
+		/**
+		 * Hide short details
+		 */
+		HIDE_SHORT_DETAIL: () => LocalizedString
+		/**
+		 * Show short details
+		 */
+		SHOW_SHORT_DETAIL: () => LocalizedString
 	}
 	AUTOREAD: {
 		/**

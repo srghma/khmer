@@ -3,11 +3,13 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { KhmerWordsMap } from '../../db/dict/index'
 import type { DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
-
+import type { ShortDefinition } from '../../db/dict'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 // add a component that tests all 3
-// srghmakhmerdict / src / utils / WordDetailEn_OnlyKhmerAndWithoutHtml.ts
-// srghmakhmerdict / src / utils / WordDetailKm_WithoutKhmerAndHtml.ts
-// srghmakhmerdict / src / utils / WordDetailRu_OnlyKhmerAndWithoutHtml.ts
+// srghmakhmerdict/src/utils/WordDetailEn_OnlyKhmerAndWithoutHtml.ts
+// srghmakhmerdict/src/utils/WordDetailKm_WithoutKhmerAndHtml.ts
+// srghmakhmerdict/src/utils/WordDetailRu_OnlyKhmerAndWithoutHtml.ts
 // it takes DetailSectionsProps and for all 3 if there is a field in a processor that matches the field in props - process and show result. Test this way all 3
 
 export interface DetailSectionsProps {
@@ -32,4 +34,7 @@ export interface DetailSectionsProps {
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  excludeWord?: TypedKhmerWord
 }

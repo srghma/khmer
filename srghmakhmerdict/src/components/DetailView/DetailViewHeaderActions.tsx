@@ -1,5 +1,5 @@
 import { useCallback, useMemo, memo } from 'react'
-import { MdTextFields, MdCenterFocusStrong, MdCenterFocusWeak } from 'react-icons/md'
+import { MdTextFields, MdCenterFocusStrong, MdCenterFocusWeak, MdOutlineSubject } from 'react-icons/md'
 import { IoColorPalette } from 'react-icons/io5'
 import { TbLink, TbLinkOff } from 'react-icons/tb'
 import { GoStarFill, GoStar } from 'react-icons/go'
@@ -296,6 +296,41 @@ export const AutoFocusAnswerAction = memo(function AutoFocusAnswerAction({
 })
 
 AutoFocusAnswerAction.displayName = 'AutoFocusAnswerAction'
+
+/**
+ * 9. SHORT DETAIL TOGGLE
+ */
+export interface ShortDetailAboutKhmerWordActionProps {
+  isEnabled: boolean
+  onToggle: () => void
+}
+
+export const ShortDetailAboutKhmerWordAction = memo(function ShortDetailAboutKhmerWordAction({
+  isEnabled,
+  onToggle,
+}: ShortDetailAboutKhmerWordActionProps) {
+  const { LL } = useI18nContext()
+
+  return (
+    <TooltipMobileFriendly
+      closeDelay={0}
+      content={isEnabled ? LL.ACTIONS.HIDE_SHORT_DETAIL() : LL.ACTIONS.SHOW_SHORT_DETAIL()}
+    >
+      <Button
+        isIconOnly
+        className={isEnabled ? 'text-primary' : 'text-default-500'}
+        radius="full"
+        variant="light"
+        onPress={onToggle}
+      >
+        <MdOutlineSubject className={details_header__text_className} />
+      </Button>
+    </TooltipMobileFriendly>
+  )
+})
+
+ShortDetailAboutKhmerWordAction.displayName = 'ShortDetailAboutKhmerWordAction'
+
 export interface DetailViewActionsProps_Common {
   word_or_sentence: NonEmptyStringTrimmed
   word_or_sentence__language: DictionaryLanguage
@@ -305,6 +340,9 @@ export interface DetailViewActionsProps_Common {
   // Font
   khmerFontName: KhmerFontName
   setKhmerFontName: (v: KhmerFontName) => void
+  // Short Detail
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  toggleShowShortDetailAboutKhmerWord: () => void
 }
 
 export interface DetailViewActionsProps_KnownWord extends DetailViewActionsProps_Common {
@@ -377,6 +415,8 @@ const DetailViewActionsSentenceAnalyzer = memo(function DetailViewActionsSentenc
     setKhmerFontName,
     word_or_sentence,
     word_or_sentence__language,
+    isShowShortDetailAboutKhmerWordEnabled,
+    toggleShowShortDetailAboutKhmerWord,
   } = props
 
   return (
@@ -387,6 +427,10 @@ const DetailViewActionsSentenceAnalyzer = memo(function DetailViewActionsSentenc
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
       <KhmerLinksAction isDisabled={false} isEnabled={isKhmerLinksEnabled} onToggle={toggleKhmerLinks} />
+      <ShortDetailAboutKhmerWordAction
+        isEnabled={isShowShortDetailAboutKhmerWordEnabled}
+        onToggle={toggleShowShortDetailAboutKhmerWord}
+      />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <AutoReadAction />
     </>
@@ -436,6 +480,8 @@ const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(prop
     word_or_sentence__language,
     isFav,
     toggleFav,
+    isShowShortDetailAboutKhmerWordEnabled,
+    toggleShowShortDetailAboutKhmerWord,
   } = props
 
   return (
@@ -454,6 +500,10 @@ const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(prop
         onToggle={toggleKhmerLinks}
       />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
+      <ShortDetailAboutKhmerWordAction
+        isEnabled={isShowShortDetailAboutKhmerWordEnabled}
+        onToggle={toggleShowShortDetailAboutKhmerWord}
+      />
       <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
       <AutoReadAction />
     </>

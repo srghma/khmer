@@ -108,20 +108,6 @@ html {
   /* Base Scaling */
   font-size: calc(1rem * var(--app-scale-factor));
 
-  /* Force dictionary content to inherit scaling */
-  /* Narrowed resets to avoid affecting UI elements like dropdowns */
-  :global(.srghma_khmer_dict_content) :global(.khbat12),
-  :global(.srghma_khmer_dict_content) :global(.text1),
-  :global(.srghma_khmer_dict_content) :global(.text2),
-  :global(.srghma_khmer_dict_content) :global(.text2_b),
-  :global(.srghma_khmer_dict_content) :global(.text3),
-  :global(.srghma_khmer_dict_content) :global(.khmer_list_item),
-  :global(.srghma_khmer_dict_content) :global(table),
-  :global(.srghma_khmer_dict_content) :global(td),
-  :global(.srghma_khmer_dict_content) :global(span) {
-    font-size: inherit !important;
-  }
-
   /* Header Overrides */
   /* h1 {
     font-size: calc(2.25rem * var(--app-scale-factor));

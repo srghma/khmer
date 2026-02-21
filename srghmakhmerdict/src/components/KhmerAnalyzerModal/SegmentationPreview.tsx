@@ -10,6 +10,8 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
+import type { ShortDefinition } from '../../db/dict'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
   <span className="align-top mt-1 inline-block text-foreground/80">{text}</span>
@@ -22,6 +24,7 @@ interface KhmerWordPartProps {
   colorIndex: number
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
   onWordClick: ((v: TypedKhmerWord) => void) | undefined
 }
 
@@ -30,6 +33,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
   colorIndex,
   km_map,
   maybeColorMode,
+  shortDefinitions,
   onWordClick,
 }: KhmerWordPartProps) {
   // Resolve item structure
@@ -61,6 +65,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
       colorIndex={colorIndex}
       colorization={colorization}
       definitionHtml={def}
+      shortDefinition={shortDefinitions?.[w]}
       wiktionaryIpa={wiktionaryIpa}
       word={w}
       onClick={handleClick}
@@ -76,10 +81,11 @@ interface SegmentationPreviewProps {
   segments: NonEmptyArray<TextSegment | TextSegmentEnhanced>
   onKhmerWordClick: ((v: TypedKhmerWord) => void) | undefined
   maybeColorMode: MaybeColorizationMode
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
-  ({ onKhmerWordClick, segments, maybeColorMode }) => {
+  ({ onKhmerWordClick, segments, maybeColorMode, shortDefinitions }) => {
     const { km_map } = useDictionary()
     let globalWordIndex = 0
 
@@ -103,6 +109,7 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
                 item={item}
                 km_map={km_map}
                 maybeColorMode={maybeColorMode}
+                shortDefinitions={shortDefinitions}
                 onWordClick={onKhmerWordClick}
               />
             )

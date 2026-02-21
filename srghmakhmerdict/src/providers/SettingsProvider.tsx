@@ -160,6 +160,10 @@ export interface SettingsContextType {
 
   khmerAnalyzerMarkdownEnabled: boolean
   setKhmerAnalyzerMarkdownEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  setIsShowShortDetailAboutKhmerWordEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
+  toggleShowShortDetailAboutKhmerWord: () => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -251,6 +255,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     { defaultValue: false },
   )
 
+  const [isShowShortDetailAboutKhmerWordEnabled, setIsShowShortDetailAboutKhmerWordEnabled] =
+    useLocalStorageState<boolean>('srghmakhmerdict__is_show_short_detail_about_khmer_word_enabled', {
+      defaultValue: false,
+    })
+
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
@@ -262,6 +271,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const toggleNonKhmerWordsHiding = useCallback(() => {
     setIsNonKhmerWordsHidingEnabled(prev => !prev)
   }, [setIsNonKhmerWordsHidingEnabled])
+
+  const toggleShowShortDetailAboutKhmerWord = useCallback(() => {
+    setIsShowShortDetailAboutKhmerWordEnabled(prev => !prev)
+  }, [setIsShowShortDetailAboutKhmerWordEnabled])
 
   const value = useMemo(
     () => ({
@@ -305,6 +318,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerAnalyzerEnabledSegmenters,
       khmerAnalyzerMarkdownEnabled: khmerAnalyzerMarkdownEnabled ?? false,
       setKhmerAnalyzerMarkdownEnabled,
+
+      isShowShortDetailAboutKhmerWordEnabled: isShowShortDetailAboutKhmerWordEnabled ?? false,
+      setIsShowShortDetailAboutKhmerWordEnabled,
+      toggleShowShortDetailAboutKhmerWord,
     }),
     [
       searchMode,
@@ -344,6 +361,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerAnalyzerEnabledSegmenters,
       khmerAnalyzerMarkdownEnabled,
       setKhmerAnalyzerMarkdownEnabled,
+
+      isShowShortDetailAboutKhmerWordEnabled,
+      setIsShowShortDetailAboutKhmerWordEnabled,
+      toggleShowShortDetailAboutKhmerWord,
     ],
   )
 

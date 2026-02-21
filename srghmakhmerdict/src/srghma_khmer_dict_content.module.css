@@ -298,3 +298,105 @@
   background-color: #064e3b20;
   /* Subtle Green */
 }
+
+/* ========================================= */
+/* SHORT DETAILS ABOUT KHMER WORD            */
+/* ========================================= */
+
+.srghma_khmer_dict_content :global(.ipa),
+.srghma_khmer_dict_content :global(.short-def-preview) {
+  display: none !important;
+}
+
+.show_short_details :global(.khmer-word-with-short-details) {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 2px;
+  vertical-align: top;
+  position: relative;
+}
+
+.show_short_details :global(.ipa),
+.show_short_details :global(.short-def-preview) {
+  display: block !important;
+}
+
+.srghma_khmer_dict_content :global(.ipa) {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+  color: hsl(var(--heroui-foreground) / 0.8);
+  pointer-events: none;
+  font-family: var(--font-inter);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.srghma_khmer_dict_content :global(.ipa) :global(i) {
+  font-style: normal;
+  color: var(--heroui-primary);
+}
+
+.srghma_khmer_dict_content :global(.short-def-preview) {
+  width: 100%;
+  min-width: 60px;
+  max-width: 80px;
+  height: 2.6em;
+  padding: 0 4px;
+  border-radius: 4px;
+  background-color: hsl(var(--heroui-default-200) / 0.6);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  outline: none;
+  transition: opacity 0.25s ease;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+  color: hsl(var(--heroui-foreground) / 0.8);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  border: none;
+  font-family: var(--font-inter);
+  margin-top: 4px;
+}
+
+.srghma_khmer_dict_content :global(.short-def-preview) :global(i) {
+  font-style: normal;
+  color: var(--heroui-primary);
+}
+
+.srghma_khmer_dict_content :global(.short-def-preview):hover {
+  background-color: hsl(var(--heroui-default-300) / 0.6);
+}
+
+.show_short_details :global(.khmer-word-with-short-details) :global(.word) {
+  display: block;
+  line-height: 1.5;
+  /* leading-normal */
+  font-size: 1.125rem;
+  /* text-lg */
+  cursor: text;
+  user-select: text;
+}
+
+/* ========================================= */
+/* Scaling            */
+/* ========================================= */
+/* :global(.scaling-details) .srghma_khmer_dict_content :global(.khbat12),
+:global(.scaling-details) .srghma_khmer_dict_content :global(.text1),
+:global(.scaling-details) .srghma_khmer_dict_content :global(.text2),
+:global(.scaling-details) .srghma_khmer_dict_content :global(.text2_b),
+:global(.scaling-details) .srghma_khmer_dict_content :global(.text3),
+:global(.scaling-details) .srghma_khmer_dict_content :global(.khmer_list_item),
+:global(.scaling-details) .srghma_khmer_dict_content :global(table),
+:global(.scaling-details) .srghma_khmer_dict_content :global(td),
+:global(.scaling-details) .srghma_khmer_dict_content :global(span) {
+  font-size: inherit !important;
+} */

@@ -18,7 +18,6 @@ export type UseKhmerDefinitionsResult =
   | { t: 'request_error'; e: NonEmptyStringTrimmed | undefined }
   | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> }
 
-
 // --- Hook Actions ---
 // Combines Core Actions with Hook-specific lifecycle actions (RESET)
 type HookAction = KhmerDefCoreAction | { type: 'RESET' }

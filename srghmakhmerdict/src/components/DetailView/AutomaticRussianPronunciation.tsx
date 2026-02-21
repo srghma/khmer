@@ -12,6 +12,8 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { colorizeText } from '../../utils/text-processing/text'
 import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import type { ShortDefinition } from '../../db/dict'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 
 interface RussianPronunciationProps {
   khmerText: TypedContainsKhmer
@@ -19,6 +21,8 @@ interface RussianPronunciationProps {
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
   km_map_value: KhmerWordsMapValue
 }
 
@@ -36,6 +40,7 @@ interface SectionProps {
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
+  isShowShortDetailAboutKhmerWordEnabled: boolean
 }
 
 const Section = memo(function Section({
@@ -95,6 +100,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
   isKhmerPronunciationHidingEnabled,
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
+  isShowShortDetailAboutKhmerWordEnabled,
+  shortDefinitions,
   khmerText,
   km_map_value,
   onWordClick,
@@ -115,10 +122,23 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     if (matches.size === 0) return undefined
 
     return Set_mapToArray(matches, word => ({
-      colorizedHtml: colorizeText(word, maybeColorMode, km_map, false),
+      colorizedHtml: colorizeText(
+        word,
+        maybeColorMode,
+        km_map,
+        false,
+        isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
+      ),
       word,
     }))
-  }, [km_map_value.ru_translit, km_map, khmerText, maybeColorMode])
+  }, [
+    km_map_value.ru_translit,
+    km_map,
+    khmerText,
+    maybeColorMode,
+    isShowShortDetailAboutKhmerWordEnabled,
+    shortDefinitions,
+  ])
 
   // 2. Find and Colorize English sounding words
   const colorizedWords_en = useMemo(() => {
@@ -137,16 +157,31 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     if (matches.size === 0) return undefined
 
     return Set_mapToArray(matches, word => ({
-      colorizedHtml: colorizeText(word, maybeColorMode, km_map, false),
+      colorizedHtml: colorizeText(
+        word,
+        maybeColorMode,
+        km_map,
+        false,
+        isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
+      ),
       word,
     }))
-  }, [km_map_value.en_translit, km_map_value.ru_translit, km_map, khmerText, maybeColorMode])
+  }, [
+    km_map_value.en_translit,
+    km_map_value.ru_translit,
+    km_map,
+    khmerText,
+    maybeColorMode,
+    isShowShortDetailAboutKhmerWordEnabled,
+    shortDefinitions,
+  ])
 
   const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
     !!onWordClick,
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
+    isShowShortDetailAboutKhmerWordEnabled,
   )
 
   if (!km_map_value.ru_translit && !km_map_value.en_translit) return null
@@ -157,6 +192,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
+    isShowShortDetailAboutKhmerWordEnabled,
     khmerContentClass,
   }
 

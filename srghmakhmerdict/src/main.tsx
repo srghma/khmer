@@ -12,6 +12,7 @@ import { FavoritesProvider } from './providers/FavoritesProvider'
 import { HistoryProvider } from './providers/HistoryProvider'
 import { I18nAppProvider } from './providers/I18nAppProvider'
 import { IapProvider } from './providers/IapProvider'
+import { ShortDefinitionPopoverProvider } from './providers/ShortDefinitionPopoverProvider'
 import { useHashLocation } from 'wouter/use-hash-location'
 
 import { Router } from 'wouter'
@@ -29,7 +30,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
                 <SettingsProvider>
                   <IapProvider>
                     <I18nAppProvider>
-                      <App />
+                      <ShortDefinitionPopoverProvider>
+                        <App />
+                      </ShortDefinitionPopoverProvider>
                     </I18nAppProvider>
                   </IapProvider>
                 </SettingsProvider>

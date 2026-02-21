@@ -5,12 +5,17 @@ import { type MaybeColorizationMode } from './utils'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { yieldTextSegments, colorizeSegments_usingWordCounterRef } from './text'
 import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
+import type { ShortDefinition } from '../../db/dict'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 export const colorizeHtml = (
   html: NonEmptyStringTrimmed,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
+  shortDefinitions?: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>,
+  excludeWord?: TypedKhmerWord,
 ): TypedContainsKhmer => {
   const wordCounterRef = { current: 0 }
 
@@ -23,7 +28,14 @@ export const colorizeHtml = (
 
       // 2. Consume generator directly into the colorizer
       // This avoids creating the Segment array entirely within the text node processing
-      return colorizeSegments_usingWordCounterRef(segmentsGenerator, km_map, wordCounterRef, mode)
+      return colorizeSegments_usingWordCounterRef(
+        segmentsGenerator,
+        km_map,
+        wordCounterRef,
+        mode,
+        shortDefinitions,
+        excludeWord,
+      )
     },
   ) as TypedContainsKhmer
 
@@ -38,6 +50,10 @@ export const colorizeHtml_allowUndefined = (
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined,
+  excludeWord?: TypedKhmerWord,
 ): TypedContainsKhmer | undefined => {
-  return html ? colorizeHtml(html, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt) : undefined
+  return html
+    ? colorizeHtml(html, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, shortDefinitions, excludeWord)
+    : undefined
 }

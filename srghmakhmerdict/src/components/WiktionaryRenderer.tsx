@@ -14,11 +14,16 @@ import { useSettings } from '../providers/SettingsProvider'
 import { useDictionary } from '../providers/DictionaryProvider'
 
 import { processHtmlForPronunciationHiding } from '../utils/text-processing/pronunciation'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import type { ShortDefinition } from '../db/dict'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
   isKhmerPronunciationHidingEnabled: boolean,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
+  isShowShortDetailAboutKhmerWordEnabled: boolean,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined,
+  excludeWord?: TypedKhmerWord,
 ) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
@@ -31,9 +36,25 @@ export const useWiktionaryContent = (
     )
 
     return {
-      __html: colorizeHtml(html_withPronunciations, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt),
+      __html: colorizeHtml(
+        html_withPronunciations,
+        maybeColorMode,
+        km_map,
+        dictionaryMode_lonelyWordShouldBeSpilt,
+        isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
+        excludeWord,
+      ),
     }
-  }, [html, maybeColorMode, km_map, isKhmerPronunciationHidingEnabled, dictionaryMode_lonelyWordShouldBeSpilt])
+  }, [
+    html,
+    maybeColorMode,
+    km_map,
+    isKhmerPronunciationHidingEnabled,
+    dictionaryMode_lonelyWordShouldBeSpilt,
+    isShowShortDetailAboutKhmerWordEnabled,
+    shortDefinitions,
+    excludeWord,
+  ])
 }
 
 const useWikiLinkHandler = (
@@ -141,6 +162,9 @@ interface WiktionaryRendererProps {
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  excludeWord?: TypedKhmerWord
 }
 
 export const WiktionaryRenderer = ({
@@ -152,11 +176,21 @@ export const WiktionaryRenderer = ({
   isNonKhmerWordsHidingEnabled,
   isKhmerPronunciationHidingEnabled,
   dictionaryMode_lonelyWordShouldBeSpilt,
+  isShowShortDetailAboutKhmerWordEnabled,
+  shortDefinitions,
+  excludeWord,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // 1. Process HTML (Colorization)
-  const content = useWiktionaryContent(html, isKhmerPronunciationHidingEnabled, dictionaryMode_lonelyWordShouldBeSpilt)
+  const content = useWiktionaryContent(
+    html,
+    isKhmerPronunciationHidingEnabled,
+    dictionaryMode_lonelyWordShouldBeSpilt,
+    isShowShortDetailAboutKhmerWordEnabled,
+    shortDefinitions,
+    excludeWord,
+  )
 
   const toast = useAppToast()
 
@@ -176,6 +210,7 @@ export const WiktionaryRenderer = ({
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
+    isShowShortDetailAboutKhmerWordEnabled,
   )
 
   // 3. Dynamic Class for Interaction

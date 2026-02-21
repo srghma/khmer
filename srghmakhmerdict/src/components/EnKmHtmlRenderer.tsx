@@ -25,6 +25,8 @@ import { useKhmerAndNonKhmerClickListener, calculateKhmerAndNonKhmerContentStyle
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useDictionary } from '../providers/DictionaryProvider'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import type { ShortDefinition } from '../db/dict'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -205,6 +207,9 @@ export interface EnKmHtmlRendererProps {
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  excludeWord?: TypedKhmerWord
 }
 
 export const EnKmHtmlRenderer = ({
@@ -214,6 +219,9 @@ export const EnKmHtmlRenderer = ({
   isNonKhmerWordsHidingEnabled,
   isKhmerPronunciationHidingEnabled,
   dictionaryMode_lonelyWordShouldBeSpilt,
+  isShowShortDetailAboutKhmerWordEnabled,
+  shortDefinitions,
+  excludeWord,
 }: EnKmHtmlRendererProps) => {
   const { imageMode, maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
@@ -231,10 +239,22 @@ export const EnKmHtmlRenderer = ({
       maybeColorMode,
       km_map,
       dictionaryMode_lonelyWordShouldBeSpilt,
+      isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
+      excludeWord,
     )
 
     return { __html: html_colorized }
-  }, [html, ocrMap, km_map, maybeColorMode, imageMode, dictionaryMode_lonelyWordShouldBeSpilt])
+  }, [
+    html,
+    ocrMap,
+    km_map,
+    maybeColorMode,
+    imageMode,
+    dictionaryMode_lonelyWordShouldBeSpilt,
+    isShowShortDetailAboutKhmerWordEnabled,
+    shortDefinitions,
+    excludeWord,
+  ])
 
   const toast = useAppToast()
 
@@ -254,6 +274,7 @@ export const EnKmHtmlRenderer = ({
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
+    isShowShortDetailAboutKhmerWordEnabled,
   )
 
   return (

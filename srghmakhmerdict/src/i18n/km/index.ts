@@ -244,6 +244,8 @@ const km = {
     EDIT: 'កែប្រែ',
     ADD: 'បន្ថែម',
     ADD_NOTE: 'បន្ថែមចំណាំ',
+    HIDE_SHORT_DETAIL: 'លាក់ព័ត៌មានសង្ខេប',
+    SHOW_SHORT_DETAIL: 'បង្ហាញព័ត៌មានសង្ខេប',
   },
   AUTOREAD: {
     TITLE: 'អានស្វ័យប្រវត្តិនៅពេលបង្ហាញ',

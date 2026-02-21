@@ -246,6 +246,8 @@ const en = {
     EDIT: 'Edit',
     ADD: 'Add',
     ADD_NOTE: 'Add Note',
+    HIDE_SHORT_DETAIL: 'Hide short details',
+    SHOW_SHORT_DETAIL: 'Show short details',
   },
   AUTOREAD: {
     TITLE: 'Auto-read on reveal',

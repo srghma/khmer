@@ -1,6 +1,7 @@
 import { nonEmptyString_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 import { useEffect } from 'react'
+import { useShortDefinitionPopover } from '../providers/ShortDefinitionPopoverProvider'
 
 import {
   strToKhmerWordOrThrow,
@@ -37,9 +38,18 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
 
     if (isKhmerLinksEnabled_ifTrue_passOnNavigateKm) {
       const rawWord = khmerSpan.getAttribute('data-navigate-khmer-word')
-      const word = rawWord ? strToKhmerWordOrThrow(nonEmptyString_afterTrim(rawWord)) : undefined // if fails - then there is mistake in parser logic
+      const word = rawWord ? strToKhmerWordOrThrow(nonEmptyString_afterTrim(rawWord)) : undefined
 
       if (word) {
+        // If they clicked the short definition box specifically, we shouldn't navigate
+        // We'll let the provider popover handle it, which is done within useKhmerAndNonKhmerClickListener
+        const shortDefSpan = target.closest('.short-def-preview') as HTMLElement | null
+
+        if (shortDefSpan) {
+          // Handled separately below if showPopover is provided, but we still prevent default here so it doesn't navigate
+          return false
+        }
+
         e.preventDefault()
         e.stopPropagation()
         isKhmerLinksEnabled_ifTrue_passOnNavigateKm(word)
@@ -91,6 +101,7 @@ const calculateKhmerAndNonKhmerContentStyles_ = (
   isKhmerWordsHidingEnabled: boolean,
   isNonKhmerWordsHidingEnabled: boolean,
   isKhmerPronunciationHidingEnabled: boolean,
+  isShowShortDetailAboutKhmerWordEnabled: boolean,
 ) => {
   const classes = [
     srghma_khmer_dict_content_styles.srghma_khmer_dict_content,
@@ -98,6 +109,7 @@ const calculateKhmerAndNonKhmerContentStyles_ = (
     isKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_enabled,
     isNonKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_non_khmer_enabled,
     isKhmerPronunciationHidingEnabled && srghma_khmer_dict_content_styles.hiding_pronunciations_enabled,
+    isShowShortDetailAboutKhmerWordEnabled && srghma_khmer_dict_content_styles.show_short_details,
   ]
 
   return classes.filter(Boolean).join(' ')
@@ -117,6 +129,8 @@ export const useKhmerAndNonKhmerClickListener = (
   isKhmerPronunciationHidingEnabled: boolean,
   fallbackHandler?: (e: MouseEvent) => void | Promise<void>,
 ) => {
+  const { showPopover } = useShortDefinitionPopover()
+
   useEffect(() => {
     const el = ref.current
 
@@ -145,6 +159,23 @@ export const useKhmerAndNonKhmerClickListener = (
         }
       }
 
+      // Handle Short Definition Popover
+      const shortDefSpan = (e.target as HTMLElement).closest('.short-def-preview') as HTMLElement | null
+
+      if (shortDefSpan) {
+        const wordRaw = shortDefSpan.getAttribute('data-word')
+
+        if (wordRaw) {
+          e.preventDefault()
+          e.stopPropagation()
+          const word = strToKhmerWordOrThrow(nonEmptyString_afterTrim(wordRaw))
+
+          showPopover(word, shortDefSpan)
+
+          return
+        }
+      }
+
       if (fallbackHandler) {
         await fallbackHandler(e)
       }
@@ -160,5 +191,6 @@ export const useKhmerAndNonKhmerClickListener = (
     isKhmerWordsHidingEnabled,
     isNonKhmerWordsHidingEnabled,
     isKhmerPronunciationHidingEnabled,
+    showPopover,
   ])
 }

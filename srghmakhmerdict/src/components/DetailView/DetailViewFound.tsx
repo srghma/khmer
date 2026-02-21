@@ -22,6 +22,10 @@ import { AutomaticRussianPronunciation } from './AutomaticRussianPronunciation'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { makeKhmerAnalyzerUrl } from '../../utils/url-navigation'
+import { Set_toNonEmptySet_orUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import { generateTextSegments, yieldUniqueKhmerWords } from '../../utils/text-processing/text'
+import { useKhmerDefinitions } from '../../hooks/useKhmerDefinitions'
+import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -102,7 +106,10 @@ const DetailViewFoundComponent = ({
     toggleKhmerWordsHiding,
     toggleNonKhmerWordsHiding,
     khmerFontFamily,
+    isShowShortDetailAboutKhmerWordEnabled,
+    toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
+
   const { km_map } = useDictionary()
   const [, setLocation] = useLocation()
   const currentView = useAppMainView()
@@ -164,6 +171,42 @@ const DetailViewFoundComponent = ({
     return mode === 'km' ? km_map.get(word as TypedContainsKhmer) : undefined
   }, [km_map, word, mode])
 
+  const uniqueKhmerWordsInDetails = useMemo(() => {
+    if (!isShowShortDetailAboutKhmerWordEnabled) return undefined
+
+    const words = new Set<TypedKhmerWord>()
+    const allHtml = [
+      data.desc,
+      data.en_km_com,
+      data.from_csv_raw_html,
+      data.from_chuon_nath,
+      data.from_chuon_nath_translated,
+      data.from_russian_wiki,
+      data.gorgoniev,
+      data.wiktionary,
+      ...(data.from_csv_variants ?? []),
+      ...(data.from_csv_noun_forms ?? []),
+    ] as (string | undefined)[]
+
+    allHtml.forEach(html => {
+      if (!html) return
+      const trimmedHtml = String_toNonEmptyString_orUndefined_afterTrim(html)
+
+      if (!trimmedHtml) return
+      const text = trimmedHtml.replace(/<[^>]*>/g, ' ') // Strip HTML tags basic way to get text
+      const segments = generateTextSegments(text as NonEmptyStringTrimmed, maybeColorMode, km_map, false)
+
+      for (const w of yieldUniqueKhmerWords(segments)) {
+        words.add(w)
+      }
+    })
+
+    return Set_toNonEmptySet_orUndefined(words)
+  }, [data, isShowShortDetailAboutKhmerWordEnabled, km_map, maybeColorMode])
+
+  const shortDefinitionsResult = useKhmerDefinitions(uniqueKhmerWordsInDetails)
+  const shortDefinitions = shortDefinitionsResult.t === 'success' ? shortDefinitionsResult.definitions : undefined
+
   // 4. Scaling Style (REMOVED: scaling is now handled via App.css variables)
 
   return (
@@ -174,6 +217,7 @@ const DetailViewFoundComponent = ({
         isKhmerLinksEnabled={isKhmerLinksEnabled}
         isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
         isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+        isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
         khmerFontFamily={khmerFontFamily}
         khmerFontName={khmerFontName}
         maybeColorMode={maybeColorMode}
@@ -184,6 +228,7 @@ const DetailViewFoundComponent = ({
         toggleKhmerLinks={toggleKhmerLinks}
         toggleKhmerWordsHiding={toggleKhmerWordsHiding}
         toggleNonKhmerWordsHiding={toggleNonKhmerWordsHiding}
+        toggleShowShortDetailAboutKhmerWord={toggleShowShortDetailAboutKhmerWord}
         type="known_word"
         word_displayHtml={data.word_display ?? word}
         word_or_sentence={word}
@@ -199,6 +244,7 @@ const DetailViewFoundComponent = ({
                   desc={data.desc}
                   desc_en_only={data.desc_en_only}
                   en_km_com={data.en_km_com}
+                  excludeWord={mode === 'km' ? (word as TypedKhmerWord) : undefined}
                   from_chuon_nath={data.from_chuon_nath}
                   from_chuon_nath_translated={data.from_chuon_nath_translated}
                   from_csv_noun_forms={data.from_csv_noun_forms}
@@ -211,9 +257,11 @@ const DetailViewFoundComponent = ({
                   isKhmerPronunciationHidingEnabled={false}
                   isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                   isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+                  isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
                   mode={mode}
+                  shortDefinitions={shortDefinitions}
                   wiktionary={data.wiktionary}
                 />
                 {automaticRussianPronunciation_km_map_value && (
@@ -221,8 +269,10 @@ const DetailViewFoundComponent = ({
                     isKhmerPronunciationHidingEnabled={false}
                     isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
                     isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+                    isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                     khmerText={word as TypedContainsKhmer}
                     km_map_value={automaticRussianPronunciation_km_map_value}
+                    shortDefinitions={shortDefinitions}
                     onWordClick={automaticRussianPronunciation_onClick}
                   />
                 )}

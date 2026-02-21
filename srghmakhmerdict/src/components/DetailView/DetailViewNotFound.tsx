@@ -30,12 +30,15 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
   const {
     isKhmerLinksEnabled,
     toggleKhmerLinks,
-    // isKhmerWordsHidingEnabled,
+    isKhmerWordsHidingEnabled,
+    isNonKhmerWordsHidingEnabled,
     // toggleKhmerWordsHiding,
     khmerFontName,
     setKhmerFontName,
     maybeColorMode,
     khmerAnalyzerEnabledSegmenters,
+    isShowShortDetailAboutKhmerWordEnabled,
+    toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
 
   const res = useKhmerAnalysis(analyzedText, mode, khmerAnalyzerEnabledSegmenters)
@@ -76,9 +79,11 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
         isKhmerLinksEnabled={isKhmerLinksEnabled}
         // isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
         // toggleKhmerWordsHiding={toggleKhmerWordsHiding}
+        isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
         khmerFontName={khmerFontName}
         setKhmerFontName={setKhmerFontName}
         toggleKhmerLinks={toggleKhmerLinks}
+        toggleShowShortDetailAboutKhmerWord={toggleShowShortDetailAboutKhmerWord}
         type="sentence_analyzer"
         word_or_sentence={word}
         word_or_sentence__language={res.t !== 'empty_text' ? res.analyzedText_language : 'km'}
@@ -88,7 +93,7 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
         <GoogleTranslateTextarea
           defaultTargetLang="en"
           labelPlacement="outside"
-          maxRows={10} // Increased slightly to accommodate translation text growth
+          maxRows={10}
           maybeColorMode={maybeColorMode}
           minRows={2}
           placeholder={LL.DETAIL.PLACEHOLDER()}
@@ -98,7 +103,13 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
           onValueChange={setAnalyzedText}
         />
 
-        <KhmerAnalysisResults res={res} onKhmerWordClick={handleKhmerWordClick} />
+        <KhmerAnalysisResults
+          isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
+          isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+          isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+          res={res}
+          onKhmerWordClick={handleKhmerWordClick}
+        />
       </ScrollShadow>
     </Card>
   )

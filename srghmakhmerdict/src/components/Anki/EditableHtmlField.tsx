@@ -2,6 +2,9 @@ import { useState, useCallback, memo } from 'react'
 import { Textarea, Button } from '@heroui/react'
 import { HiPencil, HiCheck, HiXMark, HiPlus } from 'react-icons/hi2'
 import { RenderHtmlColorized, SectionTitleWithRightContent } from '../DetailView/atoms'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import type { ShortDefinition } from '../../db/dict'
+import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -16,6 +19,8 @@ interface EditableHtmlFieldProps {
   isKhmerWordsHidingEnabled: boolean
   isNonKhmerWordsHidingEnabled: boolean
   isKhmerPronunciationHidingEnabled: boolean
+  isShowShortDetailAboutKhmerWordEnabled: boolean
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
 }
 
 const textareaClassNames = {
@@ -31,6 +36,8 @@ export const EditableHtmlField = memo(function EditableHtmlField({
   isKhmerWordsHidingEnabled,
   isNonKhmerWordsHidingEnabled,
   isKhmerPronunciationHidingEnabled,
+  isShowShortDetailAboutKhmerWordEnabled,
+  shortDefinitions,
 }: EditableHtmlFieldProps) {
   const { LL } = useI18nContext()
   const [isEditing, setIsEditing] = useState(false)
@@ -148,7 +155,9 @@ export const EditableHtmlField = memo(function EditableHtmlField({
           isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
           isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
           isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+          isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
           pronunciationSource={undefined}
+          shortDefinitions={shortDefinitions}
         />
       )}
     </div>

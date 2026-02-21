@@ -33,3 +33,37 @@
   background-color: transparent;
   /* Makes it invisible */
 }
+
+/* Short details about Khmer word */
+:global(.ipa),
+:global(.short-def-wrapper) {
+  display: none;
+}
+
+.show_short_details :global(.ipa),
+.show_short_details :global(.short-def-wrapper) {
+  display: inline;
+}
+
+.show_short_details :global(.ipa) {
+  font-size: 0.7em;
+  color: var(--heroui-default-500);
+  margin-left: 0.25em;
+  font-family: var(--font-inter);
+  /* IPA characters often look better in Inter/Sans */
+}
+
+.show_short_details :global(.short-def-wrapper) {
+  font-size: 0.7em;
+  color: var(--heroui-default-400);
+  margin-left: 0.25em;
+  font-style: italic;
+}
+
+.show_short_details :global(.short-def-wrapper)::before {
+  content: '[';
+}
+
+.show_short_details :global(.short-def-wrapper)::after {
+  content: ']';
+}

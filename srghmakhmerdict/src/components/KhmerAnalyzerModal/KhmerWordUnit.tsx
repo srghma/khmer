@@ -9,11 +9,13 @@ import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { useGoogleOrNativeTts } from '../../hooks/useGoogleOrNativeTts'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
 import { useAppToast } from '../../providers/ToastProvider'
+import type { ShortDefinition } from '../../db/dict'
 
 interface KhmerWordUnitProps {
   colorIndex: number
   colorization: 'none' | 'isKnown' | 'isNotKnown'
   definitionHtml: NonEmptyStringTrimmed | undefined
+  shortDefinition: ShortDefinition | null | undefined
   onClick: (() => void) | undefined
   wiktionaryIpa: NonEmptyStringTrimmed | undefined
   word: TypedKhmerWord
@@ -23,6 +25,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   colorIndex,
   colorization,
   definitionHtml,
+  shortDefinition,
   onClick,
   wiktionaryIpa,
   word,
@@ -105,10 +108,26 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
             </PopoverTrigger>
 
             <PopoverContent className="p-0 max-w-[300px] w-max">
-              <div
-                dangerouslySetInnerHTML={dangerouslySetInnerHTML}
-                className="max-h-[250px] overflow-y-auto p-3 text-xs text-foreground prose prose-sm max-w-none dark:prose-invert [&_i]:text-primary [&_i]:not-italic [&_i]:font-medium select-text"
-              />
+              <div className="flex flex-col max-h-[400px] overflow-y-auto outline-none">
+                {shortDefinition && (
+                  <div className="p-3 border-b border-divider bg-content2/30">
+                    <div className="text-tiny font-bold text-primary uppercase mb-1">
+                      {LL.DETAIL.SECTION.DEFINITION()}
+                    </div>
+                    <div className="text-sm font-medium">{shortDefinition.definition}</div>
+                    {'wiktionary_ipa_or_from_csv_pronunciations' in shortDefinition &&
+                      shortDefinition.wiktionary_ipa_or_from_csv_pronunciations && (
+                        <div className="text-tiny text-foreground/60">
+                          {shortDefinition.wiktionary_ipa_or_from_csv_pronunciations}
+                        </div>
+                      )}
+                  </div>
+                )}
+                <div
+                  dangerouslySetInnerHTML={dangerouslySetInnerHTML}
+                  className="p-3 text-xs text-foreground prose prose-sm max-w-none dark:prose-invert [&_i]:text-primary [&_i]:not-italic [&_i]:font-medium select-text"
+                />
+              </div>
             </PopoverContent>
           </Popover>
         </div>

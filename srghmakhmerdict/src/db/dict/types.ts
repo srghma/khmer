@@ -29,7 +29,21 @@ export type ShortDefinitionEn = z.infer<typeof ShortDefinitionEnSchema>
 export type ShortDefinitionRu = z.infer<typeof ShortDefinitionRuSchema>
 export type ShortDefinitionKm = z.infer<typeof ShortDefinitionKmSchema>
 
-export type ShortDefinition = ShortDefinitionEn | ShortDefinitionRu | ShortDefinitionKm
+// export type ShortDefinition = ShortDefinitionKm & ShortDefinitionEn & ShortDefinitionRu
+
+export interface ShortDefinition {
+  definition: NonEmptyStringTrimmed
+  source:
+    | 'Desc'
+    | 'EnKmCom'
+    | 'FromCsvRawHtml'
+    | 'FromChuonNathTranslated'
+    | 'Wiktionary'
+    | 'FromRussianWiki'
+    | 'Gorgoniev'
+    | 'DescEnOnly'
+  wiktionary_ipa_or_from_csv_pronunciations?: NonEmptyStringTrimmed | undefined
+}
 
 export interface WordDetailEnOrRuOrKm extends WordDetailKm {
   readonly word_display?: NonEmptyStringTrimmed
