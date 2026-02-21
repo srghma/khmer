@@ -83,6 +83,9 @@ importers:
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
+      split-khmer:
+        specifier: ^1.0.1
+        version: 1.0.1
       telegram:
         specifier: ^2.26.22
         version: 2.26.22
@@ -1595,6 +1598,10 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
+  magic-string@0.26.7:
+    resolution: {integrity: sha512-hX9XH3ziStPoPhJxLq1syWuZMxbDvGNbVchfrdCtanC7D13888bMFow61x8axrx+GfHLtVeAx2kxL7tTGRl+Ow==}
+    engines: {node: '>=12'}
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -2030,6 +2037,13 @@ packages:
   source-map@0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
+
+  sourcemap-codec@1.4.8:
+    resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
+    deprecated: Please use @jridgewell/sourcemap-codec instead
+
+  split-khmer@1.0.1:
+    resolution: {integrity: sha512-g82jhMS5pxv9ijSlXuRvFT1FbGXWhiRBLq5ML7KWqQ6wD61C+tQcjmkMoDNrmZQucQMp1bknN/Xd28S3kjIvCw==}
 
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
@@ -3770,6 +3784,10 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
+  magic-string@0.26.7:
+    dependencies:
+      sourcemap-codec: 1.4.8
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -4272,6 +4290,12 @@ snapshots:
 
   source-map@0.6.1:
     optional: true
+
+  sourcemap-codec@1.4.8: {}
+
+  split-khmer@1.0.1:
+    dependencies:
+      magic-string: 0.26.7
 
   stackback@0.0.2: {}
 

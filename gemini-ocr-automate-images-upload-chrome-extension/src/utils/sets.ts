@@ -197,6 +197,5 @@ export function Set_sortStringKeys<T extends PropertyKey>(set: Set<T>): Set<T> {
   return new Set([...set].sort())
 }
 
-export function Set_sortStringKeysPlusUndefined<T extends PropertyKey>(set: Set<T | undefined>): Set<T | undefined> {
-  return new Set([...set].sort())
-}
+export const Set_sortStringKeysPlusUndefined: <T extends PropertyKey>(set: Set<T | undefined>) => Set<T | undefined> =
+  Set_sortStringKeys as any

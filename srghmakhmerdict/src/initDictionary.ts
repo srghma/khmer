@@ -6,11 +6,39 @@ import {
   Set_toNonEmptySet_orThrow,
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
+import type { DictionaryLanguage } from './types'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 
 export type DictData = {
   en: NonEmptySet<NonEmptyStringTrimmed>
   km_map: DictDb.KhmerWordsMap
   ru: NonEmptySet<NonEmptyStringTrimmed>
+}
+
+function DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km__fallback_iterate(dictData: DictData, word: NonEmptyStringTrimmed): DictionaryLanguage | undefined {
+  if (dictData.en.has(word)) return 'en'
+  if (dictData.ru.has(word)) return 'ru'
+  if (dictData.km_map.has(word as TypedContainsKhmer)) return 'km'
+  return undefined
+}
+
+function DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData: DictData, word: NonEmptyStringTrimmed): DictionaryLanguage | undefined {
+  if (dictData.en.has(word)) return 'en'
+  if (dictData.ru.has(word)) return 'ru'
+  if (dictData.km_map.has(word as TypedContainsKhmer)) return 'km'
+  return undefined
+}
+
+export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive(dictData: DictData, word: NonEmptyStringTrimmed): DictionaryLanguage | undefined {
+  const wordL = DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word) || DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toLowerCase() as NonEmptyStringTrimmed) || DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toUpperCase() as NonEmptyStringTrimmed)
+  if (wordL) return wordL
+  const lowerWord: NonEmptyStringTrimmed = word.toLowerCase() as NonEmptyStringTrimmed
+  const upperWord: NonEmptyStringTrimmed = word.toUpperCase() as NonEmptyStringTrimmed
+
+  if (dictData.en.has(lowerWord) || dictData.en.has(upperWord)) return 'en'
+  if (dictData.ru.has(lowerWord) || dictData.ru.has(upperWord)) return 'ru'
+  if (dictData.km_map.has(lowerWord as TypedContainsKhmer) || dictData.km_map.has(upperWord as TypedContainsKhmer)) return 'km'
+  return undefined
 }
 
 async function load3(): Promise<DictData> {
