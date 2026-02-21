@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeKhmerInsensitive } from './normalizeKhmerDiactricsInsensitive'
-import { strToContainsKhmerOrThrow } from './string-contains-khmer-char'
+import { normalizeKhmerDiactricsInsensitive } from './normalizeKhmerDiactricsInsensitive'
 import { nonEmptyString_afterTrim } from './non-empty-string-trimmed'
+import { strToKhmerWordOrThrow } from './khmer-word'
 
 // Wrapper to normalize and convert to Array of characters for deep inspection
-const f = (s: string) => Array.from(normalizeKhmerInsensitive(strToContainsKhmerOrThrow(nonEmptyString_afterTrim(s))))
+const f = (s: string) =>
+  Array.from(normalizeKhmerDiactricsInsensitive(strToKhmerWordOrThrow(nonEmptyString_afterTrim(s))))
 
-const itExpect = (s: string, expected: string[]) => it(JSON.stringify(Array.from(s)), () => expect(f(s)).toEqual(expected))
+const itExpect = (s: string, expected: string[]) =>
+  it(JSON.stringify(Array.from(s)), () => expect(f(s)).toEqual(expected))
 
 describe('Khmer Normalization', () => {
   describe('should remove register shifters (Muusikatoan/Triisap)', () => {
@@ -41,7 +43,7 @@ describe('Khmer Normalization', () => {
   describe('should preserve consonant clusters (Coeng)', () => {
     // ខ្មែរ (K + Coeng + M + Ae + R)
     // \u17D2 is the Coeng (subscript sign), it should NOT be removed
-    itExpect('ខ្មែរ', ['ខ', "ម", 'ែ', 'រ'])
+    itExpect('ខ្មែរ', ['ខ', 'ម', 'ែ', 'រ'])
   })
 
   describe('should handle whitespace and validation via the wrapper', () => {

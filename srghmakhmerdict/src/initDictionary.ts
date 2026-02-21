@@ -6,8 +6,15 @@ import {
   Set_toNonEmptySet_orThrow,
   type NonEmptySet,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
-import type { DictionaryLanguage } from './types'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { Set_getUsingNormalizer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/sets-get-set-using-normalizer'
+import { Map_getOriginalKeyUsingNormalizer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map-get-set-using-normalizer'
+import { normalizeKhmerDiactricsInsensitive } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/normalizeKhmerDiactricsInsensitive'
+import {
+  strToKhmerWord_remove_nonKhmerOnBothEnds_orThrow,
+  strToKhmerWordOrUndefined,
+  type TypedKhmerWord,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
 export type DictData = {
   en: NonEmptySet<NonEmptyStringTrimmed>
@@ -15,30 +22,69 @@ export type DictData = {
   ru: NonEmptySet<NonEmptyStringTrimmed>
 }
 
-function DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km__fallback_iterate(dictData: DictData, word: NonEmptyStringTrimmed): DictionaryLanguage | undefined {
-  if (dictData.en.has(word)) return 'en'
-  if (dictData.ru.has(word)) return 'ru'
-  if (dictData.km_map.has(word as TypedContainsKhmer)) return 'km'
+export type WordLanguageTuple =
+  | [NonEmptyStringTrimmed, 'en']
+  | [NonEmptyStringTrimmed, 'ru']
+  | [TypedContainsKhmer, 'km']
+
+function DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(
+  dictData: DictData,
+  word: NonEmptyStringTrimmed,
+): WordLanguageTuple | undefined {
+  if (dictData.en.has(word)) return [word, 'en']
+  if (dictData.ru.has(word)) return [word, 'ru']
+  if (dictData.km_map.has(word as TypedContainsKhmer)) return [word as TypedContainsKhmer, 'km']
+
   return undefined
 }
 
-function DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData: DictData, word: NonEmptyStringTrimmed): DictionaryLanguage | undefined {
-  if (dictData.en.has(word)) return 'en'
-  if (dictData.ru.has(word)) return 'ru'
-  if (dictData.km_map.has(word as TypedContainsKhmer)) return 'km'
-  return undefined
-}
+export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive(
+  dictData: DictData,
+  word: NonEmptyStringTrimmed,
+): WordLanguageTuple | undefined {
+  const wordL =
+    DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word) ||
+    DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toLowerCase() as NonEmptyStringTrimmed) ||
+    DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toUpperCase() as NonEmptyStringTrimmed)
 
-export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive(dictData: DictData, word: NonEmptyStringTrimmed): DictionaryLanguage | undefined {
-  const wordL = DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word) || DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toLowerCase() as NonEmptyStringTrimmed) || DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toUpperCase() as NonEmptyStringTrimmed)
   if (wordL) return wordL
-  const lowerWord: NonEmptyStringTrimmed = word.toLowerCase() as NonEmptyStringTrimmed
-  const upperWord: NonEmptyStringTrimmed = word.toUpperCase() as NonEmptyStringTrimmed
 
-  if (dictData.en.has(lowerWord) || dictData.en.has(upperWord)) return 'en'
-  if (dictData.ru.has(lowerWord) || dictData.ru.has(upperWord)) return 'ru'
-  if (dictData.km_map.has(lowerWord as TypedContainsKhmer) || dictData.km_map.has(upperWord as TypedContainsKhmer)) return 'km'
-  return undefined
+  return (
+    (() => {
+      const enW = Set_getUsingNormalizer(
+        dictData.en,
+        word,
+        (w: NonEmptyStringTrimmed) => w.toLowerCase() as NonEmptyStringTrimmed,
+      )
+
+      if (enW) return [enW, 'en']
+
+      return undefined
+    })() ||
+    (() => {
+      const ruW = Set_getUsingNormalizer(
+        dictData.ru,
+        word,
+        (w: NonEmptyStringTrimmed) => w.toLowerCase() as NonEmptyStringTrimmed,
+      )
+
+      if (ruW) return [ruW, 'ru']
+
+      return undefined
+    })() ||
+    (() => {
+      const wordKhmerWord: TypedKhmerWord | undefined = strToKhmerWordOrUndefined(word)
+
+      if (!wordKhmerWord) return undefined
+      const kmW = Map_getOriginalKeyUsingNormalizer(dictData.km_map, wordKhmerWord, (w: TypedContainsKhmer) =>
+        normalizeKhmerDiactricsInsensitive(strToKhmerWord_remove_nonKhmerOnBothEnds_orThrow(w)),
+      )
+
+      if (kmW) return [kmW, 'km']
+
+      return undefined
+    })()
+  )
 }
 
 async function load3(): Promise<DictData> {

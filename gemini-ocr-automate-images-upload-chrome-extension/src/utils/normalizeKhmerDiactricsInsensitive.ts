@@ -1,6 +1,6 @@
-import type { TypedContainsKhmer } from './string-contains-khmer-char'
+import type { TypedKhmerWord } from './khmer-word'
 
-export function normalizeKhmerInsensitive(str: TypedContainsKhmer): TypedContainsKhmer {
+export function normalizeKhmerDiactricsInsensitive(str: TypedKhmerWord): TypedKhmerWord {
   return (
     str
       .normalize('NFD')
@@ -15,6 +15,6 @@ export function normalizeKhmerInsensitive(str: TypedContainsKhmer): TypedContain
        */
       .replace(/[\u17C9-\u17D3]/g, '')
       .normalize('NFC')
-      .toLowerCase() as TypedContainsKhmer
+      .toLowerCase() as TypedKhmerWord
   )
 }

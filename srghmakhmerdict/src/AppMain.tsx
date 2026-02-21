@@ -15,10 +15,7 @@ import { AboutView } from './components/About/AboutView'
 import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
-import { detectModeFromText } from './utils/detectModeFromText'
 import { useAppToast } from './providers/ToastProvider'
-import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
-import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { DictData_isWordInEitherOf3Dictionaries_caseInsensitive } from './initDictionary'
 
 export function AppMain() {
@@ -61,7 +58,8 @@ export function AppMain() {
 
   const divClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${
+        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
   )
@@ -69,9 +67,9 @@ export function AppMain() {
 
   const onTryToOpenWord = useCallback(
     (word: NonEmptyStringTrimmed) => {
-      const language = DictData_isWordInEitherOf3Dictionaries_caseInsensitive(dictData, word)
+      const value = DictData_isWordInEitherOf3Dictionaries_caseInsensitive(dictData, word)
 
-      if (!language) {
+      if (!value) {
         toast.error(
           'Cannot open word' as NonEmptyStringTrimmed,
           'Cannot find word in any dictionary' as NonEmptyStringTrimmed,
@@ -79,7 +77,7 @@ export function AppMain() {
 
         return
       }
-      setLastSelectedWord({ word, mode: language })
+      setLastSelectedWord({ word: value[0], mode: value[1] })
     },
     [setLastSelectedWord],
   )
