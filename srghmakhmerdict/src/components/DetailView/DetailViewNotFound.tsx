@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Card } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
-import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 import { useKhmerAnalysis } from '../KhmerAnalyzerModal/useKhmerAnalysis'
 
@@ -14,6 +17,7 @@ import { GoogleTranslateTextarea } from '../GoogleTranslateTextarea/GoogleTransl
 import { KhmerAnalysisResults } from '../KhmerAnalyzerView'
 import { truncateString } from '../../utils/truncateString'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
+import { useDebounce } from 'use-debounce'
 
 interface DetailViewNotFoundProps {
   word: NonEmptyStringTrimmed
@@ -25,6 +29,11 @@ interface DetailViewNotFoundProps {
 export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }: DetailViewNotFoundProps) => {
   const { LL } = useI18nContext()
   const [analyzedText, setAnalyzedText] = useState<string>(word)
+  const analyzedText_nonEmptyTrimmed = useMemo(
+    () => String_toNonEmptyString_orUndefined_afterTrim(analyzedText),
+    [analyzedText],
+  )
+  const [debouncedText] = useDebounce(analyzedText_nonEmptyTrimmed, 500)
   // 1. Analyze the unknown text
 
   const {
@@ -41,7 +50,7 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
     toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
 
-  const res = useKhmerAnalysis(analyzedText, mode, khmerAnalyzerEnabledSegmenters)
+  const res = useKhmerAnalysis(debouncedText, mode, khmerAnalyzerEnabledSegmenters)
   // // 2. Styling
   // const cardStyle = useMemo(
   //   () => ({

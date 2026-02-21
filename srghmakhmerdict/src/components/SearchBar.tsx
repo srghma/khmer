@@ -15,6 +15,7 @@ import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension
 
 interface SearchBarProps {
   onSearch: (query: NonEmptyStringTrimmed | undefined) => void
+  onEnter: (query: NonEmptyStringTrimmed) => void
   searchMode: SearchMode
   count: number | undefined
   initialValue: NonEmptyStringTrimmed | undefined
@@ -44,6 +45,7 @@ const getLangHint = (tab: AppTab): DictionaryLanguage => {
 
 export const SearchBar = memo(function SearchBar({
   onSearch,
+  onEnter,
   searchMode,
   count,
   initialValue,
@@ -125,6 +127,19 @@ export const SearchBar = memo(function SearchBar({
     }
   }, [searchMode, LL])
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        const trimmed = String_toNonEmptyString_orUndefined_afterTrim(localValue)
+
+        if (trimmed) {
+          onEnter(trimmed)
+        }
+      }
+    },
+    [localValue, onEnter],
+  )
+
   return (
     <Input
       {...nativeInputAttributes}
@@ -135,6 +150,7 @@ export const SearchBar = memo(function SearchBar({
       size="sm"
       startContent={startContent}
       value={localValue}
+      onKeyDown={handleKeyDown}
       onValueChange={handleChange}
     />
   )

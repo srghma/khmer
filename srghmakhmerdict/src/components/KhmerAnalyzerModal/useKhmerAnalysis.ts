@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
 import type { DictionaryLanguage } from '../../types'
-import {
-  String_toNonEmptyString_orUndefined_afterTrim,
-  type NonEmptyStringTrimmed,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import {
   strToContainsKhmerOrUndefined,
   type TypedContainsKhmer,
@@ -53,23 +50,21 @@ export type KhmerAnalysisResult =
     }
 
 export const useKhmerAnalysis = (
-  analyzedText: string,
+  analyzedText: NonEmptyStringTrimmed | undefined,
   initialText_language_fallback: DictionaryLanguage,
   enabledSegmenters: 'segmenter' | 'dictionary' | 'both',
 ): KhmerAnalysisResult => {
   const { km_map } = useDictionary()
   const phase1 = useMemo(() => {
-    const analyzedText_nonEmptyTrimmed = String_toNonEmptyString_orUndefined_afterTrim(analyzedText)
+    if (!analyzedText) return KhmerAnalysisResult__empty_text
 
-    if (!analyzedText_nonEmptyTrimmed) return KhmerAnalysisResult__empty_text
-
-    const analyzedText_withKhmer = strToContainsKhmerOrUndefined(analyzedText_nonEmptyTrimmed)
+    const analyzedText_withKhmer = strToContainsKhmerOrUndefined(analyzedText)
 
     if (!analyzedText_withKhmer) {
       return {
         t: 'non_empty_text_without_at_least_one_khmer_char' as const,
-        analyzedText: analyzedText_nonEmptyTrimmed,
-        analyzedText_language: detectModeFromText(analyzedText_nonEmptyTrimmed) ?? initialText_language_fallback, // en or ru
+        analyzedText: analyzedText,
+        analyzedText_language: detectModeFromText(analyzedText) ?? initialText_language_fallback, // en or ru
       }
     }
 

@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useCallback } from 'react'
 import { useLocalStorageState } from 'ahooks'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
@@ -15,6 +15,10 @@ import { AboutView } from './components/About/AboutView'
 import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
+import { detectModeFromText } from './utils/detectModeFromText'
+import { useAppToast } from './providers/ToastProvider'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 export function AppMain() {
   useAddToHistoryEffect()
@@ -54,12 +58,69 @@ export function AppMain() {
     [searchQuery],
   )
 
+  const { km_map, en, ru } = useDictionary()
+
   const divClassName = useMemo(
     () =>
       `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${
         currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
+  )
+  const toast = useAppToast()
+
+  const onTryToOpenWord = useCallback(
+    (word: NonEmptyStringTrimmed) => {
+      const wordLanguage = detectModeFromText(word)
+
+      if (!wordLanguage) {
+        toast.error(
+          'Cannot open word' as NonEmptyStringTrimmed,
+          'Cannot detect language of word' as NonEmptyStringTrimmed,
+        )
+
+        return
+      }
+      switch (wordLanguage) {
+        case 'km': {
+          if (km_map.has(word as TypedContainsKhmer)) {
+            setLastSelectedWord({ word, mode: 'km' })
+          } else {
+            toast.error(
+              'Cannot open word' as NonEmptyStringTrimmed,
+              'Cannot find word in khmer dictionary' as NonEmptyStringTrimmed,
+            )
+          }
+          break
+        }
+        case 'en': {
+          if (en.has(word as TypedContainsKhmer)) {
+            setLastSelectedWord({ word, mode: 'en' })
+          } else {
+            toast.error(
+              'Cannot open word' as NonEmptyStringTrimmed,
+              'Cannot find word in english dictionary' as NonEmptyStringTrimmed,
+            )
+          }
+          break
+        }
+        case 'ru': {
+          if (ru.has(word as TypedContainsKhmer)) {
+            setLastSelectedWord({ word, mode: 'ru' })
+          } else {
+            toast.error(
+              'Cannot open word' as NonEmptyStringTrimmed,
+              'Cannot find word in russian dictionary' as NonEmptyStringTrimmed,
+            )
+          }
+          break
+        }
+        default: {
+          assertNever(wordLanguage)
+        }
+      }
+    },
+    [setLastSelectedWord],
   )
 
   return (
@@ -71,6 +132,7 @@ export function AppMain() {
           searchInitialValue={undefined}
           searchMode={searchMode}
           showSearchBar={!isAppTabNonLanguage(activeTab)}
+          onEnter={onTryToOpenWord}
           onSearch={onSearch}
         />
 

@@ -5,30 +5,37 @@ import { HiOutlineBookmark, HiBookmark, HiOutlineTrash } from 'react-icons/hi2'
 import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
 import type { AnalyzerHistoryItem } from '../../hooks/useAnalyzerHistory'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  nonEmptyString_afterTrim,
+  String_toNonEmptyString_orUndefined_afterTrim,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { details_header__text_className } from '../header_classNames'
+import { assertIsDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
+import { truncateString } from '../../utils/truncateString'
 
 const MAX_PREVIEW_LENGTH = 60
 
-function truncatePreview(text: string): string {
-  return text.length > MAX_PREVIEW_LENGTH ? text.slice(0, MAX_PREVIEW_LENGTH) + '…' : text
-}
+function formatDate(ts: number): NonEmptyStringTrimmed {
+  const date = new Date(ts)
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleString(undefined, {
+  assertIsDate(date)
+
+  const dateString = date.toLocaleString(undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
+
+  return nonEmptyString_afterTrim(dateString)
 }
 
 interface AnalyzerHistoryButtonProps {
   /** Current textarea text */
-  currentText: string
+  currentText: NonEmptyStringTrimmed
   history: AnalyzerHistoryItem[]
-  onSave: (text: string) => void
-  onSelect: (text: string) => void
+  onSave: (text: NonEmptyStringTrimmed) => void
+  onSelect: (text: NonEmptyStringTrimmed) => void
   onRemove: (savedAt: number) => void
   onClear: () => void
 }
@@ -96,12 +103,15 @@ export const AnalyzerHistoryButton = memo(function AnalyzerHistoryButton({
 
               if (keyStr === '__clear__') {
                 onClear()
+
                 return
               }
 
               if (keyStr.startsWith('delete:')) {
                 const ts = parseInt(keyStr.replace('delete:', ''), 10)
+
                 onRemove(ts)
+
                 return
               }
 
@@ -133,7 +143,7 @@ export const AnalyzerHistoryButton = memo(function AnalyzerHistoryButton({
                   textValue={item.text}
                 >
                   <span className="font-khmer text-sm leading-snug text-foreground/90 block truncate">
-                    {truncatePreview(item.text)}
+                    {truncateString(item.text, MAX_PREVIEW_LENGTH)}
                   </span>
                 </DropdownItem>
               )),

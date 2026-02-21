@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useLocalStorageState } from 'ahooks'
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 // --- Constants ---
 
@@ -9,7 +10,7 @@ const MAX_HISTORY_ITEMS = 10
 // --- Types ---
 
 export interface AnalyzerHistoryItem {
-  text: string
+  text: NonEmptyStringTrimmed
   savedAt: number // Unix timestamp ms
 }
 
@@ -19,15 +20,14 @@ export interface AnalyzerHistoryItem {
  * Add a new entry to the history list, deduplicating and capping at MAX_HISTORY_ITEMS.
  * New items go to the front. Duplicates (same trimmed text) are removed first.
  */
-export function analyzerHistory_add(history: AnalyzerHistoryItem[], text: string): AnalyzerHistoryItem[] {
-  const trimmed = text.trim()
-
-  if (!trimmed) return history
-
+export function analyzerHistory_add(
+  history: AnalyzerHistoryItem[],
+  text: NonEmptyStringTrimmed,
+): AnalyzerHistoryItem[] {
   // Remove existing entry with the same text (case/whitespace-exact)
-  const filtered = history.filter(item => item.text !== trimmed)
+  const filtered = history.filter(item => item.text !== text)
 
-  const newItem: AnalyzerHistoryItem = { text: trimmed, savedAt: Date.now() }
+  const newItem: AnalyzerHistoryItem = { text, savedAt: Date.now() }
 
   return [newItem, ...filtered].slice(0, MAX_HISTORY_ITEMS)
 }
@@ -43,7 +43,7 @@ export function analyzerHistory_remove(history: AnalyzerHistoryItem[], savedAt: 
 
 export interface UseAnalyzerHistoryReturn {
   history: AnalyzerHistoryItem[]
-  saveToHistory: (text: string) => void
+  saveToHistory: (text: NonEmptyStringTrimmed) => void
   removeFromHistory: (savedAt: number) => void
   clearHistory: () => void
 }
@@ -56,7 +56,7 @@ export function useAnalyzerHistory(): UseAnalyzerHistoryReturn {
   const resolvedHistory = history ?? []
 
   const saveToHistory = useCallback(
-    (text: string) => {
+    (text: NonEmptyStringTrimmed) => {
       setHistory(prev => analyzerHistory_add(prev ?? [], text))
     },
     [setHistory],

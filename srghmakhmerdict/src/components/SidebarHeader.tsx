@@ -13,6 +13,7 @@ import { left_sidebar_tabs__text_className, left_sidebar_tabs__icon_className } 
 interface SidebarHeaderProps {
   activeTab: AppTab
   onSearch: (q: NonEmptyStringTrimmed | undefined) => void
+  onEnter: (q: NonEmptyStringTrimmed) => void
   searchInitialValue: NonEmptyStringTrimmed | undefined
   resultCount: number
   searchMode: SearchMode
@@ -42,61 +43,68 @@ const Tab_favorites_icon_inactive = <RiStarLine className={left_sidebar_tabs__ic
 const Tab_settings_icon_active = <RiSettings3Fill className={left_sidebar_tabs__icon_className} />
 const Tab_settings_icon_inactive = <RiSettings3Line className={left_sidebar_tabs__icon_className} />
 
-export const SidebarHeader = memo<SidebarHeaderProps>(
-  ({ activeTab, onSearch, resultCount, searchMode, showSearchBar, searchInitialValue }) => {
-    const { LL } = useI18nContext()
-    const [, setLocation] = useLocation()
+export const SidebarHeader = memo<SidebarHeaderProps>(function SidebarHeader({
+  activeTab,
+  onSearch,
+  resultCount,
+  searchMode,
+  showSearchBar,
+  searchInitialValue,
+  onEnter,
+}) {
+  const { LL } = useI18nContext()
+  const [, setLocation] = useLocation()
 
-    const handleTabChange = useCallback(
-      (key: React.Key) => {
-        if (!key) throw new Error('expected string')
-        if (typeof key !== 'string') throw new Error('expected string')
-        setLocation(`/${stringToAppTabOrThrow(key)}`)
-      },
-      [setLocation],
-    )
+  const handleTabChange = useCallback(
+    (key: React.Key) => {
+      if (!key) throw new Error('expected string')
+      if (typeof key !== 'string') throw new Error('expected string')
+      setLocation(`/${stringToAppTabOrThrow(key)}`)
+    },
+    [setLocation],
+  )
 
-    return (
-      <div className="flex flex-col bg-background/80 backdrop-blur-md sticky top-0 z-20 border-b border-divider">
-        <div className="px-2 pt-2">
-          <Tabs
-            fullWidth
-            aria-label={LL.SIDEBAR.ARIA.TABS()}
-            className="text-base"
-            classNames={TabsClassNames}
-            color="warning"
-            radius="none"
-            selectedKey={activeTab}
-            variant="underlined"
-            onSelectionChange={handleTabChange}
-          >
-            <Tab key="en" title={tab_title_en} />
-            <Tab key="km" title={tab_title_km} />
-            <Tab key="ru" title={tab_title_ru} />
-            <Tab key="history" title={activeTab === 'history' ? Tab_history_icon_active : Tab_history_icon_inactive} />
-            <Tab
-              key="favorites"
-              title={activeTab === 'favorites' ? Tab_favorites_icon_active : Tab_favorites_icon_inactive}
-            />
-            <Tab
-              key="settings"
-              title={activeTab === 'settings' ? Tab_settings_icon_active : Tab_settings_icon_inactive}
-            />
-          </Tabs>
-        </div>
-        {showSearchBar && (
-          <SearchBar
-            key={activeTab} // Force reset on tab change
-            activeTab={activeTab}
-            count={resultCount}
-            initialValue={searchInitialValue}
-            searchMode={searchMode}
-            onSearch={onSearch}
+  return (
+    <div className="flex flex-col bg-background/80 backdrop-blur-md sticky top-0 z-20 border-b border-divider">
+      <div className="px-2 pt-2">
+        <Tabs
+          fullWidth
+          aria-label={LL.SIDEBAR.ARIA.TABS()}
+          className="text-base"
+          classNames={TabsClassNames}
+          color="warning"
+          radius="none"
+          selectedKey={activeTab}
+          variant="underlined"
+          onSelectionChange={handleTabChange}
+        >
+          <Tab key="en" title={tab_title_en} />
+          <Tab key="km" title={tab_title_km} />
+          <Tab key="ru" title={tab_title_ru} />
+          <Tab key="history" title={activeTab === 'history' ? Tab_history_icon_active : Tab_history_icon_inactive} />
+          <Tab
+            key="favorites"
+            title={activeTab === 'favorites' ? Tab_favorites_icon_active : Tab_favorites_icon_inactive}
           />
-        )}
+          <Tab
+            key="settings"
+            title={activeTab === 'settings' ? Tab_settings_icon_active : Tab_settings_icon_inactive}
+          />
+        </Tabs>
       </div>
-    )
-  },
-)
+      {showSearchBar && (
+        <SearchBar
+          key={activeTab} // Force reset on tab change
+          activeTab={activeTab}
+          count={resultCount}
+          initialValue={searchInitialValue}
+          searchMode={searchMode}
+          onEnter={onEnter}
+          onSearch={onSearch}
+        />
+      )}
+    </div>
+  )
+})
 
 SidebarHeader.displayName = 'SidebarHeader'

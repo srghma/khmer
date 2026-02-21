@@ -5,7 +5,10 @@ import { useLocation } from 'wouter'
 import { safeBack } from '../utils/safeBack'
 import { GoogleTranslateTextarea } from './GoogleTranslateTextarea/GoogleTranslateTextarea'
 import { useSettings } from '../providers/SettingsProvider'
-import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  String_toNonEmptyString_orUndefined_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { TextSegment } from '../utils/text-processing/text'
 import type { TextSegmentEnhanced } from '../utils/text-processing/text-enhanced'
@@ -260,7 +263,9 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   } = useSettings()
 
   const [text_, setText] = useState<string>(() => getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
-  const [debouncedText] = useDebounce(text_, 1500)
+  const textNonEmpty = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(text_), [text_])
+
+  const [debouncedText] = useDebounce(textNonEmpty, 1500)
   const isFirstRender = useRef(true)
 
   useEffect(() => {
@@ -276,10 +281,10 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
 
   useEffect(() => {
     const handlePopState = () => {
-      const urlText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? ''
+      const urlText = String_toNonEmptyString_orUndefined_afterTrim(getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
 
       if (urlText !== debouncedText) {
-        setText(urlText)
+        setText(urlText ?? '')
       }
     }
 
@@ -391,14 +396,16 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
                   isEnabled={isShowShortDetailAboutKhmerWordEnabled}
                   onToggle={toggleShowShortDetailAboutKhmerWord}
                 />
-                <AnalyzerHistoryButton
-                  currentText={text_}
-                  history={history}
-                  onClear={clearHistory}
-                  onRemove={removeFromHistory}
-                  onSave={saveToHistory}
-                  onSelect={handleHistorySelect}
-                />
+                {debouncedText && (
+                  <AnalyzerHistoryButton
+                    currentText={debouncedText}
+                    history={history}
+                    onClear={clearHistory}
+                    onRemove={removeFromHistory}
+                    onSave={saveToHistory}
+                    onSelect={handleHistorySelect}
+                  />
+                )}
               </div>
             </div>
           </div>
