@@ -1,6 +1,6 @@
 import React, { useCallback, memo, useEffect, useRef, useState, useMemo } from 'react'
 import { Button } from '@heroui/button'
-import { HiArrowLeft, HiCog6Tooth } from 'react-icons/hi2'
+import { HiArrowLeft } from 'react-icons/hi2'
 import { useLocation } from 'wouter'
 import { safeBack } from '../utils/safeBack'
 import { GoogleTranslateTextarea } from './GoogleTranslateTextarea/GoogleTranslateTextarea'
@@ -13,7 +13,7 @@ import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-ex
 import type { TextSegment } from '../utils/text-processing/text'
 import type { TextSegmentEnhanced } from '../utils/text-processing/text-enhanced'
 import { Alert } from '@heroui/alert'
-import { Spinner } from '@heroui/react'
+import { ScrollShadow, Spinner } from '@heroui/react'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { ShortDefinition } from '../db/dict'
@@ -23,20 +23,14 @@ import { useKhmerAnalysis, type KhmerAnalysisResult } from './KhmerAnalyzerModal
 import { useDebounce } from 'use-debounce'
 import { useI18nContext } from '../i18n/i18n-react-custom'
 import { getUrlSearchParam, KHMER_ANALYZER_PARAM_TEXT, makeKhmerAnalyzerUrl } from '../utils/url-navigation'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
-import { Switch } from '@heroui/switch'
-import type { SharedSelection } from '@heroui/system'
-import { herouiSharedSelection_getFirst_string } from '../utils/herouiSharedSelection_getFirst_string'
-import { stringToKhmerAnalyzerEnabledSegmentersOrThrow } from '../providers/SettingsProvider'
+import { type WordsHidingMode } from '../providers/SettingsProvider'
 import { RenderHtmlColorized } from './DetailView/atoms'
 import { basicMarkdownToHtml } from '../utils/text-processing/markdown'
-import {
-  KhmerWordsHidingAction,
-  NonKhmerWordsHidingAction,
-  ShortDetailAboutKhmerWordAction,
-} from './DetailView/DetailViewHeaderActions'
+
 import { useAnalyzerHistory } from '../hooks/useAnalyzerHistory'
 import { AnalyzerHistoryButton } from './KhmerAnalyzerModal/AnalyzerHistoryButton'
+import { AnalyzerHeaderToolbar } from './KhmerAnalyzerModal/AnalyzerHeaderToolbar'
+import { actionGridClassName, scrollShadowProps } from './DetailView/DetailViewHeader'
 
 interface HeaderTogglerOfSegmenterProps {
   children: (data: NonEmptyArray<TextSegment | TextSegmentEnhanced>) => React.ReactNode
@@ -92,22 +86,30 @@ export function HeaderTogglerOfSegmenter({
 
 const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
   markdown,
-  onKhmerWordClick,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
 }: {
   markdown: NonEmptyStringTrimmed
-  onKhmerWordClick: ((word: TypedKhmerWord) => void) | undefined
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
 }) {
   const { LL } = useI18nContext()
+  const [, setLocation] = useLocation()
+  const { isKhmerLinksEnabled } = useSettings()
 
   const html = useMemo(() => basicMarkdownToHtml(markdown), [markdown])
+
+  const handleNavigate = useCallback(
+    (word: NonEmptyStringTrimmed) => {
+      setLocation(`~/km/${encodeURIComponent(word)}`)
+    },
+    [setLocation],
+  )
+
 
   if (html.t === 'empty') {
     return (
@@ -130,11 +132,11 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
       dictionaryMode_lonelyWordShouldBeSpilt={false}
       hideBrokenImages_enable={false}
       html={html.v}
-      isKhmerLinksEnabled_ifTrue_passOnNavigateKm={onKhmerWordClick}
+      isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled ? handleNavigate : undefined}
       isKhmerPronunciationHidingEnabled={false}
-      isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-      isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
       isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+      khmerWordsHidingMode={khmerWordsHidingMode}
+      nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
       pronunciationSource={undefined}
       shortDefinitions={shortDefinitions}
     />
@@ -142,26 +144,33 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
 })
 
 interface KhmerAnalysisResultsProps {
-  onKhmerWordClick: ((word: TypedKhmerWord) => void) | undefined
   res: KhmerAnalysisResult
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isShowShortDetailAboutKhmerWordEnabled: boolean
   isSegmentationEnabled: boolean
   isCharacterAnalysisEnabled: boolean
 }
 
 export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
-  onKhmerWordClick,
   res,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isShowShortDetailAboutKhmerWordEnabled,
   isSegmentationEnabled,
   isCharacterAnalysisEnabled,
 }) => {
   const { LL } = useI18nContext()
   const { khmerAnalyzerMarkdownEnabled } = useSettings()
+  const [, setLocation] = useLocation()
+  const { isKhmerLinksEnabled } = useSettings()
+
+  const handleNavigate = useCallback(
+    (word: NonEmptyStringTrimmed) => {
+      setLocation(`~/km/${encodeURIComponent(word)}`)
+    },
+    [setLocation],
+  )
 
   if (res.t === 'empty_text') {
     return <div className="py-10 text-center text-default-400 italic">{LL.ANALYZER.EMPTY_TEXT()}</div>
@@ -180,70 +189,69 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
       {(res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' ||
         res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' ||
         res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success') && (
-        <>
-          {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
-            <div className="flex items-center gap-3 text-small text-primary animate-pulse">
-              <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
-            </div>
-          )}
+          <>
+            {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
+              <div className="flex items-center gap-3 text-small text-primary animate-pulse">
+                <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
+              </div>
+            )}
 
-          {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
-            <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
-              {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
-            </Alert>
-          )}
+            {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
+              <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
+                {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
+              </Alert>
+            )}
 
-          {khmerAnalyzerMarkdownEnabled && (
-            <div className="p-4 rounded-medium border border-divider bg-content2/30">
-              <RenderMarkdownColorized
-                isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-                isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
-                isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
-                markdown={res.analyzedText}
-                shortDefinitions={
-                  res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
-                    ? res.definitions
-                    : undefined
-                }
-                onKhmerWordClick={onKhmerWordClick}
-              />
-            </div>
-          )}
-
-          {isSegmentationEnabled && (
-            <HeaderTogglerOfSegmenter
-              initiallySelected="dict"
-              segmentsDict={res.segmentsDict}
-              segmentsIntl={res.segmentsIntl}
-              title={LL.ANALYZER.SEGMENTATION()}
-            >
-              {segments => (
-                <SegmentationPreview
-                  maybeColorMode="dictionary"
-                  segments={segments}
+            {khmerAnalyzerMarkdownEnabled && (
+              <div className="p-4 rounded-medium border border-divider bg-content2/30">
+                <RenderMarkdownColorized
+                  isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+                  khmerWordsHidingMode={khmerWordsHidingMode}
+                  markdown={res.analyzedText}
+                  nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
                   shortDefinitions={
                     res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
                       ? res.definitions
                       : undefined
                   }
-                  onKhmerWordClick={onKhmerWordClick}
                 />
-              )}
-            </HeaderTogglerOfSegmenter>
-          )}
+              </div>
+            )}
 
-          {isCharacterAnalysisEnabled && (
-            <HeaderTogglerOfSegmenter
-              initiallySelected="intl"
-              segmentsDict={res.segmentsDict}
-              segmentsIntl={res.segmentsIntl}
-              title={LL.ANALYZER.CHARACTER_ANALYSIS()}
-            >
-              {segments => <KhmerAnalyzer segments={segments} />}
-            </HeaderTogglerOfSegmenter>
-          )}
-        </>
-      )}
+            {isSegmentationEnabled && (
+              <HeaderTogglerOfSegmenter
+                initiallySelected="dict"
+                segmentsDict={res.segmentsDict}
+                segmentsIntl={res.segmentsIntl}
+                title={LL.ANALYZER.SEGMENTATION()}
+              >
+                {segments => (
+                  <SegmentationPreview
+                    maybeColorMode="dictionary"
+                    segments={segments}
+                    shortDefinitions={
+                      res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
+                        ? res.definitions
+                        : undefined
+                    }
+                    onKhmerWordClick={isKhmerLinksEnabled ? handleNavigate : undefined}
+                  />
+                )}
+              </HeaderTogglerOfSegmenter>
+            )}
+
+            {isCharacterAnalysisEnabled && (
+              <HeaderTogglerOfSegmenter
+                initiallySelected="intl"
+                segmentsDict={res.segmentsDict}
+                segmentsIntl={res.segmentsIntl}
+                title={LL.ANALYZER.CHARACTER_ANALYSIS()}
+              >
+                {segments => <KhmerAnalyzer segments={segments} />}
+              </HeaderTogglerOfSegmenter>
+            )}
+          </>
+        )}
     </div>
   )
 }
@@ -257,21 +265,13 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   const [, setLocation] = useLocation()
   const {
     filters,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isShowShortDetailAboutKhmerWordEnabled,
     khmerAnalyzerEnabledSegmenters,
-    khmerAnalyzerMarkdownEnabled,
     khmerAnalyzerSegmentationEnabled,
     khmerAnalyzerCharacterAnalysisEnabled,
     maybeColorMode,
-    setKhmerAnalyzerEnabledSegmenters,
-    setKhmerAnalyzerMarkdownEnabled,
-    setKhmerAnalyzerSegmentationEnabled,
-    setKhmerAnalyzerCharacterAnalysisEnabled,
-    toggleKhmerWordsHiding,
-    toggleNonKhmerWordsHiding,
-    toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
 
   const [text_, setText] = useState<string>(() => getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
@@ -293,10 +293,13 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
 
   useEffect(() => {
     const handlePopState = () => {
-      const urlText = String_toNonEmptyString_orUndefined_afterTrim(getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
+      const url = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT)
+      const urlText = url ? String_toNonEmptyString_orUndefined_afterTrim(url) : undefined
+
+      if (!urlText) return
 
       if (urlText !== debouncedText) {
-        setText(urlText ?? '')
+        setText(urlText)
       }
     }
 
@@ -309,23 +312,6 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     safeBack(setLocation)
   }, [setLocation])
 
-  const handleNavigate = useCallback(
-    (word: NonEmptyStringTrimmed) => {
-      setLocation(`~/km/${encodeURIComponent(word)}`)
-    },
-    [setLocation],
-  )
-
-  const handleSegmenterChange = useCallback(
-    (keys: SharedSelection) => {
-      const selected = herouiSharedSelection_getFirst_string(keys)
-
-      if (!selected) return
-      setKhmerAnalyzerEnabledSegmenters(stringToKhmerAnalyzerEnabledSegmentersOrThrow(selected))
-    },
-    [setKhmerAnalyzerEnabledSegmenters],
-  )
-
   const res = useKhmerAnalysis(debouncedText, filters.km.mode === 'all' ? 'km' : 'km', khmerAnalyzerEnabledSegmenters)
 
   const { history, saveToHistory, removeFromHistory, clearHistory } = useAnalyzerHistory()
@@ -334,18 +320,35 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     setText(text)
   }, [])
 
-  const dropdownSegmenterSelectionKeys = useMemo(
-    () => new Set([khmerAnalyzerEnabledSegmenters]),
-    [khmerAnalyzerEnabledSegmenters],
-  )
-
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
-      <div className="flex shrink-0 items-center p-6 pb-4 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(1rem+env(safe-area-inset-top))]">
-        <Button isIconOnly className="mr-3 text-default-500 -ml-2" variant="light" onPress={handleBack}>
-          <HiArrowLeft className="w-6 h-6" />
-        </Button>
-        <h1 className="text-xl font-bold">{LL.ANALYZER.TITLE()}</h1>
+      <div className="flex flex-col shrink-0 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
+        {/* Row 1: Title and Core Actions */}
+        <div className="flex items-center gap-2 h-auto min-h-[5rem]">
+          <Button isIconOnly className="mr-2 text-default-500 shrink-0" variant="light" onPress={handleBack}>
+            <HiArrowLeft className="w-6 h-6" />
+          </Button>
+
+          <div className="flex flex-col justify-center min-w-0 shrink-0 mr-auto max-w-[40%]">
+            <h1 className="text-xl font-bold truncate">{LL.ANALYZER.TITLE()}</h1>
+          </div>
+
+          <ScrollShadow {...scrollShadowProps}>
+            <div className={actionGridClassName}>
+              <AnalyzerHistoryButton
+                currentText={debouncedText}
+                history={history}
+                onClear={clearHistory}
+                onRemove={removeFromHistory}
+                onSave={saveToHistory}
+                onSelect={handleHistorySelect}
+              />
+              <AnalyzerHeaderToolbar />
+            </div>
+          </ScrollShadow>
+        </div>
+
+        {/* Row 2: Analysis Options */}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -363,123 +366,15 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
               variant="faded"
               onValueChange={setText}
             />
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider/50 pb-2.5">
-              <Dropdown placement="bottom-start">
-                <DropdownTrigger>
-                  <Button
-                    className="bg-background border-divider hover:border-primary/50 transition-colors"
-                    size="sm"
-                    startContent={<HiCog6Tooth className="text-primary" size={16} />}
-                    variant="bordered"
-                  >
-                    <span className="text-default-500 font-medium">{LL.ANALYZER.SEGMENTER_LABEL()}:</span>
-                    <span className="text-primary font-bold uppercase ml-1 tracking-tight">
-                      {khmerAnalyzerEnabledSegmenters}
-                    </span>
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  disallowEmptySelection
-                  aria-label="Select Segmenters"
-                  selectedKeys={dropdownSegmenterSelectionKeys}
-                  selectionMode="single"
-                  onSelectionChange={handleSegmenterChange}
-                >
-                  <DropdownItem key="segmenter" description="Standard browser API">
-                    {LL.ANALYZER.INTL_SEGMENTER()}
-                  </DropdownItem>
-                  <DropdownItem key="dictionary" description="Word-based matching">
-                    {LL.ANALYZER.APP_DICT()}
-                  </DropdownItem>
-                  <DropdownItem key="both" description="Maximum accuracy">
-                    {LL.ANALYZER.BOTH()}
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-
-              {/* Horizontal Toggle Group */}
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    isSelected={khmerAnalyzerMarkdownEnabled}
-                    size="sm"
-                    onValueChange={setKhmerAnalyzerMarkdownEnabled}
-                  />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-default-500 leading-none">
-                    {LL.ANALYZER.MARKDOWN_LABEL()}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 border-l border-divider/50 pl-5">
-                  <Switch
-                    isSelected={khmerAnalyzerSegmentationEnabled}
-                    size="sm"
-                    onValueChange={setKhmerAnalyzerSegmentationEnabled}
-                  />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-default-500 leading-none">
-                    {LL.ANALYZER.SEGMENTATION_LABEL()}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 border-l border-divider/50 pl-5">
-                  <Switch
-                    isSelected={khmerAnalyzerCharacterAnalysisEnabled}
-                    size="sm"
-                    onValueChange={setKhmerAnalyzerCharacterAnalysisEnabled}
-                  />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-default-500 leading-none">
-                    {LL.ANALYZER.CHARACTER_ANALYSIS_LABEL()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Layer 2: Display Tools & History */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center bg-background rounded-lg p-0.5 border border-divider ring-1 ring-black/5">
-                  <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
-                  <div className="w-px h-4 bg-divider mx-0.5" />
-                  <NonKhmerWordsHidingAction
-                    isEnabled={isNonKhmerWordsHidingEnabled}
-                    onToggle={toggleNonKhmerWordsHiding}
-                  />
-                  <div className="w-px h-4 bg-divider mx-0.5" />
-                  <ShortDetailAboutKhmerWordAction
-                    isEnabled={isShowShortDetailAboutKhmerWordEnabled}
-                    onToggle={toggleShowShortDetailAboutKhmerWord}
-                  />
-                </div>
-                <span className="text-[9px] text-default-400 font-bold uppercase tracking-widest ml-1">
-                  View Filters
-                </span>
-              </div>
-
-              {debouncedText && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-default-400 font-bold uppercase tracking-widest">History</span>
-                  <AnalyzerHistoryButton
-                    currentText={debouncedText}
-                    history={history}
-                    onClear={clearHistory}
-                    onRemove={removeFromHistory}
-                    onSave={saveToHistory}
-                    onSelect={handleHistorySelect}
-                  />
-                </div>
-              )}
-            </div>
           </div>
 
           <KhmerAnalysisResults
             isCharacterAnalysisEnabled={khmerAnalyzerCharacterAnalysisEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isSegmentationEnabled={khmerAnalyzerSegmentationEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             res={res}
-            onKhmerWordClick={handleNavigate}
           />
         </div>
       </div>

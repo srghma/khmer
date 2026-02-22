@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 import React, { type Dispatch, type SetStateAction } from 'react'
 import type { DictionaryLanguage } from '../../types'
 import { Spinner } from '@heroui/spinner'
@@ -18,8 +19,8 @@ const DetailFetcher_loading = (
 export const DetailFetcher = React.memo(function DetailFetcher({
   language,
   word,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isRevealed,
   ankiGameMode,
   userAnswer,
@@ -30,8 +31,8 @@ export const DetailFetcher = React.memo(function DetailFetcher({
 }: {
   language: DictionaryLanguage
   word: NonEmptyStringTrimmed
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isRevealed: boolean
   ankiGameMode: AnkiGameMode
   userAnswer: string
@@ -56,10 +57,10 @@ export const DetailFetcher = React.memo(function DetailFetcher({
       additional_html_front={additional_html_front}
       ankiGameMode={ankiGameMode}
       data={d}
-      isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-      isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
       isRevealed={isRevealed}
+      khmerWordsHidingMode={khmerWordsHidingMode}
       mode={language}
+      nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
       setUserAnswer={setUserAnswer}
       userAnswer={userAnswer}
       word={word}

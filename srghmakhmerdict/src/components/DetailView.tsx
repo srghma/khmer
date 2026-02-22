@@ -11,12 +11,11 @@ import { useWordData } from '../hooks/useWordData'
 interface DetailViewProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
-  onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   highlightMatch: NonEmptyStringTrimmed | undefined
   backButton_goBack: (() => void) | undefined
 }
 
-const DetailViewImpl = ({ word, mode, onNavigate, backButton_goBack }: DetailViewProps) => {
+const DetailViewImpl = ({ word, mode, backButton_goBack }: DetailViewProps) => {
   const res = useWordData(word, mode)
 
   // 1. Loading state
@@ -30,7 +29,7 @@ const DetailViewImpl = ({ word, mode, onNavigate, backButton_goBack }: DetailVie
 
   // 4. Not Found (Show Analyzer)
   if (res.t === 'not_found') {
-    return <DetailViewNotFound backButton_goBack={backButton_goBack} mode={mode} word={word} onNavigate={onNavigate} />
+    return <DetailViewNotFound backButton_goBack={backButton_goBack} mode={mode} word={word} />
   }
 
   // 5. Found (Show Details)
@@ -42,7 +41,6 @@ const DetailViewImpl = ({ word, mode, onNavigate, backButton_goBack }: DetailVie
       mode={mode}
       toggleFav={res.toggleFav}
       word={word}
-      onNavigate={onNavigate}
     />
   )
 }

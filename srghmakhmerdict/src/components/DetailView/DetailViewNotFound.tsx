@@ -12,7 +12,6 @@ import type { DictionaryLanguage } from '../../types'
 
 import { useSettings } from '../../providers/SettingsProvider'
 import { DetailViewHeader } from './DetailViewHeader'
-import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { GoogleTranslateTextarea } from '../GoogleTranslateTextarea/GoogleTranslateTextarea'
 import { KhmerAnalysisResults } from '../KhmerAnalyzerView'
 import { truncateString } from '../../utils/truncateString'
@@ -22,11 +21,10 @@ import { useDebounce } from 'use-debounce'
 interface DetailViewNotFoundProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
-  onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   backButton_goBack: (() => void) | undefined
 }
 
-export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }: DetailViewNotFoundProps) => {
+export const DetailViewNotFound = ({ word, mode, backButton_goBack }: DetailViewNotFoundProps) => {
   const { LL } = useI18nContext()
   const [analyzedText, setAnalyzedText] = useState<string>(word)
   const analyzedText_nonEmptyTrimmed = useMemo(
@@ -39,9 +37,9 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
   const {
     isKhmerLinksEnabled,
     toggleKhmerLinks,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
-    // toggleKhmerWordsHiding,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
+    // setKhmerWordsHidingMode,
     khmerFontName,
     setKhmerFontName,
     maybeColorMode,
@@ -62,12 +60,6 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
   //   [scaling_ui, khmerFontFamily],
   // )
 
-  // 3. Stable click handler
-  const handleKhmerWordClick = useMemo(() => {
-    if (!isKhmerLinksEnabled) return undefined
-
-    return (w: TypedKhmerWord) => onNavigate(w, mode)
-  }, [isKhmerLinksEnabled, onNavigate, mode])
 
   const wordNotFound = useMemo(() => {
     const w = truncateString(word, 20)
@@ -88,8 +80,8 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
         backButton_goBack={backButton_goBack}
         header={wordNotFound}
         isKhmerLinksEnabled={isKhmerLinksEnabled}
-        // isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-        // toggleKhmerWordsHiding={toggleKhmerWordsHiding}
+        // khmerWordsHidingMode={khmerWordsHidingMode}
+        // setKhmerWordsHidingMode={setKhmerWordsHidingMode}
         isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
         khmerFontName={khmerFontName}
         setKhmerFontName={setKhmerFontName}
@@ -116,12 +108,11 @@ export const DetailViewNotFound = ({ word, mode, onNavigate, backButton_goBack }
 
         <KhmerAnalysisResults
           isCharacterAnalysisEnabled={khmerAnalyzerCharacterAnalysisEnabled}
-          isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-          isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
           isSegmentationEnabled={khmerAnalyzerSegmentationEnabled}
           isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+          khmerWordsHidingMode={khmerWordsHidingMode}
+          nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
           res={res}
-          onKhmerWordClick={handleKhmerWordClick}
         />
       </ScrollShadow>
     </Card>

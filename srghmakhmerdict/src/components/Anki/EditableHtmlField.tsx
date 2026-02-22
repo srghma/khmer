@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 import { useState, useCallback, memo } from 'react'
 import { Textarea, Button } from '@heroui/react'
 import { HiPencil, HiCheck, HiXMark, HiPlus } from 'react-icons/hi2'
@@ -16,8 +17,8 @@ interface EditableHtmlFieldProps {
   onSave: (newValue: NonEmptyStringTrimmed | undefined) => Promise<void>
   label: string
   className?: string
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
@@ -33,8 +34,8 @@ export const EditableHtmlField = memo(function EditableHtmlField({
   onSave,
   label,
   className = '',
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isKhmerPronunciationHidingEnabled,
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
@@ -153,9 +154,9 @@ export const EditableHtmlField = memo(function EditableHtmlField({
           html={initialValue}
           isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
           isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-          isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-          isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
           isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+          khmerWordsHidingMode={khmerWordsHidingMode}
+          nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
           pronunciationSource={undefined}
           shortDefinitions={shortDefinitions}
         />

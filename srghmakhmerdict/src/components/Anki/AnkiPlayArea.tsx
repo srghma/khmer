@@ -37,17 +37,27 @@ export const AnkiPlayArea = React.memo(function AnkiPlayArea({ itemData, onRate 
 
   const buttons: FourButtons = useMemo(() => mkFourButtons(item, now, i => i), [item, now])
 
-  const {
-    isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled_global,
-    isNonKhmerWordsHidingEnabled: isNonKhmerWordsHidingEnabled_global,
-  } = useSettings()
+  const { khmerWordsHidingMode: khmerWordsHidingMode_global, nonKhmerWordsHidingMode: nonKhmerWordsHidingMode_global } =
+    useSettings()
 
-  const isKhmerWordsHidingEnabled = ['ru:GUESSING_KHMER', 'en:GUESSING_KHMER', 'km:GUESSING_KHMER'].some(
+  const isKhmerHidingForced = ['ru:GUESSING_KHMER', 'en:GUESSING_KHMER', 'km:GUESSING_KHMER'].some(x => x === mode)
+  const isNonKhmerHidingForced = ['ru:GUESSING_NON_KHMER', 'en:GUESSING_NON_KHMER', 'km:GUESSING_NON_KHMER'].some(
     x => x === mode,
   )
-  const isNonKhmerWordsHidingEnabled = ['ru:GUESSING_NON_KHMER', 'en:GUESSING_NON_KHMER', 'km:GUESSING_NON_KHMER'].some(
-    x => x === mode,
-  )
+
+  const khmerWordsHidingMode =
+    isRevealed || !isKhmerHidingForced
+      ? 'disabled'
+      : khmerWordsHidingMode_global === 'disabled'
+        ? 'on_click_reveal'
+        : khmerWordsHidingMode_global
+
+  const nonKhmerWordsHidingMode =
+    isRevealed || !isNonKhmerHidingForced
+      ? 'disabled'
+      : nonKhmerWordsHidingMode_global === 'disabled'
+        ? 'on_click_reveal'
+        : nonKhmerWordsHidingMode_global
 
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden relative">
@@ -56,10 +66,10 @@ export const AnkiPlayArea = React.memo(function AnkiPlayArea({ itemData, onRate 
           additional_html_back={item.additional_html_back ?? undefined}
           additional_html_front={item.additional_html_front ?? undefined}
           ankiGameMode={mode}
-          isKhmerWordsHidingEnabled={isRevealed ? isKhmerWordsHidingEnabled_global : isKhmerWordsHidingEnabled}
-          isNonKhmerWordsHidingEnabled={isRevealed ? isNonKhmerWordsHidingEnabled_global : isNonKhmerWordsHidingEnabled}
           isRevealed={isRevealed}
+          khmerWordsHidingMode={khmerWordsHidingMode}
           language={language}
+          nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
           setUserAnswer={setUserAnswer}
           userAnswer={userAnswer}
           word={item.word}

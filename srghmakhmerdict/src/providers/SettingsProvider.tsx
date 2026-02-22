@@ -82,6 +82,26 @@ export function stringToKhmerAnalyzerEnabledSegmentersOrThrow(value: string): Kh
   return stringToEnumOrThrow(value, KHMER_ANALYZER_ENABLED_SEGMENTERS, 'KhmerAnalyzerEnabledSegmenters')
 }
 
+///////////////////
+
+export const WORDS_HIDING_MODES = ['disabled', 'on_click_reveal', 'on_click_open_fill_in_the_blank_game_modal'] as const
+
+export type WordsHidingMode = (typeof WORDS_HIDING_MODES)[number]
+
+export function isWordsHidingMode(value: string): value is WordsHidingMode {
+  return isEnumValue(value, WORDS_HIDING_MODES)
+}
+
+export function stringToWordsHidingModeOrUndefined(value: string): WordsHidingMode | undefined {
+  return stringToEnumOrUndefined(value, WORDS_HIDING_MODES)
+}
+
+export function stringToWordsHidingModeOrThrow(value: string): WordsHidingMode {
+  return stringToEnumOrThrow(value, WORDS_HIDING_MODES, 'WordsHidingMode')
+}
+
+////////////////
+
 export interface DictFilterSettings {
   km: {
     mode: DictFilterSettings_Km_Mode
@@ -133,13 +153,11 @@ export interface SettingsContextType {
   setIsKhmerLinksEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   toggleKhmerLinks: () => void
 
-  isKhmerWordsHidingEnabled: boolean
-  setIsKhmerWordsHidingEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
-  toggleKhmerWordsHiding: () => void
+  khmerWordsHidingMode: WordsHidingMode
+  setKhmerWordsHidingMode: (v: WordsHidingMode | ((prev: WordsHidingMode | undefined) => WordsHidingMode)) => void
 
-  isNonKhmerWordsHidingEnabled: boolean
-  setIsNonKhmerWordsHidingEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
-  toggleNonKhmerWordsHiding: () => void
+  nonKhmerWordsHidingMode: WordsHidingMode
+  setNonKhmerWordsHidingMode: (v: WordsHidingMode | ((prev: WordsHidingMode | undefined) => WordsHidingMode)) => void
 
   khmerFontName: KhmerFontName
   khmerFontFamily: NonEmptyStringTrimmed | undefined
@@ -233,14 +251,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     { defaultValue: true },
   )
 
-  const [isKhmerWordsHidingEnabled, setIsKhmerWordsHidingEnabled] = useLocalStorageState<boolean>(
-    'srghmakhmerdict__is_khmer_words_hiding_enabled',
-    { defaultValue: false },
+  const [khmerWordsHidingMode, setKhmerWordsHidingMode] = useLocalStorageState<WordsHidingMode>(
+    'srghmakhmerdict__khmer_words_hiding_mode',
+    { defaultValue: 'disabled' },
   )
 
-  const [isNonKhmerWordsHidingEnabled, setIsNonKhmerWordsHidingEnabled] = useLocalStorageState<boolean>(
-    'srghmakhmerdict__is_non_khmer_words_hiding_enabled',
-    { defaultValue: false },
+  const [nonKhmerWordsHidingMode, setNonKhmerWordsHidingMode] = useLocalStorageState<WordsHidingMode>(
+    'srghmakhmerdict__non_khmer_words_hiding_mode',
+    { defaultValue: 'disabled' },
   )
 
   const [autoReadMode, setAutoReadMode] = useLocalStorageState<AutoReadMode>('srghmakhmerdict__auto_read_mode', {
@@ -280,14 +298,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
 
-  const toggleKhmerWordsHiding = useCallback(() => {
-    setIsKhmerWordsHidingEnabled(prev => !prev)
-  }, [setIsKhmerWordsHidingEnabled])
-
-  const toggleNonKhmerWordsHiding = useCallback(() => {
-    setIsNonKhmerWordsHidingEnabled(prev => !prev)
-  }, [setIsNonKhmerWordsHidingEnabled])
-
   const toggleShowShortDetailAboutKhmerWord = useCallback(() => {
     setIsShowShortDetailAboutKhmerWordEnabled(prev => !prev)
   }, [setIsShowShortDetailAboutKhmerWordEnabled])
@@ -317,12 +327,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerLinksEnabled: isKhmerLinksEnabled ?? true,
       setIsKhmerLinksEnabled,
       toggleKhmerLinks,
-      isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled ?? false,
-      setIsKhmerWordsHidingEnabled,
-      toggleKhmerWordsHiding,
-      isNonKhmerWordsHidingEnabled: isNonKhmerWordsHidingEnabled ?? false,
-      setIsNonKhmerWordsHidingEnabled,
-      toggleNonKhmerWordsHiding,
+      khmerWordsHidingMode: khmerWordsHidingMode ?? 'disabled',
+      setKhmerWordsHidingMode,
+      nonKhmerWordsHidingMode: nonKhmerWordsHidingMode ?? 'disabled',
+      setNonKhmerWordsHidingMode,
       khmerFontName: khmerFontName ?? 'Default',
       khmerFontFamily: KHMER_FONT_FAMILY[khmerFontName ?? 'Default'],
       setKhmerFontName,
@@ -367,12 +375,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isKhmerLinksEnabled,
       setIsKhmerLinksEnabled,
       toggleKhmerLinks,
-      isKhmerWordsHidingEnabled,
-      setIsKhmerWordsHidingEnabled,
-      toggleKhmerWordsHiding,
-      isNonKhmerWordsHidingEnabled,
-      setIsNonKhmerWordsHidingEnabled,
-      toggleNonKhmerWordsHiding,
+      khmerWordsHidingMode,
+      setKhmerWordsHidingMode,
+      nonKhmerWordsHidingMode,
+      setNonKhmerWordsHidingMode,
       khmerFontName,
       setKhmerFontName,
       autoReadMode,

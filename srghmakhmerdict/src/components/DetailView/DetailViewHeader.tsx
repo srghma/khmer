@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 import React, { useMemo } from 'react'
 import { CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
@@ -43,11 +44,11 @@ export interface DetailViewHeaderProps_KnownWord extends DetailViewHeaderProps_C
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
   // Khmer Words Hiding
-  isKhmerWordsHidingEnabled: boolean
-  toggleKhmerWordsHiding: () => void
+  khmerWordsHidingMode: WordsHidingMode
+  setKhmerWordsHidingMode: (v: WordsHidingMode) => void
 
-  isNonKhmerWordsHidingEnabled: boolean
-  toggleNonKhmerWordsHiding: () => void
+  nonKhmerWordsHidingMode: WordsHidingMode
+  setNonKhmerWordsHidingMode: (v: WordsHidingMode) => void
 }
 
 export interface DetailViewHeaderProps_AnkiGame_Back extends DetailViewHeaderProps_Common {
@@ -60,10 +61,10 @@ export interface DetailViewHeaderProps_AnkiGame_Back extends DetailViewHeaderPro
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
   // Khmer Words Hiding
-  isKhmerWordsHidingEnabled: boolean
-  toggleKhmerWordsHiding: () => void
-  isNonKhmerWordsHidingEnabled: boolean
-  toggleNonKhmerWordsHiding: () => void
+  khmerWordsHidingMode: WordsHidingMode
+  setKhmerWordsHidingMode: (v: WordsHidingMode) => void
+  nonKhmerWordsHidingMode: WordsHidingMode
+  setNonKhmerWordsHidingMode: (v: WordsHidingMode) => void
   // Autofocus
   isAutoFocusAnswerEnabled: boolean
   toggleAutoFocusAnswer: () => void
@@ -102,7 +103,7 @@ export type DetailViewHeaderProps =
 
 // --- GRID & LAYOUT CONFIGURATION ---
 
-const scrollShadowProps = {
+export const scrollShadowProps = {
   hideScrollBar: true,
   orientation: 'horizontal' as const,
   // flex-1: Takes all remaining width after Title
@@ -110,7 +111,7 @@ const scrollShadowProps = {
   className: 'flex-1 min-w-0 h-full pr-[env(safe-area-inset-right)]',
 }
 
-const actionGridClassName = 'flex items-center gap-1 h-full w-max ml-auto'
+export const actionGridClassName = 'flex items-center gap-1 h-full w-max ml-auto'
 
 // -----------------------------------
 

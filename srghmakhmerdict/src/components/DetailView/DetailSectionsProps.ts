@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { KhmerWordsMap } from '../../db/dict/index'
@@ -31,8 +32,8 @@ export interface DetailSectionsProps {
   isKhmerLinksEnabled_ifTrue_passOnNavigate:
     | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
     | undefined
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined

@@ -31,7 +31,6 @@ interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
   data: WordDetailEnOrRuOrKm
   mode: DictionaryLanguage
-  onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 
   // Logic Props
   isFav: boolean
@@ -74,7 +73,6 @@ const DetailViewFoundComponent = ({
   word,
   data,
   mode,
-  onNavigate,
   isFav,
   toggleFav,
   backButton_goBack,
@@ -82,6 +80,12 @@ const DetailViewFoundComponent = ({
   // 1. Logic
   const { LL } = useI18nContext()
   const toast = useAppToast()
+  const [, setLocation] = useLocation()
+
+  const onNavigate = useCallback(
+    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => setLocation(`~/${mode}/${encodeURIComponent(word)}`),
+    [setLocation],
+  )
 
   const handleNavigate = useCallback(
     (navWord: NonEmptyStringTrimmed, navMode: DictionaryLanguage) => {
@@ -96,22 +100,21 @@ const DetailViewFoundComponent = ({
 
   const {
     isKhmerLinksEnabled,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     khmerFontName,
     setKhmerFontName,
     maybeColorMode,
     setMaybeColorMode,
     toggleKhmerLinks,
-    toggleKhmerWordsHiding,
-    toggleNonKhmerWordsHiding,
+    setKhmerWordsHidingMode,
+    setNonKhmerWordsHidingMode,
     khmerFontFamily,
     isShowShortDetailAboutKhmerWordEnabled,
     toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
 
   const { km_map } = useDictionary()
-  const [, setLocation] = useLocation()
   const currentView = useAppMainView()
 
   useAutoReadTts(word, mode)
@@ -215,19 +218,19 @@ const DetailViewFoundComponent = ({
         backButton_goBack={backButton_goBack}
         isFav={isFav}
         isKhmerLinksEnabled={isKhmerLinksEnabled}
-        isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-        isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
         isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
         khmerFontFamily={khmerFontFamily}
         khmerFontName={khmerFontName}
+        khmerWordsHidingMode={khmerWordsHidingMode}
         maybeColorMode={maybeColorMode}
+        nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
         phonetic={data.phonetic}
         setKhmerFontName={setKhmerFontName}
+        setKhmerWordsHidingMode={setKhmerWordsHidingMode}
         setMaybeColorMode={setMaybeColorMode}
+        setNonKhmerWordsHidingMode={setNonKhmerWordsHidingMode}
         toggleFav={toggleFav}
         toggleKhmerLinks={toggleKhmerLinks}
-        toggleKhmerWordsHiding={toggleKhmerWordsHiding}
-        toggleNonKhmerWordsHiding={toggleNonKhmerWordsHiding}
         toggleShowShortDetailAboutKhmerWord={toggleShowShortDetailAboutKhmerWord}
         type="known_word"
         word_displayHtml={data.word_display ?? word}
@@ -255,23 +258,23 @@ const DetailViewFoundComponent = ({
                   gorgoniev={data.gorgoniev}
                   isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled ? handleNavigate : undefined}
                   isKhmerPronunciationHidingEnabled={false}
-                  isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-                  isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                   isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+                  khmerWordsHidingMode={khmerWordsHidingMode}
                   km_map={km_map}
                   maybeColorMode={maybeColorMode}
                   mode={mode}
+                  nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
                   shortDefinitions={shortDefinitions}
                   wiktionary={data.wiktionary}
                 />
                 {automaticRussianPronunciation_km_map_value && (
                   <AutomaticRussianPronunciation
                     isKhmerPronunciationHidingEnabled={false}
-                    isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-                    isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                     isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                     khmerText={word as TypedContainsKhmer}
+                    khmerWordsHidingMode={khmerWordsHidingMode}
                     km_map_value={automaticRussianPronunciation_km_map_value}
+                    nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
                     shortDefinitions={shortDefinitions}
                     onWordClick={automaticRussianPronunciation_onClick}
                   />

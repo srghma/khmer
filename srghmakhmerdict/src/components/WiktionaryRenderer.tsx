@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../providers/SettingsProvider'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useCallback, useMemo, useRef } from 'react'
 import { type DictionaryLanguage } from '../types'
@@ -158,8 +159,8 @@ interface WiktionaryRendererProps {
     | ((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void)
     | undefined
   currentMode: DictionaryLanguage
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
@@ -172,8 +173,8 @@ export const WiktionaryRenderer = ({
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
   isKhmerLinksEnabled_ifTrue_passOnNavigate,
   currentMode,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isKhmerPronunciationHidingEnabled,
   dictionaryMode_lonelyWordShouldBeSpilt,
   isShowShortDetailAboutKhmerWordEnabled,
@@ -199,16 +200,16 @@ export const WiktionaryRenderer = ({
   useKhmerAndNonKhmerClickListener(
     containerRef,
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     wikiLinkHandler,
   )
 
   const srghma_khmer_dict_content_styles = calculateKhmerAndNonKhmerContentStyles(
     !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     isShowShortDetailAboutKhmerWordEnabled,
   )

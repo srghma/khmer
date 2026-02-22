@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 import { memo, useMemo, useRef } from 'react'
 import { Chip } from '@heroui/chip'
 
@@ -18,8 +19,8 @@ import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-e
 interface RussianPronunciationProps {
   khmerText: TypedContainsKhmer
   onWordClick: ((word: TypedKhmerWord) => void) | undefined
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
@@ -37,8 +38,8 @@ interface SectionProps {
   khmerContentClass: string
   // Pass click-related props down to handle hooks internally
   onWordClick: ((word: TypedKhmerWord) => void) | undefined
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
 }
@@ -49,8 +50,8 @@ const Section = memo(function Section({
   colorizedWords,
   khmerContentClass,
   onWordClick,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isKhmerPronunciationHidingEnabled,
 }: SectionProps) {
   const ref = useRef<HTMLDivElement>(null)
@@ -59,8 +60,8 @@ const Section = memo(function Section({
   useKhmerAndNonKhmerClickListener(
     ref,
     onWordClick,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
   )
 
@@ -98,8 +99,8 @@ const Section = memo(function Section({
 
 export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronunciation({
   isKhmerPronunciationHidingEnabled,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
   khmerText,
@@ -178,8 +179,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
 
   const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
     !!onWordClick,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     isShowShortDetailAboutKhmerWordEnabled,
   )
@@ -189,8 +190,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
   // Helper to pass down standard props
   const sharedProps = {
     onWordClick,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     isShowShortDetailAboutKhmerWordEnabled,
     khmerContentClass,

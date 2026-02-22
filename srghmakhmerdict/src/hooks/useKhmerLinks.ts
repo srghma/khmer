@@ -1,7 +1,12 @@
-import { nonEmptyString_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import {
+  nonEmptyString_afterTrim,
+  type NonEmptyStringTrimmed,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import srghma_khmer_dict_content_styles from '../srghma_khmer_dict_content.module.css'
 import { useEffect } from 'react'
 import { useShortDefinitionPopover } from '../providers/ShortDefinitionPopoverProvider'
+import { useFillInTheBlankModal } from '../providers/FillInTheBlankModalProvider'
+import type { WordsHidingMode } from '../providers/SettingsProvider'
 
 import {
   strToKhmerWordOrThrow,
@@ -14,8 +19,9 @@ import {
 export const tryHandleKhmerAndNonKhmerWordClick = (
   e: MouseEvent,
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined,
-  isKhmerWordsHidingEnabled: boolean,
-  isNonKhmerWordsHidingEnabled: boolean,
+  khmerWordsHidingMode: WordsHidingMode,
+  nonKhmerWordsHidingMode: WordsHidingMode,
+  showModal: (rawWord: NonEmptyStringTrimmed) => void,
 ): boolean => {
   const target = e.target as HTMLElement
 
@@ -23,14 +29,23 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
   const khmerSpan = target.closest('[data-navigate-khmer-word]') as HTMLElement | null
 
   if (khmerSpan) {
-    if (isKhmerWordsHidingEnabled) {
+    if (khmerWordsHidingMode !== 'disabled') {
       const isBlueLabel = khmerSpan.classList.contains('khmer--blue-lbl')
       const isRevealed = khmerSpan.classList.contains('is-revealed')
 
       if (!isBlueLabel && !isRevealed) {
         e.preventDefault()
         e.stopPropagation()
-        khmerSpan.classList.add('is-revealed')
+
+        if (khmerWordsHidingMode === 'on_click_open_fill_in_the_blank_game_modal') {
+          const rawWord = khmerSpan.getAttribute('data-navigate-khmer-word')
+
+          if (rawWord) {
+            showModal(nonEmptyString_afterTrim(rawWord))
+          }
+        } else {
+          khmerSpan.classList.add('is-revealed')
+        }
 
         return true
       }
@@ -63,13 +78,22 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
   const nonKhmerSpan = target.closest('[data-non-khmer-text]') as HTMLElement | null
 
   if (nonKhmerSpan) {
-    if (isNonKhmerWordsHidingEnabled) {
+    if (nonKhmerWordsHidingMode !== 'disabled') {
       const isRevealed = nonKhmerSpan.classList.contains('is-revealed')
 
       if (!isRevealed) {
         e.preventDefault()
         e.stopPropagation()
-        nonKhmerSpan.classList.add('is-revealed')
+
+        if (nonKhmerWordsHidingMode === 'on_click_open_fill_in_the_blank_game_modal') {
+          const rawWord = nonKhmerSpan.getAttribute('data-non-khmer-text')
+
+          if (rawWord) {
+            showModal(nonEmptyString_afterTrim(rawWord))
+          }
+        } else {
+          nonKhmerSpan.classList.add('is-revealed')
+        }
 
         return true
       }
@@ -80,7 +104,7 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
   const khmerImageWrapper = target.closest('.khmer--image-wrapper') as HTMLElement | null
 
   if (khmerImageWrapper) {
-    if (isKhmerWordsHidingEnabled) {
+    if (khmerWordsHidingMode !== 'disabled') {
       const isRevealed = khmerImageWrapper.classList.contains('is-revealed')
 
       if (!isRevealed) {
@@ -98,16 +122,16 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
 
 const calculateKhmerAndNonKhmerContentStyles_ = (
   isKhmerLinksEnabled: boolean,
-  isKhmerWordsHidingEnabled: boolean,
-  isNonKhmerWordsHidingEnabled: boolean,
+  khmerWordsHidingMode: WordsHidingMode,
+  nonKhmerWordsHidingMode: WordsHidingMode,
   isKhmerPronunciationHidingEnabled: boolean,
   isShowShortDetailAboutKhmerWordEnabled: boolean,
 ) => {
   const classes = [
     srghma_khmer_dict_content_styles.srghma_khmer_dict_content,
     isKhmerLinksEnabled && srghma_khmer_dict_content_styles.interactive,
-    isKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_enabled,
-    isNonKhmerWordsHidingEnabled && srghma_khmer_dict_content_styles.hiding_non_khmer_enabled,
+    khmerWordsHidingMode !== 'disabled' && srghma_khmer_dict_content_styles.hiding_enabled,
+    nonKhmerWordsHidingMode !== 'disabled' && srghma_khmer_dict_content_styles.hiding_non_khmer_enabled,
     isKhmerPronunciationHidingEnabled && srghma_khmer_dict_content_styles.hiding_pronunciations_enabled,
     isShowShortDetailAboutKhmerWordEnabled && srghma_khmer_dict_content_styles.show_short_details,
   ]
@@ -124,12 +148,13 @@ export const calculateKhmerAndNonKhmerContentStyles = calculateKhmerAndNonKhmerC
 export const useKhmerAndNonKhmerClickListener = (
   ref: React.RefObject<HTMLElement | null>,
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined,
-  isKhmerWordsHidingEnabled: boolean,
-  isNonKhmerWordsHidingEnabled: boolean,
+  khmerWordsHidingMode: WordsHidingMode,
+  nonKhmerWordsHidingMode: WordsHidingMode,
   isKhmerPronunciationHidingEnabled: boolean,
   fallbackHandler?: (e: MouseEvent) => void | Promise<void>,
 ) => {
   const { showPopover } = useShortDefinitionPopover()
+  const { showModal } = useFillInTheBlankModal()
 
   useEffect(() => {
     const el = ref.current
@@ -140,8 +165,9 @@ export const useKhmerAndNonKhmerClickListener = (
       const handled = tryHandleKhmerAndNonKhmerWordClick(
         e,
         isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-        isKhmerWordsHidingEnabled,
-        isNonKhmerWordsHidingEnabled,
+        khmerWordsHidingMode,
+        nonKhmerWordsHidingMode,
+        showModal,
       )
 
       if (handled) return
@@ -188,8 +214,8 @@ export const useKhmerAndNonKhmerClickListener = (
     ref,
     fallbackHandler,
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     showPopover,
   ])

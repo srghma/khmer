@@ -18,6 +18,7 @@ import {
   type MaybeColorizationMode,
   stringToMaybeColorizationModeOrThrow,
 } from '../../utils/text-processing/utils'
+import { type WordsHidingMode, stringToWordsHidingModeOrThrow } from '../../providers/SettingsProvider'
 import { GoogleSpeechAction } from './Tooltips/GoogleSpeechAction'
 import { NativeSpeechAction } from './Tooltips/NativeSpeechAction'
 import { KhmerHideToggleIcon } from '../Icons/KhmerHideToggleIcon'
@@ -33,28 +34,54 @@ import { details_header__text_className } from '../header_classNames'
  * 1. WORD HIDING TOGGLE
  */
 export interface KhmerWordsHidingActionProps {
-  isEnabled: boolean
-  onToggle: () => void
+  mode: WordsHidingMode
+  onChange: (mode: WordsHidingMode) => void
 }
 
 export const KhmerWordsHidingAction = memo(function KhmerWordsHidingAction({
-  isEnabled,
-  onToggle,
+  mode,
+  onChange,
 }: KhmerWordsHidingActionProps) {
   const { LL } = useI18nContext()
+  const selectedKeys = useMemo(() => [mode], [mode])
+
+  const handleChange = useCallback(
+    (keys: SharedSelection) => {
+      const selectedKey = herouiSharedSelection_getFirst_string(keys)
+
+      if (selectedKey) onChange(stringToWordsHidingModeOrThrow(selectedKey))
+    },
+    [onChange],
+  )
+
+  const isEnabled = mode !== 'disabled'
 
   return (
-    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? LL.ACTIONS.HIDE_KM() : LL.ACTIONS.SHOW_KM()}>
-      <Button
-        isIconOnly
-        className={cn(isEnabled ? 'text-primary' : 'text-default-500', '!overflow-visible')}
-        radius="full"
-        variant="light"
-        onPress={onToggle}
+    <Dropdown>
+      <DropdownTrigger>
+        <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.HIDE_KM()}>
+          <Button
+            isIconOnly
+            className={cn(isEnabled ? 'text-primary' : 'text-default-500', '!overflow-visible')}
+            radius="full"
+            variant="light"
+          >
+            <KhmerHideToggleIcon isEnabled={isEnabled} />
+          </Button>
+        </TooltipMobileFriendly>
+      </DropdownTrigger>
+      <DropdownMenu
+        disallowEmptySelection
+        className="text-base"
+        selectedKeys={selectedKeys}
+        selectionMode="single"
+        onSelectionChange={handleChange}
       >
-        <KhmerHideToggleIcon isEnabled={isEnabled} />
-      </Button>
-    </TooltipMobileFriendly>
+        <DropdownItem key="disabled">{LL.ACTIONS.SHOW_KM()}</DropdownItem>
+        <DropdownItem key="on_click_reveal">{LL.ACTIONS.HIDE_KM()} (Reveal)</DropdownItem>
+        <DropdownItem key="on_click_open_fill_in_the_blank_game_modal">{LL.ACTIONS.HIDE_KM()} (Game)</DropdownItem>
+      </DropdownMenu>
+    </Dropdown>
   )
 })
 KhmerWordsHidingAction.displayName = 'KhmerWordsHidingAction'
@@ -63,28 +90,54 @@ KhmerWordsHidingAction.displayName = 'KhmerWordsHidingAction'
  * 1. WORD HIDING TOGGLE
  */
 export interface NonKhmerWordsHidingActionProps {
-  isEnabled: boolean
-  onToggle: () => void
+  mode: WordsHidingMode
+  onChange: (mode: WordsHidingMode) => void
 }
 
 export const NonKhmerWordsHidingAction = memo(function NonKhmerWordsHidingAction({
-  isEnabled,
-  onToggle,
+  mode,
+  onChange,
 }: NonKhmerWordsHidingActionProps) {
   const { LL } = useI18nContext()
+  const selectedKeys = useMemo(() => [mode], [mode])
+
+  const handleChange = useCallback(
+    (keys: SharedSelection) => {
+      const selectedKey = herouiSharedSelection_getFirst_string(keys)
+
+      if (selectedKey) onChange(stringToWordsHidingModeOrThrow(selectedKey))
+    },
+    [onChange],
+  )
+
+  const isEnabled = mode !== 'disabled'
 
   return (
-    <TooltipMobileFriendly closeDelay={0} content={isEnabled ? LL.ACTIONS.HIDE_NON_KM() : LL.ACTIONS.SHOW_NON_KM()}>
-      <Button
-        isIconOnly
-        className={cn(isEnabled ? 'text-primary' : 'text-default-500', '!overflow-visible')}
-        radius="full"
-        variant="light"
-        onPress={onToggle}
+    <Dropdown>
+      <DropdownTrigger>
+        <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.HIDE_NON_KM()}>
+          <Button
+            isIconOnly
+            className={cn(isEnabled ? 'text-primary' : 'text-default-500', '!overflow-visible')}
+            radius="full"
+            variant="light"
+          >
+            <NonKhmerHideToggleIcon isEnabled={isEnabled} />
+          </Button>
+        </TooltipMobileFriendly>
+      </DropdownTrigger>
+      <DropdownMenu
+        disallowEmptySelection
+        className="text-base"
+        selectedKeys={selectedKeys}
+        selectionMode="single"
+        onSelectionChange={handleChange}
       >
-        <NonKhmerHideToggleIcon isEnabled={isEnabled} />
-      </Button>
-    </TooltipMobileFriendly>
+        <DropdownItem key="disabled">{LL.ACTIONS.SHOW_NON_KM()}</DropdownItem>
+        <DropdownItem key="on_click_reveal">{LL.ACTIONS.HIDE_NON_KM()} (Reveal)</DropdownItem>
+        <DropdownItem key="on_click_open_fill_in_the_blank_game_modal">{LL.ACTIONS.HIDE_NON_KM()} (Game)</DropdownItem>
+      </DropdownMenu>
+    </Dropdown>
   )
 })
 NonKhmerWordsHidingAction.displayName = 'NonKhmerWordsHidingAction'
@@ -354,11 +407,11 @@ export interface DetailViewActionsProps_KnownWord extends DetailViewActionsProps
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
   // Khmer Words Hiding
-  isKhmerWordsHidingEnabled: boolean
-  toggleKhmerWordsHiding: () => void
+  khmerWordsHidingMode: WordsHidingMode
+  setKhmerWordsHidingMode: (v: WordsHidingMode) => void
   // Non Khmer Words Hiding
-  isNonKhmerWordsHidingEnabled: boolean
-  toggleNonKhmerWordsHiding: () => void
+  nonKhmerWordsHidingMode: WordsHidingMode
+  setNonKhmerWordsHidingMode: (v: WordsHidingMode) => void
 }
 
 export interface DetailViewActionsProps_AnkiGame_Back extends DetailViewActionsProps_Common {
@@ -367,11 +420,11 @@ export interface DetailViewActionsProps_AnkiGame_Back extends DetailViewActionsP
   maybeColorMode: MaybeColorizationMode
   setMaybeColorMode: (v: MaybeColorizationMode) => void
   // Khmer Words Hiding
-  isKhmerWordsHidingEnabled: boolean
-  toggleKhmerWordsHiding: () => void
+  khmerWordsHidingMode: WordsHidingMode
+  setKhmerWordsHidingMode: (v: WordsHidingMode) => void
   // Non Khmer Words Hiding
-  isNonKhmerWordsHidingEnabled: boolean
-  toggleNonKhmerWordsHiding: () => void
+  nonKhmerWordsHidingMode: WordsHidingMode
+  setNonKhmerWordsHidingMode: (v: WordsHidingMode) => void
   // Autofocus
   isAutoFocusAnswerEnabled: boolean
   toggleAutoFocusAnswer: () => void
@@ -468,10 +521,10 @@ const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(prop
   const {
     maybeColorMode,
     setMaybeColorMode,
-    isKhmerWordsHidingEnabled,
-    toggleKhmerWordsHiding,
-    isNonKhmerWordsHidingEnabled,
-    toggleNonKhmerWordsHiding,
+    khmerWordsHidingMode,
+    setKhmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
+    setNonKhmerWordsHidingMode,
     isKhmerLinksEnabled,
     toggleKhmerLinks,
     khmerFontName,
@@ -492,8 +545,8 @@ const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(prop
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
-      <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
-      <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
+      <KhmerWordsHidingAction mode={khmerWordsHidingMode} onChange={setKhmerWordsHidingMode} />
+      <NonKhmerWordsHidingAction mode={nonKhmerWordsHidingMode} onChange={setNonKhmerWordsHidingMode} />
       <KhmerLinksAction
         isDisabled={maybeColorMode === 'none'}
         isEnabled={isKhmerLinksEnabled}
@@ -516,10 +569,10 @@ const DetailViewActionsAnkiBack = memo(function DetailViewActionsAnkiBack(props:
   const {
     maybeColorMode,
     setMaybeColorMode,
-    isKhmerWordsHidingEnabled,
-    toggleKhmerWordsHiding,
-    isNonKhmerWordsHidingEnabled,
-    toggleNonKhmerWordsHiding,
+    khmerWordsHidingMode,
+    setKhmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
+    setNonKhmerWordsHidingMode,
     isKhmerLinksEnabled,
     toggleKhmerLinks,
     khmerFontName,
@@ -535,8 +588,8 @@ const DetailViewActionsAnkiBack = memo(function DetailViewActionsAnkiBack(props:
         word={word_or_sentence}
       />
       <GoogleSpeechAction mode={word_or_sentence__language} word={word_or_sentence} />
-      <KhmerWordsHidingAction isEnabled={isKhmerWordsHidingEnabled} onToggle={toggleKhmerWordsHiding} />
-      <NonKhmerWordsHidingAction isEnabled={isNonKhmerWordsHidingEnabled} onToggle={toggleNonKhmerWordsHiding} />
+      <KhmerWordsHidingAction mode={khmerWordsHidingMode} onChange={setKhmerWordsHidingMode} />
+      <NonKhmerWordsHidingAction mode={nonKhmerWordsHidingMode} onChange={setNonKhmerWordsHidingMode} />
       <KhmerLinksAction
         isDisabled={maybeColorMode === 'none'}
         isEnabled={isKhmerLinksEnabled}

@@ -52,9 +52,9 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             html={v}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
-            isKhmerWordsHidingEnabled={false}
-            isNonKhmerWordsHidingEnabled={false}
             isShowShortDetailAboutKhmerWordEnabled={false}
+            khmerWordsHidingMode={'disabled'}
+            nonKhmerWordsHidingMode={'disabled'}
             pronunciationSource={undefined}
             shortDefinitions={undefined}
           />
@@ -78,9 +78,9 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
-            isKhmerWordsHidingEnabled={false}
-            isNonKhmerWordsHidingEnabled={false}
             isShowShortDetailAboutKhmerWordEnabled={false}
+            khmerWordsHidingMode={'disabled'}
+            nonKhmerWordsHidingMode={'disabled'}
             pronunciationSource={undefined}
             shortDefinitions={undefined}
           />
@@ -99,9 +99,9 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
-            isKhmerWordsHidingEnabled={false}
-            isNonKhmerWordsHidingEnabled={false}
             isShowShortDetailAboutKhmerWordEnabled={false}
+            khmerWordsHidingMode={'disabled'}
+            nonKhmerWordsHidingMode={'disabled'}
             pronunciationSource={undefined}
             shortDefinitions={undefined}
           />
@@ -120,9 +120,9 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
             isKhmerPronunciationHidingEnabled={false}
-            isKhmerWordsHidingEnabled={false}
-            isNonKhmerWordsHidingEnabled={false}
             isShowShortDetailAboutKhmerWordEnabled={false}
+            khmerWordsHidingMode={'disabled'}
+            nonKhmerWordsHidingMode={'disabled'}
             pronunciationSource={undefined}
             shortDefinitions={undefined}
           />

@@ -39,11 +39,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
     [searchQuery, highlightInDetails],
   )
 
-  const onNavigate = useCallback(
-    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => setLocation(`/${mode}/${encodeURIComponent(word)}`),
-    [setLocation],
-  )
-
   // const canGoBack = location !== '/' && location !== '/en' && location !== '/ru' && location !== '/km'
 
   const backButton_goBack = useCallback(() => {
@@ -82,9 +77,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
 
   return (
     <div
-      className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${
-        !selectedWord ? 'hidden md:flex' : 'flex'
-      }`}
+      className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${!selectedWord ? 'hidden md:flex' : 'flex'
+        }`}
     >
       {/* Detail View Wrapper with Selection Class */}
       <DetailView
@@ -92,7 +86,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
         highlightMatch={highlightMatch}
         mode={effectiveWord.mode}
         word={effectiveWord.word}
-        onNavigate={onNavigate}
       />
     </div>
   )

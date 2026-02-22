@@ -34,8 +34,8 @@ export const DetailSections = React.memo(function DetailSections({
   from_chuon_nath_translated,
   mode,
   isKhmerLinksEnabled_ifTrue_passOnNavigate,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isKhmerPronunciationHidingEnabled,
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
@@ -43,8 +43,8 @@ export const DetailSections = React.memo(function DetailSections({
 }: DetailSectionsProps) {
   // console.log('DetailSections', {
   //   isKhmerLinksEnabled_ifTrue_passOnNavigate,
-  //   isKhmerWordsHidingEnabled,
-  //   isNonKhmerWordsHidingEnabled,
+  //   khmerWordsHidingMode,
+  //   nonKhmerWordsHidingMode,
   //   isKhmerPronunciationHidingEnabled,
   // })
 
@@ -72,8 +72,8 @@ export const DetailSections = React.memo(function DetailSections({
           from_russian_wiki={from_russian_wiki}
           gorgoniev={gorgoniev}
           isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled_ifTrue_passOnNavigate}
-          isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-          isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
+          khmerWordsHidingMode={khmerWordsHidingMode}
+          nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
           km_map={km_map}
           maybeColorMode={maybeColorMode}
           mode={mode}
@@ -89,9 +89,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={desc}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             pronunciationSource={undefined}
             shortDefinitions={shortDefinitions}
           />
@@ -107,9 +107,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={en_km_com}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             shortDefinitions={shortDefinitions}
           />
         </div>
@@ -124,10 +124,10 @@ export const DetailSections = React.memo(function DetailSections({
                 dictionaryMode_lonelyWordShouldBeSpilt={false}
                 isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                 isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-                isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-                isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                 isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                 items={from_csv_variants}
+                khmerWordsHidingMode={khmerWordsHidingMode}
+                nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
                 pronunciationSource={undefined}
                 shortDefinitions={shortDefinitions}
               />
@@ -144,10 +144,10 @@ export const DetailSections = React.memo(function DetailSections({
                 dictionaryMode_lonelyWordShouldBeSpilt={false}
                 isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                 isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-                isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-                isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                 isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                 items={from_csv_noun_forms}
+                khmerWordsHidingMode={khmerWordsHidingMode}
+                nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
                 pronunciationSource={undefined}
                 shortDefinitions={shortDefinitions}
               />
@@ -172,9 +172,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={from_csv_raw_html}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             pronunciationSource={undefined}
             shortDefinitions={shortDefinitions}
           />
@@ -192,9 +192,9 @@ export const DetailSections = React.memo(function DetailSections({
             isKhmerLinksEnabled_ifTrue_passOnNavigate={isKhmerLinksEnabled_ifTrue_passOnNavigate}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             shortDefinitions={shortDefinitions}
           />
         </div>
@@ -208,9 +208,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={from_russian_wiki}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             shortDefinitions={shortDefinitions}
           />
         </div>
@@ -224,9 +224,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={gorgoniev}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             shortDefinitions={shortDefinitions}
           />
         </div>
@@ -241,9 +241,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={from_chuon_nath}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             pronunciationSource={undefined}
             shortDefinitions={shortDefinitions}
           />
@@ -255,9 +255,9 @@ export const DetailSections = React.memo(function DetailSections({
                 html={from_chuon_nath_translated}
                 isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                 isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-                isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-                isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
                 isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+                khmerWordsHidingMode={khmerWordsHidingMode}
+                nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
                 pronunciationSource={undefined}
                 shortDefinitions={shortDefinitions}
               />
@@ -275,9 +275,9 @@ export const DetailSections = React.memo(function DetailSections({
             html={desc_en_only}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             pronunciationSource={undefined}
             shortDefinitions={shortDefinitions}
           />

@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../providers/SettingsProvider'
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { useSettings } from '../providers/SettingsProvider'
@@ -203,8 +204,8 @@ const useImageClickHandler = (toast: ReturnType<typeof useAppToast>) => {
 export interface EnKmHtmlRendererProps {
   html: NonEmptyStringTrimmed
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
@@ -215,8 +216,8 @@ export interface EnKmHtmlRendererProps {
 export const EnKmHtmlRenderer = ({
   html,
   isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-  isKhmerWordsHidingEnabled,
-  isNonKhmerWordsHidingEnabled,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
   isKhmerPronunciationHidingEnabled,
   dictionaryMode_lonelyWordShouldBeSpilt,
   isShowShortDetailAboutKhmerWordEnabled,
@@ -263,16 +264,16 @@ export const EnKmHtmlRenderer = ({
   useKhmerAndNonKhmerClickListener(
     containerRef,
     isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     imageClickHandler,
   )
 
   const srghma_khmer_dict_content_styles = calculateKhmerAndNonKhmerContentStyles(
     !!isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
-    isKhmerWordsHidingEnabled,
-    isNonKhmerWordsHidingEnabled,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
     isKhmerPronunciationHidingEnabled,
     isShowShortDetailAboutKhmerWordEnabled,
   )

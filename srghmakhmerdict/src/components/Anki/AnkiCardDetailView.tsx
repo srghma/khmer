@@ -1,3 +1,4 @@
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 import React, { useCallback, useMemo, type Dispatch, type SetStateAction } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { cn } from '@heroui/theme'
@@ -70,8 +71,8 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
   data,
   mode,
   isRevealed,
-  isKhmerWordsHidingEnabled: isKhmerWordsHidingEnabled_prop,
-  isNonKhmerWordsHidingEnabled: isNonKhmerWordsHidingEnabled_prop,
+  khmerWordsHidingMode: khmerWordsHidingMode_prop,
+  nonKhmerWordsHidingMode: nonKhmerWordsHidingMode_prop,
   ankiGameMode,
   userAnswer,
   setUserAnswer,
@@ -83,8 +84,8 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
   data: WordDetailEnOrRuOrKm
   mode: DictionaryLanguage
   isRevealed: boolean
-  isKhmerWordsHidingEnabled: boolean
-  isNonKhmerWordsHidingEnabled: boolean
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
   ankiGameMode: AnkiGameMode
   userAnswer: string
   setUserAnswer: Dispatch<SetStateAction<string>>
@@ -104,8 +105,8 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
     maybeColorMode,
     setMaybeColorMode,
     toggleKhmerLinks,
-    toggleKhmerWordsHiding,
-    toggleNonKhmerWordsHiding,
+    setKhmerWordsHidingMode,
+    setNonKhmerWordsHidingMode,
     khmerFontFamily,
     isShowShortDetailAboutKhmerWordEnabled,
     toggleShowShortDetailAboutKhmerWord,
@@ -283,13 +284,11 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
           <EditableHtmlField
             className={isRevealed ? 'bg-default-50/30' : 'bg-primary-50/20 border-primary/20'}
             initialValue={additional_html_front}
-            isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
-            isKhmerWordsHidingEnabled={isRevealed ? isKhmerWordsHidingEnabled_prop : isKhmerWordsHidingEnabled_prop}
-            isNonKhmerWordsHidingEnabled={
-              isRevealed ? isNonKhmerWordsHidingEnabled_prop : isNonKhmerWordsHidingEnabled_prop
-            }
+            isKhmerPronunciationHidingEnabled={khmerWordsHidingMode_prop !== 'disabled'}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={isRevealed ? 'disabled' : khmerWordsHidingMode_prop}
             label={LL.ANKI.FIELDS.FRONT_NOTE()}
+            nonKhmerWordsHidingMode={isRevealed ? nonKhmerWordsHidingMode_prop : nonKhmerWordsHidingMode_prop}
             shortDefinitions={shortDefinitions}
             onSave={handleSaveFront}
           />
@@ -299,11 +298,11 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
             <EditableHtmlField
               className="bg-default-100/50 border-default-200"
               initialValue={additional_html_back}
-              isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
-              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
-              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
+              isKhmerPronunciationHidingEnabled={khmerWordsHidingMode_prop !== 'disabled'}
               isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+              khmerWordsHidingMode={khmerWordsHidingMode_prop}
               label={LL.ANKI.FIELDS.BACK_NOTE()}
+              nonKhmerWordsHidingMode={nonKhmerWordsHidingMode_prop}
               shortDefinitions={shortDefinitions}
               onSave={handleSaveBack}
             />
@@ -324,25 +323,25 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
             from_russian_wiki={data.from_russian_wiki}
             gorgoniev={data.gorgoniev}
             isKhmerLinksEnabled_ifTrue_passOnNavigate={isRevealed ? handlePassOnNavigate : undefined}
-            isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
-            isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
-            isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
+            isKhmerPronunciationHidingEnabled={khmerWordsHidingMode_prop !== 'disabled'}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+            khmerWordsHidingMode={khmerWordsHidingMode_prop}
             km_map={km_map}
             maybeColorMode={maybeColorMode}
             mode={mode}
+            nonKhmerWordsHidingMode={nonKhmerWordsHidingMode_prop}
             shortDefinitions={shortDefinitions}
             wiktionary={data.wiktionary}
           />
 
           {automaticRussianPronunciation_km_map_value && (
             <AutomaticRussianPronunciation
-              isKhmerPronunciationHidingEnabled={isKhmerWordsHidingEnabled_prop}
-              isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
-              isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
+              isKhmerPronunciationHidingEnabled={khmerWordsHidingMode_prop !== 'disabled'}
               isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
               khmerText={word as TypedContainsKhmer}
+              khmerWordsHidingMode={khmerWordsHidingMode_prop}
               km_map_value={automaticRussianPronunciation_km_map_value}
+              nonKhmerWordsHidingMode={nonKhmerWordsHidingMode_prop}
               shortDefinitions={shortDefinitions}
               onWordClick={handleOpenSearch}
             />
@@ -357,8 +356,8 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
       expectedTarget,
       additional_html_front,
       handleSaveFront,
-      isKhmerWordsHidingEnabled_prop,
-      isNonKhmerWordsHidingEnabled_prop,
+      khmerWordsHidingMode_prop,
+      nonKhmerWordsHidingMode_prop,
       LL,
       isAutoFocusAnswerEnabled,
       answerPlaceholder,
@@ -386,19 +385,19 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
           backButton_goBack={onBack}
           isAutoFocusAnswerEnabled={isAutoFocusAnswerEnabled}
           isKhmerLinksEnabled={isKhmerLinksEnabled}
-          isKhmerWordsHidingEnabled={isKhmerWordsHidingEnabled_prop}
-          isNonKhmerWordsHidingEnabled={isNonKhmerWordsHidingEnabled_prop}
           isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
           khmerFontFamily={khmerFontFamily}
           khmerFontName={khmerFontName}
+          khmerWordsHidingMode={khmerWordsHidingMode_prop}
           maybeColorMode={maybeColorMode}
+          nonKhmerWordsHidingMode={nonKhmerWordsHidingMode_prop}
           phonetic={data.phonetic}
           setKhmerFontName={setKhmerFontName}
+          setKhmerWordsHidingMode={setKhmerWordsHidingMode}
           setMaybeColorMode={setMaybeColorMode}
+          setNonKhmerWordsHidingMode={setNonKhmerWordsHidingMode}
           toggleAutoFocusAnswer={toggleAutoFocusAnswer}
           toggleKhmerLinks={toggleKhmerLinks}
-          toggleKhmerWordsHiding={toggleKhmerWordsHiding}
-          toggleNonKhmerWordsHiding={toggleNonKhmerWordsHiding}
           toggleShowShortDetailAboutKhmerWord={toggleShowShortDetailAboutKhmerWord}
           type="anki_game_back"
           word_displayHtml={data.word_display ?? word}
