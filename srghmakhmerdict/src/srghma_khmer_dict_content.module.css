@@ -242,6 +242,54 @@
 }
 
 /* ========================================= */
+/* LIST STYLING                             */
+/* ========================================= */
+
+/* Container for both Unordered and Ordered lists */
+.srghma_khmer_dict_content :global(ul),
+.srghma_khmer_dict_content :global(ol) {
+  padding-left: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  /* Ensure lists don't overflow on small containers */
+  list-style-position: outside;
+}
+
+/* Bullet styles for Unordered lists */
+.srghma_khmer_dict_content :global(ul) {
+  list-style-type: disc;
+}
+
+/* Number styles for Ordered lists */
+.srghma_khmer_dict_content :global(ol) {
+  list-style-type: decimal;
+}
+
+/* Individual list items */
+.srghma_khmer_dict_content :global(li) {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Spacing for nested lists */
+.srghma_khmer_dict_content :global(li > ul),
+.srghma_khmer_dict_content :global(li > ol) {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Optional: Support for GFM Task Lists (Checkboxes) if your parser uses them */
+.srghma_khmer_dict_content :global(li input[type='checkbox']) {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Ensure list items inherit the interactive/hidden styles if applied inside <li> */
+.srghma_khmer_dict_content :global(li) :global(span[class*='khmer--']) {
+  display: inline-block;
+}
+
+/* ========================================= */
 /* TABLE STYLING                             */
 /* ========================================= */
 

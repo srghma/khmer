@@ -106,7 +106,7 @@ export const AnalyzerHistoryButton = memo(function AnalyzerHistoryButton({
   )
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 shrink-0">
       {/* Save button — only visible when there's text */}
       <TooltipMobileFriendly closeDelay={0} content={isSaved ? 'Already saved in history' : 'Save to history'}>
         <Button

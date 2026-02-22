@@ -17,6 +17,7 @@ import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 import { useAppToast } from './providers/ToastProvider'
 import { DictData_isWordInEitherOf3Dictionaries_caseInsensitive } from './initDictionary'
+import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
 export function AppMain() {
   useAddToHistoryEffect()
@@ -56,9 +57,9 @@ export function AppMain() {
     [searchQuery],
   )
 
-  const divClassName = useMemo(
+  const leftClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] ${
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] text-base ${
         currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
@@ -84,7 +85,7 @@ export function AppMain() {
 
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
-      <div className={`${divClassName} text-base`}>
+      <div className={leftClassName}>
         <SidebarHeader
           activeTab={activeTab}
           resultCount={resultCount}
@@ -110,40 +111,50 @@ export function AppMain() {
         </div>
       </div>
 
-      {(() => {
-        switch (currentView.type) {
-          case 'about':
-            return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details h-[100dvh]">
-                <AboutView />
-              </div>
-            )
-          case 'khmer-analyzer':
-            return (
-              <div className="fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none scaling-details h-[100dvh]">
-                <KhmerAnalyzerView initialText={currentView.text} />
-              </div>
-            )
-          case 'history':
-          case 'favorites':
-          case 'dashboard':
-          case 'history-list':
-          case 'favorites-list':
-          case 'settings':
-            return (
-              <div className="flex-1 overflow-hidden scaling-details h-[100dvh]">
-                <RightPanel
-                  lastSelectedWord={lastSelectedWord}
-                  maybeColorMode={maybeColorMode}
-                  searchQuery={searchQuery}
-                  selectedWord={currentNavigationStackItem}
-                />
-              </div>
-            )
-          default:
-            return null
-        }
-      })()}
+      <div className="flex-1 overflow-hidden scaling-details h-[100dvh] bg-background">
+        {(() => {
+          switch (currentView.type) {
+            case 'about':
+              return (
+                <div
+                  className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none flex`}
+                >
+                  <AboutView />
+                </div>
+              )
+            case 'khmer-analyzer':
+              return (
+                <div
+                  className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none flex`}
+                >
+                  <KhmerAnalyzerView initialText={currentView.text} />
+                </div>
+              )
+            case 'history':
+            case 'favorites':
+            case 'dashboard':
+            case 'history-list':
+            case 'favorites-list':
+            case 'settings':
+              return (
+                <div
+                  className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${
+                    !lastSelectedWord ? 'hidden md:flex' : 'flex'
+                  }`}
+                >
+                  <RightPanel
+                    lastSelectedWord={lastSelectedWord}
+                    maybeColorMode={maybeColorMode}
+                    searchQuery={searchQuery}
+                    selectedWord={currentNavigationStackItem}
+                  />
+                </div>
+              )
+            default:
+              assertNever(currentView)
+          }
+        })()}
+      </div>
     </div>
   )
 }

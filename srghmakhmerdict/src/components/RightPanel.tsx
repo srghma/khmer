@@ -10,6 +10,7 @@ import { DetailView } from './DetailView'
 import { useLocation } from 'wouter'
 import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { TranslationFunctions } from '../i18n/i18n-types'
+import { useAppToast } from '../providers/ToastProvider'
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
@@ -33,6 +34,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
   const [location, setLocation] = useLocation()
 
   const { highlightInDetails } = useSettings()
+  const toast = useAppToast()
 
   const highlightMatch = useMemo(
     () => (highlightInDetails && searchQuery ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
@@ -46,7 +48,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
     const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/.+$/)
 
     if (detailListMatch) {
-      setLocation(`/${detailListMatch[1]}`)
+      console.log(`setLocation ~/${detailListMatch[1]}`)
+      setLocation(`~/${detailListMatch[1]}`)
 
       return
     }
@@ -55,13 +58,15 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
     const langMatch = location.match(/^\/(en|ru|km)\/.+$/)
 
     if (langMatch) {
-      setLocation(`/${langMatch[1]}`)
+      console.log(`setLocation ~/${langMatch[1]}`)
+      setLocation(`~/${langMatch[1]}`)
 
       return
     }
 
     // Fallback to English tab if no match
-    setLocation('/en')
+    console.log(`setLocation ~/en`)
+    setLocation('~/en')
   }, [location, setLocation])
 
   const effectiveWord = selectedWord || lastSelectedWord
@@ -76,18 +81,11 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
   // On desktop, '/settings' should show SettingsView on the left AND RightPanel (with last word) on the right.
 
   return (
-    <div
-      className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${
-        !selectedWord ? 'hidden md:flex' : 'flex'
-      }`}
-    >
-      {/* Detail View Wrapper with Selection Class */}
-      <DetailView
-        backButton_goBack={backButton_goBack}
-        highlightMatch={highlightMatch}
-        mode={effectiveWord.mode}
-        word={effectiveWord.word}
-      />
-    </div>
+    <DetailView
+      backButton_goBack={backButton_goBack}
+      highlightMatch={highlightMatch}
+      mode={effectiveWord.mode}
+      word={effectiveWord.word}
+    />
   )
 }

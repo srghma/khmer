@@ -108,7 +108,7 @@ export const AboutView: React.FC = memo(() => {
   }, [setLocation])
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
+    <>
       <SuccessModal isOpen={successDisclosure.isOpen} onClose={successDisclosure.onClose} />
       <CancellationModal isOpen={cancellationDisclosure.isOpen} onClose={cancellationDisclosure.onClose} />
       {/* Header */}
@@ -208,7 +208,7 @@ export const AboutView: React.FC = memo(() => {
           </section>
         </div>
       </div>
-    </div>
+    </>
   )
 })
 

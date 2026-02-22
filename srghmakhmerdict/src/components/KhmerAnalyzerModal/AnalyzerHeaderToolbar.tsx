@@ -37,6 +37,7 @@ export const AnalyzerHeaderToolbar = memo(function AnalyzerHeaderToolbar() {
   } = useSettings()
 
   return (
+    // Only flex and shrink-0 needed.
     <>
       {/* Group 2: Display Filters */}
       <KhmerWordsHidingAction mode={khmerWordsHidingMode} onChange={setKhmerWordsHidingMode} />
@@ -86,7 +87,8 @@ const ToolbarToggle = ({
   onChange: (v: boolean) => void
   withDivider?: boolean
 }) => (
-  <div className={clsx('flex flex-col items-center gap-2', withDivider && 'border-l border-divider/50 pl-4')}>
+  // shrink-0 prevents the flex container from making this item smaller than its content
+  <div className={clsx('flex flex-col items-center gap-2 shrink-0', withDivider && 'border-l border-divider/50 pl-4')}>
     <Switch isSelected={isSelected} size="sm" onValueChange={onChange} />
     <span className="text-[10px] font-bold uppercase tracking-wider text-default-500 whitespace-nowrap">{label}</span>
   </div>

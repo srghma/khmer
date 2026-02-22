@@ -27,7 +27,6 @@ export type AppMainView =
   | typeof AppMainView__settings
   | { type: 'about' }
   | { type: 'khmer-analyzer'; text?: NonEmptyStringTrimmed }
-  | { type: 'khmer-complex-table' }
 
 export const useAppMainView = () => {
   const [location] = useLocation()
@@ -38,7 +37,6 @@ export const useAppMainView = () => {
     if (location === '/favorites') return AppMainView__favorites_list
     if (location === '/settings') return AppMainView__settings
     if (location === '/about') return { type: 'about' }
-    if (location === '/khmer_complex_table') return { type: 'khmer-complex-table' }
 
     if (location === '/khmer_analyzer') {
       const rawText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT)
@@ -106,7 +104,6 @@ export const useAppActiveTab = () => {
       case 'settings':
       case 'about':
       case 'khmer-analyzer':
-      case 'khmer-complex-table':
         return 'settings'
       case 'dashboard':
         return currentView.mode

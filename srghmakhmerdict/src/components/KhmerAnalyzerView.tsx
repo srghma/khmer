@@ -13,7 +13,7 @@ import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-ex
 import type { TextSegment } from '../utils/text-processing/text'
 import type { TextSegmentEnhanced } from '../utils/text-processing/text-enhanced'
 import { Alert } from '@heroui/alert'
-import { ScrollShadow, Spinner } from '@heroui/react'
+import { Spinner } from '@heroui/react'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { ShortDefinition } from '../db/dict'
@@ -35,7 +35,6 @@ import { basicMarkdownToHtml } from '../utils/text-processing/markdown'
 import { useAnalyzerHistory } from '../hooks/useAnalyzerHistory'
 import { AnalyzerHistoryButton } from './KhmerAnalyzerModal/AnalyzerHistoryButton'
 import { AnalyzerHeaderToolbar } from './KhmerAnalyzerModal/AnalyzerHeaderToolbar'
-import { actionGridClassName, scrollShadowProps } from './DetailView/DetailViewHeader'
 import { ReactSelectionPopup } from './react-selection-popup/ReactSelectionPopup'
 import { sanitizeTextForAnalyzer } from '../utils/sanitizeTextForAnalyzer'
 import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
@@ -351,52 +350,50 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   const { history, saveToHistory, removeFromHistory, clearHistory } = useAnalyzerHistory()
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
+    <>
       <div className="flex flex-col shrink-0 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
-        {/* Row 1: Title and Core Actions */}
-        <div className="flex items-center gap-2 h-auto min-h-[5rem]">
+        <div className="flex items-center gap-2 w-full overflow-x-auto px-4 py-2 min-w-0">
           <Button isIconOnly className="mr-2 text-default-500 shrink-0" variant="light" onPress={handleBack}>
             <HiArrowLeft className="w-6 h-6" />
           </Button>
 
-          <div className="flex flex-col justify-center min-w-0 shrink-0 mr-auto max-w-[40%]">
-            <h1 className="text-xl font-bold truncate">{LL.ANALYZER.TITLE()}</h1>
+          <div className="shrink-0">
+            <h1 className="text-xl font-bold">{LL.ANALYZER.TITLE()}</h1>
           </div>
 
-          <ScrollShadow {...scrollShadowProps}>
-            <div className={actionGridClassName}>
-              <AnalyzerHistoryButton
-                currentText={debouncedText}
-                history={history}
-                onClear={clearHistory}
-                onRemove={removeFromHistory}
-                onSave={saveToHistory}
-                onSelect={setText}
-              />
-              <AnalyzerHeaderToolbar />
-            </div>
-          </ScrollShadow>
-        </div>
-
-        {/* Row 2: Analysis Options */}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
-          <div className="flex flex-col gap-3">
-            <GoogleTranslateTextarea
-              defaultTargetLang="en"
-              labelPlacement="outside"
-              maxRows={10}
-              maybeColorMode={maybeColorMode}
-              minRows={3}
-              placeholder={LL.ANALYZER.PLACEHOLDER()}
-              value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
-              value_toShowInTextArea={text_}
-              variant="faded"
-              onValueChange={setText}
+          <div className="shrink-0">
+            <AnalyzerHistoryButton
+              currentText={debouncedText}
+              history={history}
+              onClear={clearHistory}
+              onRemove={removeFromHistory}
+              onSave={saveToHistory}
+              onSelect={setText}
             />
           </div>
+
+          <AnalyzerHeaderToolbar />
+
+          {/* Standard spacer is now sufficient since w-screen is fixed */}
+          <div className="w-2 shrink-0" />
+        </div>
+      </div>
+
+      {/* Added flex-1 to ensuring filling available space in parent container */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+          <GoogleTranslateTextarea
+            defaultTargetLang="en"
+            labelPlacement="outside"
+            maxRows={10}
+            maybeColorMode={maybeColorMode}
+            minRows={3}
+            placeholder={LL.ANALYZER.PLACEHOLDER()}
+            value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
+            value_toShowInTextArea={text_}
+            variant="faded"
+            onValueChange={setText}
+          />
 
           <KhmerAnalysisResults
             isCharacterAnalysisEnabled={khmerAnalyzerCharacterAnalysisEnabled}
@@ -408,7 +405,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
           />
         </div>
       </div>
-    </div>
+    </>
   )
 })
 
