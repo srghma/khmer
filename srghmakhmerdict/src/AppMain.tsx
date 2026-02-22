@@ -1,11 +1,10 @@
-import { useMemo, useEffect, useCallback } from 'react'
-import { useLocalStorageState } from 'ahooks'
+import { useMemo, useCallback, useState, useEffect } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useSettings } from './providers/SettingsProvider'
-import { isAppTabNonLanguage, type DictionaryLanguage } from './types'
+import { isAppTabNonLanguage } from './types'
 import { useDictionarySearch } from './hooks/useDictionarySearch'
 import { SidebarHeader } from './components/SidebarHeader'
 import { SidebarContent } from './components/SidebarContent'
@@ -18,6 +17,7 @@ import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 import { useAppToast } from './providers/ToastProvider'
 import { DictData_isWordInEitherOf3Dictionaries_caseInsensitive } from './initDictionary'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import { useLocation } from 'wouter'
 
 export function AppMain() {
   useAddToHistoryEffect()
@@ -32,18 +32,9 @@ export function AppMain() {
     return undefined
   }, [currentView])
 
-  const [lastSelectedWord, setLastSelectedWord] = useLocalStorageState<
-    { word: NonEmptyStringTrimmed; mode: DictionaryLanguage } | undefined
-  >('lastSelectedWord')
-
-  useEffect(() => {
-    if (currentNavigationStackItem) {
-      setLastSelectedWord(currentNavigationStackItem)
-    }
-  }, [currentNavigationStackItem, setLastSelectedWord])
-
   const { searchMode, searchInContent, highlightInList, filters, maybeColorMode } = useSettings()
   const activeTab = useAppActiveTab()
+  const [, setLocation] = useLocation()
 
   const { onSearch, searchQuery, contentMatches, resultData, resultCount, isSearching } = useDictionarySearch({
     activeTab,
@@ -78,10 +69,34 @@ export function AppMain() {
 
         return
       }
-      setLastSelectedWord({ word: value[0], mode: value[1] })
+      setLocation(`~/${value[1]}/${value[0]}`)
     },
-    [setLastSelectedWord],
+    [setLocation],
   )
+
+  const detailViewOrNull = useMemo(() => {
+    switch (currentView.type) {
+      case 'about':
+      case 'khmer-analyzer':
+        return currentView
+      case 'history':
+      case 'favorites':
+      case 'dashboard':
+        return currentView.word ? currentView : null
+      default:
+        return null
+    }
+  }, [currentView])
+
+  const [lastDetailView, setLastDetailView] = useState<typeof currentView | null>(null)
+
+  useEffect(() => {
+    if (detailViewOrNull) {
+      setLastDetailView(detailViewOrNull)
+    }
+  }, [detailViewOrNull])
+
+  const viewToRender = detailViewOrNull || lastDetailView || currentView
 
   return (
     <div className="flex h-screen w-screen bg-content1 overflow-hidden font-inter text-foreground">
@@ -113,21 +128,21 @@ export function AppMain() {
 
       <div className="flex-1 overflow-hidden scaling-details h-[100dvh] bg-background">
         {(() => {
-          switch (currentView.type) {
+          const detailClass = `fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none`
+          const isMobileDetailActive = detailViewOrNull !== null
+          const mobileVisibilityClass = !isMobileDetailActive ? 'hidden md:flex' : 'flex'
+
+          switch (viewToRender.type) {
             case 'about':
               return (
-                <div
-                  className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none flex`}
-                >
+                <div className={`${detailClass} ${mobileVisibilityClass}`}>
                   <AboutView />
                 </div>
               )
             case 'khmer-analyzer':
               return (
-                <div
-                  className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none flex`}
-                >
-                  <KhmerAnalyzerView initialText={currentView.text} />
+                <div className={`${detailClass} ${mobileVisibilityClass}`}>
+                  <KhmerAnalyzerView initialText={viewToRender.text} />
                 </div>
               )
             case 'history':
@@ -135,23 +150,28 @@ export function AppMain() {
             case 'dashboard':
             case 'history-list':
             case 'favorites-list':
-            case 'settings':
+            case 'settings': {
+              const viewWordItem =
+                (viewToRender.type === 'history' ||
+                  viewToRender.type === 'favorites' ||
+                  viewToRender.type === 'dashboard') &&
+                viewToRender.word
+                  ? { word: viewToRender.word, mode: viewToRender.mode }
+                  : undefined
+
               return (
-                <div
-                  className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${
-                    !lastSelectedWord ? 'hidden md:flex' : 'flex'
-                  }`}
-                >
+                <div className={`${detailClass} ${mobileVisibilityClass}`}>
                   <RightPanel
-                    lastSelectedWord={lastSelectedWord}
+                    lastSelectedWord={viewWordItem}
                     maybeColorMode={maybeColorMode}
                     searchQuery={searchQuery}
-                    selectedWord={currentNavigationStackItem}
+                    selectedWord={viewWordItem}
                   />
                 </div>
               )
+            }
             default:
-              assertNever(currentView)
+              assertNever(viewToRender)
           }
         })()}
       </div>

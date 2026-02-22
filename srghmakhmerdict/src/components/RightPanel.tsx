@@ -10,7 +10,6 @@ import { DetailView } from './DetailView'
 import { useLocation } from 'wouter'
 import { useI18nContext } from '../i18n/i18n-react-custom'
 import type { TranslationFunctions } from '../i18n/i18n-types'
-import { useAppToast } from '../providers/ToastProvider'
 
 interface RightPanelProps {
   maybeColorMode: MaybeColorizationMode
@@ -34,7 +33,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
   const [location, setLocation] = useLocation()
 
   const { highlightInDetails } = useSettings()
-  const toast = useAppToast()
 
   const highlightMatch = useMemo(
     () => (highlightInDetails && searchQuery ? String_toNonEmptyString_orUndefined_afterTrim(searchQuery) : undefined),
@@ -48,7 +46,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
     const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/.+$/)
 
     if (detailListMatch) {
-      console.log(`setLocation ~/${detailListMatch[1]}`)
       setLocation(`~/${detailListMatch[1]}`)
 
       return
@@ -58,14 +55,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
     const langMatch = location.match(/^\/(en|ru|km)\/.+$/)
 
     if (langMatch) {
-      console.log(`setLocation ~/${langMatch[1]}`)
       setLocation(`~/${langMatch[1]}`)
 
       return
     }
 
     // Fallback to English tab if no match
-    console.log(`setLocation ~/en`)
     setLocation('~/en')
   }, [location, setLocation])
 
