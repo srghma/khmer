@@ -37,8 +37,8 @@ export const renderKhmerWordSpan = (
   colorIndex: number,
   isKnown: boolean,
   mode: MaybeColorizationMode,
-  extraInfo?: { ipa?: string; def?: string },
-  excludeWord?: TypedKhmerWord,
+  extraInfo: { ipa: NonEmptyStringTrimmed | undefined; def: NonEmptyStringTrimmed } | undefined,
+  excludeWord: TypedKhmerWord | undefined,
 ): NonEmptyStringTrimmed => {
   const className = getKhmerWordCssClass(colorIndex, isKnown, mode)
   const isExcluded = excludeWord === word
@@ -51,7 +51,7 @@ export const renderKhmerWordSpan = (
   const ipaHtml = ipa ? `<span class="ipa">${ipa}</span>` : ''
   const defHtml = def ? `<span class="short-def-preview" data-word="${word}">${def}</span>` : ''
 
-  return `<span class="khmer-word-with-short-details" data-navigate-khmer-word="${word}"><span class="word ${className}">${word}</span>${ipaHtml}${defHtml}</span>` as NonEmptyStringTrimmed
+  return `<span class="khmer-word-with-short-details"><span data-navigate-khmer-word="${word}" class="word ${className}">${word}</span>${ipaHtml}${defHtml}</span>` as NonEmptyStringTrimmed
 }
 
 /**

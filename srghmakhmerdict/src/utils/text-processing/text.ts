@@ -143,7 +143,7 @@ export function* yieldColorizedChunks(
       const shortDef = shortDefinitions?.[w]
       const extraInfo = shortDef
         ? {
-            ipa: (shortDef as any).wiktionary_ipa_or_from_csv_pronunciations || undefined,
+            ipa: shortDef.wiktionary_ipa_or_from_csv_pronunciations,
             def: shortDef.definition,
           }
         : undefined

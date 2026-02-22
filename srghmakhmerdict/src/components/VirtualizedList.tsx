@@ -128,9 +128,11 @@ export const VirtualizedList = memo(
     const totalSize = rowVirtualizer.getTotalSize()
     const stickySet = useMemo(() => new Set(stickyIndexes), [stickyIndexes])
 
+    const divStyle = useMemo(() => ({ height: `${totalSize}px` }), [totalSize])
+
     const listContent = useMemo(() => {
       return (
-        <div style={{ height: `${totalSize}px`, width: '100%', position: 'relative' }}>
+        <div className="relative w-full" style={divStyle}>
           {virtualItems.map(vRow => {
             const item = items[vRow.index]
 

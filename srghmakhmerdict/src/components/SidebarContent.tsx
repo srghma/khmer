@@ -15,6 +15,13 @@ import { HistoryListOnly } from './HistoryOrFavoritesList/HistoryListOnly'
 import { FavoritesListOnly } from './HistoryOrFavoritesList/FavoritesListOnly'
 import { useLocation } from 'wouter'
 import type { SearchMode } from '../providers/SettingsProvider'
+import {
+  setLocation_enWord_ifInDictionary,
+  setLocation_khmerWord_ifInDictionary,
+  setLocation_ruWord_ifInDictionary,
+} from '../utils/url-navigation'
+import { useDictionary } from '../providers/DictionaryProvider'
+import { useAppToast } from '../providers/ToastProvider'
 
 // --- LAZY IMPORTS ---
 const WordListKhmer = lazyWithPreload(() => import('./WordListKhmer').then(m => ({ default: m.WordListKhmer })))
@@ -44,18 +51,20 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   const { LL } = useI18nContext()
 
   const [, setLocation] = useLocation()
+  const { km_map, en, ru } = useDictionary()
+  const toast = useAppToast()
 
   const handleWordClickKm = useCallback(
-    (w: NonEmptyStringTrimmed) => setLocation(`/km/${encodeURIComponent(w)}`),
-    [setLocation],
+    (w: NonEmptyStringTrimmed) => setLocation_khmerWord_ifInDictionary(w, km_map, toast, setLocation, LL),
+    [setLocation, km_map, toast, LL],
   )
   const handleWordClickEn = useCallback(
-    (w: NonEmptyStringTrimmed) => setLocation(`/en/${encodeURIComponent(w)}`),
-    [setLocation],
+    (w: NonEmptyStringTrimmed) => setLocation_enWord_ifInDictionary(w, en, toast, setLocation, LL),
+    [setLocation, en, toast, LL],
   )
   const handleWordClickRu = useCallback(
-    (w: NonEmptyStringTrimmed) => setLocation(`/ru/${encodeURIComponent(w)}`),
-    [setLocation],
+    (w: NonEmptyStringTrimmed) => setLocation_ruWord_ifInDictionary(w, ru, toast, setLocation, LL),
+    [setLocation, ru, toast, LL],
   )
 
   usePreloadOnIdle([WordListKhmer, SettingsView])

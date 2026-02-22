@@ -104,6 +104,9 @@ const en = {
     MARKDOWN_LABEL: 'Markdown',
     SEGMENTATION_LABEL: 'Segmentation',
     CHARACTER_ANALYSIS_LABEL: 'Char Analysis',
+    WORD_NOT_IN_KHMER_DICTIONARY: 'Word {word} not found in Khmer dictionary.',
+    WORD_NOT_IN_ENGLISH_DICTIONARY: 'Word {word} not found in English dictionary.',
+    WORD_NOT_IN_RUSSIAN_DICTIONARY: 'Word {word} not found in Russian dictionary.',
   },
   ANKI: {
     NO_FAVORITES: 'Favorites is empty. Add words to favorites to start learning.',

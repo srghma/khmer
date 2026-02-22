@@ -168,6 +168,7 @@ export const DetailSections = React.memo(function DetailSections({
           )}
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             hideBrokenImages_enable={false}
             html={from_csv_raw_html}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
@@ -237,6 +238,7 @@ export const DetailSections = React.memo(function DetailSections({
           <SectionTitle>{LL.DETAIL.SECTION.CHUON_NATH()}</SectionTitle>
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             hideBrokenImages_enable={false}
             html={from_chuon_nath}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
@@ -251,6 +253,7 @@ export const DetailSections = React.memo(function DetailSections({
             <div className="mt-3 pt-3 border-t border-divider">
               <RenderHtmlColorized
                 dictionaryMode_lonelyWordShouldBeSpilt={false}
+                excludeWord={undefined}
                 hideBrokenImages_enable={false}
                 html={from_chuon_nath_translated}
                 isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
@@ -271,6 +274,7 @@ export const DetailSections = React.memo(function DetailSections({
           <SectionTitle>{LL.DETAIL.SECTION.DEFINITION_EN()}</SectionTitle>
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             hideBrokenImages_enable={true}
             html={desc_en_only}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}

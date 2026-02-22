@@ -40,7 +40,7 @@ interface DetailViewFoundProps {
   backButton_goBack: (() => void) | undefined
 }
 
-const SelectionMenuBodyLocalWrapper = memo(function SelectionMenuBodyLocalWrapper({
+export const SelectionMenuBodyLocalWrapper = memo(function SelectionMenuBodyLocalWrapper({
   selectedText,
   mode,
   handleOpenKhmerAnalyzer,
@@ -69,14 +69,7 @@ const SelectionMenuBodyLocalWrapper = memo(function SelectionMenuBodyLocalWrappe
 
 SelectionMenuBodyLocalWrapper.displayName = 'SelectionMenuBodyLocalWrapper'
 
-const DetailViewFoundComponent = ({
-  word,
-  data,
-  mode,
-  isFav,
-  toggleFav,
-  backButton_goBack,
-}: DetailViewFoundProps) => {
+const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButton_goBack }: DetailViewFoundProps) => {
   // 1. Logic
   const { LL } = useI18nContext()
   const toast = useAppToast()
@@ -241,8 +234,8 @@ const DetailViewFoundComponent = ({
       <div className="flex-1 overflow-hidden w-full relative">
         <div className="flex flex-col h-full w-full">
           <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            <ReactSelectionPopup popupContent={renderPopupContent}>
-              <CardBody className="p-6 gap-6">
+            <CardBody className="p-6 gap-6">
+              <ReactSelectionPopup popupContent={renderPopupContent}>
                 <DetailSections
                   desc={data.desc}
                   desc_en_only={data.desc_en_only}
@@ -279,8 +272,8 @@ const DetailViewFoundComponent = ({
                     onWordClick={automaticRussianPronunciation_onClick}
                   />
                 )}
-              </CardBody>
-            </ReactSelectionPopup>
+              </ReactSelectionPopup>
+            </CardBody>
           </ScrollShadow>
         </div>
       </div>

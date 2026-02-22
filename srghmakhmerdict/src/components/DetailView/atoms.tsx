@@ -151,6 +151,7 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
   excludeWord,
+  className,
 }: {
   html: NonEmptyStringTrimmed
   hideBrokenImages_enable: boolean
@@ -162,7 +163,8 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
+  className?: string
 }) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
@@ -212,11 +214,14 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
     isKhmerPronunciationHidingEnabled,
   )
 
+  const combinedClassName = useMemo(
+    () => `${hideBrokenImagesClass} ${khmerContentClass} ${className}`,
+    [hideBrokenImagesClass, khmerContentClass, className],
+  )
+
   if (!processedHtml) return null
 
-  return (
-    <RenderHtml ref={containerRef} className={`${hideBrokenImagesClass} ${khmerContentClass}`} html={processedHtml} />
-  )
+  return <RenderHtml ref={containerRef} className={combinedClassName} html={processedHtml} />
 })
 
 RenderHtmlColorized.displayName = 'RenderHtmlColorized'

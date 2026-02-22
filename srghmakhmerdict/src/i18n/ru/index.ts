@@ -104,6 +104,9 @@ const ru = {
     MARKDOWN_LABEL: 'Markdown',
     SEGMENTATION_LABEL: 'Сегментация',
     CHARACTER_ANALYSIS_LABEL: 'Анализ символов',
+    WORD_NOT_IN_KHMER_DICTIONARY: 'Слово {word} не найдено в кхмерском словаре.',
+    WORD_NOT_IN_ENGLISH_DICTIONARY: 'Слово {word} не найдено в английском словаре.',
+    WORD_NOT_IN_RUSSIAN_DICTIONARY: 'Слово {word} не найдено в русском словаре.',
   },
   ANKI: {
     NO_FAVORITES: 'Избранное пусто. Добавьте слова в избранное, чтобы начать обучение.',

@@ -13,7 +13,6 @@ import { DetailViewHeader } from '../DetailView/DetailViewHeader'
 import { DetailSections } from '../DetailView/DetailSections'
 import { useSettings } from '../../providers/SettingsProvider'
 import { useLocation } from 'wouter'
-import { detectModeFromText } from '../../utils/detectModeFromText'
 import { sanitizeTextForAnalyzer } from '../../utils/sanitizeTextForAnalyzer'
 import { SelectionMenuBody } from '../SelectionContextMenu/SelectionMenuBody'
 import { ReactSelectionPopup } from '../react-selection-popup/ReactSelectionPopup'
@@ -35,7 +34,10 @@ import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chro
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { EditableHtmlField } from './EditableHtmlField'
 import { useFavorites } from '../../providers/FavoritesProvider'
-import { makeKhmerAnalyzerUrl } from '../../utils/url-navigation'
+import {
+  makeKhmerAnalyzerUrl,
+  setLocation_enOrKmOrRuWord_ifInDictionary_detectModeFromText,
+} from '../../utils/url-navigation'
 
 const SelectionMenuBodyLocalWrapper = React.memo(function SelectionMenuBodyLocalWrapper({
   selectedText,
@@ -96,7 +98,7 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
   const { LL } = useI18nContext()
   const { updateFavoriteHtml } = useFavorites()
   // 1. Logic
-  const { km_map } = useDictionary()
+  const { km_map, en, ru } = useDictionary()
   const { isAutoFocusAnswerEnabled, setIsAutoFocusAnswerEnabled } = useAnkiSettings()
   const {
     isKhmerLinksEnabled,
@@ -142,9 +144,19 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
   const handleOpenSearch = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
       // 1. Navigate in Main App (Push Detail View on top of Anki)
-      const targetMode = detectModeFromText(selectedText) ?? mode
-
-      setLocation(`~/${targetMode}/${encodeURIComponent(selectedText)}`)
+      if (
+        !setLocation_enOrKmOrRuWord_ifInDictionary_detectModeFromText(
+          selectedText,
+          km_map,
+          en,
+          ru,
+          toast,
+          setLocation,
+          LL,
+        )
+      ) {
+        return
+      }
 
       window.getSelection()?.removeAllRanges()
     },
@@ -254,7 +266,7 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
             <div className={cn('uppercase font-black tracking-widest text-default-400 mb-1', 'text-xs')}>
               {guessLabel}
             </div>
-            <KhmerDiff inDictExpected={expectedTarget.v} userProvider={userAnswer_} />
+            <KhmerDiff inDictExpected={expectedTarget.v} userProvided={userAnswer_} />
           </div>
         )}
 

@@ -178,7 +178,7 @@ export const GoogleTranslateTextarea = memo(function GoogleTranslateTextarea({
   const memoizedClassNames = useMemo(
     () => ({
       ...classNames,
-      input: 'text-lg font-khmer leading-relaxed p-4',
+      input: 'text-lg leading-relaxed p-4',
       inputWrapper: 'bg-content2/50 hover:bg-content2 shadow-none border-divider border-b-0 rounded-b-none p-0',
     }),
     [classNames],

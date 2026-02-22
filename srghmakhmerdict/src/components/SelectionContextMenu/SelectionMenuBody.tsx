@@ -25,7 +25,7 @@ export interface SelectionMenuBodyProps {
   selectedText: NonEmptyStringTrimmed
   currentMode: DictionaryLanguage
   onClosePopupAndOpenSearch: () => void
-  onClosePopupAndKhmerAnalyzerModal: () => void
+  onClosePopupAndKhmerAnalyzerModal: (() => void) | undefined
 }
 
 export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
@@ -64,9 +64,11 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
           <GoogleSpeechAction mode={resolvedMode} word={selectedText} />
 
           {/* 4. Khmer Analyzer */}
-          <MenuButton icon={KhmerKaIcon} onClick={onClosePopupAndKhmerAnalyzerModal}>
-            Open Khmer Analyzer
-          </MenuButton>
+          {onClosePopupAndKhmerAnalyzerModal && (
+            <MenuButton icon={KhmerKaIcon} onClick={onClosePopupAndKhmerAnalyzerModal}>
+              Open Khmer Analyzer
+            </MenuButton>
+          )}
         </div>
 
         {segments && (

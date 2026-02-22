@@ -22,7 +22,12 @@ import { SegmentationPreview } from './KhmerAnalyzerModal/SegmentationPreview'
 import { useKhmerAnalysis, type KhmerAnalysisResult } from './KhmerAnalyzerModal/useKhmerAnalysis'
 import { useDebounce } from 'use-debounce'
 import { useI18nContext } from '../i18n/i18n-react-custom'
-import { getUrlSearchParam, KHMER_ANALYZER_PARAM_TEXT, makeKhmerAnalyzerUrl } from '../utils/url-navigation'
+import {
+  getUrlSearchParam,
+  KHMER_ANALYZER_PARAM_TEXT,
+  makeKhmerAnalyzerUrl,
+  setLocation_khmerWord_ifInDictionary,
+} from '../utils/url-navigation'
 import { type WordsHidingMode } from '../providers/SettingsProvider'
 import { RenderHtmlColorized } from './DetailView/atoms'
 import { basicMarkdownToHtml } from '../utils/text-processing/markdown'
@@ -31,6 +36,11 @@ import { useAnalyzerHistory } from '../hooks/useAnalyzerHistory'
 import { AnalyzerHistoryButton } from './KhmerAnalyzerModal/AnalyzerHistoryButton'
 import { AnalyzerHeaderToolbar } from './KhmerAnalyzerModal/AnalyzerHeaderToolbar'
 import { actionGridClassName, scrollShadowProps } from './DetailView/DetailViewHeader'
+import { ReactSelectionPopup } from './react-selection-popup/ReactSelectionPopup'
+import { sanitizeTextForAnalyzer } from '../utils/sanitizeTextForAnalyzer'
+import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
+import { useDictionary } from '../providers/DictionaryProvider'
+import { useAppToast } from '../providers/ToastProvider'
 
 interface HeaderTogglerOfSegmenterProps {
   children: (data: NonEmptyArray<TextSegment | TextSegmentEnhanced>) => React.ReactNode
@@ -103,13 +113,32 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
 
   const html = useMemo(() => basicMarkdownToHtml(markdown), [markdown])
 
-  const handleNavigate = useCallback(
-    (word: NonEmptyStringTrimmed) => {
-      setLocation(`~/km/${encodeURIComponent(word)}`)
+  const renderPopupContent = useCallback(
+    (selectedText: NonEmptyStringTrimmed) => {
+      return (
+        <SelectionMenuBody
+          currentMode={'km'}
+          selectedText={selectedText}
+          onClosePopupAndKhmerAnalyzerModal={undefined}
+          onClosePopupAndOpenSearch={() => {
+            window.getSelection()?.removeAllRanges()
+            setLocation(makeKhmerAnalyzerUrl(sanitizeTextForAnalyzer(selectedText)))
+          }}
+        />
+      )
     },
     [setLocation],
   )
 
+  const { km_map } = useDictionary()
+  const toast = useAppToast()
+
+  const handleNavigate = useCallback(
+    (word: NonEmptyStringTrimmed) => {
+      setLocation_khmerWord_ifInDictionary(word, km_map, toast, setLocation, LL)
+    },
+    [setLocation, km_map, toast, LL],
+  )
 
   if (html.t === 'empty') {
     return (
@@ -128,18 +157,22 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
   }
 
   return (
-    <RenderHtmlColorized
-      dictionaryMode_lonelyWordShouldBeSpilt={false}
-      hideBrokenImages_enable={false}
-      html={html.v}
-      isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled ? handleNavigate : undefined}
-      isKhmerPronunciationHidingEnabled={false}
-      isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
-      khmerWordsHidingMode={khmerWordsHidingMode}
-      nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
-      pronunciationSource={undefined}
-      shortDefinitions={shortDefinitions}
-    />
+    <ReactSelectionPopup popupContent={renderPopupContent}>
+      <RenderHtmlColorized
+        className="overflow-x-auto"
+        dictionaryMode_lonelyWordShouldBeSpilt={false}
+        excludeWord={undefined}
+        hideBrokenImages_enable={false}
+        html={html.v}
+        isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled ? handleNavigate : undefined}
+        isKhmerPronunciationHidingEnabled={false}
+        isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+        khmerWordsHidingMode={khmerWordsHidingMode}
+        nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
+        pronunciationSource={undefined}
+        shortDefinitions={shortDefinitions}
+      />
+    </ReactSelectionPopup>
   )
 })
 
@@ -161,15 +194,16 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
   isCharacterAnalysisEnabled,
 }) => {
   const { LL } = useI18nContext()
-  const { khmerAnalyzerMarkdownEnabled } = useSettings()
+  const { khmerAnalyzerMarkdownEnabled, isKhmerLinksEnabled } = useSettings()
   const [, setLocation] = useLocation()
-  const { isKhmerLinksEnabled } = useSettings()
+  const toast = useAppToast()
+  const { km_map } = useDictionary()
 
   const handleNavigate = useCallback(
     (word: NonEmptyStringTrimmed) => {
-      setLocation(`~/km/${encodeURIComponent(word)}`)
+      setLocation_khmerWord_ifInDictionary(word, km_map, toast, setLocation, LL)
     },
-    [setLocation],
+    [setLocation, km_map, toast, LL],
   )
 
   if (res.t === 'empty_text') {
@@ -189,69 +223,69 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
       {(res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' ||
         res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' ||
         res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success') && (
-          <>
-            {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
-              <div className="flex items-center gap-3 text-small text-primary animate-pulse">
-                <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
-              </div>
-            )}
+        <>
+          {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
+            <div className="flex items-center gap-3 text-small text-primary animate-pulse">
+              <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
+            </div>
+          )}
 
-            {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
-              <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
-                {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
-              </Alert>
-            )}
+          {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
+            <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
+              {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
+            </Alert>
+          )}
 
-            {khmerAnalyzerMarkdownEnabled && (
-              <div className="p-4 rounded-medium border border-divider bg-content2/30">
-                <RenderMarkdownColorized
-                  isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
-                  khmerWordsHidingMode={khmerWordsHidingMode}
-                  markdown={res.analyzedText}
-                  nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
+          {khmerAnalyzerMarkdownEnabled && (
+            <div className="p-4 rounded-medium border border-divider bg-content2/30">
+              <RenderMarkdownColorized
+                isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
+                khmerWordsHidingMode={khmerWordsHidingMode}
+                markdown={res.analyzedText}
+                nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
+                shortDefinitions={
+                  res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
+                    ? res.definitions
+                    : undefined
+                }
+              />
+            </div>
+          )}
+
+          {isSegmentationEnabled && (
+            <HeaderTogglerOfSegmenter
+              initiallySelected="dict"
+              segmentsDict={res.segmentsDict}
+              segmentsIntl={res.segmentsIntl}
+              title={LL.ANALYZER.SEGMENTATION()}
+            >
+              {segments => (
+                <SegmentationPreview
+                  maybeColorMode="dictionary"
+                  segments={segments}
                   shortDefinitions={
                     res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
                       ? res.definitions
                       : undefined
                   }
+                  onKhmerWordClick={isKhmerLinksEnabled ? handleNavigate : undefined}
                 />
-              </div>
-            )}
+              )}
+            </HeaderTogglerOfSegmenter>
+          )}
 
-            {isSegmentationEnabled && (
-              <HeaderTogglerOfSegmenter
-                initiallySelected="dict"
-                segmentsDict={res.segmentsDict}
-                segmentsIntl={res.segmentsIntl}
-                title={LL.ANALYZER.SEGMENTATION()}
-              >
-                {segments => (
-                  <SegmentationPreview
-                    maybeColorMode="dictionary"
-                    segments={segments}
-                    shortDefinitions={
-                      res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
-                        ? res.definitions
-                        : undefined
-                    }
-                    onKhmerWordClick={isKhmerLinksEnabled ? handleNavigate : undefined}
-                  />
-                )}
-              </HeaderTogglerOfSegmenter>
-            )}
-
-            {isCharacterAnalysisEnabled && (
-              <HeaderTogglerOfSegmenter
-                initiallySelected="intl"
-                segmentsDict={res.segmentsDict}
-                segmentsIntl={res.segmentsIntl}
-                title={LL.ANALYZER.CHARACTER_ANALYSIS()}
-              >
-                {segments => <KhmerAnalyzer segments={segments} />}
-              </HeaderTogglerOfSegmenter>
-            )}
-          </>
-        )}
+          {isCharacterAnalysisEnabled && (
+            <HeaderTogglerOfSegmenter
+              initiallySelected="intl"
+              segmentsDict={res.segmentsDict}
+              segmentsIntl={res.segmentsIntl}
+              title={LL.ANALYZER.CHARACTER_ANALYSIS()}
+            >
+              {segments => <KhmerAnalyzer segments={segments} />}
+            </HeaderTogglerOfSegmenter>
+          )}
+        </>
+      )}
     </div>
   )
 }
@@ -316,10 +350,6 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
 
   const { history, saveToHistory, removeFromHistory, clearHistory } = useAnalyzerHistory()
 
-  const handleHistorySelect = useCallback((text: string) => {
-    setText(text)
-  }, [])
-
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
       <div className="flex flex-col shrink-0 bg-content1/50 backdrop-blur-md z-10 sticky top-0 border-b border-divider pt-[calc(env(safe-area-inset-top))]">
@@ -341,7 +371,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
                 onClear={clearHistory}
                 onRemove={removeFromHistory}
                 onSave={saveToHistory}
-                onSelect={handleHistorySelect}
+                onSelect={setText}
               />
               <AnalyzerHeaderToolbar />
             </div>

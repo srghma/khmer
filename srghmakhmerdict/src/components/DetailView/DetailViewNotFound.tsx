@@ -60,7 +60,6 @@ export const DetailViewNotFound = ({ word, mode, backButton_goBack }: DetailView
   //   [scaling_ui, khmerFontFamily],
   // )
 
-
   const wordNotFound = useMemo(() => {
     const w = truncateString(word, 20)
 

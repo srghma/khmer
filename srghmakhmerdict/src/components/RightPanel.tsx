@@ -77,8 +77,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({ selectedWord, lastSelect
 
   return (
     <div
-      className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${!selectedWord ? 'hidden md:flex' : 'flex'
-        }`}
+      className={`fixed inset-0 z-20 md:static md:z-0 flex-1 flex flex-col h-full bg-background animate-in slide-in-from-right duration-200 md:animate-none ${
+        !selectedWord ? 'hidden md:flex' : 'flex'
+      }`}
     >
       {/* Detail View Wrapper with Selection Class */}
       <DetailView

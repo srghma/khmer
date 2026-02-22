@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import { useAppToast } from '../providers/ToastProvider'
+import { useAppToast, type AppToast } from '../providers/ToastProvider'
 import type { ToTranslateLanguage } from '../utils/googleTranslate/toTranslateLanguage'
 import { googleTtsResultToError } from '../utils/tts/google'
 import { nativeTtsResultToError } from '../utils/tts/native'
 import { executeTtsOrchestrator } from '../utils/tts/googleOrNative'
 import { createExternalStore } from '../utils/createExternalStore'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 const SPEAKING_STATE = { t: 'speaking' } as const
 
@@ -82,4 +83,18 @@ export function useGoogleOrNativeTts(): GoogleOrNativeTtsState {
 
     return { t: 'ready', speak }
   }, [isSpeaking, speak])
+}
+
+export function GoogleOrNativeTtsState_speakIfCan(
+  tts: GoogleOrNativeTtsState,
+  word: NonEmptyStringTrimmed,
+  toast: AppToast,
+) {
+  if (tts.t === 'ready') {
+    tts.speak(word, 'km').catch((err: unknown) => {
+      toast.error('TTS Failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(err))
+    })
+  } else if (tts.t !== 'speaking') {
+    toast.warn('TTS is not ready' as NonEmptyStringTrimmed, 'Offline?' as NonEmptyStringTrimmed)
+  }
 }

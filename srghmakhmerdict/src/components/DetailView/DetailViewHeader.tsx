@@ -1,5 +1,5 @@
 import type { WordsHidingMode } from '../../providers/SettingsProvider'
-import React, { useMemo } from 'react'
+import React, { memo, useMemo, useRef } from 'react'
 import { CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
 import { ScrollShadow } from '@heroui/scroll-shadow'
@@ -11,6 +11,14 @@ import { HiArrowLeft } from 'react-icons/hi2'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import type { TranslationFunctions } from '../../i18n/i18n-types'
+import { colorizeHtml } from '../../utils/text-processing/html'
+import { useDictionary } from '../../providers/DictionaryProvider'
+import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
+import type { DictionaryLanguage } from '../../types'
+import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import { setLocation_khmerWord_ifInDictionary } from '../../utils/url-navigation'
+import { useAppToast } from '../../providers/ToastProvider'
+import { useLocation } from 'wouter'
 
 interface DetailViewBackButtonProps {
   onPress: () => void
@@ -115,17 +123,73 @@ export const actionGridClassName = 'flex items-center gap-1 h-full w-max ml-auto
 
 // -----------------------------------
 
+const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordHeader({
+  word_displayHtml,
+  word_or_sentence__language,
+  maybeColorMode,
+  khmerWordsHidingMode,
+  nonKhmerWordsHidingMode,
+  isKhmerLinkEnabled,
+}: {
+  word_displayHtml: NonEmptyStringTrimmed
+  word_or_sentence__language: DictionaryLanguage
+  maybeColorMode: MaybeColorizationMode
+  khmerWordsHidingMode: WordsHidingMode
+  nonKhmerWordsHidingMode: WordsHidingMode
+  isKhmerLinkEnabled: boolean
+}) {
+  const { km_map } = useDictionary()
+  const { LL } = useI18nContext()
+  const toast = useAppToast()
+  const [, setLocation] = useLocation()
+
+  const h1Html = useMemo(() => {
+    if (!word_displayHtml) return undefined
+    if (word_or_sentence__language === 'km') {
+      const html = colorizeHtml(word_displayHtml, maybeColorMode, km_map, true, undefined, undefined)
+
+      return { __html: html }
+    }
+
+    return { __html: word_displayHtml }
+  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map])
+
+  const h1ClassName = useMemo(() => {
+    const common = 'font-bold text-foreground text-xl truncate'
+
+    const khmerContentClass =
+      word_or_sentence__language === 'km'
+        ? calculateKhmerAndNonKhmerContentStyles(false, khmerWordsHidingMode, nonKhmerWordsHidingMode, false, false)
+        : undefined
+
+    return `${common} ${khmerContentClass}`
+  }, [word_or_sentence__language, khmerWordsHidingMode, nonKhmerWordsHidingMode])
+
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const isKhmerLinksEnabled_ifTrue_passOnNavigateKm: ((w: TypedKhmerWord) => void) | undefined = useMemo(() => {
+    if (!isKhmerLinkEnabled) return undefined
+
+    return (w: TypedKhmerWord) => {
+      setLocation_khmerWord_ifInDictionary(w, km_map, toast, setLocation, LL)
+    }
+  }, [isKhmerLinkEnabled, km_map, toast, LL, setLocation])
+
+  useKhmerAndNonKhmerClickListener(
+    containerRef,
+    isKhmerLinksEnabled_ifTrue_passOnNavigateKm,
+    khmerWordsHidingMode,
+    nonKhmerWordsHidingMode,
+    false,
+  )
+
+  return <h1 dangerouslySetInnerHTML={h1Html} ref={containerRef} className={h1ClassName} />
+})
+
 const DetailViewHeaderWord = (
   props: (DetailViewHeaderProps_KnownWord | DetailViewHeaderProps_AnkiGame_Back) & { LL: TranslationFunctions },
 ) => {
-  const { khmerFontFamily, word_displayHtml, phonetic, word_or_sentence__language } = props
-
-  const h1Style = useMemo(
-    () => (word_or_sentence__language === 'km' && khmerFontFamily ? { fontFamily: khmerFontFamily } : undefined),
-    [word_or_sentence__language, khmerFontFamily],
-  )
-
-  const h1Html = useMemo(() => (word_displayHtml ? { __html: word_displayHtml } : undefined), [word_displayHtml])
+  const { phonetic, word_or_sentence__language } = props
 
   return (
     <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
@@ -134,13 +198,14 @@ const DetailViewHeaderWord = (
 
       {/* 2. Central Text (Max 40%, Truncated) */}
       <div className="flex flex-col justify-center max-w-[40%] min-w-0 shrink-0 mr-auto">
-        {h1Html && (
-          <h1
-            dangerouslySetInnerHTML={h1Html}
-            className="font-bold text-foreground text-xl font-khmer truncate"
-            style={h1Style}
-          />
-        )}
+        <DetailViewHeaderWord_WordHeader
+          isKhmerLinkEnabled={props.isKhmerLinksEnabled}
+          khmerWordsHidingMode={props.khmerWordsHidingMode}
+          maybeColorMode={props.maybeColorMode}
+          nonKhmerWordsHidingMode={props.nonKhmerWordsHidingMode}
+          word_displayHtml={props.word_displayHtml}
+          word_or_sentence__language={props.word_or_sentence__language}
+        />
         <div className="flex items-center gap-1 truncate">
           {phonetic && (
             <Chip className="font-mono shrink-0" color="secondary" size="sm" variant="flat">

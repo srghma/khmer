@@ -98,7 +98,7 @@ const WordListGeneralImpl: React.FC<WordListGeneralProps> = ({
       if (item.type === 'header') {
         return (
           <div
-            className={`h-full border-b border-divider flex items-center px-6 py-1 font-bold shadow-sm backdrop-blur-md font-khmer ${item.bgClass} text-xl`}
+            className={`h-full border-b border-divider flex items-center px-6 py-1 font-bold shadow-sm backdrop-blur-md ${item.bgClass} text-xl`}
           >
             {item.label}
           </div>

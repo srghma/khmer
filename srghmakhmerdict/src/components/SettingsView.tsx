@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import type { SharedSelection } from '@heroui/system'
 import { Switch } from '@heroui/switch'
 import { Button } from '@heroui/button'
@@ -66,6 +66,10 @@ const FilterSelect = memo(function FilterSelect({
     ))
   }, [])
 
+  const select_listboxProps = useMemo(() => ({ className: 'text-base' }), [])
+  const select_popoverProps = useMemo(() => ({ className: 'text-base' }), [])
+  const select_selectedKeys = useMemo(() => new Set([value]), [value])
+
   return (
     <div className="flex justify-between items-center py-1 gap-4">
       <span className="text-foreground/80 shrink-0 text-base">{label}</span>
@@ -74,10 +78,10 @@ const FilterSelect = memo(function FilterSelect({
         aria-label={label}
         className="max-w-[200px]"
         classNames={selectClassNames}
-        listboxProps={{ className: 'text-base' }}
-        popoverProps={{ className: 'text-base' }}
+        listboxProps={select_listboxProps}
+        popoverProps={select_popoverProps}
         renderValue={renderValue}
-        selectedKeys={new Set([value])}
+        selectedKeys={select_selectedKeys}
         size="sm"
         variant="flat"
         onSelectionChange={handleSelectionChange}
@@ -146,6 +150,8 @@ export const SettingsView: React.FC = memo(() => {
     },
     [setScalingPercentage_details],
   )
+  const goToKhmerAnalyzer = useCallback(() => setLocation('~/khmer_analyzer'), [setLocation])
+  const goToKhmerComplexTable = useCallback(() => setLocation('~/khmer_complex_table'), [setLocation])
 
   return (
     <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
@@ -217,18 +223,18 @@ export const SettingsView: React.FC = memo(() => {
               color="primary"
               startContent={<GoTable className="text-xl" />}
               variant="flat"
-              onPress={() => setLocation('/khmer_complex_table')}
+              onPress={goToKhmerComplexTable}
             >
-              <span className="text-base">{LL.SETTINGS.ACTIONS.OPEN_KHMER_COMPLEX_TABLE()}</span>
+              <span className="text-base truncate">{LL.SETTINGS.ACTIONS.OPEN_KHMER_COMPLEX_TABLE()}</span>
             </Button>
             <Button
               className="w-full justify-start font-medium"
               color="primary"
               startContent={<FaSearchPlus className="text-xl" />}
               variant="flat"
-              onPress={() => setLocation('/khmer_analyzer')}
+              onPress={goToKhmerAnalyzer}
             >
-              <span className="text-base">{LL.SETTINGS.ACTIONS.OPEN_KHMER_ANALYZER()}</span>
+              <span className="text-base truncate">{LL.SETTINGS.ACTIONS.OPEN_KHMER_ANALYZER()}</span>
             </Button>
           </div>
         </div>

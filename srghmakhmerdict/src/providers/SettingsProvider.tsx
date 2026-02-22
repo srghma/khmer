@@ -269,9 +269,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: 'auto',
   })
 
+  // TODO: delete me, make both always
   const [khmerAnalyzerEnabledSegmenters, setKhmerAnalyzerEnabledSegmenters] =
     useLocalStorageState<KhmerAnalyzerEnabledSegmenters>('srghmakhmerdict__khmer_analyzer_enabled_segmenters', {
-      defaultValue: 'segmenter',
+      defaultValue: 'both',
     })
 
   const [khmerAnalyzerMarkdownEnabled, setKhmerAnalyzerMarkdownEnabled] = useLocalStorageState<boolean>(

@@ -104,6 +104,9 @@ const uk = {
     MARKDOWN_LABEL: 'Markdown',
     SEGMENTATION_LABEL: 'Сегментація',
     CHARACTER_ANALYSIS_LABEL: 'Аналіз символів',
+    WORD_NOT_IN_KHMER_DICTIONARY: 'Слово {word} не знайдено в кхмерському словнику.',
+    WORD_NOT_IN_ENGLISH_DICTIONARY: 'Слово {word} не знайдено в англійському словнику.',
+    WORD_NOT_IN_RUSSIAN_DICTIONARY: 'Слово {word} не знайдено в російському словнику.',
   },
   ANKI: {
     NO_FAVORITES: 'Обране пусте. Додайте слова в обране, щоб почати навчання.',

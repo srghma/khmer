@@ -7,6 +7,9 @@ import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useGoogleOrNativeTts } from '../hooks/useGoogleOrNativeTts'
+import { unknown_to_errorMessage } from '../utils/errorMessage'
+import { useAppToast } from './ToastProvider'
 
 interface FillInTheBlankModalContextType {
   showModal: (word: NonEmptyStringTrimmed) => void
@@ -33,10 +36,12 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
   const [activeWord, setActiveWord] = useState<NonEmptyStringTrimmed | null>(null)
   const [userAnswer, setUserAnswer] = useState('')
   const [isRevealed, setIsRevealed] = useState(false)
+  const tts = useGoogleOrNativeTts()
+  const toast = useAppToast()
 
   // Validation: Check if the user has actually typed anything meaningful
-  const userProvider = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(userAnswer), [userAnswer])
-  const isInputEmpty = !userProvider
+  const userProvided = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(userAnswer), [userAnswer])
+  const isInputEmpty = !userProvided
 
   const showModal = useCallback((word: NonEmptyStringTrimmed) => {
     setActiveWord(word)
@@ -54,10 +59,17 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
   const contextValue = useMemo(() => ({ showModal, hideModal }), [showModal, hideModal])
 
   const handleReveal = useCallback(() => {
-    if (!isInputEmpty) {
+    if (!isInputEmpty && activeWord) {
       setIsRevealed(true)
+      if (tts.t === 'ready') {
+        tts.speak(activeWord, 'km').catch((err: unknown) => {
+          toast.error('TTS Failed' as NonEmptyStringTrimmed, unknown_to_errorMessage(err))
+        })
+      } else if (tts.t !== 'speaking') {
+        toast.warn('TTS is not ready' as NonEmptyStringTrimmed, 'Offline?' as NonEmptyStringTrimmed)
+      }
     }
-  }, [isInputEmpty])
+  }, [isInputEmpty, tts, toast, activeWord])
 
   const inputOnKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -68,13 +80,17 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
     [handleReveal],
   )
 
+  const handleInputOnChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserAnswer(e.target.value)
+  }, [])
+
   return (
     <FillInTheBlankModalContext.Provider value={contextValue}>
       {children}
       <Modal backdrop="blur" isOpen={activeWord !== null} size="lg" onClose={hideModal}>
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 items-center pt-6">
-            <span className="text-xl font-khmer text-primary">Fill in the blank</span>
+            <span className="text-xl text-primary">Fill in the blank</span>
           </ModalHeader>
           <ModalBody className="pb-8">
             <div className="flex flex-col items-center justify-center">
@@ -87,7 +103,7 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
                     placeholder="Type the Khmer word..."
                     value={userAnswer}
                     variant="underlined"
-                    onChange={e => setUserAnswer(e.target.value)}
+                    onChange={handleInputOnChange}
                     onKeyDown={inputOnKeyDown}
                   />
                   <Button
@@ -105,8 +121,8 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
 
                   {/* Anki-style Diff Box */}
                   <div className="border border-divider rounded-xl p-6 bg-content2/50 w-full shadow-inner">
-                    {activeWord && userProvider && (
-                      <KhmerDiff inDictExpected={activeWord} userProvider={userProvider} />
+                    {activeWord && userProvided && (
+                      <KhmerDiff inDictExpected={activeWord} userProvided={userProvided} />
                     )}
                   </div>
 

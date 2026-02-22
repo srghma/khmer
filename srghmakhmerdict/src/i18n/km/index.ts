@@ -102,6 +102,9 @@ const km = {
     MARKDOWN_LABEL: 'Markdown',
     SEGMENTATION_LABEL: 'ការបំបែក',
     CHARACTER_ANALYSIS_LABEL: 'វិភាគតួអក្សរ',
+    WORD_NOT_IN_KHMER_DICTIONARY: 'ពាក្យ {word} មិនមាននៅក្នុងវចនានុក្រមខ្មែរទេ។',
+    WORD_NOT_IN_ENGLISH_DICTIONARY: 'ពាក្យ {word} មិនមាននៅក្នុងវចនានុក្រមអង់គ្លេសទេ។',
+    WORD_NOT_IN_RUSSIAN_DICTIONARY: 'ពាក្យ {word} មិនមាននៅក្នុងវចនានុក្រមរុស្ស៊ីទេ។',
   },
   ANKI: {
     NO_FAVORITES: 'ចំណូលចិត្តទទេរ។ បន្ថែមពាក្យទៅចំណូលចិត្តដើម្បីចាប់ផ្តើមរៀន។',

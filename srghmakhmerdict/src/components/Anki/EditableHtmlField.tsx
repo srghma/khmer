@@ -150,6 +150,7 @@ export const EditableHtmlField = memo(function EditableHtmlField({
       {initialValue && (
         <RenderHtmlColorized
           dictionaryMode_lonelyWordShouldBeSpilt={false}
+          excludeWord={undefined}
           hideBrokenImages_enable={false}
           html={initialValue}
           isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}

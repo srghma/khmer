@@ -343,6 +343,21 @@ type RootTranslation = {
 		 * C​h​a​r​ ​A​n​a​l​y​s​i​s
 		 */
 		CHARACTER_ANALYSIS_LABEL: string
+		/**
+		 * W​o​r​d​ ​{​w​o​r​d​}​ ​n​o​t​ ​f​o​u​n​d​ ​i​n​ ​K​h​m​e​r​ ​d​i​c​t​i​o​n​a​r​y​.
+		 * @param {unknown} word
+		 */
+		WORD_NOT_IN_KHMER_DICTIONARY: RequiredParams<'word'>
+		/**
+		 * W​o​r​d​ ​{​w​o​r​d​}​ ​n​o​t​ ​f​o​u​n​d​ ​i​n​ ​E​n​g​l​i​s​h​ ​d​i​c​t​i​o​n​a​r​y​.
+		 * @param {unknown} word
+		 */
+		WORD_NOT_IN_ENGLISH_DICTIONARY: RequiredParams<'word'>
+		/**
+		 * W​o​r​d​ ​{​w​o​r​d​}​ ​n​o​t​ ​f​o​u​n​d​ ​i​n​ ​R​u​s​s​i​a​n​ ​d​i​c​t​i​o​n​a​r​y​.
+		 * @param {unknown} word
+		 */
+		WORD_NOT_IN_RUSSIAN_DICTIONARY: RequiredParams<'word'>
 	}
 	ANKI: {
 		/**
@@ -1279,6 +1294,18 @@ export type TranslationFunctions = {
 		 * Char Analysis
 		 */
 		CHARACTER_ANALYSIS_LABEL: () => LocalizedString
+		/**
+		 * Word {word} not found in Khmer dictionary.
+		 */
+		WORD_NOT_IN_KHMER_DICTIONARY: (arg: { word: unknown }) => LocalizedString
+		/**
+		 * Word {word} not found in English dictionary.
+		 */
+		WORD_NOT_IN_ENGLISH_DICTIONARY: (arg: { word: unknown }) => LocalizedString
+		/**
+		 * Word {word} not found in Russian dictionary.
+		 */
+		WORD_NOT_IN_RUSSIAN_DICTIONARY: (arg: { word: unknown }) => LocalizedString
 	}
 	ANKI: {
 		/**

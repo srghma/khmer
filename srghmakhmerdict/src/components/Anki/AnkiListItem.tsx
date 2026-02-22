@@ -48,6 +48,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
         return (
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={true}
+            excludeWord={undefined}
             hideBrokenImages_enable={false}
             html={v}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
@@ -74,6 +75,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
         return (
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
@@ -95,6 +97,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
         return (
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}
@@ -116,6 +119,7 @@ export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItem
         return (
           <RenderHtmlColorized
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             hideBrokenImages_enable={false}
             html={val}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={undefined}

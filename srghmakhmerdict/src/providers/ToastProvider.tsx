@@ -11,12 +11,22 @@ export const GlobalToastProvider = () => {
   return <HeroToastProvider maxVisibleToasts={3} placement="bottom-center" toastOffset={80} />
 }
 
+export type AppToast = {
+  success: (
+    title: NonEmptyStringTrimmed | LocalizedString,
+    description?: NonEmptyStringTrimmed | LocalizedString,
+  ) => void
+  warn: (title: NonEmptyStringTrimmed | LocalizedString, description?: NonEmptyStringTrimmed | LocalizedString) => void
+  error: (title: NonEmptyStringTrimmed | LocalizedString, description?: NonEmptyStringTrimmed | LocalizedString) => void
+  info: (title: NonEmptyStringTrimmed | LocalizedString, description?: NonEmptyStringTrimmed | LocalizedString) => void
+}
+
 /**
  * 2. The Custom Hook
  * Abstraction to enforce "Android Style" (solid variant, radius)
  * so you don't repeat props in every component.
  */
-export const useAppToast = () => {
+export const useAppToast = (): AppToast => {
   const success = useCallback(
     (title: NonEmptyStringTrimmed | LocalizedString, description?: NonEmptyStringTrimmed | LocalizedString) => {
       addToast({
