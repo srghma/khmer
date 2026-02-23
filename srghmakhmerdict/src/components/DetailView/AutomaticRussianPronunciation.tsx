@@ -5,7 +5,7 @@ import { Chip } from '@heroui/chip'
 // Logic Imports
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { type TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
-import type { KhmerWordsMapValue } from '../../db/dict/types'
+import type { KhmerWordsMapValue, ShortDefinitionKm } from '../../db/dict/types'
 import { Map_filterKeys } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/map'
 import { Set_mapToArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/sets'
 import { useDictionary } from '../../providers/DictionaryProvider'
@@ -13,7 +13,6 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { colorizeText } from '../../utils/text-processing/text'
 import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { ShortDefinition } from '../../db/dict'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 
 interface RussianPronunciationProps {
@@ -23,7 +22,7 @@ interface RussianPronunciationProps {
   nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
   km_map_value: KhmerWordsMapValue
 }
 
@@ -129,6 +128,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
         km_map,
         false,
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
+        undefined,
+        khmerWordsHidingMode,
       ),
       word,
     }))
@@ -164,6 +165,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
         km_map,
         false,
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
+        undefined,
+        khmerWordsHidingMode,
       ),
       word,
     }))

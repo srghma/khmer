@@ -16,15 +16,16 @@ import { useDictionary } from '../providers/DictionaryProvider'
 
 import { processHtmlForPronunciationHiding } from '../utils/text-processing/pronunciation'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import type { ShortDefinition } from '../db/dict'
+import type { ShortDefinitionKm } from '../db/dict'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
   isKhmerPronunciationHidingEnabled: boolean,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
   isShowShortDetailAboutKhmerWordEnabled: boolean,
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord?: TypedKhmerWord,
+  khmerWordsHidingMode: WordsHidingMode = 'disabled',
 ) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
@@ -44,6 +45,7 @@ export const useWiktionaryContent = (
         dictionaryMode_lonelyWordShouldBeSpilt,
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         excludeWord,
+        khmerWordsHidingMode,
       ),
     }
   }, [
@@ -55,6 +57,7 @@ export const useWiktionaryContent = (
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
     excludeWord,
+    khmerWordsHidingMode,
   ])
 }
 
@@ -164,7 +167,7 @@ interface WiktionaryRendererProps {
   isKhmerPronunciationHidingEnabled: boolean
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
   excludeWord?: TypedKhmerWord
 }
 
@@ -191,6 +194,7 @@ export const WiktionaryRenderer = ({
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
     excludeWord,
+    khmerWordsHidingMode,
   )
 
   const toast = useAppToast()

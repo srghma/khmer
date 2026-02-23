@@ -146,13 +146,21 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
   const h1Html = useMemo(() => {
     if (!word_displayHtml) return undefined
     if (word_or_sentence__language === 'km') {
-      const html = colorizeHtml(word_displayHtml, maybeColorMode, km_map, true, undefined, undefined)
+      const html = colorizeHtml(
+        word_displayHtml,
+        maybeColorMode,
+        km_map,
+        true,
+        undefined,
+        undefined,
+        khmerWordsHidingMode,
+      )
 
       return { __html: html }
     }
 
     return { __html: word_displayHtml }
-  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map])
+  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map, khmerWordsHidingMode])
 
   const h1ClassName = useMemo(() => {
     const common = 'font-bold text-foreground text-xl truncate'

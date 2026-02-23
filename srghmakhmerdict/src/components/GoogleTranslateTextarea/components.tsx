@@ -96,7 +96,17 @@ export const ResultDisplay = memo(function ResultDisplay({
   const resultHtml = useMemo(() => {
     if (!result.text) return undefined
 
-    return { __html: colorizeHtml(result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt) }
+    return {
+      __html: colorizeHtml(
+        result.text,
+        maybeColorMode,
+        km_map,
+        dictionaryMode_lonelyWordShouldBeSpilt,
+        undefined,
+        undefined,
+        'disabled',
+      ),
+    }
   }, [result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt])
 
   return (

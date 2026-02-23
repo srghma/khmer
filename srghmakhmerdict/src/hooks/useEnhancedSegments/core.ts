@@ -1,4 +1,4 @@
-import { getKmWordsDetailShort, type ShortDefinition } from '../../db/dict'
+import { getKmWordsDetailShort, type ShortDefinitionKm } from '../../db/dict'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
@@ -10,7 +10,7 @@ import { memoizeAsyncSetOfStringsLru } from '@gemini-ocr-automate-images-upload-
 
 export type KhmerDefCoreAction =
   | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; payload: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> }
+  | { type: 'FETCH_SUCCESS'; payload: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> }
   | { type: 'FETCH_ERROR'; error: NonEmptyStringTrimmed | undefined }
 
 // --- Types ---

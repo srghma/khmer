@@ -74,7 +74,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     }, [language, word, km_map, en, ru])
 
     const wordColorized = useMemo(() => {
-      return { __html: colorizeText(word, maybeColorMode, km_map, true) }
+      return { __html: colorizeText(word, maybeColorMode, km_map, true, undefined, undefined, 'disabled') }
     }, [word, km_map, maybeColorMode])
 
     const onTap = useCallback(() => onSelect(word, language), [onSelect, word, language])

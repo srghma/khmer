@@ -12,7 +12,7 @@ import {
   type ValidNonNegativeInt,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
 import { memoizeAsync1Lru } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
-import { get_en_km_com_images_ocr } from '../db/dict'
+import { get_en_km_com_images_ocr, type ShortDefinitionKm } from '../db/dict'
 import {
   nonEmptyString_afterTrim,
   type NonEmptyStringTrimmed,
@@ -27,7 +27,6 @@ import { unknown_to_errorMessage } from '../utils/errorMessage'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useDictionary } from '../providers/DictionaryProvider'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import type { ShortDefinition } from '../db/dict'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -209,7 +208,7 @@ export interface EnKmHtmlRendererProps {
   isKhmerPronunciationHidingEnabled: boolean
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
   excludeWord?: TypedKhmerWord
 }
 
@@ -242,6 +241,7 @@ export const EnKmHtmlRenderer = ({
       dictionaryMode_lonelyWordShouldBeSpilt,
       isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
       excludeWord,
+      khmerWordsHidingMode,
     )
 
     return { __html: html_colorized }
@@ -255,6 +255,7 @@ export const EnKmHtmlRenderer = ({
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
     excludeWord,
+    khmerWordsHidingMode,
   ])
 
   const toast = useAppToast()

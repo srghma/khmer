@@ -7,7 +7,7 @@ import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-e
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { TextSegment } from './text'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import type { ShortDefinition } from '../../db/dict'
+import type { ShortDefinitionKm } from '../../db/dict/types'
 
 export type TextSegmentEnhancedKhmerWord = {
   w: TypedKhmerWord
@@ -23,7 +23,7 @@ export type TextSegmentEnhanced =
 
 export const enhanceSegments = (
   segments: NonEmptyArray<TextSegment>,
-  definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>,
+  definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null>,
 ): NonEmptyArray<TextSegmentEnhanced> => {
   return Array_toNonEmptyArray_orThrow(
     segments.map((seg): TextSegmentEnhanced => {

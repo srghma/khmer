@@ -24,3 +24,24 @@ export const strToWithoutKhmerAndHtml_remove_orThrow = (value: string): TypedWit
   if (!v) throw new Error(`Invalid WithoutKhmerAndHtml format: '${value}'`)
   return v
 }
+//////////////////////
+export type TypedWithoutHtml = NonEmptyStringTrimmed & {
+  readonly __brandTypedWithoutHtml: 'TypedWithoutHtml'
+}
+
+export const strToWithoutHtml_remove_orUndefined = (
+  value: string,
+  tagsToStripContent: NonEmptyStringTrimmed[] = [],
+): TypedWithoutHtml | undefined => {
+  if (!value) return
+
+  return stripHtml(value, tagsToStripContent) as
+    | TypedWithoutHtml
+    | undefined
+}
+
+export const strToWithoutHtml_remove_orThrow = (value: string): TypedWithoutHtml => {
+  const v = strToWithoutHtml_remove_orUndefined(value)
+  if (!v) throw new Error(`Invalid WithoutHtml format: '${value}'`)
+  return v
+}

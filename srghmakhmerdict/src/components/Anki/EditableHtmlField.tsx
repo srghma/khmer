@@ -4,13 +4,13 @@ import { Textarea, Button } from '@heroui/react'
 import { HiPencil, HiCheck, HiXMark, HiPlus } from 'react-icons/hi2'
 import { RenderHtmlColorized, SectionTitleWithRightContent } from '../DetailView/atoms'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
-import type { ShortDefinition } from '../../db/dict'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
+import type { ShortDefinitionKm } from '../../db/dict/types'
 
 interface EditableHtmlFieldProps {
   initialValue: NonEmptyStringTrimmed | undefined
@@ -21,7 +21,7 @@ interface EditableHtmlFieldProps {
   nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
 }
 
 const textareaClassNames = {

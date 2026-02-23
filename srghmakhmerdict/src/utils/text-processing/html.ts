@@ -1,21 +1,23 @@
 import { replaceHtmlTextNodesWithMaybeOtherHtml } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/replaceHtmlTextNodesWithMaybeOtherHtml'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-import type { KhmerWordsMap } from '../../db/dict'
+import type { KhmerWordsMap, ShortDefinitionKm } from '../../db/dict'
 import { type MaybeColorizationMode } from './utils'
 import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { yieldTextSegments, colorizeSegments_usingWordCounterRef } from './text'
 import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
-import type { ShortDefinition } from '../../db/dict'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+
+import type { WordsHidingMode } from '../../providers/SettingsProvider'
 
 export const colorizeHtml = (
   html: NonEmptyStringTrimmed,
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
-  shortDefinitions?: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>,
-  excludeWord?: TypedKhmerWord,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
+  excludeWord: TypedKhmerWord | undefined,
+  khmerWordsHidingMode: WordsHidingMode,
 ): TypedContainsKhmer => {
   const wordCounterRef = { current: 0 }
 
@@ -35,6 +37,7 @@ export const colorizeHtml = (
         mode,
         shortDefinitions,
         excludeWord,
+        khmerWordsHidingMode,
       )
     },
   ) as TypedContainsKhmer
@@ -50,10 +53,19 @@ export const colorizeHtml_allowUndefined = (
   mode: MaybeColorizationMode,
   km_map: KhmerWordsMap,
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined,
-  excludeWord?: TypedKhmerWord,
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
+  excludeWord: TypedKhmerWord | undefined,
+  khmerWordsHidingMode: WordsHidingMode,
 ): TypedContainsKhmer | undefined => {
   return html
-    ? colorizeHtml(html, mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, shortDefinitions, excludeWord)
+    ? colorizeHtml(
+        html,
+        mode,
+        km_map,
+        dictionaryMode_lonelyWordShouldBeSpilt,
+        shortDefinitions,
+        excludeWord,
+        khmerWordsHidingMode,
+      )
     : undefined
 }

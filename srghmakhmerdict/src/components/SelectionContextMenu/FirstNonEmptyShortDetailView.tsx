@@ -134,7 +134,15 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
       if (!truncated) return null
       if (!km_map || !isContainsKhmer(truncated)) return { __html: truncated }
 
-      const colorized = colorizeHtml(truncated, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
+      const colorized = colorizeHtml(
+        truncated,
+        colorizationMode,
+        km_map,
+        dictionaryMode_lonelyWordShouldBeSpilt,
+        undefined,
+        undefined,
+        'disabled',
+      )
 
       return { __html: colorized }
     }, [rawContent, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt])

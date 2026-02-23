@@ -1,7 +1,7 @@
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import React, { memo } from 'react'
-import type { KhmerWordsMap } from '../../db/dict/index'
+import type { KhmerWordsMap, ShortDefinitionKm } from '../../db/dict/index'
 import type { TextSegment } from '../../utils/text-processing/text'
 import type { TextSegmentEnhanced } from '../../utils/text-processing/text-enhanced'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
@@ -10,7 +10,6 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
-import type { ShortDefinition } from '../../db/dict'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
@@ -24,7 +23,7 @@ interface KhmerWordPartProps {
   colorIndex: number
   km_map: KhmerWordsMap
   maybeColorMode: MaybeColorizationMode
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
   onWordClick: ((v: TypedKhmerWord) => void) | undefined
 }
 
@@ -81,7 +80,7 @@ interface SegmentationPreviewProps {
   segments: NonEmptyArray<TextSegment | TextSegmentEnhanced>
   onKhmerWordClick: ((v: TypedKhmerWord) => void) | undefined
   maybeColorMode: MaybeColorizationMode
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(

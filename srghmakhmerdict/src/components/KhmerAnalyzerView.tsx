@@ -16,7 +16,6 @@ import { Alert } from '@heroui/alert'
 import { Spinner } from '@heroui/react'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import type { ShortDefinition } from '../db/dict'
 import { KhmerAnalyzer } from './KhmerAnalyzer'
 import { SegmentationPreview } from './KhmerAnalyzerModal/SegmentationPreview'
 import { useKhmerAnalysis, type KhmerAnalysisResult } from './KhmerAnalyzerModal/useKhmerAnalysis'
@@ -40,6 +39,7 @@ import { sanitizeTextForAnalyzer } from '../utils/sanitizeTextForAnalyzer'
 import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
 import { useDictionary } from '../providers/DictionaryProvider'
 import { useAppToast } from '../providers/ToastProvider'
+import type { ShortDefinitionKm } from '../db/dict/types'
 
 interface HeaderTogglerOfSegmenterProps {
   children: (data: NonEmptyArray<TextSegment | TextSegmentEnhanced>) => React.ReactNode
@@ -104,7 +104,7 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
   khmerWordsHidingMode: WordsHidingMode
   nonKhmerWordsHidingMode: WordsHidingMode
   isShowShortDetailAboutKhmerWordEnabled: boolean
-  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> | undefined
+  shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
 }) {
   const { LL } = useI18nContext()
   const [, setLocation] = useLocation()

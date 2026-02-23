@@ -5,7 +5,7 @@ import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-exte
 import { type KhmerDefCoreAction, startKhmerDefinitionFetch } from './useEnhancedSegments/core'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
-import type { ShortDefinition } from '../db/dict'
+import type { ShortDefinitionKm } from '../db/dict/types'
 
 // --- State Shape ---
 
@@ -16,7 +16,7 @@ export type UseKhmerDefinitionsResult =
   | typeof UseKhmerDefinitionsResult_idle
   | typeof UseKhmerDefinitionsResult_loading
   | { t: 'request_error'; e: NonEmptyStringTrimmed | undefined }
-  | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null> }
+  | { t: 'success'; definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> }
 
 // --- Hook Actions ---
 // Combines Core Actions with Hook-specific lifecycle actions (RESET)

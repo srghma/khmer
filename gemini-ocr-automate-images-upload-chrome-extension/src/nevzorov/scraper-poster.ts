@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import { CONFIG, getDB, sleep } from './common'
 // @ts-ignore-next
 import input from 'input'
-// import { workScraper } from './scraper'
+import { workScraper } from './scraper'
 import { workPoster } from './poster'
 import { workTranslator } from './translator'
 
@@ -31,7 +31,7 @@ async function main() {
   while (true) {
     try {
       // 1. Scrape latest
-      // const scraperPromise = workScraper(client, db)
+      await workScraper(client, db)
 
       // 2. Translate everything (Run until done)
       const translatorPromise = workTranslator(db)

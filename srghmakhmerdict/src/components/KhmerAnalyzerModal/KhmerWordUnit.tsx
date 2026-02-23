@@ -9,13 +9,16 @@ import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { useGoogleOrNativeTts } from '../../hooks/useGoogleOrNativeTts'
 import { unknown_to_errorMessage } from '../../utils/errorMessage'
 import { useAppToast } from '../../providers/ToastProvider'
-import type { ShortDefinition } from '../../db/dict'
+import type { ShortDefinitionKm } from '../../db/dict'
+import { useSettings } from '../../providers/SettingsProvider'
+import { getBestDefinitionEnOrRuFromKm_fromShort_onlyWithoutHtml } from '../../utils/WordDetailKm_WithoutHtml'
+import { getBestDefinitionEnOrRuFromKm_fromShort } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 
 interface KhmerWordUnitProps {
   colorIndex: number
   colorization: 'none' | 'isKnown' | 'isNotKnown'
   definitionHtml: NonEmptyStringTrimmed | undefined
-  shortDefinition: ShortDefinition | null | undefined
+  shortDefinition: ShortDefinitionKm | null | undefined
   onClick: (() => void) | undefined
   wiktionaryIpa: NonEmptyStringTrimmed | undefined
   word: TypedKhmerWord
@@ -33,6 +36,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   const { LL } = useI18nContext()
   const tts = useGoogleOrNativeTts()
   const toast = useAppToast()
+  const { khmerWordsHidingMode } = useSettings()
 
   // 1. Controlled state as per HeroUI docs
   const [isOpen, setIsOpen] = React.useState(false)
@@ -59,6 +63,23 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   const dangerouslySetInnerHTML = useMemo(
     () => (definitionHtml ? { __html: definitionHtml } : undefined),
     [definitionHtml],
+  )
+
+  const shortBoxDefinitionHtml = useMemo(() => {
+    if (!shortDefinition) return definitionHtml
+    if (!('source' in shortDefinition)) throw new Error('impossible')
+
+    const stripped =
+      khmerWordsHidingMode !== 'disabled'
+        ? getBestDefinitionEnOrRuFromKm_fromShort(shortDefinition) || shortDefinition.definition
+        : getBestDefinitionEnOrRuFromKm_fromShort_onlyWithoutHtml(shortDefinition) || shortDefinition.definition
+
+    return stripped
+  }, [shortDefinition, definitionHtml, khmerWordsHidingMode])
+
+  const dangerouslySetInnerHTMLShortBox = useMemo(
+    () => (shortBoxDefinitionHtml ? { __html: shortBoxDefinitionHtml } : undefined),
+    [shortBoxDefinitionHtml],
   )
 
   const wordClass = useMemo(
@@ -101,7 +122,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
                 type="button"
               >
                 <div
-                  dangerouslySetInnerHTML={dangerouslySetInnerHTML}
+                  dangerouslySetInnerHTML={dangerouslySetInnerHTMLShortBox}
                   className={`text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary`}
                 />
               </button>
@@ -109,24 +130,21 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
 
             <PopoverContent className="p-0 max-w-[300px] w-max">
               <div className="flex flex-col max-h-[400px] overflow-y-auto outline-none">
-                {shortDefinition && (
-                  <div className="p-3 border-b border-divider bg-content2/30">
-                    <div className="text-tiny font-bold text-primary uppercase mb-1">
-                      {LL.DETAIL.SECTION.DEFINITION()}
-                    </div>
-                    <div className="text-sm font-medium">{shortDefinition.definition}</div>
-                    {'wiktionary_ipa_or_from_csv_pronunciations' in shortDefinition &&
-                      shortDefinition.wiktionary_ipa_or_from_csv_pronunciations && (
-                        <div className="text-tiny text-foreground/60">
-                          {shortDefinition.wiktionary_ipa_or_from_csv_pronunciations}
-                        </div>
-                      )}
-                  </div>
-                )}
-                <div
-                  dangerouslySetInnerHTML={dangerouslySetInnerHTML}
-                  className="p-3 text-xs text-foreground prose prose-sm max-w-none dark:prose-invert [&_i]:text-primary [&_i]:not-italic [&_i]:font-medium select-text"
-                />
+                <div className="p-3 border-b border-divider bg-content2/30">
+                  {shortDefinition &&
+                    'wiktionary_ipa_or_from_csv_pronunciations' in shortDefinition &&
+                    shortDefinition.wiktionary_ipa_or_from_csv_pronunciations && (
+                      <div className="text-sm font-medium mb-1">
+                        {shortDefinition.wiktionary_ipa_or_from_csv_pronunciations}
+                      </div>
+                    )}
+                  {dangerouslySetInnerHTML && (
+                    <div
+                      dangerouslySetInnerHTML={dangerouslySetInnerHTML}
+                      className="flex flex-col gap-2 text-sm text-default-500 prose prose-sm max-w-none dark:prose-invert [&_i]:text-primary [&_i]:not-italic [&_i]:font-medium select-text"
+                    />
+                  )}
+                </div>
               </div>
             </PopoverContent>
           </Popover>

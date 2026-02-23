@@ -14,7 +14,7 @@ import { detectModeFromText } from '../../utils/detectModeFromText'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
-import type { ShortDefinition } from '../../db/dict'
+import type { ShortDefinitionKm } from '../../db/dict/types'
 
 export const KhmerAnalysisResult__empty_text = { t: 'empty_text' } as const
 
@@ -46,7 +46,7 @@ export type KhmerAnalysisResult =
       analyzedText_language: 'km'
       segmentsDict: NonEmptyArray<TextSegmentEnhanced> | undefined
       segmentsIntl: NonEmptyArray<TextSegmentEnhanced> | undefined
-      definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinition | null>
+      definitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null>
     }
 
 export const useKhmerAnalysis = (

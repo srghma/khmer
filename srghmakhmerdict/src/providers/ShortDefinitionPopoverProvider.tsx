@@ -116,7 +116,7 @@ export const ShortDefinitionPopoverProvider: React.FC<{ children: React.ReactNod
                   {definition && definition.definition && (
                     <div
                       dangerouslySetInnerHTML={{ __html: definition.definition }}
-                      className="flex gap-2 text-sm text-default-500"
+                      className="flex flex-col gap-2 text-sm text-default-500"
                     />
                   )}
                 </div>
