@@ -147,7 +147,8 @@
   BUT exclude '.khmer--blue-lbl' (legacy blue)
   AND exclude elements that have been clicked ('.is-revealed')
 */
-.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed)) {
+.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed)),
+.hiding_enabled :global(button[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed)) {
   color: var(--kw-skeleton-fg) !important;
   background-color: var(--kw-skeleton-bg);
   border-radius: 6px;
@@ -181,6 +182,7 @@
 
 /* Hover effect on hidden words and images to hint interactivity */
 .hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover),
+.hiding_enabled :global(button[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover),
 .hiding_enabled :global(img.khmer--image:not(.is-revealed):hover) {
   background-color: var(--kw-0);
   /* Show a hint color or darker gray */

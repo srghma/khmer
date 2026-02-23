@@ -73,37 +73,37 @@ export const ShortDefinitionPopoverProvider: React.FC<{ children: React.ReactNod
     [showPopover, hidePopover],
   )
 
+  const anchor_rect = anchor ? anchor.getBoundingClientRect() : undefined
+
   return (
     <ShortDefinitionPopoverContext.Provider value={contextValue}>
       {children}
-      {anchor && (
+      {anchor_rect && anchor && (
         <Popover
           backdrop="transparent"
+          className="absolute"
           isOpen={isOpen}
           placement="bottom"
           shouldBlockScroll={false}
           showArrow={true}
           style={{
-            position: 'absolute',
-            left: anchor.getBoundingClientRect().left + window.scrollX,
-            top: anchor.getBoundingClientRect().top + window.scrollY,
+            left: anchor_rect.left + window.scrollX,
+            top: anchor_rect.top + window.scrollY,
           }}
           triggerType="listbox" // Use a trigger type that doesn't interfere with the anchor's own events
           onOpenChange={setIsOpen}
         >
           <div
+            className="absolute pointer-events-none visibility-hidden"
             style={{
-              position: 'absolute',
-              top: anchor.getBoundingClientRect().top + window.scrollY,
-              left: anchor.getBoundingClientRect().left + window.scrollX,
+              top: anchor_rect.top + window.scrollY,
+              left: anchor_rect.left + window.scrollX,
               width: anchor.offsetWidth,
               height: anchor.offsetHeight,
-              pointerEvents: 'none',
-              visibility: 'hidden',
             }}
           >
             <PopoverTrigger>
-              <div style={{ width: '100%', height: '100%' }} />
+              <div className="w-full h-full" />
             </PopoverTrigger>
           </div>
           <PopoverContent className="p-0 max-w-[300px] w-max">

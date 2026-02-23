@@ -16,6 +16,7 @@ export type MarkdownToHtmlResult =
  * Supports GFM (GitHub Flavored Markdown), including tables.
  */
 export function basicMarkdownToHtml(markdown: NonEmptyStringTrimmed): MarkdownToHtmlResult {
+  // console.log('basicMarkdownToHtml markdown', markdown)
   try {
     // Synchronous parsing is default in marked unless async: true is passed
     // GFM is enabled by default in marked
@@ -26,6 +27,7 @@ export function basicMarkdownToHtml(markdown: NonEmptyStringTrimmed): MarkdownTo
         breaks: true, // Treat newlines as <br>
       }),
     )
+    // console.log('basicMarkdownToHtml html', html)
 
     if (html === undefined) {
       return MarkdownToHtmlResult_empty

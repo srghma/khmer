@@ -11,6 +11,8 @@ import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-e
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import { useSettings } from '../../providers/SettingsProvider'
+import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
   <span className="align-top mt-1 inline-block text-foreground/80">{text}</span>
@@ -86,10 +88,32 @@ interface SegmentationPreviewProps {
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
   ({ onKhmerWordClick, segments, maybeColorMode, shortDefinitions }) => {
     const { km_map } = useDictionary()
+    const { khmerWordsHidingMode, nonKhmerWordsHidingMode } = useSettings()
     let globalWordIndex = 0
 
+    const containerRef = React.useRef<HTMLDivElement>(null)
+
+    useKhmerAndNonKhmerClickListener(
+      containerRef,
+      onKhmerWordClick,
+      khmerWordsHidingMode,
+      nonKhmerWordsHidingMode,
+      false, // isKhmerPronunciationHidingEnabled
+    )
+
+    const srghma_khmer_dict_content_styles = calculateKhmerAndNonKhmerContentStyles(
+      !!onKhmerWordClick,
+      khmerWordsHidingMode,
+      nonKhmerWordsHidingMode,
+      false, // isKhmerPronunciationHidingEnabled
+      false, // isShowShortDetailAboutKhmerWordEnabled
+    )
+
     return (
-      <div className="rounded-medium px-3 py-4 text-medium leading-relaxed break-words whitespace-pre-wrap min-h-[100px]">
+      <div
+        ref={containerRef}
+        className={`rounded-medium px-3 py-4 text-medium leading-relaxed break-words whitespace-pre-wrap min-h-[100px] ${srghma_khmer_dict_content_styles}`}
+      >
         {segments.map((seg, i) => {
           // 1. Handle Whitespace: Render as raw text to preserve pre-wrap behavior
           if (seg.t === 'whitespace') return seg.v
