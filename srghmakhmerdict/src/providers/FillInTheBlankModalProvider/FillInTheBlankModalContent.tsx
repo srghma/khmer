@@ -1,11 +1,11 @@
-import type { NonEmptyStringTrimmed } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed"
-import { Button } from "@heroui/button"
-import { Input } from "@heroui/input"
-import { ModalContent, ModalHeader, ModalBody } from "@heroui/react"
-import { memo, useCallback } from "react"
-import { KhmerDiff } from "../../components/Anki/KhmerDiff"
-import { useGoogleOrNativeTts, GoogleOrNativeTtsState_speakIfCan } from "../../hooks/useGoogleOrNativeTts"
-import { useAppToast } from "../ToastProvider"
+import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { Button } from '@heroui/button'
+import { Input } from '@heroui/input'
+import { ModalContent, ModalHeader, ModalBody } from '@heroui/react'
+import { memo, useCallback } from 'react'
+import { KhmerDiff } from '../../components/Anki/KhmerDiff'
+import { useGoogleOrNativeTts, GoogleOrNativeTtsState_speakIfCan } from '../../hooks/useGoogleOrNativeTts'
+import { useAppToast } from '../ToastProvider'
 
 const inputClassNames = {
   input: 'text-center text-xl',
@@ -106,7 +106,9 @@ export const FillInTheBlankModalContent = memo(function FillInTheBlankModalConte
 
               <div className="flex flex-col items-center gap-1 mt-4">
                 <span className="text-tiny font-bold uppercase text-default-400 tracking-widest">Correct Spelling</span>
-                <button onClick={speakActiveWord} className="text-3xl font-khmer text-success font-bold">{activeWord}</button>
+                <button className="text-3xl font-khmer text-success font-bold" onClick={speakActiveWord}>
+                  {activeWord}
+                </button>
               </div>
 
               <div className="flex flex-row items-center gap-1 mt-1">

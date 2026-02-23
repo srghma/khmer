@@ -93,8 +93,8 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
     >
       {/* 1. The Khmer Word */}
       <button
-        data-navigate-khmer-word={word}
         className={`text-lg leading-normal cursor-text select-text ${wordClass}`}
+        data-navigate-khmer-word={word}
         onClick={onClick}
       >
         {word}
