@@ -41,8 +41,10 @@ async function main() {
 
       await Promise.all([translatorPromise, posterPromise])
 
-      console.log('😴 Cycle complete. Sleeping for 5 minutes...')
-      await sleep(1000 * 60 * 5)
+      // console.log('😴 Cycle complete. Sleeping for 5 minutes...')
+      // await sleep(1000 * 60 * 5)
+
+      await workPoster(client, db)
     } catch (e) {
       console.error('❌ Orchestrator Error:', e)
       await sleep(10000)
