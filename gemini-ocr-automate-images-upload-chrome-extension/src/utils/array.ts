@@ -1,6 +1,7 @@
 // Copyright 2025 srghma
 
 import { assertIsDefinedAndReturn } from './asserts.js'
+import type { NonEmptyArray } from './non-empty-array.js'
 import { type Option } from './types.js'
 
 export function Array_eq<T>(eq: (x: T, y: T) => boolean, arr1: readonly T[], arr2: readonly T[]): boolean {
@@ -371,4 +372,14 @@ export function Array_groupByKeys<V, K extends string>(
   }
 
   return result
+}
+
+export function Array_groupBy<V, K extends string>(xs: readonly V[], getKey: (v: V) => K): Record<K, NonEmptyArray<V>> {
+  const result = {} as Record<K, V[]>
+  for (const x of xs) {
+    const key = getKey(x)
+    if (Object.prototype.hasOwnProperty.call(result, key)) result[key].push(x)
+    else result[key] = [x]
+  }
+  return result as unknown as Record<K, NonEmptyArray<V>>
 }

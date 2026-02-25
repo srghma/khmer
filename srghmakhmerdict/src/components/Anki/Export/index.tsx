@@ -5,10 +5,7 @@ import { useI18nContext } from '../../../i18n/i18n-react-custom'
 import { useAppToast } from '../../../providers/ToastProvider'
 import { HiClipboardDocumentList, HiArrowDownTray } from 'react-icons/hi2'
 import { truncateString } from '../../../utils/truncateString'
-import {
-  String_toNonEmptyString_orUndefined_afterTrim,
-  type NonEmptyStringTrimmed,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 
 const TextareaClassNames = {
   input: 'font-mono text-xs leading-relaxed opacity-70',
@@ -16,7 +13,7 @@ const TextareaClassNames = {
 }
 
 export const AnkiExport = memo(function AnkiExport() {
-  const [output, setOutput] = useState('')
+  const [output, setOutput] = useState<NonEmptyStringTrimmed | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
   const { LL } = useI18nContext()
   const toast = useAppToast()
@@ -33,11 +30,9 @@ export const AnkiExport = memo(function AnkiExport() {
   }, [])
 
   const handleCopy = useCallback(() => {
-    const output_ = String_toNonEmptyString_orUndefined_afterTrim(output)
-
-    if (output_) {
+    if (output) {
       navigator.clipboard.writeText(output)
-      toast.success('Copied to clipboard' as NonEmptyStringTrimmed, truncateString(output_, 50))
+      toast.success('Copied to clipboard' as NonEmptyStringTrimmed, truncateString(output, 50))
     }
   }, [output, toast])
 
@@ -68,6 +63,7 @@ export const AnkiExport = memo(function AnkiExport() {
         <Button
           className="flex-1 font-black uppercase tracking-wider"
           color="secondary"
+          isDisabled={!output}
           startContent={<HiClipboardDocumentList className="text-xl" />}
           onPress={handleCopy}
         >

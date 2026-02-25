@@ -157,8 +157,8 @@ export function* yieldColorizedChunks(
         : undefined
 
       yield renderKhmerWordSpan(w, wordCounter.current, isWordInKmMap(w, km_map), mode, extraInfo, excludeWord)
+      wordCounter.current++
     }
-    wordCounter.current++
   }
 }
 

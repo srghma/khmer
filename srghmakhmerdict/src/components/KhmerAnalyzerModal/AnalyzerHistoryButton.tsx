@@ -1,7 +1,7 @@
-import { memo, useCallback, type Key } from 'react'
+import { memo, useCallback, useMemo, useState, type Key } from 'react'
 import { Button } from '@heroui/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
-import { HiOutlineBookmark, HiBookmark, HiOutlineTrash } from 'react-icons/hi2'
+import { HiOutlineBookmark, HiBookmark, HiOutlineTrash, HiOutlinePencil } from 'react-icons/hi2'
 import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
 import type { AnalyzerHistoryItem } from '../../hooks/useAnalyzerHistory'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -10,6 +10,7 @@ import { details_header__text_className } from '../header_classNames'
 import { assertIsDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
 import { truncateString } from '../../utils/truncateString'
 import { strOrNumberToIntOrThrow_strict } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+import { EditAnalyzerHistoryModal } from './EditAnalyzerHistoryModal'
 
 const MAX_PREVIEW_LENGTH = 60
 
@@ -55,6 +56,50 @@ const DeleteButton = memo(function DeleteButton({
   )
 })
 
+const EditButton = memo(function EditButton({
+  savedAt,
+  onEdit,
+}: {
+  savedAt: number
+  onEdit: (savedAt: number) => void
+}) {
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onEdit(savedAt)
+    },
+    [savedAt, onEdit],
+  )
+
+  return (
+    <button
+      aria-label="Edit history item"
+      className="text-default-400 hover:text-primary p-1 rounded transition-colors shrink-0"
+      type="button"
+      onClick={handleEdit}
+    >
+      <HiOutlinePencil className="w-3.5 h-3.5" />
+    </button>
+  )
+})
+
+const ItemEndContent = memo(function ItemEndContent({
+  savedAt,
+  onRemove,
+  onEdit,
+}: {
+  savedAt: number
+  onRemove: (savedAt: number) => void
+  onEdit: (savedAt: number) => void
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <EditButton savedAt={savedAt} onEdit={onEdit} />
+      <DeleteButton savedAt={savedAt} onRemove={onRemove} />
+    </div>
+  )
+})
+
 interface AnalyzerHistoryButtonProps {
   /** Current textarea text */
   currentText: NonEmptyStringTrimmed | undefined
@@ -62,6 +107,7 @@ interface AnalyzerHistoryButtonProps {
   onSave: (text: NonEmptyStringTrimmed) => void
   onSelect: (text: NonEmptyStringTrimmed) => void
   onRemove: (savedAt: number) => void
+  onUpdate: (savedAt: number, text: NonEmptyStringTrimmed) => void
   onClear: () => void
 }
 
@@ -71,9 +117,16 @@ export const AnalyzerHistoryButton = memo(function AnalyzerHistoryButton({
   onSave,
   onSelect,
   onRemove,
+  onUpdate,
   onClear,
 }: AnalyzerHistoryButtonProps) {
+  const [editingItemSavedAt, setEditingItemSavedAt] = useState<number | null>(null)
   const isSaved = currentText ? history.some(item => item.text === currentText) : false
+
+  const editingItem = useMemo(
+    () => history.find(item => item.savedAt === editingItemSavedAt),
+    [editingItemSavedAt, history],
+  )
 
   const handleSave = useCallback(() => {
     if (currentText) onSave(currentText)
@@ -128,32 +181,42 @@ export const AnalyzerHistoryButton = memo(function AnalyzerHistoryButton({
 
       {/* History dropdown — only visible when there's history */}
       {history.length > 0 && (
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <Button className="text-default-500 text-tiny font-bold" size="sm" variant="flat">
-              History ({history.length})
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Analyzer history" className="max-w-[320px]" onAction={handleDropdownAction}>
-            {[
-              ...history.map(item => (
-                <DropdownItem
-                  key={item.savedAt}
-                  description={formatDate(item.savedAt)}
-                  endContent={<DeleteButton savedAt={item.savedAt} onRemove={onRemove} />}
-                  textValue={item.text}
-                >
-                  <span className="font-khmer text-sm leading-snug text-foreground/90 block truncate">
+        <>
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <Button className="text-default-500 text-tiny font-bold" size="sm" variant="flat">
+                History ({history.length})
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Analyzer history" className="max-w-[320px]" onAction={handleDropdownAction}>
+              {[
+                ...history.map(item => (
+                  <DropdownItem
+                    key={item.savedAt}
+                    description={formatDate(item.savedAt)}
+                    endContent={
+                      <ItemEndContent savedAt={item.savedAt} onEdit={setEditingItemSavedAt} onRemove={onRemove} />
+                    }
+                  >
                     {truncateString(item.text, MAX_PREVIEW_LENGTH)}
-                  </span>
-                </DropdownItem>
-              )),
-              <DropdownItem key="__clear__" className="text-danger" color="danger" textValue="Clear all">
-                Clear all history
-              </DropdownItem>,
-            ]}
-          </DropdownMenu>
-        </Dropdown>
+                  </DropdownItem>
+                )),
+                <DropdownItem key="__clear__" className="text-danger" color="danger" textValue="Clear all">
+                  Clear all history
+                </DropdownItem>,
+              ]}
+            </DropdownMenu>
+          </Dropdown>
+
+          {editingItem && (
+            <EditAnalyzerHistoryModal
+              isOpen={!!editingItem}
+              item={editingItem}
+              onClose={() => setEditingItemSavedAt(null)}
+              onUpdate={onUpdate}
+            />
+          )}
+        </>
       )}
     </div>
   )

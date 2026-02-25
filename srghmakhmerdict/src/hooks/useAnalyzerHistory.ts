@@ -38,6 +38,16 @@ export function analyzerHistory_add(
 export function analyzerHistory_remove(history: AnalyzerHistoryItem[], savedAt: number): AnalyzerHistoryItem[] {
   return history.filter(item => item.savedAt !== savedAt)
 }
+/**
+ * Update a specific entry by its savedAt timestamp.
+ */
+export function analyzerHistory_update(
+  history: AnalyzerHistoryItem[],
+  savedAt: number,
+  newText: NonEmptyStringTrimmed,
+): AnalyzerHistoryItem[] {
+  return history.map(item => (item.savedAt === savedAt ? { ...item, text: newText } : item))
+}
 
 // --- Hook ---
 
@@ -45,6 +55,7 @@ export interface UseAnalyzerHistoryReturn {
   history: AnalyzerHistoryItem[]
   saveToHistory: (text: NonEmptyStringTrimmed) => void
   removeFromHistory: (savedAt: number) => void
+  updateHistoryItem: (savedAt: number, newText: NonEmptyStringTrimmed) => void
   clearHistory: () => void
 }
 
@@ -69,9 +80,16 @@ export function useAnalyzerHistory(): UseAnalyzerHistoryReturn {
     [setHistory],
   )
 
+  const updateHistoryItem = useCallback(
+    (savedAt: number, newText: NonEmptyStringTrimmed) => {
+      setHistory(prev => analyzerHistory_update(prev ?? [], savedAt, newText))
+    },
+    [setHistory],
+  )
+
   const clearHistory = useCallback(() => {
     setHistory([])
   }, [setHistory])
 
-  return { history: resolvedHistory, saveToHistory, removeFromHistory, clearHistory }
+  return { history: resolvedHistory, saveToHistory, removeFromHistory, updateHistoryItem, clearHistory }
 }

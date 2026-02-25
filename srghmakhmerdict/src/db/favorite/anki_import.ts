@@ -22,9 +22,9 @@ import {
 
 import { areWordsInDict_map } from '../dict/are_words_in_dict_map'
 import { type MaybeFrontBack, MaybeFrontBack_mk } from './bulkInsertFavorites_front_back_html'
-import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { processInAndNotInDbResult, type PartitionedMaps_Split_Imported } from './anki_import/process'
+import type { Char } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char'
 
 type PartitionedMaps = {
   en: NonEmptyMap<NonEmptyStringTrimmed, MaybeFrontBack | undefined> | undefined
@@ -60,21 +60,38 @@ function partitionByLanguage(words: NonEmptyMap<NonEmptyStringTrimmed, MaybeFron
   }
 }
 
-function parseTsv(input: NonEmptyStringTrimmed): NonEmptyMap<NonEmptyStringTrimmed, MaybeFrontBack | undefined> {
+function unquoteCsvStringWithInsideQuotes(s: NonEmptyStringTrimmed): string {
+  return s.replace(/^"|"$/g, '').replace(/""/g, '"')
+}
+
+function parseCsvCell(cell: string | undefined): NonEmptyStringTrimmed | undefined {
+  if (!cell) return undefined
+  const x = String_toNonEmptyString_orUndefined_afterTrim(cell)
+
+  if (!x) return undefined
+  const y = String_toNonEmptyString_orUndefined_afterTrim(unquoteCsvStringWithInsideQuotes(x))
+
+  if (!y) return undefined
+
+  return y
+}
+
+function parseTsvOrCsv(
+  input: NonEmptyStringTrimmed,
+  separator: Char,
+): NonEmptyMap<NonEmptyStringTrimmed, MaybeFrontBack | undefined> {
   const lines = input.split(/\r?\n/)
   const itemsMap = new Map<NonEmptyStringTrimmed, MaybeFrontBack | undefined>()
 
   for (const line of lines) {
     if (!line.trim()) continue
 
-    const parts = line.split('\t')
-    const word = undefined_lift((x: string) => String_toNonEmptyString_orUndefined_afterTrim(x.replace(/\s+/g, '')))(
-      parts[0],
-    )
+    const [wordS, frontS, ...backSs] = line.split(separator)
+    const word = parseCsvCell(wordS)
 
     if (word) {
-      const front = undefined_lift(String_toNonEmptyString_orUndefined_afterTrim)(parts[1])
-      const back = undefined_lift(String_toNonEmptyString_orUndefined_afterTrim)(parts[2])
+      const front = parseCsvCell(frontS)
+      const back = parseCsvCell(backSs.join('\n'))
 
       const maybeFrontBack: MaybeFrontBack | undefined = MaybeFrontBack_mk(front, back)
 
@@ -100,12 +117,13 @@ export type ImportResult = {
 
 export async function importWordsToAnki(
   input: NonEmptyStringTrimmed,
+  separator: Char,
 ): Promise<PartitionedMaps_Split_Imported<MaybeFrontBack | undefined>> {
   const userDb = await getUserDb()
   const now = Date.now()
 
   // 1. Get Dictionary check result
-  const dictCheck = await areWordsInDict_map(partitionByLanguage(parseTsv(input)))
+  const dictCheck = await areWordsInDict_map(partitionByLanguage(parseTsvOrCsv(input, separator)))
 
   // 2. Process each language
   // EXPLICTLY PASS <MaybeFrontBack | undefined> to fix inference

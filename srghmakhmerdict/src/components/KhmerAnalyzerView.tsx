@@ -347,7 +347,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
 
   const res = useKhmerAnalysis(debouncedText, filters.km.mode === 'all' ? 'km' : 'km', khmerAnalyzerEnabledSegmenters)
 
-  const { history, saveToHistory, removeFromHistory, clearHistory } = useAnalyzerHistory()
+  const { history, saveToHistory, removeFromHistory, updateHistoryItem, clearHistory } = useAnalyzerHistory()
 
   return (
     <>
@@ -369,6 +369,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
               onRemove={removeFromHistory}
               onSave={saveToHistory}
               onSelect={setText}
+              onUpdate={updateHistoryItem}
             />
           </div>
 

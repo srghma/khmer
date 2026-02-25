@@ -15,6 +15,8 @@ import { useHistory } from '../../providers/HistoryProvider'
 import { FavoriteToggleButton } from './FavoriteToggleButton'
 import { VirtualizedList } from '../VirtualizedList'
 
+import { ExportHistoryModal } from './ExportHistoryModal'
+
 interface HistoryListOnlyProps {
   maybeColorMode: MaybeColorizationMode
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -86,14 +88,17 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
         <h2 className="font-bold uppercase text-default-500 tracking-wider text-small">
           {LL.HISTORY.RECENT_TITLE_WITH_COUNT({ count: items.length })}
         </h2>
-        <ConfirmAction
-          confirmLabel={LL.COMMON.CLEAR_ALL()}
-          title={LL.HISTORY.CLEAR_TITLE()}
-          trigger={renderClearAllTrigger}
-          onConfirm={handleClearAll}
-        >
-          {confirmContent}
-        </ConfirmAction>
+        <div className="flex items-center gap-1">
+          <ExportHistoryModal items={items} />
+          <ConfirmAction
+            confirmLabel={LL.COMMON.CLEAR_ALL()}
+            title={LL.HISTORY.CLEAR_TITLE()}
+            trigger={renderClearAllTrigger}
+            onConfirm={handleClearAll}
+          >
+            {confirmContent}
+          </ConfirmAction>
+        </div>
       </div>
 
       <VirtualizedList estimateSize={estimateSize} items={items} keyExtractor={keyExtractor} renderItem={renderItem} />

@@ -1,5 +1,16 @@
-import { useState, memo, useCallback } from 'react'
-import { Textarea, Button, Card, CardBody, CardHeader } from '@heroui/react'
+import { useState, memo, useCallback, useMemo } from 'react'
+import {
+  Textarea,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  type SharedSelection,
+} from '@heroui/react'
 import { HiDocumentArrowUp } from 'react-icons/hi2' // Add an icon
 import { open } from '@tauri-apps/plugin-dialog' // Tauri Dialog
 import { readTextFile } from '@tauri-apps/plugin-fs' // Tauri FS
@@ -15,6 +26,17 @@ import type {
   InAndNotInDbThese_MaybeImported,
   PartitionedMaps_Split_Imported,
 } from '../../../db/favorite/anki_import/process'
+import { Char_mkOrThrow, type Char } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char'
+import { herouiSharedSelection_getFirst_string } from '../../../utils/herouiSharedSelection_getFirst_string'
+import {
+  assertIsDefined,
+  assertIsDefinedAndReturn,
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+
+const textareaClassNames = {
+  input: 'font-mono text-sm leading-relaxed',
+  label: 'font-bold text-default-700 mb-2',
+}
 
 // Helper to convert the "Talking Type" into simple UI stats
 function getStats<V>(result: InAndNotInDbThese_MaybeImported<NonEmptyStringTrimmed, V> | undefined) {
@@ -43,6 +65,14 @@ function getStats<V>(result: InAndNotInDbThese_MaybeImported<NonEmptyStringTrimm
 
   return { success, skipped, notFoundWords }
 }
+
+const SEPARATORS: { value: Char; label: string }[] = [
+  { value: '\t' as Char, label: 'Tab' },
+  { value: '|' as Char, label: 'Pipe' },
+  { value: ',' as Char, label: 'Comma' },
+  { value: ';' as Char, label: 'Semicolon' },
+  { value: ':' as Char, label: 'Colon' },
+]
 
 const SummarySection = ({ title, data }: { title: string; data: ReturnType<typeof getStats> }) => {
   const { LL } = useI18nContext()
@@ -75,6 +105,7 @@ export const AnkiImport = memo(function AnkiImport() {
   const [summary, setSummary] = useState<PartitionedMaps_Split_Imported<any> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const { importFavorites } = useFavorites()
+  const [separator, setSeparator] = useState<Char>('\t' as Char)
   const { LL } = useI18nContext()
   const toast = useAppToast()
 
@@ -103,29 +134,40 @@ export const AnkiImport = memo(function AnkiImport() {
     }
   }, [])
 
-  const handleImport = async () => {
+  const handleImport = useCallback(async () => {
     const input_ = String_toNonEmptyString_orUndefined_afterTrim(input)
 
     if (!input_) return
     setIsLoading(true)
     try {
-      const res = await importFavorites(input_)
+      const res = await importFavorites(input_, separator)
 
       setSummary(res)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [importFavorites, input, separator])
+
+  const separatorSelectedKeys = useMemo(() => new Set([separator]), [separator])
+
+  const separatorSelected = useMemo(
+    () => assertIsDefinedAndReturn(SEPARATORS.find(s => s.value === separator)),
+    [separator],
+  )
+
+  const handleSeparatorChange = useCallback((value: SharedSelection) => {
+    const selectedValue = herouiSharedSelection_getFirst_string(value)
+
+    assertIsDefined(selectedValue)
+    setSeparator(Char_mkOrThrow(selectedValue))
+  }, [])
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-end">
         <div className="flex-1">
           <Textarea
-            classNames={{
-              input: 'font-mono text-sm leading-relaxed',
-              label: 'font-bold text-default-700 mb-2',
-            }}
+            classNames={textareaClassNames}
             label={LL.ANKI.IMPORT.TITLE()}
             labelPlacement="outside"
             maxRows={15}
@@ -158,6 +200,23 @@ export const AnkiImport = memo(function AnkiImport() {
         >
           {LL.ANKI.IMPORT.BUTTON()}
         </Button>
+
+        <Dropdown>
+          <DropdownTrigger>
+            <Button variant="flat">Separator: {separatorSelected.label}</Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            disallowEmptySelection
+            aria-label="Select separator"
+            selectedKeys={separatorSelectedKeys}
+            selectionMode="single"
+            onSelectionChange={handleSeparatorChange}
+          >
+            {SEPARATORS.map(s => (
+              <DropdownItem key={s.value}>{s.label}</DropdownItem>
+            ))}
+          </DropdownMenu>
+        </Dropdown>
       </div>
 
       {summary && (

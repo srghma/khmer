@@ -373,7 +373,7 @@
 }
 
 .srghma_khmer_dict_content :global(.ipa) {
-  font-size: 0.75rem;
+  font-size: var(--text-xs, 0.75rem);
   line-height: 1.2;
   text-align: center;
   color: hsl(var(--heroui-foreground) / 0.8);
@@ -393,8 +393,8 @@
 
 .srghma_khmer_dict_content :global(.short-def-preview) {
   width: 100%;
-  min-width: 60px;
-  max-width: 80px;
+  min-width: calc(60px * var(--app-scale-factor, 1));
+  max-width: calc(80px * var(--app-scale-factor, 1));
   height: 2.6em;
   padding: 0 4px;
   border-radius: 4px;
@@ -404,7 +404,7 @@
   overflow: hidden;
   outline: none;
   transition: opacity 0.25s ease;
-  font-size: 0.75rem;
+  font-size: var(--text-xs, 0.75rem);
   line-height: 1.2;
   text-align: center;
   color: hsl(var(--heroui-foreground) / 0.8);
@@ -430,7 +430,7 @@
   display: block;
   line-height: 1.5;
   /* leading-normal */
-  font-size: 1.125rem;
+  font-size: var(--text-lg, 1.125rem);
   /* text-lg */
   cursor: text;
   user-select: text;

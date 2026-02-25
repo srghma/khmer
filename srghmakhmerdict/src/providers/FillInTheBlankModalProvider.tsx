@@ -50,15 +50,17 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
     <FillInTheBlankModalContext.Provider value={contextValue}>
       {children}
       <Modal backdrop="blur" isOpen={activeWord !== null} size="lg" onClose={hideModal}>
-        {activeWord && <FillInTheBlankModalContent
-          activeWord={activeWord}
-          hideModal={hideModal}
-          isRevealed={isRevealed}
-          setIsRevealed={setIsRevealed}
-          setUserAnswer={setUserAnswer}
-          userAnswer={userAnswer}
-          userProvided={userProvided}
-        />}
+        {activeWord && (
+          <FillInTheBlankModalContent
+            activeWord={activeWord}
+            hideModal={hideModal}
+            isRevealed={isRevealed}
+            setIsRevealed={setIsRevealed}
+            setUserAnswer={setUserAnswer}
+            userAnswer={userAnswer}
+            userProvided={userProvided}
+          />
+        )}
       </Modal>
     </FillInTheBlankModalContext.Provider>
   )

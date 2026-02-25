@@ -18,6 +18,7 @@ import { unknown_to_errorMessage } from '../utils/errorMessage'
 import { importWordsToAnki as importWordsToAnkiDb } from '../db/favorite/anki_import'
 import type { MaybeFrontBack } from '../db/favorite/bulkInsertFavorites_front_back_html'
 import type { PartitionedMaps_Split_Imported } from '../db/favorite/anki_import/process'
+import type { Char } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char'
 
 interface FavoritesContextType {
   favorites: FavoriteItem[]
@@ -34,7 +35,10 @@ interface FavoritesContextType {
     update_to: 'additional_html_front' | 'additional_html_back',
     data: NonEmptyStringTrimmed | undefined,
   ) => Promise<void>
-  importFavorites: (input: NonEmptyStringTrimmed) => Promise<PartitionedMaps_Split_Imported<MaybeFrontBack | undefined>>
+  importFavorites: (
+    input: NonEmptyStringTrimmed,
+    separator: Char,
+  ) => Promise<PartitionedMaps_Split_Imported<MaybeFrontBack | undefined>>
   // refreshFavorites: () => Promise<void>
 }
 
@@ -248,10 +252,10 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   )
 
   const importFavorites = useCallback(
-    async (input: NonEmptyStringTrimmed) => {
+    async (input: NonEmptyStringTrimmed, separator: Char) => {
       return runMutation(async () => {
         try {
-          const res = await importWordsToAnkiDb(input)
+          const res = await importWordsToAnkiDb(input, separator)
 
           // Re-fetch data from DB
           const newData = await getFavoritesDb()
