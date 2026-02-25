@@ -50,7 +50,7 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
     <FillInTheBlankModalContext.Provider value={contextValue}>
       {children}
       <Modal backdrop="blur" isOpen={activeWord !== null} size="lg" onClose={hideModal}>
-        <FillInTheBlankModalContent
+        {activeWord && <FillInTheBlankModalContent
           activeWord={activeWord}
           hideModal={hideModal}
           isRevealed={isRevealed}
@@ -58,7 +58,7 @@ export const FillInTheBlankModalProvider: React.FC<{ children: React.ReactNode }
           setUserAnswer={setUserAnswer}
           userAnswer={userAnswer}
           userProvided={userProvided}
-        />
+        />}
       </Modal>
     </FillInTheBlankModalContext.Provider>
   )

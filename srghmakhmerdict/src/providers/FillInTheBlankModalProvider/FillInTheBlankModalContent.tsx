@@ -21,7 +21,7 @@ export const FillInTheBlankModalContent = memo(function FillInTheBlankModalConte
   hideModal,
 }: {
   isRevealed: boolean
-  activeWord: NonEmptyStringTrimmed | null
+  activeWord: NonEmptyStringTrimmed
   userProvided: NonEmptyStringTrimmed | undefined
   setIsRevealed: (value: boolean) => void
   userAnswer: string
