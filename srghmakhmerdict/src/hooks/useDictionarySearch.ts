@@ -1,4 +1,4 @@
-import { useState, useEffect, useReducer, useMemo } from 'react'
+import { useState, useCallback, useEffect, useReducer, useMemo } from 'react'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -254,8 +254,43 @@ export function useDictionarySearch({ activeTab, mode, searchMode, searchInConte
   const toast = useAppToast()
   const dictData = useDictionary()
 
-  // Controlled input state
-  const [query, setQuery] = useState<NonEmptyStringTrimmed | undefined>(undefined)
+  // Individual search query states for each language
+  const [enQuery, setEnQuery] = useState<NonEmptyStringTrimmed | undefined>(undefined)
+  const [kmQuery, setKmQuery] = useState<NonEmptyStringTrimmed | undefined>(undefined)
+  const [ruQuery, setRuQuery] = useState<NonEmptyStringTrimmed | undefined>(undefined)
+
+  // Determine current active query based on active tab
+  const query = useMemo(() => {
+    switch (activeTab) {
+      case 'en':
+        return enQuery
+      case 'km':
+        return kmQuery
+      case 'ru':
+        return ruQuery
+      default:
+        return undefined
+    }
+  }, [activeTab, enQuery, kmQuery, ruQuery])
+
+  // Unified setter that routes to the correct language-specific state
+  const setQuery = useCallback(
+    (newQuery: NonEmptyStringTrimmed | undefined) => {
+      switch (activeTab) {
+        case 'en':
+          setEnQuery(newQuery)
+          break
+        case 'km':
+          setKmQuery(newQuery)
+          break
+        case 'ru':
+          setRuQuery(newQuery)
+          break
+      }
+    },
+    [activeTab],
+  )
+
   const [debouncedQuery] = useDebounce(query, 300)
   const debouncedQueryNonEmpty = useMemo(
     () => (debouncedQuery ? String_toNonEmptyString_orUndefined_afterTrim(debouncedQuery) : undefined),

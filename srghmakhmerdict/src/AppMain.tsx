@@ -104,7 +104,7 @@ export function AppMain() {
         <SidebarHeader
           activeTab={activeTab}
           resultCount={resultCount}
-          searchInitialValue={undefined}
+          searchInitialValue={searchQuery}
           searchMode={searchMode}
           showSearchBar={!isAppTabNonLanguage(activeTab)}
           onEnter={onTryToOpenWord}
