@@ -29,6 +29,7 @@ export const getKhmerWordCssClass = (
   }
 
   if (ankiStatus && ankiStatus !== 'none') {
+    classes.push('anki--status')
     classes.push(`anki--status-${ankiStatus}`)
   }
 

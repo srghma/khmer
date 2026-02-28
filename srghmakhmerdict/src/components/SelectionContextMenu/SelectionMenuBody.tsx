@@ -18,6 +18,7 @@ import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-b
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyNonExpensive } from '../../initDictionary'
 import { FavoriteAction } from './MenuButtons/FavoriteAction'
+import { AnkiRatingAction } from './MenuButtons/AnkiRatingAction'
 
 const HiMagnifyingGlass_ = <HiMagnifyingGlass className="text-xl text-primary" />
 const KhmerKaIcon = <span className="text-xl text-default-500">ក</span>
@@ -68,7 +69,12 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
           </MenuButton>
 
           {/* 2. Favorite Button (Extracted) */}
-          {dictWordInfo && <FavoriteAction dictWordInfo={dictWordInfo} />}
+          {dictWordInfo && (
+            <>
+              <FavoriteAction dictWordInfo={dictWordInfo} />
+              <AnkiRatingAction dictWordInfo={dictWordInfo} />
+            </>
+          )}
 
           {/* 3. Native Speak */}
           <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[resolvedMode]} word={selectedText} />

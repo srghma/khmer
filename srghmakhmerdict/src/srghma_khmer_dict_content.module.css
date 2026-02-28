@@ -168,7 +168,7 @@
   BUT exclude elements that have been clicked ('.is-revealed')
 */
 .hiding_enabled :global(.khmer--word:not(.is-revealed)),
-.hiding_enabled :global([class*='anki--status-']:not(.is-revealed)) {
+.hiding_enabled :global(.anki--status:not(.is-revealed)) {
   color: var(--kw-skeleton-fg) !important;
   background-color: var(--kw-skeleton-bg);
   border-radius: 6px;

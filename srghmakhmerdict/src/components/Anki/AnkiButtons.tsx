@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Button, type ButtonProps } from '@heroui/button'
 import { Grade } from 'femto-fsrs'
 import type { FourButtons } from './utils'
@@ -29,6 +29,8 @@ interface AnkiRatingButtonProps {
   color: ButtonProps['color']
   intervalLabel: string
   onRate: (rating: Grade) => void
+  size?: ButtonProps['size']
+  className?: string
 }
 
 const AnkiRatingButton = React.memo(function AnkiRatingButton({
@@ -37,13 +39,19 @@ const AnkiRatingButton = React.memo(function AnkiRatingButton({
   color,
   intervalLabel,
   onRate,
+  size,
+  className,
 }: AnkiRatingButtonProps) {
+  const onPress = useCallback(() => {
+    onRate(rating)
+  }, [onRate, rating])
+
   return (
-    <div className="flex flex-col gap-1">
-      <Button color={color} variant="flat" onPress={() => onRate(rating)}>
+    <div className={cn('flex flex-col gap-0.5 sm:gap-1', className)}>
+      <Button color={color} size={size} variant="flat" onPress={onPress}>
         {label}
       </Button>
-      <span className={cn('text-center text-default-400 min-h-[1em] text-xs')}>{intervalLabel}</span>
+      <span className={cn('text-center text-default-400 min-h-[1em] text-xs sm:text-xs')}>{intervalLabel}</span>
     </div>
   )
 })
@@ -79,22 +87,33 @@ AnkiRevealButton.displayName = 'AnkiRevealButton'
 interface AnkiRatingButtonsProps {
   buttons: FourButtons
   onRate: (rating: Grade) => void
+  size?: ButtonProps['size']
+  className?: string
+  buttonClassName?: string
 }
 
-export const AnkiRatingButtons = React.memo(function AnkiRatingButtons({ buttons, onRate }: AnkiRatingButtonsProps) {
+export const AnkiRatingButtons = React.memo(function AnkiRatingButtons({
+  buttons,
+  onRate,
+  size,
+  className,
+  buttonClassName,
+}: AnkiRatingButtonsProps) {
   const { LL } = useI18nContext()
   const ratings = useMemo(() => getRatings(LL), [LL])
 
   return (
-    <div className="flex justify-center w-full">
-      <div className="grid grid-cols-4 gap-2 md:gap-4 w-full max-w-3xl">
+    <div className={cn('flex justify-center w-full', className)}>
+      <div className="grid grid-cols-4 gap-1 sm:gap-2 w-full max-w-3xl">
         {ratings.map(config => (
           <AnkiRatingButton
             key={config.rating}
+            className={buttonClassName}
             color={config.color}
             intervalLabel={buttons[config.rating].label}
             label={config.label(LL)}
             rating={config.rating}
+            size={size}
             onRate={onRate}
           />
         ))}
