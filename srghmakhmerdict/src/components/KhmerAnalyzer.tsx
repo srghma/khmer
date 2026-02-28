@@ -71,9 +71,9 @@ const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Enri
     e.stopPropagation() // Prevent parent sentence TTS
     const rawText =
       token.type === 'SPACE' ||
-        token.type === 'UNKNOWN' ||
-        token.type === 'extra_consonant' ||
-        token.type === 'vowel_combination'
+      token.type === 'UNKNOWN' ||
+      token.type === 'extra_consonant' ||
+      token.type === 'vowel_combination'
         ? token.v.join('')
         : token.v
 

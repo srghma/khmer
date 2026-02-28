@@ -38,17 +38,21 @@ function DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(
   return undefined
 }
 
-export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive(
+export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyNonExpensive(
   dictData: DictData,
   word: NonEmptyStringTrimmed,
 ): WordLanguageTuple | undefined {
-  const wordL =
+  return (
     DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word) ||
     DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toLowerCase() as NonEmptyStringTrimmed) ||
     DictData_isWordInEitherOf3Dictionaries_en_or_ru_or_km(dictData, word.toUpperCase() as NonEmptyStringTrimmed)
+  )
+}
 
-  if (wordL) return wordL
-
+export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyExpensive(
+  dictData: DictData,
+  word: NonEmptyStringTrimmed,
+): WordLanguageTuple | undefined {
   return (
     (() => {
       const enW = Set_getUsingNormalizer(
@@ -84,6 +88,16 @@ export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive(
 
       return undefined
     })()
+  )
+}
+
+export function DictData_isWordInEitherOf3Dictionaries_caseInsensitive(
+  dictData: DictData,
+  word: NonEmptyStringTrimmed,
+): WordLanguageTuple | undefined {
+  return (
+    DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyNonExpensive(dictData, word) ||
+    DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyExpensive(dictData, word)
   )
 }
 

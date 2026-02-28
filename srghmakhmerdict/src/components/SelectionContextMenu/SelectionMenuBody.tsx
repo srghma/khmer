@@ -7,7 +7,7 @@ import { FirstNonEmptyShortDetailView } from './FirstNonEmptyShortDetailView'
 
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { DictionaryLanguage } from '../../types'
-import { generateTextSegments, type TextSegment } from '../../utils/text-processing/text' // Adjust import path as needed
+import { generateTextSegments, type TextSegment } from '../../utils/text-processing/text'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { detectModeFromText } from '../../utils/detectModeFromText'
@@ -16,8 +16,9 @@ import { NativeSpeechAction } from './MenuButtons/NativeSpeechAction'
 import { MenuButton } from './MenuButton'
 import { map_DictionaryLanguage_to_BCP47LanguageTagName } from '../../utils/my-bcp-47'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyNonExpensive } from '../../initDictionary'
+import { FavoriteAction } from './MenuButtons/FavoriteAction'
 
-// Define icons outside component to prevent re-creation
 const HiMagnifyingGlass_ = <HiMagnifyingGlass className="text-xl text-primary" />
 const KhmerKaIcon = <span className="text-xl text-default-500">ក</span>
 
@@ -30,8 +31,8 @@ export interface SelectionMenuBodyProps {
 
 export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
   ({ selectedText, currentMode, onClosePopupAndOpenSearch, onClosePopupAndKhmerAnalyzerModal }) => {
-    const { km_map } = useDictionary()
-    // --- Data Preparation ---
+    const dictData = useDictionary()
+    const { km_map } = dictData
 
     const segments: NonEmptyArray<TextSegment> | undefined = useMemo(() => {
       if (selectedText.length > 20) return undefined
@@ -43,6 +44,15 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
     }, [selectedText, km_map])
 
     const resolvedMode = useMemo(() => detectModeFromText(selectedText) ?? currentMode, [selectedText, currentMode])
+
+    const dictWordInfo = useMemo(
+      () =>
+        DictData_isWordInEitherOf3Dictionaries_caseInsensitive_implementation_computationallyNonExpensive(
+          dictData,
+          selectedText,
+        ),
+      [dictData, selectedText],
+    )
 
     return (
       <CardBody className="p-1 pt-0">
@@ -57,13 +67,16 @@ export const SelectionMenuBody = memo<SelectionMenuBodyProps>(
             />
           </MenuButton>
 
-          {/* 2. Native Speak - Now using Global Hook Component */}
+          {/* 2. Favorite Button (Extracted) */}
+          {dictWordInfo && <FavoriteAction dictWordInfo={dictWordInfo} />}
+
+          {/* 3. Native Speak */}
           <NativeSpeechAction mode={map_DictionaryLanguage_to_BCP47LanguageTagName[resolvedMode]} word={selectedText} />
 
-          {/* 3. Google Speak - Now using Global Hook Component */}
+          {/* 4. Google Speak */}
           <GoogleSpeechAction mode={resolvedMode} word={selectedText} />
 
-          {/* 4. Khmer Analyzer */}
+          {/* 5. Khmer Analyzer */}
           {onClosePopupAndKhmerAnalyzerModal && (
             <MenuButton icon={KhmerKaIcon} onClick={onClosePopupAndKhmerAnalyzerModal}>
               Open Khmer Analyzer
