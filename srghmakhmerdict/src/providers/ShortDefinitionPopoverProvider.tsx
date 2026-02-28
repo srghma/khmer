@@ -81,32 +81,29 @@ export const ShortDefinitionPopoverProvider: React.FC<{ children: React.ReactNod
       {anchor_rect && anchor && (
         <Popover
           backdrop="transparent"
-          className="absolute"
+          containerPadding={12}
           isOpen={isOpen}
           placement="bottom"
           shouldBlockScroll={false}
           showArrow={true}
-          style={{
-            left: anchor_rect.left + window.scrollX,
-            top: anchor_rect.top + window.scrollY,
-          }}
           triggerType="listbox" // Use a trigger type that doesn't interfere with the anchor's own events
           onOpenChange={setIsOpen}
         >
           <div
-            className="absolute pointer-events-none visibility-hidden"
+            className="fixed pointer-events-none visibility-hidden"
             style={{
-              top: anchor_rect.top + window.scrollY,
-              left: anchor_rect.left + window.scrollX,
+              top: anchor_rect.top,
+              left: anchor_rect.left,
               width: anchor.offsetWidth,
               height: anchor.offsetHeight,
+              zIndex: 9999,
             }}
           >
             <PopoverTrigger>
               <div className="w-full h-full" />
             </PopoverTrigger>
           </div>
-          <PopoverContent className="p-0 max-w-[300px] w-max">
+          <PopoverContent className="p-0 max-w-[min(300px,calc(100vw-32px))] w-max">
             <div className="flex flex-col max-h-[400px] overflow-y-auto outline-none">
               {activeWord && (
                 <div className="p-3 border-b border-divider bg-content2/30">
