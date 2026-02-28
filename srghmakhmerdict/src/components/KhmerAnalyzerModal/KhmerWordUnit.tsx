@@ -114,7 +114,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
       </button>
 
       {wiktionaryIpa && (
-        <span className="text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary">
+        <span className="select-none text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary">
           {wiktionaryIpa}
         </span>
       )}
