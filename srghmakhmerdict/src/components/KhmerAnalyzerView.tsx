@@ -77,7 +77,7 @@ export function HeaderTogglerOfSegmenter({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-4 md:px-0">
         <h4 className="text-small font-bold uppercase tracking-wider text-default-500">{title}</h4>
         {canToggle && (
           <button
@@ -117,7 +117,7 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
     (selectedText: NonEmptyStringTrimmed) => {
       return (
         <SelectionMenuBody
-          currentMode={'km'}
+          currentMode="km"
           selectedText={selectedText}
           onClosePopupAndKhmerAnalyzerModal={undefined}
           onClosePopupAndOpenSearch={() => {
@@ -220,24 +220,27 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* 1. Definitions are loading/errored/success */}
       {(res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' ||
         res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' ||
         res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success') && (
         <>
           {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_are_loading' && (
-            <div className="flex items-center gap-3 text-small text-primary animate-pulse">
+            <div className="flex items-center gap-3 text-small text-primary animate-pulse px-4 md:px-0">
               <Spinner size="sm" /> <span>{LL.ANALYZER.FETCHING_DEFS()}</span>
             </div>
           )}
 
           {res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_errored' && (
-            <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
-              {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
-            </Alert>
+            <div className="px-4 md:px-0">
+              <Alert color="danger" title={LL.ANALYZER.DEFS_FETCH_FAILED()} variant="flat">
+                {res.e || LL.ANALYZER.DEFS_FETCH_ERROR()}
+              </Alert>
+            </div>
           )}
 
           {khmerAnalyzerMarkdownEnabled && (
-            <div className="p-4 rounded-medium border border-divider bg-content2/30">
+            <div className="p-4 md:rounded-medium rounded-none border-x-0 md:border-x border-y border-divider bg-content2/30">
               <RenderMarkdownColorized
                 isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                 khmerWordsHidingMode={khmerWordsHidingMode}
@@ -282,7 +285,11 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
               segmentsIntl={res.segmentsIntl}
               title={LL.ANALYZER.CHARACTER_ANALYSIS()}
             >
-              {segments => <KhmerAnalyzer segments={segments} />}
+              {segments => (
+                <div className="px-4 md:px-0">
+                  <KhmerAnalyzer segments={segments} />
+                </div>
+              )}
             </HeaderTogglerOfSegmenter>
           )}
         </>
@@ -313,7 +320,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const { captureScrollPosition } = useScrollPreservation(scrollContainerRef, [isShowShortDetailAboutKhmerWordEnabled])
 
-  const handleToggleShortDetails = useCallback(() => {
+  const handleToggleShowShortDetails = useCallback(() => {
     captureScrollPosition()
     toggleShowShortDetailAboutKhmerWord()
   }, [toggleShowShortDetailAboutKhmerWord, captureScrollPosition])
@@ -384,7 +391,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
             />
           </div>
 
-          <AnalyzerHeaderToolbar toggleShowShortDetailAboutKhmerWord={handleToggleShortDetails} />
+          <AnalyzerHeaderToolbar toggleShowShortDetailAboutKhmerWord={handleToggleShowShortDetails} />
 
           {/* Standard spacer is now sufficient since w-screen is fixed */}
           <div className="w-2 shrink-0" />
@@ -392,20 +399,22 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
       </div>
 
       {/* Added flex-1 to ensuring filling available space in parent container */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto md:p-6 p-0 pt-6">
         <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
-          <GoogleTranslateTextarea
-            defaultTargetLang="en"
-            labelPlacement="outside"
-            maxRows={10}
-            maybeColorMode={maybeColorMode}
-            minRows={3}
-            placeholder={LL.ANALYZER.PLACEHOLDER()}
-            value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
-            value_toShowInTextArea={text_}
-            variant="faded"
-            onValueChange={setText}
-          />
+          <div className="px-4 md:px-0">
+            <GoogleTranslateTextarea
+              defaultTargetLang="en"
+              labelPlacement="outside"
+              maxRows={10}
+              maybeColorMode={maybeColorMode}
+              minRows={3}
+              placeholder={LL.ANALYZER.PLACEHOLDER()}
+              value_toShowInBottom={res.t !== 'empty_text' ? res.analyzedText : undefined}
+              value_toShowInTextArea={text_}
+              variant="faded"
+              onValueChange={setText}
+            />
+          </div>
 
           <KhmerAnalysisResults
             isCharacterAnalysisEnabled={khmerAnalyzerCharacterAnalysisEnabled}

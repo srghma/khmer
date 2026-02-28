@@ -15,6 +15,7 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
 import { useFavorites } from '../../providers/FavoritesProvider'
 import { getFavoriteStatus, type FavoriteStatus } from '../../utils/favorite-status'
+import { cn } from '@heroui/theme'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
   <span className="align-top mt-1 inline-block text-foreground/80">{text}</span>
@@ -122,7 +123,11 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
     return (
       <div
         ref={containerRef}
-        className={`rounded-medium px-3 py-4 text-medium leading-relaxed break-words whitespace-pre-wrap min-h-[100px] ${srghma_khmer_dict_content_styles}`}
+        className={cn(
+          'md:rounded-medium rounded-none p-4 text-medium leading-relaxed break-words whitespace-pre-wrap min-h-[100px]',
+          'border-divider border-y md:border',
+          srghma_khmer_dict_content_styles,
+        )}
       >
         {segments.map((seg, i) => {
           // 1. Handle Whitespace: Render as raw text to preserve pre-wrap behavior
