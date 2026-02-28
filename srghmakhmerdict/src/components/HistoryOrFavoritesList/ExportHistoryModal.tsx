@@ -26,9 +26,10 @@ const TextareaClassNames = {
 
 interface ExportHistoryModalProps {
   items: HistoryItem[]
+  isDisabled?: boolean
 }
 
-export const ExportHistoryModal = memo(function ExportHistoryModal({ items }: ExportHistoryModalProps) {
+export const ExportHistoryModal = memo(function ExportHistoryModal({ items, isDisabled }: ExportHistoryModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
   const { LL } = useI18nContext()
   const toast = useAppToast()
@@ -51,6 +52,7 @@ export const ExportHistoryModal = memo(function ExportHistoryModal({ items }: Ex
       <Button
         className="min-h-8 h-auto font-medium text-base"
         color="primary"
+        isDisabled={isDisabled}
         size="sm"
         startContent={<HiArrowDownTray className="text-base" />}
         variant="light"

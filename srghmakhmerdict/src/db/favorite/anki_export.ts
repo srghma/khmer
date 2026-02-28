@@ -1,4 +1,4 @@
-import { stringify } from 'csv-stringify/sync'
+import { stringify } from 'csv-stringify/browser/esm/sync'
 import { Array_groupBy } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/array'
 import { getUserDb } from '../core'
 import {

@@ -56,7 +56,8 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
   )
 
   if (loading) return <div className="p-4 text-center">{LL.COMMON.LOADING()}</div>
-  if (!items || items.length === 0) return <EmptyState type="favorites" />
+
+  const hasItems = items.length > 0
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-content1 overflow-x-hidden text-base">
@@ -66,7 +67,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
         </span>
         <div className="flex gap-2">
           <Tooltip content={LL.FAVORITES.OPEN_ANKI()}>
-            <Button as={Link} color="secondary" href="/anki" isDisabled={items.length === 0} size="sm" variant="flat">
+            <Button as={Link} color="secondary" href="/anki" size="sm" variant="flat">
               <span className="font-bold text-base">{LL.FAVORITES.ANKI_BUTTON()}</span>
             </Button>
           </Tooltip>
@@ -77,6 +78,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
               <Button
                 className="min-h-8 h-auto font-medium text-base"
                 color="danger"
+                isDisabled={!hasItems}
                 startContent={<FaRegTrashAlt className="text-base" />}
                 variant="light"
                 onPress={onOpen}
@@ -91,7 +93,16 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
         </div>
       </div>
 
-      <VirtualizedList estimateSize={estimateSize} items={items} keyExtractor={keyExtractor} renderItem={renderItem} />
+      {!hasItems ? (
+        <EmptyState type="favorites" />
+      ) : (
+        <VirtualizedList
+          estimateSize={estimateSize}
+          items={items}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+        />
+      )}
     </div>
   )
 })

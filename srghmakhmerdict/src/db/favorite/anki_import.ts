@@ -60,7 +60,7 @@ function partitionByLanguage(words: NonEmptyMap<NonEmptyStringTrimmed, MaybeFron
   }
 }
 
-import { parse } from 'csv-parse/sync'
+import { parse } from 'csv-parse/browser/esm/sync'
 
 function parseTsvOrCsv(
   input: NonEmptyStringTrimmed,

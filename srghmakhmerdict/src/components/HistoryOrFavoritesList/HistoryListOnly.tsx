@@ -58,29 +58,11 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
     [items?.length, LL],
   )
 
-  const renderClearAllTrigger = useCallback(
-    (onOpen: () => void) => (
-      <Button
-        className="min-h-8 h-auto font-medium text-base"
-        color="danger"
-        size="sm"
-        startContent={<FaRegTrashAlt className="text-base" />}
-        variant="light"
-        onPress={onOpen}
-      >
-        {LL.COMMON.CLEAR_ALL()}
-      </Button>
-    ),
-    [LL],
-  )
-
   if (loading) {
     return <LoadingState />
   }
 
-  if (items.length === 0) {
-    return <EmptyState type="history" />
-  }
+  const hasItems = items.length > 0
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-content1 overflow-x-hidden text-base">
@@ -89,11 +71,23 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
           {LL.HISTORY.RECENT_TITLE_WITH_COUNT({ count: items.length })}
         </h2>
         <div className="flex items-center gap-1">
-          <ExportHistoryModal items={items} />
+          <ExportHistoryModal isDisabled={!hasItems} items={items} />
           <ConfirmAction
             confirmLabel={LL.COMMON.CLEAR_ALL()}
             title={LL.HISTORY.CLEAR_TITLE()}
-            trigger={renderClearAllTrigger}
+            trigger={onOpen => (
+              <Button
+                className="min-h-8 h-auto font-medium text-base"
+                color="danger"
+                isDisabled={!hasItems}
+                size="sm"
+                startContent={<FaRegTrashAlt className="text-base" />}
+                variant="light"
+                onPress={onOpen}
+              >
+                {LL.COMMON.CLEAR_ALL()}
+              </Button>
+            )}
             onConfirm={handleClearAll}
           >
             {confirmContent}
@@ -101,7 +95,16 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
         </div>
       </div>
 
-      <VirtualizedList estimateSize={estimateSize} items={items} keyExtractor={keyExtractor} renderItem={renderItem} />
+      {!hasItems ? (
+        <EmptyState type="history" />
+      ) : (
+        <VirtualizedList
+          estimateSize={estimateSize}
+          items={items}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+        />
+      )}
     </div>
   )
 })
