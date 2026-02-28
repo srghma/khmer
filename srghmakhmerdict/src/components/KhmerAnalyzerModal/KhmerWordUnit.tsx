@@ -22,6 +22,7 @@ interface KhmerWordUnitProps {
   onClick: (() => void) | undefined
   wiktionaryIpa: NonEmptyStringTrimmed | undefined
   word: TypedKhmerWord
+  wordIndex: number
 }
 
 export const KhmerWordUnit = React.memo(function KhmerWordUnit({
@@ -32,6 +33,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   onClick,
   wiktionaryIpa,
   word,
+  wordIndex,
 }: KhmerWordUnitProps) {
   const { LL } = useI18nContext()
   const tts = useGoogleOrNativeTts()
@@ -95,6 +97,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
       <button
         className={`text-lg leading-normal cursor-text select-text ${wordClass}`}
         data-navigate-khmer-word={word}
+        data-word-index={wordIndex}
         onClick={onClick}
       >
         {word}

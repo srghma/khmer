@@ -40,6 +40,7 @@ import { SelectionMenuBody } from './SelectionContextMenu/SelectionMenuBody'
 import { useDictionary } from '../providers/DictionaryProvider'
 import { useAppToast } from '../providers/ToastProvider'
 import type { ShortDefinitionKm } from '../db/dict/types'
+import { useScrollPreservation } from '../hooks/useScrollPreservation'
 
 interface HeaderTogglerOfSegmenterProps {
   children: (data: NonEmptyArray<TextSegment | TextSegmentEnhanced>) => React.ReactNode
@@ -260,6 +261,7 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
             >
               {segments => (
                 <SegmentationPreview
+                  isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
                   maybeColorMode="dictionary"
                   segments={segments}
                   shortDefinitions={
@@ -305,7 +307,16 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
     khmerAnalyzerSegmentationEnabled,
     khmerAnalyzerCharacterAnalysisEnabled,
     maybeColorMode,
+    toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const { captureScrollPosition } = useScrollPreservation(scrollContainerRef, [isShowShortDetailAboutKhmerWordEnabled])
+
+  const handleToggleShortDetails = useCallback(() => {
+    captureScrollPosition()
+    toggleShowShortDetailAboutKhmerWord()
+  }, [toggleShowShortDetailAboutKhmerWord, captureScrollPosition])
 
   const [text_, setText] = useState<string>(() => getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT) ?? '')
   const textNonEmpty = useMemo(() => String_toNonEmptyString_orUndefined_afterTrim(text_), [text_])
@@ -373,7 +384,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
             />
           </div>
 
-          <AnalyzerHeaderToolbar />
+          <AnalyzerHeaderToolbar toggleShowShortDetailAboutKhmerWord={handleToggleShortDetails} />
 
           {/* Standard spacer is now sufficient since w-screen is fixed */}
           <div className="w-2 shrink-0" />
@@ -381,7 +392,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
       </div>
 
       {/* Added flex-1 to ensuring filling available space in parent container */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
           <GoogleTranslateTextarea
             defaultTargetLang="en"

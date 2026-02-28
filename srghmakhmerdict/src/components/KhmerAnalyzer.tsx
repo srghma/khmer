@@ -234,9 +234,11 @@ TokenRenderer.displayName = 'TokenRenderer'
 const KhmerWordBlock = React.memo(function KhmerWordBlock({
   word,
   definition,
+  wordIndex,
 }: {
   word: TypedKhmerWord
   definition?: NonEmptyStringTrimmed
+  wordIndex: number
 }) {
   const enrichedTokens = useMemo(() => {
     const chars = CharArray_mkFromString(word)
@@ -246,7 +248,10 @@ const KhmerWordBlock = React.memo(function KhmerWordBlock({
   }, [word])
 
   return (
-    <div className={`flex flex-col items-center ${enrichedTokens.length < 2 ? 'max-w-[80px]' : ''}`}>
+    <div
+      className={`flex flex-col items-center ${enrichedTokens.length < 2 ? 'max-w-[80px]' : ''}`}
+      data-word-index={wordIndex}
+    >
       <div className="flex flex-wrap gap-1.5 items-stretch bg-default-50/50 rounded-lg p-1 border border-transparent hover:border-default-200 transition-colors">
         {enrichedTokens.map((token, idx) => (
           <TokenRenderer key={idx} token={token} />
@@ -266,6 +271,8 @@ interface KhmerAnalyzerProps {
 }
 
 const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
+  let globalWordIndex = 0
+
   return (
     <div className="h-full flex flex-wrap gap-x-4 gap-y-4 items-start content-start">
       {segments.map((segment, segIdx) => {
@@ -289,8 +296,9 @@ const KhmerAnalyzerImpl: React.FC<KhmerAnalyzerProps> = ({ segments }) => {
         return segment.words.map((word, wordIdx) => {
           const w: TypedKhmerWord = typeof word === 'string' ? word : word.w
           const def: NonEmptyStringTrimmed | undefined = typeof word === 'string' ? undefined : word.def
+          const currentIdx = globalWordIndex++
 
-          return <KhmerWordBlock key={`${segIdx}-${wordIdx}`} definition={def} word={w} />
+          return <KhmerWordBlock key={`${segIdx}-${wordIdx}`} definition={def} word={w} wordIndex={currentIdx} />
         })
       })}
     </div>

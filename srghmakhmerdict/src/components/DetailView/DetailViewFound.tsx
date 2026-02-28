@@ -1,4 +1,4 @@
-import { useCallback, memo, useMemo } from 'react'
+import { useCallback, memo, useMemo, useRef } from 'react'
 import { Card, CardBody } from '@heroui/card'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -26,6 +26,7 @@ import { Set_toNonEmptySet_orUndefined } from '@gemini-ocr-automate-images-uploa
 import { generateTextSegments, yieldUniqueKhmerWords } from '../../utils/text-processing/text'
 import { useKhmerDefinitions } from '../../hooks/useKhmerDefinitions'
 import { String_toNonEmptyString_orUndefined_afterTrim } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
+import { useScrollPreservation } from '../../hooks/useScrollPreservation'
 
 interface DetailViewFoundProps {
   word: NonEmptyStringTrimmed
@@ -106,6 +107,14 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
     isShowShortDetailAboutKhmerWordEnabled,
     toggleShowShortDetailAboutKhmerWord,
   } = useSettings()
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const { captureScrollPosition } = useScrollPreservation(scrollContainerRef, [isShowShortDetailAboutKhmerWordEnabled])
+
+  const handleToggleShortDetails = useCallback(() => {
+    captureScrollPosition()
+    toggleShowShortDetailAboutKhmerWord()
+  }, [toggleShowShortDetailAboutKhmerWord, captureScrollPosition])
 
   const { km_map } = useDictionary()
   const currentView = useAppMainView()
@@ -224,7 +233,7 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
         setNonKhmerWordsHidingMode={setNonKhmerWordsHidingMode}
         toggleFav={toggleFav}
         toggleKhmerLinks={toggleKhmerLinks}
-        toggleShowShortDetailAboutKhmerWord={toggleShowShortDetailAboutKhmerWord}
+        toggleShowShortDetailAboutKhmerWord={handleToggleShortDetails}
         type="known_word"
         word_displayHtml={data.word_display ?? word}
         word_or_sentence={word}
@@ -233,7 +242,7 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
 
       <div className="flex-1 overflow-hidden w-full relative">
         <div className="flex flex-col h-full w-full">
-          <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <ScrollShadow ref={scrollContainerRef} className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <CardBody className="p-6 gap-6">
               <ReactSelectionPopup popupContent={renderPopupContent}>
                 <DetailSections

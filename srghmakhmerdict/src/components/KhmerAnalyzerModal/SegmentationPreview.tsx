@@ -27,6 +27,7 @@ interface KhmerWordPartProps {
   maybeColorMode: MaybeColorizationMode
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
   onWordClick: ((v: TypedKhmerWord) => void) | undefined
+  wordIndex: number
 }
 
 const KhmerWordPart = memo(function KhmerWordPart({
@@ -36,6 +37,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
   maybeColorMode,
   shortDefinitions,
   onWordClick,
+  wordIndex,
 }: KhmerWordPartProps) {
   // Resolve item structure
   const isObj = typeof item === 'object'
@@ -69,6 +71,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
       shortDefinition={shortDefinitions?.[w]}
       wiktionaryIpa={wiktionaryIpa}
       word={w}
+      wordIndex={wordIndex}
       onClick={handleClick}
     />
   )
@@ -83,10 +86,11 @@ interface SegmentationPreviewProps {
   onKhmerWordClick: ((v: TypedKhmerWord) => void) | undefined
   maybeColorMode: MaybeColorizationMode
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
+  isShowShortDetailAboutKhmerWordEnabled: boolean
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
-  ({ onKhmerWordClick, segments, maybeColorMode, shortDefinitions }) => {
+  ({ onKhmerWordClick, segments, maybeColorMode, shortDefinitions, isShowShortDetailAboutKhmerWordEnabled }) => {
     const { km_map } = useDictionary()
     const { khmerWordsHidingMode, nonKhmerWordsHidingMode } = useSettings()
     let globalWordIndex = 0
@@ -106,7 +110,7 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
       khmerWordsHidingMode,
       nonKhmerWordsHidingMode,
       false, // isKhmerPronunciationHidingEnabled
-      false, // isShowShortDetailAboutKhmerWordEnabled
+      isShowShortDetailAboutKhmerWordEnabled,
     )
 
     return (
@@ -132,7 +136,8 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
                 item={item}
                 km_map={km_map}
                 maybeColorMode={maybeColorMode}
-                shortDefinitions={shortDefinitions}
+                shortDefinitions={isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined}
+                wordIndex={currentIdx}
                 onWordClick={onKhmerWordClick}
               />
             )

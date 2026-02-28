@@ -12,7 +12,11 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { Switch } from '@heroui/switch'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 
-export const AnalyzerHeaderToolbar = memo(function AnalyzerHeaderToolbar() {
+export const AnalyzerHeaderToolbar = memo(function AnalyzerHeaderToolbar({
+  toggleShowShortDetailAboutKhmerWord,
+}: {
+  toggleShowShortDetailAboutKhmerWord: () => void
+}) {
   const { LL } = useI18nContext()
 
   const {
@@ -27,7 +31,6 @@ export const AnalyzerHeaderToolbar = memo(function AnalyzerHeaderToolbar() {
     setKhmerAnalyzerCharacterAnalysisEnabled,
     setKhmerWordsHidingMode,
     setNonKhmerWordsHidingMode,
-    toggleShowShortDetailAboutKhmerWord,
     maybeColorMode,
     setMaybeColorMode,
     isKhmerLinksEnabled,

@@ -44,14 +44,14 @@ export const renderKhmerWordSpan = (
   const isExcluded = excludeWord === word
 
   if (isExcluded || !extraInfo || (!extraInfo.ipa && !extraInfo.def)) {
-    return `<span class="${className}" data-navigate-khmer-word="${word}">${word}</span>` as NonEmptyStringTrimmed
+    return `<span class="${className}" data-navigate-khmer-word="${word}" data-word-index="${colorIndex}">${word}</span>` as NonEmptyStringTrimmed
   }
 
   const { ipa, def } = extraInfo
   const ipaHtml = ipa ? `<span class="ipa">${ipa}</span>` : ''
   const defHtml = def ? `<span class="short-def-preview" data-word="${word}">${def}</span>` : ''
 
-  return `<span class="khmer-word-with-short-details"><span data-navigate-khmer-word="${word}" class="word ${className}">${word}</span>${ipaHtml}${defHtml}</span>` as NonEmptyStringTrimmed
+  return `<span class="khmer-word-with-short-details" data-word-index="${colorIndex}"><span data-navigate-khmer-word="${word}" class="word ${className}">${word}</span>${ipaHtml}${defHtml}</span>` as NonEmptyStringTrimmed
 }
 
 /**
