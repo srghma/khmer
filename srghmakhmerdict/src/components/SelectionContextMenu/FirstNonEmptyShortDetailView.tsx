@@ -19,6 +19,7 @@ import type { ColorizationMode } from '../../utils/text-processing/utils'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useFavorites } from '../../providers/FavoritesProvider'
+import { useAppToast } from '../../providers/ToastProvider'
 
 interface FirstNonEmptyShortDetailViewProps {
   selectedText: NonEmptyStringTrimmed
@@ -34,6 +35,24 @@ export const Loading = (
   </div>
 )
 
+const Fallback = React.memo(function Fallback({
+  selectedText,
+  km_map,
+}: {
+  selectedText: NonEmptyStringTrimmed
+  km_map: KhmerWordsMap
+}) {
+  const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
+  const khmerWord = strToContainsKhmerOrUndefined(selectedText)
+  const known = khmerWord && isWordInKmMap(khmerWord, km_map)
+
+  return (
+    <span className="font-medium group-hover:text-primary transition-colors">
+      {known ? 'Open' : 'Search'} &quot;{truncatedText}&quot;
+    </span>
+  )
+})
+
 export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailViewProps> = React.memo(
   function FirstNonEmptyShortDetailView({
     selectedText,
@@ -43,18 +62,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
   }) {
     const { km_map, en, ru } = useDictionary()
     const { favoritesMap } = useFavorites()
-
-    const fallback = useMemo(() => {
-      const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
-      const khmerWord = strToContainsKhmerOrUndefined(selectedText)
-      const known = khmerWord && isWordInKmMap(khmerWord, km_map)
-
-      return (
-        <span className="font-medium group-hover:text-primary transition-colors">
-          {known ? 'Open' : 'Search'} &quot;{truncatedText}&quot;
-        </span>
-      )
-    }, [selectedText, km_map])
+    const toast = useAppToast()
 
     const res = useWordData(selectedText, mode)
 
@@ -62,6 +70,8 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
     const rawContent = useMemo(() => {
       if (res.t === 'loading') return null
       if (res.t === 'not_found') {
+        if (res.mode !== mode || res.word !== selectedText) return null // sometimes old data is returned?
+
         switch (mode) {
           case 'km': {
             const khmerWord = strToContainsKhmerOrUndefined(selectedText)
@@ -75,7 +85,9 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
                 mode,
                 colorizationMode,
               })
-              throw new Error('Khmer word is in db, but was not found using request, Impossible')
+              toast.error(
+                `Khmer word ${selectedText} is in db, but was not found using request, Impossible` as NonEmptyStringTrimmed,
+              )
             }
 
             return
@@ -90,7 +102,9 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
                 mode,
                 colorizationMode,
               })
-              throw new Error('English word is in db, but was not found using request, Impossible')
+              toast.error(
+                `English word ${selectedText} is in db, but was not found using request, Impossible` as NonEmptyStringTrimmed,
+              )
             }
 
             return
@@ -103,7 +117,9 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
                 mode,
                 colorizationMode,
               })
-              throw new Error('Russian word is in db, but was not found using request, Impossible')
+              toast.error(
+                `Russian word ${selectedText} is in db, but was not found using request, Impossible` as NonEmptyStringTrimmed,
+              )
             }
 
             return
@@ -111,6 +127,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
             assertNever(mode)
         }
       }
+      if (res.mode !== mode || res.word !== selectedText) return null
 
       const detail: WordDetailEnOrRuOrKm | undefined = res.detail
       const candidates = [
@@ -153,7 +170,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
     // 3. Handle Discriminated Union States
     if (res.t === 'loading') return Loading
 
-    if (res.t === 'not_found' || !displayHtml) return fallback
+    if (res.t === 'not_found' || !displayHtml) return <Fallback km_map={km_map} selectedText={selectedText} />
 
     // 4. Render 'found' state
     return (
@@ -174,6 +191,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
 )
 
 FirstNonEmptyShortDetailView.displayName = 'FirstNonEmptyShortDetailView'
+
 function isWordInKmMap(khmerWord: TypedContainsKhmer, km_map: KhmerWordsMap) {
   return km_map.has(khmerWord)
 }

@@ -6,12 +6,20 @@ import { useAppToast } from '../providers/ToastProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
 
 export const WordDefinition_loading = { t: 'loading' } as const
-export const WordDefinition_notFound = { t: 'not_found' } as const
 
 export type WordDefinitionResult<L extends DictionaryLanguage> =
   | typeof WordDefinition_loading
-  | typeof WordDefinition_notFound
-  | { t: 'ready'; detail: LanguageToDetailMap[L] }
+  | {
+      t: 'not_found'
+      word: NonEmptyStringTrimmed // sometimes old data is returned?
+      language: L // sometimes old data is returned?
+    }
+  | {
+      t: 'ready'
+      detail: LanguageToDetailMap[L]
+      word: NonEmptyStringTrimmed // sometimes old data is returned?
+      language: L // sometimes old data is returned?
+    }
 
 export function useWordDefinition<L extends DictionaryLanguage>(
   word: NonEmptyStringTrimmed,
@@ -33,14 +41,14 @@ export function useWordDefinition<L extends DictionaryLanguage>(
           if (detail) {
             // We cast the result because getWordDetailByMode usually returns a broad union,
             // but we know based on 'language' it corresponds to LanguageToDetailMap[L].
-            setResult({ t: 'ready', detail })
+            setResult({ t: 'ready', detail, word, language })
           } else {
-            setResult(WordDefinition_notFound)
+            setResult({ t: 'not_found', word, language })
           }
         }
       } catch (e) {
         toast.error('Unexpected error' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
-        if (active) setResult(WordDefinition_notFound)
+        if (active) setResult({ t: 'not_found', word, language })
       }
     }
 

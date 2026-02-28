@@ -7,7 +7,6 @@ import { useFavorites } from '../providers/FavoritesProvider'
 import { useIsFavorite } from './useIsFavorite'
 
 const UseWordDataResult_loading = { t: 'loading' } as const
-const UseWordDataResult_not_found = { t: 'not_found' } as const
 
 export type UseWordDataResult =
   | typeof UseWordDataResult_loading
@@ -15,9 +14,15 @@ export type UseWordDataResult =
       t: 'found'
       detail: LanguageToDetailMap[DictionaryLanguage]
       isFav: boolean
+      word: NonEmptyStringTrimmed // sometimes old data is returned?
+      mode: DictionaryLanguage // sometimes old data is returned?
       toggleFav: () => Promise<void>
     }
-  | typeof UseWordDataResult_not_found
+  | {
+      t: 'not_found'
+      word: NonEmptyStringTrimmed // sometimes old data is returned?
+      mode: DictionaryLanguage // sometimes old data is returned?
+    }
 
 export function useWordData(word: NonEmptyStringTrimmed, mode: DictionaryLanguage): UseWordDataResult {
   // 1. Get Definition Data
@@ -43,10 +48,12 @@ export function useWordData(word: NonEmptyStringTrimmed, mode: DictionaryLanguag
         t: 'found',
         detail: defResult.detail,
         isFav,
+        word: defResult.word,
+        mode: defResult.language,
         toggleFav,
       }
     } else {
-      return UseWordDataResult_not_found
+      return { t: 'not_found', word: defResult.word, mode: defResult.language }
     }
-  }, [defResult, isFav, toggleFav])
+  }, [defResult, isFav, toggleFav, word, mode])
 }
