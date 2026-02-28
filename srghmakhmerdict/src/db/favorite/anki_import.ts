@@ -60,38 +60,32 @@ function partitionByLanguage(words: NonEmptyMap<NonEmptyStringTrimmed, MaybeFron
   }
 }
 
-function unquoteCsvStringWithInsideQuotes(s: NonEmptyStringTrimmed): string {
-  return s.replace(/^"|"$/g, '').replace(/""/g, '"')
-}
-
-function parseCsvCell(cell: string | undefined): NonEmptyStringTrimmed | undefined {
-  if (!cell) return undefined
-  const x = String_toNonEmptyString_orUndefined_afterTrim(cell)
-
-  if (!x) return undefined
-  const y = String_toNonEmptyString_orUndefined_afterTrim(unquoteCsvStringWithInsideQuotes(x))
-
-  if (!y) return undefined
-
-  return y
-}
+import { parse } from 'csv-parse/sync'
 
 function parseTsvOrCsv(
   input: NonEmptyStringTrimmed,
   separator: Char,
 ): NonEmptyMap<NonEmptyStringTrimmed, MaybeFrontBack | undefined> {
-  const lines = input.split(/\r?\n/)
+  const records = parse(input, {
+    delimiter: separator,
+    relax_column_count: true,
+    skip_empty_lines: true,
+    trim: true,
+  })
+
   const itemsMap = new Map<NonEmptyStringTrimmed, MaybeFrontBack | undefined>()
 
-  for (const line of lines) {
-    if (!line.trim()) continue
+  for (const record of records) {
+    const wordS = record[0] ?? ''
+    const frontS = record[1] ?? ''
+    // If there's more than 3 columns, join the rest into back
+    const backS = record.slice(2).join('\n')
 
-    const [wordS, frontS, ...backSs] = line.split(separator)
-    const word = parseCsvCell(wordS)
+    const word = String_toNonEmptyString_orUndefined_afterTrim(wordS)
 
     if (word) {
-      const front = parseCsvCell(frontS)
-      const back = parseCsvCell(backSs.join('\n'))
+      const front = String_toNonEmptyString_orUndefined_afterTrim(frontS)
+      const back = String_toNonEmptyString_orUndefined_afterTrim(backS)
 
       const maybeFrontBack: MaybeFrontBack | undefined = MaybeFrontBack_mk(front, back)
 

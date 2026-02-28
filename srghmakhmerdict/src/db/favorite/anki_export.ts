@@ -1,19 +1,10 @@
+import { stringify } from 'csv-stringify/sync'
 import { Array_groupBy } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/array'
 import { getUserDb } from '../core'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
-
-const printLine = ({
-  word,
-  additional_html_front,
-  additional_html_back,
-}: {
-  word: string
-  additional_html_front: string | null
-  additional_html_back: string | null
-}) => `${word}\t${additional_html_front ?? ''}\t${additional_html_back ?? ''}`
 
 export async function getAnkiExportData(): Promise<NonEmptyStringTrimmed | undefined> {
   const db = await getUserDb()
@@ -25,13 +16,16 @@ export async function getAnkiExportData(): Promise<NonEmptyStringTrimmed | undef
 
   const groupedByLang = Array_groupBy(rows, x => x.language)
 
-  const groupedByLang_: Record<string, string> = Object.fromEntries(
-    Object.entries(groupedByLang).map(([lang, rows]) => [lang, rows.map(r => printLine(r)).join('\n')]),
-  )
-
   // key is header
-  const printed = Object.entries(groupedByLang_)
-    .map(([lang, rows]) => `${lang}\n\n${rows}`)
+  const printed = Object.entries(groupedByLang)
+    .map(([lang, rows]) => {
+      const csv = stringify(
+        rows.map(r => [r.word, r.additional_html_front ?? '', r.additional_html_back ?? '']),
+        { delimiter: '\t' },
+      )
+
+      return `${lang}\n\n${csv}`
+    })
     .join('\n\n')
 
   return String_toNonEmptyString_orUndefined_afterTrim(printed)

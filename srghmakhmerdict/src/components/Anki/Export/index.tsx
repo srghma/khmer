@@ -32,10 +32,7 @@ export const AnkiExport = memo(function AnkiExport() {
 
       setOutput(res)
     } catch (error) {
-      toast.error(
-        'Export Error' as NonEmptyStringTrimmed,
-        (error as Error).message as NonEmptyStringTrimmed,
-      )
+      toast.error('Export Error' as NonEmptyStringTrimmed, (error as Error).message as NonEmptyStringTrimmed)
     } finally {
       setIsLoading(false)
     }
