@@ -23,11 +23,23 @@ export const AnkiExport = memo(function AnkiExport() {
     try {
       const res = await getAnkiExportData()
 
+      if (!res) {
+        toast.error(
+          'Export Failed' as NonEmptyStringTrimmed,
+          'No favorite items found to export.' as NonEmptyStringTrimmed,
+        )
+      }
+
       setOutput(res)
+    } catch (error) {
+      toast.error(
+        'Export Error' as NonEmptyStringTrimmed,
+        (error as Error).message as NonEmptyStringTrimmed,
+      )
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [toast])
 
   const handleCopy = useCallback(() => {
     if (output) {
