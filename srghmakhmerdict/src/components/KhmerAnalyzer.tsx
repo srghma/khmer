@@ -8,7 +8,7 @@ import {
   enrichWithSeries,
   type EnrichedToken,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer_parse_tokenize_with_series'
-import { tokenize, type Token } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer_parse_tokenize'
+import { tokenize } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer_parse_tokenize'
 import { CharArray_mkFromString } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/char'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 
@@ -66,18 +66,26 @@ const SeriesDualDisplay = ({
 /**
  * Renders a single parsed token (The Box)
  */
-const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Token }) {
+const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: EnrichedToken }) {
   const handleSpeak = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent parent sentence TTS
-    const text =
+    const rawText =
       token.type === 'SPACE' ||
-      token.type === 'UNKNOWN' ||
-      token.type === 'extra_consonant' ||
-      token.type === 'vowel_combination'
+        token.type === 'UNKNOWN' ||
+        token.type === 'extra_consonant' ||
+        token.type === 'vowel_combination'
         ? token.v.join('')
         : token.v
 
-    const text_ = String_toNonEmptyString_orUndefined_afterTrim(text)
+    let textToSpeak = rawText
+
+    if (token.type === 'vowel' || token.type === 'vowel_combination') {
+      // Dependent vowels are often silent in isolation in TTS.
+      // Prepending 'ka' (ក) and 'ko' (គ) allows hearing both series sounds.
+      textToSpeak = `ក${rawText} គ${rawText}`
+    }
+
+    const text_ = String_toNonEmptyString_orUndefined_afterTrim(textToSpeak)
 
     if (!text_) return
     executeNativeTts(text_, 'km-KH')
