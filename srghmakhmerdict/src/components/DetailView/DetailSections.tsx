@@ -122,6 +122,7 @@ export const DetailSections = React.memo(function DetailSections({
             <div className="mb-1">
               <CsvListRendererColorized
                 dictionaryMode_lonelyWordShouldBeSpilt={false}
+                excludeWord={undefined}
                 isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                 isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
                 isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
@@ -142,6 +143,7 @@ export const DetailSections = React.memo(function DetailSections({
               </div>
               <CsvListRendererColorized
                 dictionaryMode_lonelyWordShouldBeSpilt={false}
+                excludeWord={undefined}
                 isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
                 isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
                 isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
@@ -206,6 +208,7 @@ export const DetailSections = React.memo(function DetailSections({
           <SectionTitle>{LL.DETAIL.SECTION.RU_WIKI()}</SectionTitle>
           <FromRussianWikiRenderer
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             html={from_russian_wiki}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
@@ -222,6 +225,7 @@ export const DetailSections = React.memo(function DetailSections({
           <SectionTitle>{LL.DETAIL.SECTION.GORGONIEV()}</SectionTitle>
           <GorgonievRenderer
             dictionaryMode_lonelyWordShouldBeSpilt={false}
+            excludeWord={undefined}
             html={gorgoniev}
             isKhmerLinksEnabled_ifTrue_passOnNavigateKm={isKhmerLinksEnabled_ifTrue_passOnNavigateKm}
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}

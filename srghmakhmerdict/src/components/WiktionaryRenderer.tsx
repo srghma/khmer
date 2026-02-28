@@ -17,6 +17,8 @@ import { useDictionary } from '../providers/DictionaryProvider'
 import { processHtmlForPronunciationHiding } from '../utils/text-processing/pronunciation'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { ShortDefinitionKm } from '../db/dict'
+import { useFavorites } from '../providers/FavoritesProvider'
+import type { FavoriteItem } from '../db/favorite/item'
 
 export const useWiktionaryContent = (
   html: NonEmptyStringTrimmed,
@@ -24,8 +26,9 @@ export const useWiktionaryContent = (
   dictionaryMode_lonelyWordShouldBeSpilt: boolean,
   isShowShortDetailAboutKhmerWordEnabled: boolean,
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
-  excludeWord?: TypedKhmerWord,
-  khmerWordsHidingMode: WordsHidingMode = 'disabled',
+  excludeWord: TypedKhmerWord | undefined,
+  khmerWordsHidingMode: WordsHidingMode,
+  favorites: readonly FavoriteItem[] | undefined | null,
 ) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
@@ -46,6 +49,7 @@ export const useWiktionaryContent = (
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         excludeWord,
         khmerWordsHidingMode,
+        favorites,
       ),
     }
   }, [
@@ -58,6 +62,7 @@ export const useWiktionaryContent = (
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
+    favorites,
   ])
 }
 
@@ -168,7 +173,7 @@ interface WiktionaryRendererProps {
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
 }
 
 export const WiktionaryRenderer = ({
@@ -185,6 +190,7 @@ export const WiktionaryRenderer = ({
   excludeWord,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { favorites } = useFavorites()
 
   // 1. Process HTML (Colorization)
   const content = useWiktionaryContent(
@@ -195,6 +201,7 @@ export const WiktionaryRenderer = ({
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
+    favorites,
   )
 
   const toast = useAppToast()

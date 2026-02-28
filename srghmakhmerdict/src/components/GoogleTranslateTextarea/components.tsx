@@ -20,6 +20,7 @@ import { GoogleSpeechAction } from '../DetailView/Tooltips/GoogleSpeechAction'
 import { NativeSpeechAction } from '../DetailView/Tooltips/NativeSpeechAction'
 import type { TranslateResultSuccess } from '../../utils/googleTranslate/googleTranslate'
 import { useDictionary } from '../../providers/DictionaryProvider'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 // --- Atomic Components ---
 
@@ -93,6 +94,13 @@ export const ResultDisplay = memo(function ResultDisplay({
   dictionaryMode_lonelyWordShouldBeSpilt,
 }: ResultDisplayProps) {
   const { km_map } = useDictionary()
+  const { favorites } = useFavorites()
+  // const dictionaryLanguage = useMemo((): DictionaryLanguage => {
+  //   if (targetLang === 'en' || targetLang === 'km' || targetLang === 'ru') return targetLang
+
+  //   return 'km'
+  // }, [targetLang])
+
   const resultHtml = useMemo(() => {
     if (!result.text) return undefined
 
@@ -105,9 +113,10 @@ export const ResultDisplay = memo(function ResultDisplay({
         undefined,
         undefined,
         'disabled',
+        favorites,
       ),
     }
-  }, [result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt])
+  }, [result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, favorites])
 
   return (
     <div className="bg-default-100/50 border border-default-200 rounded-medium p-3 animate-in fade-in duration-200 block">

@@ -14,6 +14,7 @@ import { colorizeText } from '../../utils/text-processing/text'
 import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 interface RussianPronunciationProps {
   khmerText: TypedContainsKhmer
@@ -108,6 +109,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
 }: RussianPronunciationProps) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
+  const { favorites } = useFavorites()
 
   // 1. Find and Colorize Russian sounding words
   const colorizedWords_ru = useMemo(() => {
@@ -130,6 +132,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         undefined,
         khmerWordsHidingMode,
+        favorites,
       ),
       word,
     }))
@@ -140,6 +143,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     maybeColorMode,
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
+    khmerWordsHidingMode,
+    favorites,
   ])
 
   // 2. Find and Colorize English sounding words
@@ -167,6 +172,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         undefined,
         khmerWordsHidingMode,
+        favorites,
       ),
       word,
     }))
@@ -178,6 +184,8 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     maybeColorMode,
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
+    khmerWordsHidingMode,
+    favorites,
   ])
 
   const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(

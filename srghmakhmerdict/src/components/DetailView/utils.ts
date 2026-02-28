@@ -11,6 +11,8 @@ import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-e
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { WordsHidingMode } from '../../providers/SettingsProvider'
 
+import { type FavoriteItem } from '../../db/favorite/item'
+
 export const colorizeHtml_nonEmptyArray = (
   items: NonEmptyArray<NonEmptyStringTrimmed> | undefined,
   colorMode: MaybeColorizationMode,
@@ -19,6 +21,7 @@ export const colorizeHtml_nonEmptyArray = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
+  favorites: readonly FavoriteItem[] | undefined | null,
 ): NonEmptyArray<NonEmptyStringTrimmed> | undefined => {
   if (!items) return undefined
 
@@ -32,6 +35,7 @@ export const colorizeHtml_nonEmptyArray = (
         shortDefinitions,
         excludeWord,
         khmerWordsHidingMode,
+        favorites,
       ),
     ),
   )

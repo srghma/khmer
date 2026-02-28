@@ -1,6 +1,7 @@
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { type MaybeColorizationMode } from './utils'
+import { type FavoriteStatus } from '../favorite-status'
 
 // Defined in App.css (.khmer--is-in-dictionary-color-0 through .khmer--is-in-dictionary-color-4)
 const PALETTE_SIZE = 5
@@ -13,19 +14,28 @@ export const getKhmerWordCssClass = (
   colorIndex: number,
   isKnown: boolean,
   mode: MaybeColorizationMode,
+  ankiStatus?: FavoriteStatus,
 ): NonEmptyStringTrimmed => {
+  const classes: string[] = []
+
   if (mode === 'none') {
-    return 'khmer--word' as NonEmptyStringTrimmed
-  }
-
-  const safeIndex = colorIndex % PALETTE_SIZE
-
-  // Dictionary Mode
-  if (isKnown) {
-    return `khmer--is-in-dictionary-color-${safeIndex}` as NonEmptyStringTrimmed
+    classes.push('khmer--word')
   } else {
-    return 'khmer--is-not-in-dictionary' as NonEmptyStringTrimmed
+    const safeIndex = colorIndex % PALETTE_SIZE
+
+    if (isKnown) {
+      classes.push(`khmer--is-in-dictionary-color-${safeIndex}`)
+    } else {
+      classes.push('khmer--is-not-in-dictionary')
+    }
   }
+
+  if (ankiStatus && ankiStatus !== 'none') {
+    classes.push('anki--is-in-anki')
+    classes.push(`anki--status-${ankiStatus}`)
+  }
+
+  return classes.join(' ') as NonEmptyStringTrimmed
 }
 
 /**
@@ -39,8 +49,9 @@ export const renderKhmerWordSpan = (
   mode: MaybeColorizationMode,
   extraInfo: { ipa: NonEmptyStringTrimmed | undefined; def: NonEmptyStringTrimmed } | undefined,
   excludeWord: TypedKhmerWord | undefined,
+  ankiStatus: FavoriteStatus,
 ): NonEmptyStringTrimmed => {
-  const className = getKhmerWordCssClass(colorIndex, isKnown, mode)
+  const className = getKhmerWordCssClass(colorIndex, isKnown, mode, ankiStatus)
   const isExcluded = excludeWord === word
 
   if (isExcluded || !extraInfo || (!extraInfo.ipa && !extraInfo.def)) {

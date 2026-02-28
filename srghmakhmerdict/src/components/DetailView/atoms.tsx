@@ -70,6 +70,9 @@ export const RenderHtml = React.memo(function RenderHtml({
 
 RenderHtml.displayName = 'RenderHtml'
 
+import { useFavorites } from '../../providers/FavoritesProvider'
+import { type DictionaryLanguage } from '../../types'
+
 export const RenderTextColorized = React.memo(function RenderTextColorized({
   text,
   khmerWordsHidingMode,
@@ -79,6 +82,7 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
   excludeWord,
+  language,
 }: {
   text: NonEmptyStringTrimmed
   khmerWordsHidingMode: WordsHidingMode
@@ -87,10 +91,12 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
+  language: DictionaryLanguage
 }) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
+  const { favorites } = useFavorites()
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   const processedText_html = useMemo(
@@ -103,6 +109,7 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         excludeWord,
         khmerWordsHidingMode,
+        favorites,
       ),
     [
       text,
@@ -113,6 +120,8 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
       shortDefinitions,
       excludeWord,
       khmerWordsHidingMode,
+      favorites,
+      language,
     ],
   )
 
@@ -170,6 +179,7 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
 }) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
+  const { favorites } = useFavorites()
   const containerRef = React.useRef<HTMLDivElement>(null)
   const processedHtml = useMemo(() => {
     if (!html) return html
@@ -186,6 +196,7 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
       isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
       excludeWord,
       khmerWordsHidingMode,
+      favorites,
     )
   }, [
     html,
@@ -198,6 +209,7 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
+    favorites,
   ])
 
   const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
@@ -278,10 +290,11 @@ export const CsvListRendererColorized = React.memo(function CsvListRendererColor
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
 }) {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
+  const { favorites } = useFavorites()
   const listRef = React.useRef<HTMLUListElement>(null)
 
   const processedItems = useMemo(
@@ -300,6 +313,7 @@ export const CsvListRendererColorized = React.memo(function CsvListRendererColor
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         excludeWord,
         khmerWordsHidingMode,
+        favorites,
       ),
     [
       items,
@@ -312,6 +326,7 @@ export const CsvListRendererColorized = React.memo(function CsvListRendererColor
       shortDefinitions,
       excludeWord,
       khmerWordsHidingMode,
+      favorites,
     ],
   )
 
@@ -347,6 +362,7 @@ export const CsvListRendererText = React.memo(function CsvListRendererText({
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
   excludeWord,
+  language,
 }: {
   items: NonEmptyArray<NonEmptyStringTrimmed>
   khmerWordsHidingMode: WordsHidingMode
@@ -355,7 +371,8 @@ export const CsvListRendererText = React.memo(function CsvListRendererText({
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
+  language: DictionaryLanguage
 }) {
   const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(
     false,
@@ -375,6 +392,7 @@ export const CsvListRendererText = React.memo(function CsvListRendererText({
             isKhmerPronunciationHidingEnabled={isKhmerPronunciationHidingEnabled}
             isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
             khmerWordsHidingMode={khmerWordsHidingMode}
+            language={language}
             nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
             shortDefinitions={shortDefinitions}
             text={item}
@@ -436,7 +454,7 @@ export const FromRussianWikiRenderer = React.memo(function FromRussianWikiRender
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
 }) {
   return (
     <RenderHtmlColorized
@@ -476,7 +494,7 @@ export const GorgonievRenderer = React.memo(function GorgonievRenderer({
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
 }) {
   return (
     <RenderHtmlColorized

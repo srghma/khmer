@@ -36,5 +36,5 @@ export interface DetailSectionsProps {
   isKhmerPronunciationHidingEnabled: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
 }

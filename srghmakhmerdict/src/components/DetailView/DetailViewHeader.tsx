@@ -19,6 +19,7 @@ import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-e
 import { setLocation_khmerWord_ifInDictionary } from '../../utils/url-navigation'
 import { useAppToast } from '../../providers/ToastProvider'
 import { useLocation } from 'wouter'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 interface DetailViewBackButtonProps {
   onPress: () => void
@@ -142,6 +143,7 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
   const { LL } = useI18nContext()
   const toast = useAppToast()
   const [, setLocation] = useLocation()
+  const { favorites } = useFavorites()
 
   const h1Html = useMemo(() => {
     if (!word_displayHtml) return undefined
@@ -154,13 +156,14 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
         undefined,
         undefined,
         khmerWordsHidingMode,
+        favorites,
       )
 
       return { __html: html }
     }
 
     return { __html: word_displayHtml }
-  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map, khmerWordsHidingMode])
+  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map, khmerWordsHidingMode, favorites])
 
   const h1ClassName = useMemo(() => {
     const common = 'font-bold text-foreground text-xl truncate'

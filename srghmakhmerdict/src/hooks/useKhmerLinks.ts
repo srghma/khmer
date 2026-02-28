@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 import { useShortDefinitionPopover } from '../providers/ShortDefinitionPopoverProvider'
 import { useFillInTheBlankModal } from '../providers/FillInTheBlankModalProvider'
 import type { WordsHidingMode } from '../providers/SettingsProvider'
+import { useGoogleOrNativeTts } from './useGoogleOrNativeTts'
 
 import {
   strToKhmerWordOrThrow,
@@ -22,6 +23,7 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
   khmerWordsHidingMode: WordsHidingMode,
   nonKhmerWordsHidingMode: WordsHidingMode,
   showModal: (rawWord: NonEmptyStringTrimmed) => void,
+  tts: ReturnType<typeof useGoogleOrNativeTts>,
 ): boolean => {
   const target = e.target as HTMLElement
 
@@ -45,6 +47,13 @@ export const tryHandleKhmerAndNonKhmerWordClick = (
           }
         } else {
           khmerSpan.classList.add('is-revealed')
+          const rawWord = khmerSpan.getAttribute('data-navigate-khmer-word')
+
+          if (rawWord && tts.t === 'ready') {
+            tts.speak(nonEmptyString_afterTrim(rawWord), 'km').catch(() => {
+              /* ignore */
+            })
+          }
         }
 
         return true
@@ -155,6 +164,7 @@ export const useKhmerAndNonKhmerClickListener = (
 ) => {
   const { showPopover } = useShortDefinitionPopover()
   const { showModal } = useFillInTheBlankModal()
+  const tts = useGoogleOrNativeTts()
 
   useEffect(() => {
     const el = ref.current
@@ -168,6 +178,7 @@ export const useKhmerAndNonKhmerClickListener = (
         khmerWordsHidingMode,
         nonKhmerWordsHidingMode,
         showModal,
+        tts,
       )
 
       if (handled) return

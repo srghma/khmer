@@ -18,6 +18,7 @@ import {
 import type { ColorizationMode } from '../../utils/text-processing/utils'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { assertNever } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 interface FirstNonEmptyShortDetailViewProps {
   selectedText: NonEmptyStringTrimmed
@@ -41,6 +42,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
     dictionaryMode_lonelyWordShouldBeSpilt,
   }) {
     const { km_map, en, ru } = useDictionary()
+    const { favorites } = useFavorites()
 
     const fallback = useMemo(() => {
       const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
@@ -142,10 +144,11 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
         undefined,
         undefined,
         'disabled',
+        favorites,
       )
 
       return { __html: colorized }
-    }, [rawContent, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt])
+    }, [rawContent, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, favorites, mode])
 
     // 3. Handle Discriminated Union States
     if (res.t === 'loading') return Loading

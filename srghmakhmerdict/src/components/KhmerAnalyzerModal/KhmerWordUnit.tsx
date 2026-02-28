@@ -14,6 +14,8 @@ import { useSettings } from '../../providers/SettingsProvider'
 import { getBestDefinitionEnOrRuFromKm_fromShort_onlyWithoutHtml } from '../../utils/WordDetailKm_WithoutHtml'
 import { getBestDefinitionEnOrRuFromKm_fromShort } from '../../utils/WordDetailKm_WithoutKhmerAndHtml'
 
+import { type FavoriteStatus } from '../../utils/favorite-status'
+
 interface KhmerWordUnitProps {
   colorIndex: number
   colorization: 'none' | 'isKnown' | 'isNotKnown'
@@ -23,6 +25,7 @@ interface KhmerWordUnitProps {
   wiktionaryIpa: NonEmptyStringTrimmed | undefined
   word: TypedKhmerWord
   wordIndex: number
+  ankiStatus?: FavoriteStatus
 }
 
 export const KhmerWordUnit = React.memo(function KhmerWordUnit({
@@ -34,6 +37,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   wiktionaryIpa,
   word,
   wordIndex,
+  ankiStatus,
 }: KhmerWordUnitProps) {
   const { LL } = useI18nContext()
   const tts = useGoogleOrNativeTts()
@@ -85,8 +89,14 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
   )
 
   const wordClass = useMemo(
-    () => getKhmerWordCssClass(colorIndex, colorization === 'isKnown', colorization === 'none' ? 'none' : 'dictionary'),
-    [colorIndex, colorization],
+    () =>
+      getKhmerWordCssClass(
+        colorIndex,
+        colorization === 'isKnown',
+        colorization === 'none' ? 'none' : 'dictionary',
+        ankiStatus,
+      ),
+    [colorIndex, colorization, ankiStatus],
   )
 
   return (
@@ -130,7 +140,7 @@ export const KhmerWordUnit = React.memo(function KhmerWordUnit({
               >
                 <div
                   dangerouslySetInnerHTML={dangerouslySetInnerHTMLShortBox}
-                  className={`text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary`}
+                  className="text-xs leading-[1.2] text-center text-foreground/80 line-clamp-2 pointer-events-none [&_i]:not-italic [&_i]:text-primary"
                 />
               </button>
             </PopoverTrigger>

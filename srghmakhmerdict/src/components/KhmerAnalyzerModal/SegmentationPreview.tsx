@@ -13,6 +13,8 @@ import { isWordInKmMap } from '../../utils/isWordInKmMap'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { useSettings } from '../../providers/SettingsProvider'
 import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
+import { useFavorites } from '../../providers/FavoritesProvider'
+import { getFavoriteStatus, type FavoriteStatus } from '../../utils/favorite-status'
 
 const NotKhmerPart = memo(({ text }: { text: NonEmptyString }) => (
   <span className="align-top mt-1 inline-block text-foreground/80">{text}</span>
@@ -28,6 +30,7 @@ interface KhmerWordPartProps {
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
   onWordClick: ((v: TypedKhmerWord) => void) | undefined
   wordIndex: number
+  ankiStatus?: FavoriteStatus
 }
 
 const KhmerWordPart = memo(function KhmerWordPart({
@@ -38,6 +41,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
   shortDefinitions,
   onWordClick,
   wordIndex,
+  ankiStatus,
 }: KhmerWordPartProps) {
   // Resolve item structure
   const isObj = typeof item === 'object'
@@ -65,6 +69,7 @@ const KhmerWordPart = memo(function KhmerWordPart({
 
   return (
     <KhmerWordUnit
+      ankiStatus={ankiStatus}
       colorIndex={colorIndex}
       colorization={colorization}
       definitionHtml={def}
@@ -90,8 +95,9 @@ interface SegmentationPreviewProps {
 }
 
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
-  ({ onKhmerWordClick, segments, maybeColorMode, shortDefinitions, isShowShortDetailAboutKhmerWordEnabled }) => {
+  ({ isShowShortDetailAboutKhmerWordEnabled, maybeColorMode, onKhmerWordClick, segments, shortDefinitions }) => {
     const { km_map } = useDictionary()
+    const { favorites } = useFavorites()
     const { khmerWordsHidingMode, nonKhmerWordsHidingMode } = useSettings()
     let globalWordIndex = 0
 
@@ -128,10 +134,12 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
           // 3. Handle Khmer blocks: Map through segmented words
           return seg.words.map((item, j) => {
             const currentIdx = globalWordIndex++
+            const w = typeof item === 'object' ? item.w : item
 
             return (
               <KhmerWordPart
                 key={`k-${i}-${j}`}
+                ankiStatus={getFavoriteStatus(favorites, w)}
                 colorIndex={currentIdx}
                 item={item}
                 km_map={km_map}

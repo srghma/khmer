@@ -280,15 +280,15 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
           <div className="flex flex-col gap-4 justify-center">
             {!isRevealed && (
               <Input
-                className="mt-2 font-khmer"
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus={isAutoFocusAnswerEnabled}
+                className="mt-2"
                 placeholder={answerPlaceholder}
                 size="sm"
                 value={userAnswer}
                 variant="underlined"
                 onKeyDown={handleKeyDown}
                 onValueChange={setUserAnswer}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus={isAutoFocusAnswerEnabled}
               />
             )}
           </div>

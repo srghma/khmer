@@ -36,6 +36,7 @@ import { useI18nContext } from '../../i18n/i18n-react-custom'
 export const AnkiListItem = React.memo(function AnkiListItem(props: AnkiListItemProps) {
   const { card_due, isSelected, onSelect, now, t, v } = props
   const { LL } = useI18nContext()
+  // const [language]: [DictionaryLanguage, any] = useMemo(() => ankiGameModeToLanguageAndDirection(t), [t])
 
   const isDue = card_due <= now
   const notDueButWillSeeIn2MinutesOrLess = card_due <= now + 2 * 60000

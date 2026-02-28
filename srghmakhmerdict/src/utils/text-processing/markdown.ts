@@ -10,7 +10,7 @@ export type MarkdownToHtmlResult =
   | { t: 'success'; v: NonEmptyStringTrimmed }
   | { t: 'error'; error: unknown }
   | typeof MarkdownToHtmlResult_empty
-
+// TODO: should not be here
 /**
  * Converts markdown to HTML using the 'marked' library.
  * Supports GFM (GitHub Flavored Markdown), including tables.

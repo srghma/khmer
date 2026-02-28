@@ -101,6 +101,7 @@ export const EditableHtmlField = memo(function EditableHtmlField({
           {label}
         </SectionTitleWithRightContent>
         <Textarea
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           classNames={textareaClassNames}
           maxRows={12}

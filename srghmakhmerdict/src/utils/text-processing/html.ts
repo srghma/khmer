@@ -8,7 +8,8 @@ import type { NonEmptyString } from '@gemini-ocr-automate-images-upload-chrome-e
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 
-import type { WordsHidingMode } from '../../providers/SettingsProvider'
+import { type WordsHidingMode } from '../../providers/SettingsProvider'
+import { type FavoriteItem } from '../../db/favorite/item'
 
 export const colorizeHtml = (
   html: NonEmptyStringTrimmed,
@@ -18,6 +19,7 @@ export const colorizeHtml = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
+  favorites: readonly FavoriteItem[] | undefined | null,
 ): TypedContainsKhmer => {
   const wordCounterRef = { current: 0 }
 
@@ -38,6 +40,7 @@ export const colorizeHtml = (
         shortDefinitions,
         excludeWord,
         khmerWordsHidingMode,
+        favorites,
       )
     },
   ) as TypedContainsKhmer
@@ -56,6 +59,7 @@ export const colorizeHtml_allowUndefined = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
+  favorites: readonly FavoriteItem[] | undefined | null,
 ): TypedContainsKhmer | undefined => {
   return html
     ? colorizeHtml(
@@ -66,6 +70,7 @@ export const colorizeHtml_allowUndefined = (
         shortDefinitions,
         excludeWord,
         khmerWordsHidingMode,
+        favorites,
       )
     : undefined
 }

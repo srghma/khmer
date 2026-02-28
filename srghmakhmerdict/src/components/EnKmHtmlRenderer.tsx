@@ -27,6 +27,7 @@ import { unknown_to_errorMessage } from '../utils/errorMessage'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { useDictionary } from '../providers/DictionaryProvider'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import { useFavorites } from '../providers/FavoritesProvider'
 
 // --- Constants & Regex ---
 // Matches source to extract ID. Example: .../1295.png -> 1295
@@ -209,7 +210,7 @@ export interface EnKmHtmlRendererProps {
   dictionaryMode_lonelyWordShouldBeSpilt: boolean
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
-  excludeWord?: TypedKhmerWord
+  excludeWord: TypedKhmerWord | undefined
 }
 
 export const EnKmHtmlRenderer = ({
@@ -225,6 +226,7 @@ export const EnKmHtmlRenderer = ({
 }: EnKmHtmlRendererProps) => {
   const { imageMode, maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
+  const { favorites } = useFavorites()
   const containerRef = useRef<HTMLDivElement>(null)
   const ocrMap = useOcrData(html)
 
@@ -242,6 +244,7 @@ export const EnKmHtmlRenderer = ({
       isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
       excludeWord,
       khmerWordsHidingMode,
+      favorites,
     )
 
     return { __html: html_colorized }
@@ -256,6 +259,7 @@ export const EnKmHtmlRenderer = ({
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
+    favorites,
   ])
 
   const toast = useAppToast()

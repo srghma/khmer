@@ -13,6 +13,7 @@ import { TrashIcon, ChevronIcon } from './SharedComponents'
 import { tab_title_ru } from '../SidebarHeader'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
+import { useFavorites } from '../../providers/FavoritesProvider'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -40,6 +41,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
   ({ word, language, onSelect, onDelete, maybeColorMode, renderRightAction }) => {
     const controls = useAnimation()
     const { km_map, en, ru } = useDictionary()
+    const { favorites } = useFavorites()
 
     const handleDragEnd = useCallback(
       async (_: unknown, info: PanInfo) => {
@@ -74,8 +76,10 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     }, [language, word, km_map, en, ru])
 
     const wordColorized = useMemo(() => {
-      return { __html: colorizeText(word, maybeColorMode, km_map, true, undefined, undefined, 'disabled') }
-    }, [word, km_map, maybeColorMode])
+      return {
+        __html: colorizeText(word, maybeColorMode, km_map, true, undefined, undefined, 'disabled', favorites),
+      }
+    }, [word, km_map, maybeColorMode, favorites])
 
     const onTap = useCallback(() => onSelect(word, language), [onSelect, word, language])
 
