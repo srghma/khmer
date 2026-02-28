@@ -109,7 +109,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
 }: RussianPronunciationProps) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
 
   // 1. Find and Colorize Russian sounding words
   const colorizedWords_ru = useMemo(() => {
@@ -132,7 +132,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         undefined,
         khmerWordsHidingMode,
-        favorites,
+        favoritesMap,
       ),
       word,
     }))
@@ -144,7 +144,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
     khmerWordsHidingMode,
-    favorites,
+    favoritesMap,
   ])
 
   // 2. Find and Colorize English sounding words
@@ -172,7 +172,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         undefined,
         khmerWordsHidingMode,
-        favorites,
+        favoritesMap,
       ),
       word,
     }))
@@ -185,7 +185,7 @@ export const AutomaticRussianPronunciation = memo(function AutomaticRussianPronu
     isShowShortDetailAboutKhmerWordEnabled,
     shortDefinitions,
     khmerWordsHidingMode,
-    favorites,
+    favoritesMap,
   ])
 
   const khmerContentClass = calculateKhmerAndNonKhmerContentStyles(

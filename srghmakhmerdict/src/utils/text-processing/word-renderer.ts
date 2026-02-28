@@ -16,11 +16,9 @@ export const getKhmerWordCssClass = (
   mode: MaybeColorizationMode,
   ankiStatus?: FavoriteStatus,
 ): NonEmptyStringTrimmed => {
-  const classes: string[] = []
+  const classes: string[] = ['khmer--word']
 
-  if (mode === 'none') {
-    classes.push('khmer--word')
-  } else {
+  if (mode !== 'none') {
     const safeIndex = colorIndex % PALETTE_SIZE
 
     if (isKnown) {
@@ -31,7 +29,6 @@ export const getKhmerWordCssClass = (
   }
 
   if (ankiStatus && ankiStatus !== 'none') {
-    classes.push('anki--is-in-anki')
     classes.push(`anki--status-${ankiStatus}`)
   }
 

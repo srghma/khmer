@@ -19,7 +19,7 @@ export const colorizeHtml = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): TypedContainsKhmer => {
   const wordCounterRef = { current: 0 }
 
@@ -59,7 +59,7 @@ export const colorizeHtml_allowUndefined = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): TypedContainsKhmer | undefined => {
   return html
     ? colorizeHtml(

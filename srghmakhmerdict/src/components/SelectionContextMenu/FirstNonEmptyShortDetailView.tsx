@@ -42,7 +42,7 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
     dictionaryMode_lonelyWordShouldBeSpilt,
   }) {
     const { km_map, en, ru } = useDictionary()
-    const { favorites } = useFavorites()
+    const { favoritesMap } = useFavorites()
 
     const fallback = useMemo(() => {
       const truncatedText = selectedText.length > 15 ? selectedText.slice(0, 12) + '...' : selectedText
@@ -144,11 +144,11 @@ export const FirstNonEmptyShortDetailView: React.FC<FirstNonEmptyShortDetailView
         undefined,
         undefined,
         'disabled',
-        favorites,
+        favoritesMap,
       )
 
       return { __html: colorized }
-    }, [rawContent, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, favorites, mode])
+    }, [rawContent, colorizationMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, favoritesMap, mode])
 
     // 3. Handle Discriminated Union States
     if (res.t === 'loading') return Loading

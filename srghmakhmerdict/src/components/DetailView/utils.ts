@@ -21,7 +21,7 @@ export const colorizeHtml_nonEmptyArray = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): NonEmptyArray<NonEmptyStringTrimmed> | undefined => {
   if (!items) return undefined
 

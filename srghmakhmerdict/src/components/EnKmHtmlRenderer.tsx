@@ -226,7 +226,7 @@ export const EnKmHtmlRenderer = ({
 }: EnKmHtmlRendererProps) => {
   const { imageMode, maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
   const containerRef = useRef<HTMLDivElement>(null)
   const ocrMap = useOcrData(html)
 
@@ -244,7 +244,7 @@ export const EnKmHtmlRenderer = ({
       isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
       excludeWord,
       khmerWordsHidingMode,
-      favorites,
+      favoritesMap,
     )
 
     return { __html: html_colorized }
@@ -259,7 +259,7 @@ export const EnKmHtmlRenderer = ({
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
-    favorites,
+    favoritesMap,
   ])
 
   const toast = useAppToast()

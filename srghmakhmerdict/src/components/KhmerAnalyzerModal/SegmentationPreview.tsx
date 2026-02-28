@@ -97,7 +97,7 @@ interface SegmentationPreviewProps {
 export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
   ({ isShowShortDetailAboutKhmerWordEnabled, maybeColorMode, onKhmerWordClick, segments, shortDefinitions }) => {
     const { km_map } = useDictionary()
-    const { favorites } = useFavorites()
+    const { favoritesMap } = useFavorites()
     const { khmerWordsHidingMode, nonKhmerWordsHidingMode } = useSettings()
     let globalWordIndex = 0
 
@@ -139,7 +139,7 @@ export const SegmentationPreview: React.FC<SegmentationPreviewProps> = memo(
             return (
               <KhmerWordPart
                 key={`k-${i}-${j}`}
-                ankiStatus={getFavoriteStatus(favorites, w)}
+                ankiStatus={getFavoriteStatus(favoritesMap, w)}
                 colorIndex={currentIdx}
                 item={item}
                 km_map={km_map}

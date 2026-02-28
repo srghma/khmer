@@ -94,7 +94,7 @@ export const ResultDisplay = memo(function ResultDisplay({
   dictionaryMode_lonelyWordShouldBeSpilt,
 }: ResultDisplayProps) {
   const { km_map } = useDictionary()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
   // const dictionaryLanguage = useMemo((): DictionaryLanguage => {
   //   if (targetLang === 'en' || targetLang === 'km' || targetLang === 'ru') return targetLang
 
@@ -113,10 +113,10 @@ export const ResultDisplay = memo(function ResultDisplay({
         undefined,
         undefined,
         'disabled',
-        favorites,
+        favoritesMap,
       ),
     }
-  }, [result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, favorites])
+  }, [result.text, maybeColorMode, km_map, dictionaryMode_lonelyWordShouldBeSpilt, favoritesMap])
 
   return (
     <div className="bg-default-100/50 border border-default-200 rounded-medium p-3 animate-in fade-in duration-200 block">

@@ -17,6 +17,8 @@ import { processHtmlForPronunciationHiding, type PronunciationSource } from '../
 import { undefined_lift } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/undefined'
 import type { ShortDefinitionKm } from '../../db/dict'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
+import { useFavorites } from '../../providers/FavoritesProvider'
+import { type DictionaryLanguage } from '../../types'
 
 export const SectionTitleWithRightContent = memo(function SectionTitleWithRightContent({
   children,
@@ -62,16 +64,13 @@ export const RenderHtml = React.memo(function RenderHtml({
   return (
     <div
       dangerouslySetInnerHTML={dangerousHtml}
-      ref={ref} // ref comes from props
+      ref={ref}
       className={`prose prose-sm max-w-none text-foreground/90 dark:prose-invert ${className} text-base`}
     />
   )
 })
 
 RenderHtml.displayName = 'RenderHtml'
-
-import { useFavorites } from '../../providers/FavoritesProvider'
-import { type DictionaryLanguage } from '../../types'
 
 export const RenderTextColorized = React.memo(function RenderTextColorized({
   text,
@@ -96,7 +95,7 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
 }) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   const processedText_html = useMemo(
@@ -109,7 +108,7 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         excludeWord,
         khmerWordsHidingMode,
-        favorites,
+        favoritesMap,
       ),
     [
       text,
@@ -120,7 +119,7 @@ export const RenderTextColorized = React.memo(function RenderTextColorized({
       shortDefinitions,
       excludeWord,
       khmerWordsHidingMode,
-      favorites,
+      favoritesMap,
       language,
     ],
   )
@@ -179,8 +178,9 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
 }) {
   const { maybeColorMode } = useSettings()
   const { km_map } = useDictionary()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
   const containerRef = React.useRef<HTMLDivElement>(null)
+
   const processedHtml = useMemo(() => {
     if (!html) return html
 
@@ -196,7 +196,7 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
       isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
       excludeWord,
       khmerWordsHidingMode,
-      favorites,
+      favoritesMap,
     )
   }, [
     html,
@@ -209,7 +209,7 @@ export const RenderHtmlColorized = React.memo(function RenderHtmlColorized({
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
-    favorites,
+    favoritesMap,
   ])
 
   const hideBrokenImagesClass = hideBrokenImages_enable ? styles.hideBroken : ''
@@ -294,7 +294,7 @@ export const CsvListRendererColorized = React.memo(function CsvListRendererColor
 }) {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
   const listRef = React.useRef<HTMLUListElement>(null)
 
   const processedItems = useMemo(
@@ -313,7 +313,7 @@ export const CsvListRendererColorized = React.memo(function CsvListRendererColor
         isShowShortDetailAboutKhmerWordEnabled ? shortDefinitions : undefined,
         excludeWord,
         khmerWordsHidingMode,
-        favorites,
+        favoritesMap,
       ),
     [
       items,
@@ -326,7 +326,7 @@ export const CsvListRendererColorized = React.memo(function CsvListRendererColor
       shortDefinitions,
       excludeWord,
       khmerWordsHidingMode,
-      favorites,
+      favoritesMap,
     ],
   )
 
@@ -458,6 +458,7 @@ export const FromRussianWikiRenderer = React.memo(function FromRussianWikiRender
 }) {
   return (
     <RenderHtmlColorized
+      className=""
       dictionaryMode_lonelyWordShouldBeSpilt={dictionaryMode_lonelyWordShouldBeSpilt}
       excludeWord={excludeWord}
       hideBrokenImages_enable={false}
@@ -498,6 +499,7 @@ export const GorgonievRenderer = React.memo(function GorgonievRenderer({
 }) {
   return (
     <RenderHtmlColorized
+      className=""
       dictionaryMode_lonelyWordShouldBeSpilt={dictionaryMode_lonelyWordShouldBeSpilt}
       excludeWord={excludeWord}
       hideBrokenImages_enable={false}

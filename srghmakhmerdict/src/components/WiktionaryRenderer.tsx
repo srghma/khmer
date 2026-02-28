@@ -28,7 +28,7 @@ export const useWiktionaryContent = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ) => {
   const { km_map } = useDictionary()
   const { maybeColorMode } = useSettings()
@@ -108,7 +108,6 @@ const useWikiLinkHandler = (
 
       switch (result.kind) {
         case 'internal': {
-          // TODO: we disable all links (instead of just clicks on colorized khmer word), maybe its bad (but in anki game we want to disable things that disable the game, so...)
           if (isKhmerLinksEnabled_ifTrue_passOnNavigate) {
             const nextMode = detectModeFromText(result.term) ?? currentMode
 
@@ -190,9 +189,8 @@ export const WiktionaryRenderer = ({
   excludeWord,
 }: WiktionaryRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
 
-  // 1. Process HTML (Colorization)
   const content = useWiktionaryContent(
     html,
     isKhmerPronunciationHidingEnabled,
@@ -201,7 +199,7 @@ export const WiktionaryRenderer = ({
     shortDefinitions,
     excludeWord,
     khmerWordsHidingMode,
-    favorites,
+    favoritesMap,
   )
 
   const toast = useAppToast()
@@ -225,8 +223,6 @@ export const WiktionaryRenderer = ({
     isShowShortDetailAboutKhmerWordEnabled,
   )
 
-  // 3. Dynamic Class for Interaction
-  // contentStyles.interactive determines if hover effects are shown
   const className = `${styles.wikiScope} ${srghma_khmer_dict_content_styles}`
 
   return <div dangerouslySetInnerHTML={content} ref={containerRef} className={className} />

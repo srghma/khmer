@@ -143,7 +143,7 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
   const { LL } = useI18nContext()
   const toast = useAppToast()
   const [, setLocation] = useLocation()
-  const { favorites } = useFavorites()
+  const { favoritesMap } = useFavorites()
 
   const h1Html = useMemo(() => {
     if (!word_displayHtml) return undefined
@@ -156,14 +156,14 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
         undefined,
         undefined,
         khmerWordsHidingMode,
-        favorites,
+        favoritesMap,
       )
 
       return { __html: html }
     }
 
     return { __html: word_displayHtml }
-  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map, khmerWordsHidingMode, favorites])
+  }, [word_displayHtml, word_or_sentence__language, maybeColorMode, km_map, khmerWordsHidingMode, favoritesMap])
 
   const h1ClassName = useMemo(() => {
     const common = 'font-bold text-foreground text-xl truncate'

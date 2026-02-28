@@ -22,6 +22,7 @@ import type { Char } from '@gemini-ocr-automate-images-upload-chrome-extension/u
 
 interface FavoritesContextType {
   favorites: FavoriteItem[]
+  favoritesMap: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem>
   loading: boolean
   addFavorite: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<void>
   removeFavorite: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<boolean>
@@ -39,7 +40,6 @@ interface FavoritesContextType {
     input: NonEmptyStringTrimmed,
     separator: Char,
   ) => Promise<PartitionedMaps_Split_Imported<MaybeFrontBack | undefined>>
-  // refreshFavorites: () => Promise<void>
 }
 
 const FavoritesContext = createContext<FavoritesContextType | null>(null)
@@ -90,7 +90,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addFavorite = useCallback(
     async (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => {
       return runMutation(async () => {
-        // Optimistic update: New favorites via UI have no custom HTML
         const newItem = FavoriteItem_mk(word, language, Date.now(), undefined, undefined)
         const prevState = favorites
 
@@ -100,7 +99,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           await addFavoriteDb(word, language, Date.now(), undefined, undefined)
         } catch (e) {
           setFavorites(prevState)
+
           toast.error('Failed to add favorite' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+
           throw e
         }
       })
@@ -114,7 +115,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const prevState = favorites
 
         setFavorites(prev => prev.filter(item => !(item.word === word && item.language === language)))
-
         try {
           const result = await removeFavoriteDb(word, language)
 
@@ -135,17 +135,16 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const prevState = favorites
         const existingIndex = favorites.findIndex(item => item.word === word && item.language === language)
         const exists = existingIndex !== -1
-
         let optimisticState
 
         if (exists) {
           optimisticState = favorites.filter((_, idx) => idx !== existingIndex)
         } else {
-          // Optimistic update: New favorites via UI have no custom HTML
           const newItem = FavoriteItem_mk(word, language, Date.now(), undefined, undefined)
 
           optimisticState = [newItem, ...favorites]
         }
+
         setFavorites(optimisticState)
 
         try {
@@ -154,7 +153,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           return result
         } catch (e) {
           setFavorites(prevState)
+
           toast.error('Failed to toggle favorite' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+
           throw e
         }
       })
@@ -167,7 +168,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const prevState = favorites
 
       setFavorites([])
-
       try {
         await deleteAllFavoritesDb()
       } catch (e) {
@@ -187,22 +187,18 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (itemIndex === -1) {
           throw new Error('Item not found in store')
         }
-
         const currentItem = favorites[itemIndex]
 
         if (!currentItem) {
           throw new Error('Item not found in store')
         }
-
         const now = Date.now()
         const updates = reviewCard_calculateReviewUpdates(currentItem, grade, now)
         const optimisticItem = { ...currentItem, ...updates }
-
         const optimisticState = [...favorites]
 
         optimisticState[itemIndex] = optimisticItem
         setFavorites(optimisticState)
-
         try {
           const result = await reviewCardDb(word, language, grade)
 
@@ -234,11 +230,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return runMutation(async () => {
         const prevState = favorites
 
-        // Optimistic Update
         setFavorites(prev =>
           prev.map(item => (item.word === word && item.language === language ? { ...item, [update_to]: data } : item)),
         )
-
         try {
           await updateFavoriteHtmlDb(word, language, update_to, data)
         } catch (e) {
@@ -256,12 +250,8 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return runMutation(async () => {
         try {
           const res = await importWordsToAnkiDb(input, separator)
-
-          // Re-fetch data from DB
           const newData = await getFavoritesDb()
 
-          // Smart update: Only replace objects that have actually changed
-          // to preserve referential integrity for unchanged items
           setFavorites(prev => {
             return newData.map(newItem => {
               const existing = prev.find(p => p.word === newItem.word && p.language === newItem.language)
@@ -272,7 +262,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 existing.additional_html_back === newItem.additional_html_back &&
                 existing.last_review === newItem.last_review
               ) {
-                return existing // Keep old reference
+                return existing
               }
 
               return newItem
@@ -289,9 +279,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [runMutation, toast],
   )
 
+  const favoritesMap = useMemo(() => new Map(favorites.map(f => [f.word, f])), [favorites])
+
   const value = useMemo(
     () => ({
       favorites,
+      favoritesMap,
       loading,
       addFavorite,
       removeFavorite,
@@ -299,12 +292,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteAllFavorites,
       reviewCard,
       isFavorite,
-      refreshFavorites,
       updateFavoriteHtml,
       importFavorites,
     }),
     [
       favorites,
+      favoritesMap,
       loading,
       addFavorite,
       removeFavorite,
@@ -312,7 +305,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteAllFavorites,
       reviewCard,
       isFavorite,
-      // refreshFavorites,
       updateFavoriteHtml,
       importFavorites,
     ],

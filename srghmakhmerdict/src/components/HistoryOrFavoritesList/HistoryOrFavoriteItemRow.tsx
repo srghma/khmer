@@ -41,7 +41,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
   ({ word, language, onSelect, onDelete, maybeColorMode, renderRightAction }) => {
     const controls = useAnimation()
     const { km_map, en, ru } = useDictionary()
-    const { favorites } = useFavorites()
+    const { favoritesMap } = useFavorites()
 
     const handleDragEnd = useCallback(
       async (_: unknown, info: PanInfo) => {
@@ -77,9 +77,9 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
 
     const wordColorized = useMemo(() => {
       return {
-        __html: colorizeText(word, maybeColorMode, km_map, true, undefined, undefined, 'disabled', favorites),
+        __html: colorizeText(word, maybeColorMode, km_map, true, undefined, undefined, 'disabled', favoritesMap),
       }
-    }, [word, km_map, maybeColorMode, favorites])
+    }, [word, km_map, maybeColorMode, favoritesMap])
 
     const onTap = useCallback(() => onSelect(word, language), [onSelect, word, language])
 

@@ -14,7 +14,7 @@ interface RatingConfig {
   color: ButtonProps['color']
 }
 
-const getRatings = (LL: TranslationFunctions): RatingConfig[] => [
+export const getRatings = (LL: TranslationFunctions): RatingConfig[] => [
   { rating: Grade.AGAIN, label: () => LL.ANKI.BUTTONS.AGAIN(), color: 'danger' },
   { rating: Grade.HARD, label: () => LL.ANKI.BUTTONS.HARD(), color: 'warning' },
   { rating: Grade.GOOD, label: () => LL.ANKI.BUTTONS.GOOD(), color: 'success' },

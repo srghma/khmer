@@ -5,11 +5,11 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 export type FavoriteStatus = 'none' | 'new' | 'learning' | 'review' | 'relearning'
 
 export const getFavoriteStatus = (
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
   word: NonEmptyStringTrimmed,
 ): FavoriteStatus => {
   if (!favorites) return 'none'
-  const item = favorites.find(f => f.word === word)
+  const item = favorites.get(word)
 
   if (!item) return 'none'
 

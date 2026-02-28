@@ -65,8 +65,12 @@ export const segmentsToUniqueKhmerWords = (
 ): NonEmptySet<TypedKhmerWord> | undefined => {
   const uniqueWords = new Set<TypedKhmerWord>()
 
-  for (const w of yieldUniqueKhmerWords(segments)) {
-    uniqueWords.add(w)
+  for (const seg of segments) {
+    if (seg.t === 'khmer') {
+      for (const w of seg.words) {
+        uniqueWords.add(w)
+      }
+    }
   }
 
   return Set_toNonEmptySet_orUndefined(uniqueWords)
@@ -133,7 +137,7 @@ export function* yieldColorizedChunks(
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): Generator<NonEmptyString> {
   for (const segment of segments) {
     if (segment.t === 'whitespace') {
@@ -201,7 +205,7 @@ export const colorizeSegments_usingWordCounterRef = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): NonEmptyString => {
   let result = ''
 
@@ -227,7 +231,7 @@ export const colorizeSegments = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): NonEmptyString => {
   return colorizeSegments_usingWordCounterRef(
     segments,
@@ -249,7 +253,7 @@ export const colorizeText = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): NonEmptyString => {
   const segments = yieldTextSegments(escapeHtml(text), mode, km_map, dictionaryMode_lonelyWordShouldBeSpilt)
 
@@ -264,7 +268,7 @@ export const colorizeText_allowUndefined = (
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined,
   excludeWord: TypedKhmerWord | undefined,
   khmerWordsHidingMode: WordsHidingMode,
-  favorites: readonly FavoriteItem[] | undefined | null,
+  favorites: ReadonlyMap<NonEmptyStringTrimmed, FavoriteItem> | undefined,
 ): NonEmptyString | undefined => {
   return text
     ? colorizeText(

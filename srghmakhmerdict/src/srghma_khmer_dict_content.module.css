@@ -19,6 +19,16 @@
   --kw-skeleton-bg: #e4e4e7;
   /* Zinc-200 */
   --kw-skeleton-fg: transparent;
+
+  /* Anki Status Skeleton Tints (Light) */
+  --kw-skeleton-bg-new: #dbeafe;
+  /* heroui-primary-100 */
+  --kw-skeleton-bg-learning: #fef3c7;
+  /* heroui-warning-100 */
+  --kw-skeleton-bg-relearning: #fee2e2;
+  /* heroui-danger-100 */
+  --kw-skeleton-bg-review: #dcfce7;
+  /* heroui-success-100 */
 }
 
 /* --- Dark Mode Overrides --- */
@@ -41,7 +51,18 @@
   /* Skeleton Colors Dark */
   --kw-skeleton-bg: #3f3f46;
   /* Zinc-700 */
+
+  /* Anki Status Skeleton Tints (Dark) */
+  --kw-skeleton-bg-new: #1e3a8a;
+  /* heroui-primary-900 */
+  --kw-skeleton-bg-learning: #78350f;
+  /* heroui-warning-900 */
+  --kw-skeleton-bg-relearning: #7f1d1d;
+  /* heroui-danger-900 */
+  --kw-skeleton-bg-review: #064e3b;
+  /* heroui-success-900 */
 }
+
 
 /* --- Base Utility Classes --- */
 
@@ -143,12 +164,11 @@
 /* ========================================= */
 
 /*
-  Target all span elements with a class starting with 'khmer--'
-  BUT exclude '.khmer--blue-lbl' (legacy blue)
-  AND exclude elements that have been clicked ('.is-revealed')
+  Target all Khmer words (.khmer--word)
+  BUT exclude elements that have been clicked ('.is-revealed')
 */
-.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed)),
-.hiding_enabled :global(button[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed)) {
+.hiding_enabled :global(.khmer--word:not(.is-revealed)),
+.hiding_enabled :global([class*='anki--status-']:not(.is-revealed)) {
   color: var(--kw-skeleton-fg) !important;
   background-color: var(--kw-skeleton-bg);
   border-radius: 6px;
@@ -169,6 +189,22 @@
   -webkit-box-decoration-break: clone;
 }
 
+.hiding_enabled :global(.anki--status-new:not(.is-revealed)) {
+  background-color: var(--kw-skeleton-bg-new);
+}
+
+.hiding_enabled :global(.anki--status-learning:not(.is-revealed)) {
+  background-color: var(--kw-skeleton-bg-learning);
+}
+
+.hiding_enabled :global(.anki--status-relearning:not(.is-revealed)) {
+  background-color: var(--kw-skeleton-bg-relearning);
+}
+
+.hiding_enabled :global(.anki--status-review:not(.is-revealed)) {
+  background-color: var(--kw-skeleton-bg-review);
+}
+
 /* Specific styling for hidden images */
 
 .hiding_enabled :global(img.khmer--image:not(.is-revealed)) {
@@ -181,8 +217,7 @@
 }
 
 /* Hover effect on hidden words and images to hint interactivity */
-.hiding_enabled :global(span[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover),
-.hiding_enabled :global(button[class*='khmer--']:not(.khmer--blue-lbl):not(.is-revealed):hover),
+.hiding_enabled :global(.khmer--word:not(.is-revealed):hover),
 .hiding_enabled :global(img.khmer--image:not(.is-revealed):hover) {
   background-color: var(--kw-0);
   /* Show a hint color or darker gray */
@@ -287,7 +322,7 @@
 }
 
 /* Ensure list items inherit the interactive/hidden styles if applied inside <li> */
-.srghma_khmer_dict_content :global(li) :global(span[class*='khmer--']) {
+.srghma_khmer_dict_content :global(li) :global(.khmer--word) {
   display: inline-block;
 }
 
