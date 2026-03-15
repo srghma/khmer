@@ -39,6 +39,14 @@ Upload app to internal test track
 
 Upload app to closed test track
 
+### android upload_aab_production
+
+```sh
+[bundle exec] fastlane android upload_aab_production
+```
+
+Upload app to production
+
 ### android beta
 
 ```sh

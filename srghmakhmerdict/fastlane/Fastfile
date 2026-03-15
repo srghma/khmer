@@ -45,6 +45,16 @@ platform :android do
     )
   end
 
+  desc "Upload app to production"
+  lane :upload_aab_production do
+    upload_to_play_store(
+      aab: '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab',
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
   desc "Submit a new Beta Build to Crashlytics Beta"
   lane :beta do
     gradle(task: "clean assembleRelease")
