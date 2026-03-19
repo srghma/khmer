@@ -48,10 +48,13 @@ platform :android do
   desc "Upload app to production"
   lane :upload_aab_production do
     upload_to_play_store(
+      track: 'production',
       aab: '/home/srghma/projects/khmer/srghmakhmerdict/src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab',
       skip_upload_metadata: true,
       skip_upload_images: true,
-      skip_upload_screenshots: true
+      skip_upload_screenshots: true,
+      release_status: 'completed',
+      # countries: ["all"]
     )
   end
 
