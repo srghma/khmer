@@ -374,7 +374,10 @@ export function Array_groupByKeys<V, K extends string>(
   return result
 }
 
-export function Array_groupBy<V, K extends string>(xs: readonly V[], getKey: (v: V) => K): Record<K, NonEmptyArray<V>> {
+export function Array_groupBy_intoRecord<V, K extends string>(
+  xs: readonly V[],
+  getKey: (v: V) => K,
+): Record<K, NonEmptyArray<V>> {
   const result = {} as Record<K, V[]>
   for (const x of xs) {
     const key = getKey(x)
@@ -382,4 +385,21 @@ export function Array_groupBy<V, K extends string>(xs: readonly V[], getKey: (v:
     else result[key] = [x]
   }
   return result as unknown as Record<K, NonEmptyArray<V>>
+}
+
+export function Array_groupBy_intoMap<V, K extends string>(
+  xs: readonly V[],
+  getKey: (v: V) => K,
+): Map<K, NonEmptyArray<V>> {
+  const result = new Map<K, V[]>()
+  for (const x of xs) {
+    const key = getKey(x)
+    const existing = result.get(key)
+    if (existing !== undefined) {
+      existing.push(x)
+    } else {
+      result.set(key, [x])
+    }
+  }
+  return result as unknown as Map<K, NonEmptyArray<V>>
 }

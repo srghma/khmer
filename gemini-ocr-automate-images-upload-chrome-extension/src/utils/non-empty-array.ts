@@ -1,4 +1,6 @@
-import { Array_groupByKeys } from './array'
+import { Array_groupBy_intoMap, Array_groupBy_intoRecord, Array_groupByKeys } from './array'
+import type { NonEmptyMap } from './non-empty-map'
+import type { NonEmptyRecord } from './non-empty-record'
 import { Set_toNonEmptySet_orThrow, type NonEmptySet } from './non-empty-set'
 import { sortBy_immutable } from './sort'
 import { Option_none, Option_some, type Option } from './types'
@@ -62,6 +64,16 @@ export function NonEmptyArray_collectToSet<A, B>(queue: NonEmptyArray<A>, f: (a:
   for (const item of queue) s.add(f(item))
   return Set_toNonEmptySet_orThrow(s)
 }
+
+export const NonEmptyArray_groupBy_intoRecord: <A, B extends string | number | symbol>(
+  arr: NonEmptyArray<A>,
+  f: (a: A) => B,
+) => NonEmptyRecord<B, NonEmptyArray<A>> = Array_groupBy_intoRecord as any
+
+export const NonEmptyArray_groupBy_intoMap: <A, B extends string | number | symbol>(
+  arr: NonEmptyArray<A>,
+  f: (a: A) => B,
+) => NonEmptyMap<B, NonEmptyArray<A>> = Array_groupBy_intoMap as any
 
 export function Array_groupByKeys_toNonEmptyArrays<V, K extends string>(
   xs: readonly V[],

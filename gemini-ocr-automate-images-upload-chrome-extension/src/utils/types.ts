@@ -93,7 +93,7 @@ export const Except_bimap = <E, F, A, B>(ea: Except<E, A>, fErr: (e: E) => F, fO
 
 export const Except_toOption = <E, A>(ea: Except<E, A>): Option<A> => (ea.t === 'ok' ? Option_some(ea.v) : Option_none)
 
-export const Except_partition = <E, A>(eas: readonly Except<E, A>[]): Except<E[], A[]> => {
+export const Except_partition = <E, A>(eas: readonly Except<E, A>[]): Except<[E, ...E[]], A[]> => {
   const values: A[] = []
   const errors: E[] = []
 
@@ -105,7 +105,7 @@ export const Except_partition = <E, A>(eas: readonly Except<E, A>[]): Except<E[]
     }
   }
 
-  return errors.length > 0 ? Except_error(errors) : Except_ok(values)
+  return errors.length > 0 ? Except_error(errors as [E, ...E[]]) : Except_ok(values)
 }
 
 // checkers
