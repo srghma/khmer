@@ -91,6 +91,35 @@ export const Except_getD = <E, A>(ea: Except<E, A>, d: A): A => (ea.t === 'ok' ?
 export const Except_bimap = <E, F, A, B>(ea: Except<E, A>, fErr: (e: E) => F, fOk: (a: A) => B): Except<F, B> =>
   ea.t === 'ok' ? Except_ok(fOk(ea.v)) : Except_error(fErr(ea.error))
 
+/**
+ * Monadic fold (foldM) for Except.
+ * Sequentially applies `f` to each element of `arr`, threading the Except,
+ * and stops at the first error (fail-fast).
+ *
+ * @param arr Array of elements to fold over
+ * @param initial Initial value
+ * @param f Function taking (acc, current) and returning Except<E, R>
+ * @returns Except<E, R> after folding, or first error encountered
+ */
+export function Except_foldrM<E, A, B>(arr: readonly A[], initial: B, f: (acc: B, a: A) => Except<E, B>): Except<E, B> {
+  let acc: B = initial
+
+  for (const a of arr) {
+    const res = f(acc, a)
+    if (res.t === 'ok') {
+      acc = res.v
+    } else {
+      return Except_error(res.error) // fail-fast
+    }
+  }
+
+  return Except_ok(acc)
+}
+
+export function Except_foldrM1<E, A>([h, ...t]: readonly [A, ...A[]], f: (acc: A, a: A) => Except<E, A>): Except<E, A> {
+  return Except_foldrM(t, h, f)
+}
+
 export const Except_toOption = <E, A>(ea: Except<E, A>): Option<A> => (ea.t === 'ok' ? Option_some(ea.v) : Option_none)
 
 export const Except_partition = <E, A>(eas: readonly Except<E, A>[]): Except<[E, ...E[]], A[]> => {
