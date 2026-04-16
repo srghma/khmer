@@ -1,16 +1,16 @@
 import { Database } from 'bun:sqlite'
 import fs from 'node:fs'
 import path from 'node:path'
-import { openDB } from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/open-google-translate-cache.ts'
-import { translateSrt } from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/open-google-translate-cached.ts'
-import { translateWithRetryForever } from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/retry'
+import { openDB } from './utils/open-google-translate-cache'
+import { translateSrt } from './utils/open-google-translate-cached'
+import { translateWithRetryForever } from './utils/retry'
 import {
   extractAbbreviationMap,
   expandAbbreviations,
   CONFIG,
-} from '/home/srghma/projects/khmer/dicts/src/translate-dict.ts'
-import { Set_toNonEmptySet_orThrow } from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/non-empty-set'
-import { parseDictionaryFile } from '/home/srghma/projects/khmer/gemini-ocr-automate-images-upload-chrome-extension/src/utils/dict-parser'
+} from './utils/translate-dict'
+import { Set_toNonEmptySet_orThrow } from './utils/non-empty-set'
+import { parseDictionaryFile } from './utils/dict-parser'
 import { nonEmptyString_afterTrim, type NonEmptyStringTrimmed } from './utils/non-empty-string-trimmed'
 
 const DB_PATH = '/home/srghma/projects/khmer/khmer_dictionary/assets/dict.db'

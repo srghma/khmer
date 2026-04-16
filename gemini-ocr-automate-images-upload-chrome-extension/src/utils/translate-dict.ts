@@ -2,21 +2,22 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { openDB } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/open-google-translate-cache"
-import { translateSrt } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/open-google-translate-cached"
-import { parseDictionaryFile } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/dict-parser"
+import { openDB } from "./open-google-translate-cache"
+import { translateSrt } from "./open-google-translate-cached"
+import { parseDictionaryFile } from "./dict-parser"
 import {
   type NonEmptyStringTrimmed,
   String_toNonEmptyString_orUndefined_afterTrim,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed"
-import { Set_toNonEmptySet_orThrow } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set"
-import { translateWithRetryForever } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/retry"
-import { assertIsDefinedAndReturn } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts"
-import { colorizeKhmerHtml } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/colorize-html"
+} from "./non-empty-string-trimmed"
+import { Set_toNonEmptySet_orThrow } from "./non-empty-set"
+import { translateWithRetryForever } from "./retry"
+import { assertIsDefinedAndReturn } from "./asserts"
+import { colorizeKhmerHtml } from "./khmer-colorize-html"
 import {
   strToKhmerWordOrThrow,
-  TypedKhmerWord,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
+  type TypedKhmerWord,
+} from "./khmer-word"
+import type { NonEmptyMap } from "./non-empty-map"
 
 // --- Configuration ---
 
@@ -175,7 +176,7 @@ async function main() {
 
   // 5. Perform Batch Translation
   const db = openDB()
-  let translationsMap = new Map<NonEmptyStringTrimmed, NonEmptyStringTrimmed>()
+  let translationsMap: Map<NonEmptyStringTrimmed, NonEmptyStringTrimmed> | NonEmptyMap<NonEmptyStringTrimmed, NonEmptyStringTrimmed> = new Map<NonEmptyStringTrimmed, NonEmptyStringTrimmed>()
 
   if (segmentsToTranslate.size > 0) {
     translationsMap = await translateWithRetryForever(() =>

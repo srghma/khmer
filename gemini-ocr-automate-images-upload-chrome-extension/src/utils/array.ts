@@ -356,19 +356,17 @@ export function Array_filterMap_undefined_toSet<T, U>(
  */
 export function Array_groupByKeys<V, K extends string>(
   xs: readonly V[],
-  keys: readonly K[],
   getKey: (v: V) => K,
-): Record<K, V[]> {
+): Partial<Record<K, V[]>> {
   const result = {} as Record<K, V[]>
 
-  // Initialize all keys with empty arrays
-  for (const key of keys) result[key] = []
-
-  // Populate buckets
   for (const x of xs) {
     const key = getKey(x)
-    // We check if the key is valid for the record we initialized
-    if (Object.prototype.hasOwnProperty.call(result, key)) result[key].push(x)
+    if (Object.prototype.hasOwnProperty.call(result, key)) {
+      result[key].push(x)
+    } else {
+      result[key] = [x]
+    }
   }
 
   return result

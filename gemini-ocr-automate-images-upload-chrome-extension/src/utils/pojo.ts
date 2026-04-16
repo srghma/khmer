@@ -27,7 +27,7 @@ export function recursiveMapSetToArray(data: any): any {
 
   // Handle plain Objects (Records): map over properties recursively
   if (data.constructor === Object) {
-    const newObject = {};
+    const newObject: any = {};
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         newObject[key] = recursiveMapSetToArray(data[key]) as any;

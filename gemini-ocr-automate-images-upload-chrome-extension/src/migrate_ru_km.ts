@@ -5,6 +5,7 @@ import {
   type TypedRussianWordDictionaryIndexElement,
 } from './utils/russian-word-dictionary-index'
 import { type NonEmptyArray } from './utils/non-empty-array'
+import type { NonEmptyStringTrimmed } from './utils/non-empty-string-trimmed'
 
 const DB_PATH = '/home/srghma/projects/khmer/khmer_dictionary/assets/dict.db'
 const RU_KM_DICT_PATH = '/home/srghma/projects/khmer/Краткий русско-кхмерский словарь--content.txt'
@@ -18,7 +19,7 @@ const sanitizeForStrictSql = (s: string): string => {
     .replace(/ {2,}/g, ' ')
 }
 
-function prepareHtml(c: TypedRussianWordDictionaryIndexElement): string {
+function prepareHtml(c: NonEmptyStringTrimmed): string {
   const html = markdownToHtml(c)
   return sanitizeForStrictSql(html.replace(/<br>/g, '___BR___')).replace(/___BR___/g, '<br>')
 }

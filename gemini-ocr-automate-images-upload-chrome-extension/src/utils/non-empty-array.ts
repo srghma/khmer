@@ -75,13 +75,19 @@ export const NonEmptyArray_groupBy_intoMap: <A, B extends string | number | symb
   f: (a: A) => B,
 ) => NonEmptyMap<B, NonEmptyArray<A>> = Array_groupBy_intoMap as any
 
+export function recordOfArrays_mapValues_to_nonEmptyArrayOrUndefined_mutating<K extends string | number | symbol, V>(
+  record: Record<K, readonly V[]>,
+): Partial<Record<K, NonEmptyArray<V>>> {
+  for (const key of Object.keys(record) as K[]) {
+    if (Array_isNonEmptyArray(record[key])) continue
+    delete record[key] // NOTE: here we dont mix { [K]?: ... } with { [K]: undefined }
+  }
+  return record as any
+}
+
 export function Array_groupByKeys_toNonEmptyArrays<V, K extends string>(
   xs: readonly V[],
-  keys: readonly K[],
   getKey: (v: V) => K,
-): Record<K, NonEmptyArray<V> | undefined> {
-  const buckets = Array_groupByKeys(xs, keys, getKey)
-  const result = {} as Record<K, NonEmptyArray<V> | undefined>
-  for (const key of keys) result[key] = Array_toNonEmptyArray_orUndefined(buckets[key])
-  return result
+): Partial<Record<K, NonEmptyArray<V>>> {
+  return recordOfArrays_mapValues_to_nonEmptyArrayOrUndefined_mutating(Array_groupByKeys(xs, getKey) as any)
 }

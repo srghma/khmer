@@ -1,15 +1,15 @@
 import {
   assertIsDefined,
   assertIsDefinedAndReturn,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts"
-import { Array_partition } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/array"
+} from "./asserts"
+import { Array_partition } from "./array"
 import {
   isKhmerWord,
   strToKhmerWordOrThrow,
-  TypedKhmerWord,
-} from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word"
+  type TypedKhmerWord,
+} from "./khmer-word"
 import fs from "node:fs/promises"
-import { strToKhmerWordDictionaryIndexElementOrThrow, TypedKhmerWordDictionaryIndexElement } from "@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word-dictionary-index"
+import { strToKhmerWordDictionaryIndexElementOrThrow, type TypedKhmerWordDictionaryIndexElement } from "./khmer-word-dictionary-index"
 
 // Types
 interface HeadwordData {

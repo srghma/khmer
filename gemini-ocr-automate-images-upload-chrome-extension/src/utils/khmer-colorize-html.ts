@@ -1,4 +1,4 @@
-import { type TypedKhmerWord } from './khmer-word'
+import { strToKhmerWord_unsafe, type TypedKhmerWord } from './khmer-word'
 import { khmerSentenceToWords_usingDictionary } from './khmer_segmentation'
 
 export const COLOR_PALETTE = [
@@ -14,7 +14,7 @@ export const colorizeKhmerHtml = (html: string, dict: Set<TypedKhmerWord>): stri
 
   // Regex to find blocks of Khmer text
   return html.replace(/[\p{Script=Khmer}]+/gu, match => {
-    const words = khmerSentenceToWords_usingDictionary(match as TypedKhmerWord, dict)
+    const words = khmerSentenceToWords_usingDictionary(strToKhmerWord_unsafe(match), dict.has)
     return words
       .map(w => {
         if (dict.has(w)) {

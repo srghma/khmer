@@ -5,7 +5,7 @@ import type { NonEmptySet } from './non-empty-set'
 import { Record_entriesToArray } from './record'
 import { Option_none, Option_some, type Option } from './types'
 
-export type NonEmptyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>> & {
+export type NonEmptyRecord<K extends PropertyKey, V> = Record<K, V> & {
   readonly _nonEmptyRecordBrand: 'NonEmptyRecord'
 }
 
@@ -109,3 +109,35 @@ export const NonEmptyRecord_entriesToArray = Record_entriesToArray as unknown as
   record: NonEmptyRecord<K, V>,
   fn: (key: K, value: V, index: number) => R,
 ) => NonEmptyArray<R>
+
+// example:
+// const record = { a: 1, b: 2 }
+// const record_ = Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready(record, ['a', 'b', 'c'], 999)
+// console.log(record_) // { a: 1, b: 2, c: 999 }
+export function Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready_withUndefined<K extends PropertyKey, V>(
+  record: {
+    readonly [P in K]?: V;
+  },
+  keys: NonEmptyArray<K>,
+): NonEmptyRecord<K, V | undefined> {
+  const result: {
+    [P in K]: V | undefined;
+  } = { ...record } as any
+  for (const key of keys) {
+    if (Object.hasOwn(result, key)) continue
+    result[key] = undefined
+  }
+  return result as NonEmptyRecord<K, V | undefined>
+}
+
+export function Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready_mutating<K extends PropertyKey, V>(
+  record: Record<K, V>,
+  keys: NonEmptyArray<K>,
+  defaultValue: V,
+): NonEmptyRecord<K, V> {
+  for (const key of keys) {
+    if (Object.hasOwn(record, key)) continue
+    record[key] = defaultValue
+  }
+  return record as NonEmptyRecord<K, V>
+}

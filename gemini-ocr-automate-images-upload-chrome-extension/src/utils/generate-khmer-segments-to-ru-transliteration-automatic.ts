@@ -4,6 +4,7 @@ import { CONSONANTS, EXTRA_CONSONANTS, VOWELS, VOWEL_COMBINATIONS, INDEPENDENT_V
 import { tokenize } from './khmer_parse_tokenize'
 import { enrichWithSeries, type EnrichedToken } from './khmer_parse_tokenize_with_series'
 import type { TypedKhmerWord } from './khmer-word'
+import { assertIsDefinedAndReturn } from './asserts'
 
 /**
  * Strips the inherent vowel from a Russian transliteration string.
@@ -26,7 +27,7 @@ export function transliterateKhmerSegmentToRu(segment: string): string {
   let result = ''
 
   for (let i = 0; i < enriched.length; i++) {
-    const token = enriched[i]
+    const token = assertIsDefinedAndReturn(enriched[i])
     const nextToken = enriched[i + 1]
 
     // Determine if we need to use the stem (because a vowel follows)

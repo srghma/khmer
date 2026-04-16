@@ -18,7 +18,7 @@ import {
 import { type NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import {
-  Record_toNonEmptyRecord_unsafe,
+  Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready_withUndefined,
   type NonEmptyRecord,
 } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { INTERVAL_MS_AGAIN, INTERVAL_MS_HARD, INTERVAL_MS_GOOD_NEW, getOneDayInMs } from './constants'
@@ -169,7 +169,10 @@ export function allFavorites_split_sorted(
   allFavorites: NonEmptyArray<FavoriteItem>,
 ): NonEmptyRecord<DictionaryLanguage, NonEmptyArray<FavoriteItem> | undefined> {
   // 1. Group by language
-  const grouped = Array_groupByKeys_toNonEmptyArrays(allFavorites, DICTIONARY_LANGUAGES, item => item.language)
+  const grouped = Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready_withUndefined(
+    Array_groupByKeys_toNonEmptyArrays(allFavorites, item => item.language),
+    DICTIONARY_LANGUAGES,
+  )
 
   // 2. Sort each group by due date
   for (const lang of DICTIONARY_LANGUAGES) {
@@ -178,7 +181,7 @@ export function allFavorites_split_sorted(
     if (group) grouped[lang] = hasFavorites_sortByDue_todayIsTop(group, x => x)
   }
 
-  return Record_toNonEmptyRecord_unsafe(grouped)
+  return grouped
 }
 
 export function hasFavorites_sortByDue_todayIsTop<T>(

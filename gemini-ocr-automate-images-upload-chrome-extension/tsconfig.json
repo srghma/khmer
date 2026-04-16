@@ -6,7 +6,11 @@
     "alwaysStrict": true, // Enforces 'use strict' mode for JavaScript
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext",
+    ],
     "module": "Preserve",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -14,18 +18,24 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true, // Prevents implicit 'any' type
     "noImplicitOverride": true,
-    "noImplicitThis": true, // Ensures 'this' is typed explicitly
+    "noImplicitThis": true, // Ensures this is typed explicitly
     "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe array access)
+    "noUncheckedIndexedAccess": true, // Array indexing safety (e.g., safe access)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "outDir": "dist",
+    "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true, // Ensures null and undefined are checked
     "target": "ESNext",
-    "verbatimModuleSyntax": true
-    // "types": ["node", "esbuild-plugin-inline-import"]
+    "verbatimModuleSyntax": true,
+    "types": [
+      "bun",
+      "chrome"
+    ]
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*",
+  ]
   // "exclude": ["node_modules", "node_modules/.pnpm"]
 }

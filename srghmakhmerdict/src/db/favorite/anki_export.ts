@@ -1,5 +1,5 @@
 import { stringify } from 'csv-stringify/browser/esm/sync'
-import { Array_groupBy } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/array'
+import { Array_groupByKeys } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/array'
 import { getUserDb } from '../core'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
@@ -14,11 +14,12 @@ export async function getAnkiExportData(): Promise<NonEmptyStringTrimmed | undef
     { word: string; language: string; additional_html_front: string | null; additional_html_back: string | null }[]
   >('SELECT word, language, additional_html_front, additional_html_back FROM favorites ORDER BY timestamp DESC')
 
-  const groupedByLang = Array_groupBy(rows, x => x.language)
+  const groupedByLang = Array_groupByKeys(rows, x => x.language)
 
   // key is header
   const printed = Object.entries(groupedByLang)
     .map(([lang, rows]) => {
+      if (!rows) return undefined
       const csv = stringify(
         rows.map(r => [r.word, r.additional_html_front ?? '', r.additional_html_back ?? '']),
         { delimiter: '\t' },
@@ -26,6 +27,7 @@ export async function getAnkiExportData(): Promise<NonEmptyStringTrimmed | undef
 
       return `${lang}\n\n${csv}`
     })
+    .filter((x): x is string => x !== undefined)
     .join('\n\n')
 
   return String_toNonEmptyString_orUndefined_afterTrim(printed)

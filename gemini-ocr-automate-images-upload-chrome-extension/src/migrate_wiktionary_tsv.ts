@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import fs from 'node:fs'
-import { processTsvFile } from '/home/srghma/projects/khmer/dicts/src/wiktionary-parse.ts'
+import { processTsvFile } from './utils/wiktionary-parse'
 
 const DB_PATH = '/home/srghma/projects/khmer/khmer_dictionary/assets/dict.db'
 

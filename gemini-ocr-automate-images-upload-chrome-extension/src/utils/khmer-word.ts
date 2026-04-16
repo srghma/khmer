@@ -19,6 +19,7 @@ export const strToKhmerWordOrThrow = (value: string): TypedKhmerWord => {
   if (!uuid) throw new Error(`Invalid KhmerWord format: '${value}'`)
   return uuid
 }
+export const strToKhmerWord_unsafe = (value: string): TypedKhmerWord => value as TypedKhmerWord
 
 export function* iterateKhmerWords(value: string): IterableIterator<TypedKhmerWord> {
   for (const match of value.matchAll(/\p{Script=Khmer}+/gu)) yield strToKhmerWordOrThrow(match[0])

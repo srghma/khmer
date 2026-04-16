@@ -3,6 +3,7 @@ import path from 'node:path'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { delay } from './utils/delay'
+import { assertIsDefinedAndReturn } from './utils/asserts'
 
 // --- CONFIGURATION ---
 const CONFIG = {
@@ -54,7 +55,8 @@ async function main() {
     await context.overridePermissions('https://translate.google.com', ['clipboard-read', 'clipboard-write'])
 
     for (const file of files) {
-      const id = parseInt(file.split('.')[0], 10)
+      const parts = file.split('.')
+      const id = parseInt(assertIsDefinedAndReturn(parts[0]), 10)
       const inputPath = path.join(CONFIG.imagesDir, file)
       const outputFilename = `${id}_translated.jpeg`
       const outputPath = path.join(CONFIG.outputDir, outputFilename)
@@ -130,7 +132,7 @@ async function main() {
         // 5. Save to Disk
         // Convert Base64 (DataURL) to Buffer
         const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
-        if (!matches || matches.length !== 3) {
+        if (!matches || matches.length !== 3 || !matches[2]) {
           throw new Error('Invalid base64 string returned from Google')
         }
 

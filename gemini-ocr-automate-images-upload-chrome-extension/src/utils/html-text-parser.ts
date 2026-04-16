@@ -1,4 +1,4 @@
-import { Window, type Document, type Element } from 'happy-dom'
+import { Window, type Node, type Document } from 'happy-dom'
 
 export class ReusableHtmlParser {
   private dom: Window

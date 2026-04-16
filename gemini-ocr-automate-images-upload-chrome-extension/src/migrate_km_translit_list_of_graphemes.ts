@@ -70,7 +70,7 @@ async function main() {
   for (const seg of segmentsNormalized) {
     const chars = Array.from(seg)
     const len = chars.length
-    const base = Char_mkOrThrow(chars[0])
+    const base = Char_mkOrThrow(assertIsDefinedAndReturn(chars[0]))
 
     if (!lengthGroups.has(len)) lengthGroups.set(len, new Map())
     const baseMap = lengthGroups.get(len)!

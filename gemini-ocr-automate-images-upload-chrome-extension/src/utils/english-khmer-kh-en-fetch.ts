@@ -34,7 +34,7 @@ const fetchKhEnUrl = async (word: NonEmptyStringTrimmed): Promise<Except<string,
   return Except_ok({ t: 'ok', html: result })
 }
 
-export const processEKKhEnQueue = async (words: Set<TypedKhmerWord>, cache: EnglishKhmerKhEnCache): Promise<void> => {
+export const processEKKhEnQueue = async (words: ReadonlySet<TypedKhmerWord>, cache: EnglishKhmerKhEnCache): Promise<void> => {
   const wordsToFetch = (() => {
     const wordsToFetch: Set<TypedKhmerWord> = new Set()
     for (const word of words) if (!cache.has(word)) wordsToFetch.add(word)

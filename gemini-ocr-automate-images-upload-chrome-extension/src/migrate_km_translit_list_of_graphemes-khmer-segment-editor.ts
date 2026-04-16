@@ -7,93 +7,94 @@ import type { TypedKhmerWord } from './utils/khmer-word'
 import { consonantsGrid, vowelsGrid, supplementaryConsonants, independentVowels } from './utils/khmer-table-grid-data'
 import { strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined } from './utils/khmer-word'
 import { String_toNonEmptyString_orUndefined_afterTrim } from './utils/non-empty-string-trimmed'
+import { assertIsDefinedAndReturn } from './utils/asserts'
 
 const BASE_DIR = path.join(process.env.HOME!, 'projects/khmer/gemini-ocr-automate-images-upload-chrome-extension')
 const USER_YAML_PATH = path.join(BASE_DIR, 'khmer-segments-to-ru-transliteration-user.yaml')
 
 const YamlHelper = {
-  parseUserFixes(filePath: string): Record<string, string> {
-    if (!fs.existsSync(filePath)) return {}
-    try {
-      const content = fs.readFileSync(filePath, 'utf8')
-      const dict: Record<string, string> = {}
-      content.split('\n').forEach(line => {
-        const match = line.match(/^\s*"?([^":]+)"?:\s*"?([^"]+)"?/)
-        if (match) dict[match[1]] = match[2]
-      })
-      return dict
-    } catch {
-      return {}
-    }
-  },
-  stringifyUserFixes(dict: Record<string, string>): string {
-    return Object.entries(dict)
-      .sort()
-      .map(([k, v]) => `"${k}": "${v}"`)
-      .join('\n')
-  },
+    parseUserFixes(filePath: string): Record<string, string> {
+        if (!fs.existsSync(filePath)) return {}
+        try {
+            const content = fs.readFileSync(filePath, 'utf8')
+            const dict: Record<string, string> = {}
+            content.split('\n').forEach(line => {
+                const match = line.match(/^\s*"?([^":]+)"?:\s*"?([^"]+)"?/)
+                if (match) dict[assertIsDefinedAndReturn(match[1])] = assertIsDefinedAndReturn(match[2])
+            })
+            return dict
+        } catch {
+            return {}
+        }
+    },
+    stringifyUserFixes(dict: Record<string, string>): string {
+        return Object.entries(dict)
+            .sort()
+            .map(([k, v]) => `"${k}": "${v}"`)
+            .join('\n')
+    },
 }
 
 export async function startKhmerSegmentEditor(db: Database, lengthGroups: Map<number, Map<Char, Set<TypedKhmerWord>>>) {
-  const userFixes = YamlHelper.parseUserFixes(USER_YAML_PATH)
+    const userFixes = YamlHelper.parseUserFixes(USER_YAML_PATH)
 
-  console.error('🔍 Indexing example words for each segment...')
-  const IS_VERIFIED_WHERE = `(Wiktionary IS NOT NULL OR from_csv_variants IS NOT NULL OR from_csv_nounForms IS NOT NULL OR from_csv_pronunciations IS NOT NULL OR from_csv_rawHtml IS NOT NULL OR from_chuon_nath IS NOT NULL OR from_russian_wiki IS NOT NULL OR en_km_com IS NOT NULL)`
-  const words = db.query(`SELECT Word FROM km_Dict WHERE ${IS_VERIFIED_WHERE}`).all() as { Word: string }[]
+    console.error('🔍 Indexing example words for each segment...')
+    const IS_VERIFIED_WHERE = `(Wiktionary IS NOT NULL OR from_csv_variants IS NOT NULL OR from_csv_nounForms IS NOT NULL OR from_csv_pronunciations IS NOT NULL OR from_csv_rawHtml IS NOT NULL OR from_chuon_nath IS NOT NULL OR from_russian_wiki IS NOT NULL OR en_km_com IS NOT NULL)`
+    const words = db.query(`SELECT Word FROM km_Dict WHERE ${IS_VERIFIED_WHERE}`).all() as { Word: string }[]
 
-  const segmentToWords = new Map<string, Set<string>>()
-  const segmenter = new Intl.Segmenter('km', { granularity: 'grapheme' })
+    const segmentToWords = new Map<string, Set<string>>()
+    const segmenter = new Intl.Segmenter('km', { granularity: 'grapheme' })
 
-  for (const row of words) {
-    const word = row.Word
-    const word_ = strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined(word)
-    if (!word_) continue
-    for (const { segment } of segmenter.segment(word_)) {
-      const s = String_toNonEmptyString_orUndefined_afterTrim(segment)
-      if (!s) continue
-      if (!segmentToWords.has(s)) segmentToWords.set(s, new Set())
-      const set = segmentToWords.get(s)!
-      if (set.size < 10) set.add(word)
+    for (const row of words) {
+        const word = row.Word
+        const word_ = strToKhmerWord_remove_nonKhmerOnBothEnds_orUndefined(word)
+        if (!word_) continue
+        for (const { segment } of segmenter.segment(word_)) {
+            const s = String_toNonEmptyString_orUndefined_afterTrim(segment)
+            if (!s) continue
+            if (!segmentToWords.has(s)) segmentToWords.set(s, new Set())
+            const set = segmentToWords.get(s)!
+            if (set.size < 10) set.add(word)
+        }
     }
-  }
 
-  const segmentsData: any[] = []
-  for (const [len, baseMap] of lengthGroups) {
-    for (const [base, segments] of baseMap) {
-      for (const seg of segments) {
-        const sortedExamples = Array.from(segmentToWords.get(seg) || []).sort((a, b) => a.length - b.length)
-        segmentsData.push({
-          km: seg,
-          base,
-          len: Array.from(seg).length,
-          ru_auto: transliterateKhmerSegmentToRu(seg),
-          ru_user: userFixes[seg] || '',
-          examples: sortedExamples,
-        })
-      }
+    const segmentsData: any[] = []
+    for (const [len, baseMap] of lengthGroups) {
+        for (const [base, segments] of baseMap) {
+            for (const seg of segments) {
+                const sortedExamples = Array.from(segmentToWords.get(seg) || []).sort((a, b) => a.length - b.length)
+                segmentsData.push({
+                    km: seg,
+                    base,
+                    len: Array.from(seg).length,
+                    ru_auto: transliterateKhmerSegmentToRu(seg),
+                    ru_user: userFixes[seg] || '',
+                    examples: sortedExamples,
+                })
+            }
+        }
     }
-  }
 
-  Bun.serve({
-    port: 3000,
-    async fetch(req) {
-      const url = new URL(req.url)
-      if (req.method === 'POST' && url.pathname === '/api/save') {
-        const body = await req.json()
-        const currentFixes = YamlHelper.parseUserFixes(USER_YAML_PATH)
-        body.ru_user ? (currentFixes[body.km] = body.ru_user) : delete currentFixes[body.km]
-        fs.writeFileSync(USER_YAML_PATH, YamlHelper.stringifyUserFixes(currentFixes))
-        return new Response(JSON.stringify({ success: true }))
-      }
-      const gridData = { consonantsGrid, vowelsGrid, supplementaryConsonants, independentVowels }
-      return new Response(generateHtml(segmentsData, gridData), { headers: { 'Content-Type': 'text/html' } })
-    },
-  })
-  console.log(`🚀 Master Grid Editor: http://localhost:3000`)
+    Bun.serve({
+        port: 3000,
+        async fetch(req) {
+            const url = new URL(req.url)
+            if (req.method === 'POST' && url.pathname === '/api/save') {
+                const body = await req.json()
+                const currentFixes = YamlHelper.parseUserFixes(USER_YAML_PATH)
+                body.ru_user ? (currentFixes[body.km] = body.ru_user) : delete currentFixes[body.km]
+                fs.writeFileSync(USER_YAML_PATH, YamlHelper.stringifyUserFixes(currentFixes))
+                return new Response(JSON.stringify({ success: true }))
+            }
+            const gridData = { consonantsGrid, vowelsGrid, supplementaryConsonants, independentVowels }
+            return new Response(generateHtml(segmentsData, gridData), { headers: { 'Content-Type': 'text/html' } })
+        },
+    })
+    console.log(`🚀 Master Grid Editor: http://localhost:3000`)
 }
 
 function generateHtml(segments: any[], grids: any) {
-  return `
+    return `
 <!DOCTYPE html>
 <html>
 <head>
