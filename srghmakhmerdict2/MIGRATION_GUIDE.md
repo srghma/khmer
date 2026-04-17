@@ -21,6 +21,7 @@ The application uses a nested routing structure where most pages preserve the Ma
 | **Anki Session** | `/anki/:lang/:word` | Active flashcard |
 | **Anki Settings** | `/anki/settings/:sub` | e.g., `import`, `export` |
 | **Analyzer** | `/khmer_analyzer` | |
+| **Complex Table** | `/khmer_complex_table` | |
 | **Settings** | `/settings` | Global app settings |
 
 ---
@@ -58,13 +59,27 @@ src/routes/
 │           └── +page.svelte
 ├── khmer_analyzer/
 │   └── +page.svelte
+├── khmer_complex_table/
+│   └── +page.svelte
 └── settings/
     └── +page.svelte
 ```
 
 ---
 
-## 3. UI Elements (Atomic Design)
+## 3. UI Specifications (Visual Mappings)
+
+Detailed UI mockups and element descriptions are available in the `ui_specs/` directory:
+
+1. [**Dictionary View**](./ui_specs/dictionary_view.md): Layout for EN/RU/KM tabs, history, and favorites.
+2. [**Anki Game**](./ui_specs/anki_game_view.md): Flashcard review interface.
+3. [**Khmer Analyzer**](./ui_specs/khmer_analyzer_view.md): Sentence segmentation and analysis tool.
+4. [**Complex Table**](./ui_specs/complex_table_view.md): Consonant-vowel matrix.
+5. [**Settings**](./ui_specs/settings_view.md): Configuration panel.
+
+---
+
+## 4. UI Elements (Atomic Design)
 
 ### Atoms
 - **Icons**: Language flags (🇬🇧, 🇰🇭, 🇷🇺), `RiStar` (Favorites), `RiHistory` (History), `HiArrowLeft` (Back), `GoogleSpeaker` (TTS).
@@ -85,7 +100,7 @@ src/routes/
 
 ---
 
-## 4. Interaction & Responsive Logic
+## 5. Interaction & Responsive Logic
 
 ### The "Dictionary Widget"
 - On **Desktop**, the right panel (Dictionary Widget) is persistent. Switching tabs on the left (`en`, `km`, `ru`) updates the sidebar list, but the widget remains visible on the right.
