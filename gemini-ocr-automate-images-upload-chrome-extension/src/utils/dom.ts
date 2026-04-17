@@ -1,14 +1,14 @@
-export const assert_isConstructor_curried = // wont work
-  <T>(constructor: new (...args: unknown[]) => T) =>
-    (element: unknown): asserts element is T => {
-      if (element instanceof constructor) return
-      throw new Error(`Expected an ${constructor.name}, but got something else.`)
-    }
-
-export const isConstructor_curried = // wont work
-  <T>(constructor: new (...args: unknown[]) => T) =>
-    (el: unknown): el is T =>
-      el instanceof constructor
+// export const assert_isConstructor_curried = // wont work bc curried, bc needs explicit asserts
+//   <T>(constructor: new (...args: unknown[]) => T) =>
+//     (element: unknown): asserts element is T => {
+//       if (element instanceof constructor) return
+//       throw new Error(`Expected an ${constructor.name}, but got something else.`)
+//     }
+//
+// export const isConstructor_curried = // wont work bc curried, bc needs explicit asserts
+//   <T>(constructor: new (...args: unknown[]) => T) =>
+//     (el: unknown): el is T =>
+//       el instanceof constructor
 
 export const toConstructor_orThrow_curried =
   <T>(constructor: new (...args: unknown[]) => T) =>
@@ -33,20 +33,6 @@ export function toConstructor_orThrow<T>(
   throw new Error(`Expected an ${constructor.name}, but got something else.`)
 }
 
-// export const assert_isHTMLElement: (element: unknown) => asserts element is HTMLElement = assert_isConstructor_curried(HTMLElement)
-// export const toHTMLElement_orThrow = toConstructor_orThrow_curried(HTMLElement)
-
-// export const assert_isHTMLIFrameElement = assert_isConstructor_curried(HTMLIFrameElement)
-// export const toHTMLIFrameElement_orThrow = toConstructor_orThrow_curried(HTMLIFrameElement)
-
-// export const isHTMLInputElement = isConstructor_curried(HTMLInputElement)
-// export const assert_isHTMLInputElement = assert_isConstructor_curried(HTMLInputElement)
-// export const toHTMLInputElement_orThrow = toConstructor_orThrow_curried(HTMLInputElement)
-
-// export const isHTMLTextAreaElement = isConstructor_curried(HTMLTextAreaElement)
-// export const assert_isHTMLTextAreaElement = assert_isConstructor_curried(HTMLTextAreaElement)
-// export const toHTMLTextAreaElement_orThrow = toConstructor_orThrow_curried(HTMLTextAreaElement)
-
 export function elementOrNullabel_is_visible(el: Element | null | undefined): boolean {
   if (!el) return false
   if (!(el instanceof HTMLElement)) return false
@@ -70,3 +56,36 @@ export function htmlElement_is_visible(el: HTMLElement): boolean {
 
 export const unlessUndefined_use = <X, Y>(x: X | null | undefined, to: (x: X) => NonNullable<Y>): Y | undefined =>
   x ? to(x) : undefined
+
+export function querySelectorOrThrow<T>(
+  selector: string,
+  constructor: new (...args: unknown[]) => T,
+): T {
+  return toConstructor_orThrow(constructor, document.querySelector(selector));
+}
+
+export function* querySelectorAllOrThrow<T>(
+  selector: string,
+  constructor: new (...args: unknown[]) => T,
+): IterableIterator<T> {
+  const toConstructor_orThrow_curried_ = toConstructor_orThrow_curried(constructor)
+  for (const el of document.querySelectorAll(selector)) {
+    yield toConstructor_orThrow_curried_(el);
+  }
+}
+
+export async function waitForElement<T>(
+  selector: string,
+  constructor: new (...args: unknown[]) => T,
+  timeout = 5000,
+): Promise<T | null> {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const el = document.querySelector(selector);
+    if (el && htmlElement_is_visible(toConstructor_orThrow(HTMLElement, el))) {
+      return toConstructor_orThrow(constructor, el);
+    }
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return null;
+}
