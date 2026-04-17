@@ -1,5 +1,5 @@
 import { delay } from '../utils/delay'
-import { element_to_HTMLElement_orThrow, element_to_HTMLIFrameElement_orThrow } from '../utils/dom'
+import { unlessUndefined_use, toConstructor_orThrow_curried, toConstructor_orThrow, assert_isConstructor } from '../utils/dom'
 import { mkLogger } from '../utils/log'
 
 const log = mkLogger('aistudio' as const)
@@ -13,7 +13,7 @@ function isVisible(node: HTMLElement) {
 
 export const visibleDriveIframe = (): HTMLIFrameElement | undefined => {
   const iframes: HTMLIFrameElement[] = Array.from(document.querySelectorAll('iframe[src*="docs.google.com/picker"]'))
-    .map(x => element_to_HTMLIFrameElement_orThrow(x))
+    .map(toConstructor_orThrow_curried(HTMLIFrameElement))
     .filter(isVisible)
 
   if (iframes.length !== 0 && iframes.length !== 1) {
@@ -55,7 +55,7 @@ export const openDriveIframe = async () => {
     return
   }
 
-  const addBtnEl = element_to_HTMLElement_orThrow(addBtn)
+  const addBtnEl = toConstructor_orThrow(HTMLElement, addBtn)
   addBtnEl.click()
 
   // 2. Wait for Menu Animation
@@ -72,7 +72,7 @@ export const openDriveIframe = async () => {
   }
 
   if (driveItem) {
-    const driveItemEl = element_to_HTMLElement_orThrow(driveItem)
+    const driveItemEl = toConstructor_orThrow(HTMLElement, driveItem)
     driveItemEl.click()
     log('Clicked Drive menu item.')
   } else {

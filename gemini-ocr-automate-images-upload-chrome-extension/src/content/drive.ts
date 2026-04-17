@@ -1,6 +1,6 @@
 import { assertIsDefinedAndReturn, assertNever } from '../utils/asserts'
 import { delay } from '../utils/delay'
-import { assert_element_is_HTMLElement, element_to_HTMLElement_orThrow } from '../utils/dom'
+import { unlessUndefined_use, toConstructor_orThrow_curried, toConstructor_orThrow, assert_isConstructor } from '../utils/dom'
 import { mkLogger } from '../utils/log'
 import { Array_assertNonEmptyArray } from '../utils/non-empty-array'
 import { Set_mkOrThrowIfArrayIsNotUnique } from '../utils/sets'
@@ -69,12 +69,12 @@ async function waitUntilDialogIsReady(signal?: AbortSignal) {
 }
 
 async function ensureListView() {
-  const listBtn = document.querySelector('button[aria-label="List View"], button[data-id="list"]')
-  const isVisible = listBtn && element_to_HTMLElement_orThrow(listBtn).offsetParent !== undefined
+  const listBtn = unlessUndefined_use(document.querySelector('button[aria-label="List View"], button[data-id="list"]'), toConstructor_orThrow_curried(HTMLElement))
+  const isVisible = listBtn && listBtn.offsetParent !== undefined
 
   if (isVisible) {
     log('Switching to List View...')
-    element_to_HTMLElement_orThrow(listBtn).click()
+    listBtn.click()
     await delay(1000)
   }
 }
@@ -97,7 +97,7 @@ function findInsertButton(): HTMLElement | undefined {
     b.textContent?.toUpperCase().includes('INSERT'),
   )
   if (!el) return
-  return element_to_HTMLElement_orThrow(el)
+  return toConstructor_orThrow(HTMLElement, el)
 }
 
 // --- ROW DATA ---
@@ -110,7 +110,7 @@ type RowData = {
 
 const getRows = async (container: HTMLElement): Promise<RowData[]> => {
   const rows: RowData[] = Array.from(container.querySelectorAll('div[role="option"]'))
-    .map(element_to_HTMLElement_orThrow)
+    .map(toConstructor_orThrow_curried(HTMLElement))
     .map(row => {
       const text = getRowTextLowercase(row)
       const pageNumber = extractPageNumber(text)
@@ -129,7 +129,7 @@ const getRows = async (container: HTMLElement): Promise<RowData[]> => {
 
 const clickRow = async (row: HTMLElement): Promise<void> => {
   const clickTarget = row.querySelector('[tabindex], [data-id], img') ?? row
-  assert_element_is_HTMLElement(clickTarget)
+  assert_isConstructor(HTMLElement, clickTarget)
   clickTarget.scrollIntoView({ block: 'center', behavior: 'instant' })
   await delay(200)
   clickTarget.focus()
@@ -152,9 +152,7 @@ export async function selectManyFiles(
   await waitUntilDialogIsReady(signal)
   await ensureListView()
 
-  const container = element_to_HTMLElement_orThrow(
-    assertIsDefinedAndReturn(document.querySelector('.ndfHFb-XuHpsb-haAclf')),
-  )
+  const container = toConstructor_orThrow(HTMLElement, assertIsDefinedAndReturn(document.querySelector('.ndfHFb-XuHpsb-haAclf')))
 
   type R = {
     selected_and_should_be_selected: RowData[]
@@ -261,3 +259,4 @@ export async function selectManyFiles(
     nextStartPage,
   }
 }
+

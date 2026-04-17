@@ -1,4 +1,4 @@
-import { element_to_HTMLElement_orThrow, unlessUndefined_use } from '../utils/dom'
+import { toConstructor_orThrow_curried, unlessUndefined_use } from '../utils/dom'
 
 export type RunButtonState =
   | 'stop_button__disabled_bc_maybe_running'
@@ -8,7 +8,7 @@ export type RunButtonState =
   | 'unknown'
 
 export const dom_runButton = (): HTMLElement | undefined =>
-  unlessUndefined_use(document.querySelector('ms-run-button button'), element_to_HTMLElement_orThrow)
+  unlessUndefined_use(document.querySelector('ms-run-button button'), toConstructor_orThrow_curried(HTMLElement))
 
 export function dom_runButtonToState(btn: HTMLElement): RunButtonState {
   const isDisabled = btn.getAttribute('aria-disabled') === 'true'
