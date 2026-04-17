@@ -1,78 +1,104 @@
 # Srghma Khmer Dictionary - Migration Guide (SvelteKit)
 
-This document provides a structural and functional overview of the Srghma Khmer Dictionary app to facilitate its migration from React/Tauri to SvelteKit.
+This document provides a structural and functional overview of the Srghma Khmer Dictionary app for its migration to SvelteKit.
 
-## 1. Application Architecture
+## 1. URL Structure & Routing
 
-The app follows a **Master-Detail** pattern. It consists of a navigation/list sidebar (Master) and a content panel (Detail). The layout is responsive, switching from a split-pane view on desktop to a single-pane view on mobile.
+The application uses a nested routing structure where most pages preserve the Master-Detail (Sidebar + Content) view.
 
-### Core Systems:
-- **Dictionary Engines**: EN-KM, RU-KM, and KM-KM (Chuon Nath, etc.).
-- **Search System**: Real-time filtering with prefix and content search modes.
-- **Khmer Analyzer**: A specialized tool for segmenting Khmer sentences.
-- **Anki Flashcards**: A SRS system integrated with favorites.
-- **Tauri Integration**: Uses Rust for heavy database operations (SQLite).
+| Page | URL Path | Note |
+| :--- | :--- | :--- |
+| **Home (Default)** | `/` | Redirects to `/en` |
+| **Dictionary Home** | `/:lang` | e.g., `/en`, `/km`, `/ru` |
+| **Word Detail** | `/:lang/:word` | e.g., `/en/apple` |
+| **History Home** | `/history` | Redirects to `/history/en` (last active lang) |
+| **History Lang** | `/history/:lang` | e.g., `/history/en` |
+| **History Detail** | `/history/:lang/:word` | |
+| **Favorites Home** | `/favorites` | Redirects to `/favorites/en` |
+| **Favorites Lang** | `/favorites/:lang` | |
+| **Favorites Detail** | `/favorites/:lang/:word`| |
+| **Anki Home** | `/anki` | Flashcard game root |
+| **Anki Session** | `/anki/:lang/:word` | Active flashcard |
+| **Anki Settings** | `/anki/settings/:sub` | e.g., `import`, `export` |
+| **Analyzer** | `/khmer_analyzer` | |
+| **Settings** | `/settings` | Global app settings |
 
 ---
 
-## 2. UI Elements (Atomic Design)
+## 2. Directory Structure Proposal (SvelteKit)
+
+To maintain a common UI across language routes and handle the "Master-Detail" state, the following structure is recommended:
+
+```text
+src/routes/
+├── +layout.svelte             // Shared Master-Detail shell & responsive logic
+├── +page.ts                   // Redirect / to /en
+├── [lang]/
+│   ├── +layout.svelte         // Common UI for dictionary tabs
+│   ├── +page.svelte           // Sidebar (List) + Welcome (Detail)
+│   └── [word]/
+│       └── +page.svelte       // Sidebar (List) + Dictionary Entry (Detail)
+├── history/
+│   ├── [lang]/
+│   │   ├── +page.svelte       // History List
+│   │   └── [word]/
+│   │       └── +page.svelte   // History List + Word Detail
+├── favorites/
+│   ├── [lang]/
+│   │   ├── +page.svelte       // Favorites List
+│   │   └── [word]/
+│   │       └── +page.svelte   // Favorites List + Word Detail
+├── anki/
+│   ├── +layout.svelte         // Anki game layout (Master-Detail)
+│   ├── [lang]/
+│   │   └── [word]/
+│   │       └── +page.svelte
+│   └── settings/
+│       └── [subpage]/
+│           └── +page.svelte
+├── khmer_analyzer/
+│   └── +page.svelte
+└── settings/
+    └── +page.svelte
+```
+
+---
+
+## 3. UI Elements (Atomic Design)
 
 ### Atoms
-- **Icons**: Language flags (🇬🇧, 🇰🇭, 🇷🇺), `RiStar` (Favorites), `RiHistory` (History), `RiSettings` (Settings), `HiArrowLeft` (Back), `GoogleSpeaker` (TTS).
-- **Chips**: Phonetic displays (e.g., `/pʰiə.saː/`).
-- **Text Units**: `KhmerWordUnit` (individual graphemes in the Analyzer).
-- **Loaders**: HeroUI `Spinner`.
+- **Icons**: Language flags (🇬🇧, 🇰🇭, 🇷🇺), `RiStar` (Favorites), `RiHistory` (History), `HiArrowLeft` (Back), `GoogleSpeaker` (TTS).
+- **Typography**: `KhmerWordUnit` (Analyzer graphemes), Phonetics.
+- **Loaders**: `Spinner`.
 
 ### Molecules
-- **SearchBar**: Input + result count + SearchMode toggles.
-- **WordListItem**: Sidebar row with word, preview, and favorite toggle.
-- **ActionGroup**: Row of buttons in DetailView for TTS, share, and Anki.
-- **SelectionPopup**: Context menu for text selection ("Search", "Analyze").
+- **SearchBar**: Input + result count + prefix/content search toggles.
+- **WordListItem**: Sidebar row showing word and preview.
+- **ActionGroup**: Detail view buttons (TTS, Share, Anki).
+- **SelectionPopup**: Context menu for highlighting ("Search", "Analyze").
 
 ### Organisms
-- **SidebarHeader**: Main navigation tabs + search bar.
-- **SidebarContent**: Virtualized list for words, history, or favorites.
+- **SidebarHeader**: Navigation tabs + SearchBar. Shared across all dict/history/fav routes.
+- **SidebarContent**: **Virtualized List**. Note: Pagination/Virtualization must be handled client-side (e.g., using `svelte-virtual`).
 - **DetailHeader**: Responsive header with word info and actions.
-- **DetailSections**: Content renderer for various dictionary sources.
-- **KhmerAnalyzerView**: Interactive sentence segmentation tool.
-
-### Pages / Templates
-- **MainLayout (AppMain)**: Root layout managing the responsive split-pane.
-- **AnkiGame**: SRS interface using the same Master-Detail pattern.
+- **DictionaryEntry**: The main data view for word definitions.
 
 ---
 
-## 3. Pages, Subpages, and URLs
+## 4. Interaction & Responsive Logic
 
-| Page | URL Path | Sidebar (Master) | Right Panel (Detail) |
-| :--- | :--- | :--- | :--- |
-| **English Home** | `/en` | EN word list | Welcome Screen |
-| **Khmer Home** | `/km` | KM word list | Welcome Screen |
-| **Russian Home** | `/ru` | RU word list | Welcome Screen |
-| **Word Detail** | `/:lang/:word` | Active list (contextual) | **Dictionary Entry** |
-| **History** | `/history` | Recent words list | Welcome / Last viewed |
-| **Favorites** | `/favorites` | Starred words list | Welcome / Last viewed |
-| **Settings** | `/settings` | Settings menu | Welcome / Last viewed |
-| **Analyzer** | `/khmer_analyzer` | Tabs only | Analyzer Tool |
-| **About** | `/about` | Tabs only | Credits |
+### The "Dictionary Widget"
+- On **Desktop**, the right panel (Dictionary Widget) is persistent. Switching tabs on the left (`en`, `km`, `ru`) updates the sidebar list, but the widget remains visible on the right.
+- The widget should be a shared component (e.g., `DetailView.svelte`) used in all `[word]/+page.svelte` routes.
 
-**Note**: In SvelteKit, these should map to `src/routes/[lang]/[[word]]/+page.svelte` and specific routes for `/settings`, `/history`, etc.
+### Device-Specific Buttons
+- **Mobile Only**:
+    - **Back Button**: `HiArrowLeft` in the detail header. It triggers `goto('/en')` or equivalent to hide the detail pane and show the list.
+- **Desktop Only**:
+    - **Persistent Sidebar**: Sidebar is never hidden.
+- **Both**:
+    - **TTS Speaker Icons**: Work via Google Translate or Native APIs.
+    - **Anki Game Buttons**: Review buttons (Again, Hard, Good, Easy).
 
----
-
-## 4. Device-Specific Behavior
-
-### Desktop (Split-Pane)
-- **Persistent Sidebar**: The Master list is always visible.
-- **Navigation**: Clicking a list item updates the Right Panel via URL change without resetting sidebar state.
-- **Back Button**: **Hidden**. No back button is needed as the "Master" is always present.
-
-### Mobile (Single-Pane)
-- **Mutual Exclusion**: Either the Sidebar OR the Detail Panel is visible.
-- **Detail View Trigger**: Navigating to a word (e.g., `/en/apple`) hides the sidebar.
-- **Back Button**: **Visible**. A back arrow (`HiArrowLeft`) appears in the Detail Header. Clicking it navigates back to the base route (e.g., `/en`), restoring the list view.
-- **Action Overflow**: Detail header actions are wrapped in a horizontal scrollable area.
-
-### Universal
-- **Dictionary Widget**: When switching language tabs (EN/KM/RU), the Right Panel (the "widget") preserves its state or shows the selected word from that specific language's context.
-- **TTS/Selection**: All speech and context-menu buttons work across both screen sizes.
+### Technical Note: Virtualization
+Since the dictionary contains thousands of words, pagination via URL is not practical. The sidebar uses **client-side virtualization**. The URL only tracks the *selected* word, not the scroll position of the list (though scroll position is preserved in session state).
