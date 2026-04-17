@@ -48,6 +48,4 @@ export function element_is_visible(el: Element | null | undefined): boolean {
   return true
 }
 
-export function unlessUndefined_use<X, Y>(x: X | null | undefined, to: (x: X) => NonNullable<Y>): Y | undefined {
-  return x ? to(x) : undefined
-}
+export const unlessUndefined_use<X, Y>(x: X | null | undefined, to: (x: X) => NonNullable<Y>): Y | undefined => x ? to(x) : undefined
