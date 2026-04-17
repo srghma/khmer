@@ -302,19 +302,24 @@ export function Array_partitionByType<V, Config extends Record<string, (v: V) =>
   xs: readonly V[],
   config: Config,
 ): { [K in keyof Config]: V[] } {
-  const result = Object.keys(config).reduce((acc, key) => {
-    acc[key] = []
-    return acc
-  }, {} as any)
+  const result: Record<string, V[]> = {}
+  const keys = Object.keys(config)
+
+  for (const key of keys) {
+    result[key] = []
+  }
+
   for (const x of xs) {
-    for (const [key, checkFn] of Object.entries(config)) {
+    for (const key of keys) {
+      const checkFn = config[key]!
       if (checkFn(x)) {
-        result[key].push(x)
+        result[key]!.push(x)
         break
       }
     }
   }
-  return result
+
+  return result as { [K in keyof Config]: V[] }
 }
 
 export function Array_moveIndexToStart<T>(arr: readonly T[], index: number): T[] {

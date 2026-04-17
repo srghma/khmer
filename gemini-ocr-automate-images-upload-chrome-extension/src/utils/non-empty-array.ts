@@ -66,12 +66,18 @@ export function NonEmptyArray_collectToSet<A, B>(queue: NonEmptyArray<A>, f: (a:
 export const NonEmptyArray_groupBy_intoRecord: <A, B extends string | number | symbol>(
   arr: NonEmptyArray<A>,
   f: (a: A) => B,
-) => NonEmptyRecord<B, NonEmptyArray<A>> = Array_groupBy_intoRecord as any
+) => NonEmptyRecord<B, NonEmptyArray<A>> = Array_groupBy_intoRecord as unknown as <A, B extends string | number | symbol>(
+  arr: NonEmptyArray<A>,
+  f: (a: A) => B,
+) => NonEmptyRecord<B, NonEmptyArray<A>>
 
 export const NonEmptyArray_groupBy_intoMap: <A, B extends string | number | symbol>(
   arr: NonEmptyArray<A>,
   f: (a: A) => B,
-) => NonEmptyMap<B, NonEmptyArray<A>> = Array_groupBy_intoMap as any
+) => NonEmptyMap<B, NonEmptyArray<A>> = Array_groupBy_intoMap as unknown as <A, B extends string | number | symbol>(
+  arr: NonEmptyArray<A>,
+  f: (a: A) => B,
+) => NonEmptyMap<B, NonEmptyArray<A>>
 
 export function recordOfArrays_mapValues_to_nonEmptyArrayOrUndefined_mutating<K extends string | number | symbol, V>(
   record: Record<K, readonly V[]>,
@@ -80,7 +86,7 @@ export function recordOfArrays_mapValues_to_nonEmptyArrayOrUndefined_mutating<K 
     if (Array_isNonEmptyArray(record[key])) continue
     delete record[key] // NOTE: here we dont mix { [K]?: ... } with { [K]: undefined }
   }
-  return record as any
+  return record as Partial<Record<K, NonEmptyArray<V>>>
 }
 
 export function Array_groupByKeys_toNonEmptyArrays<V, K extends string>(

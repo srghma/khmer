@@ -120,7 +120,9 @@ export function Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready_withUnde
 ): NonEmptyRecord<K, V | undefined> {
   const result: {
     [P in K]: V | undefined;
-  } = { ...record } as any
+  } = { ...record } as unknown as {
+    [P in K]: V | undefined;
+  }
   for (const key of keys) {
     if (Object.hasOwn(result, key)) continue
     result[key] = undefined

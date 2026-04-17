@@ -191,7 +191,7 @@ export function Except_appTraverse<E, A, B>(arr: readonly A[], f: (a: A) => Exce
   const values: B[] = []
   const errors: E[] = []
 
-  arr.forEach((a, _i) => {
+  arr.forEach((a) => {
     const res = f(a)
     if (res.t === 'ok') {
       values.push(res.v)

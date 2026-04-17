@@ -1,5 +1,5 @@
-import { parseStringOrNumberOrDateToValidDateOrThrow } from '../utils/toValidDate'
-import { unknownToNonNegativeIntOrThrow_strict } from '../utils/toNumber'
+import { parseStringOrNumberOrDateToValidDateOrThrow } from './toValidDate'
+import { unknownToNonNegativeIntOrThrow_strict } from './toNumber'
 
 export async function waitMs(ms: number) {
   return new Promise(resolve => {
