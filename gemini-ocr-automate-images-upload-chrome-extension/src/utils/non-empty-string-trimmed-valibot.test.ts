@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import * as v from 'valibot'
 import { NonEmptyStringTrimmedSchema } from './non-empty-string-trimmed-valibot'
+import type { NonEmptyStringTrimmed } from './non-empty-string-trimmed'
 
 describe('NonEmptyStringTrimmedSchema (Valibot)', () => {
   it('should accept and trim valid strings', () => {
-    expect(v.parse(NonEmptyStringTrimmedSchema, 'hello')).toBe('hello')
-    expect(v.parse(NonEmptyStringTrimmedSchema, '  hello  ')).toBe('hello')
-    expect(v.parse(NonEmptyStringTrimmedSchema, '\n\thello world\t\n')).toBe('hello world')
+    const output: NonEmptyStringTrimmed = v.parse(NonEmptyStringTrimmedSchema, 'hello')
+    expect(output).toBe('hello')
+    const output2: NonEmptyStringTrimmed = v.parse(NonEmptyStringTrimmedSchema, '  hello  ')
+    expect(output2).toBe('hello')
+    const output3: NonEmptyStringTrimmed = v.parse(NonEmptyStringTrimmedSchema, '\n\thello world\t\n')
+    expect(output3).toBe('hello world')
   })
 
   it('should reject empty strings', () => {

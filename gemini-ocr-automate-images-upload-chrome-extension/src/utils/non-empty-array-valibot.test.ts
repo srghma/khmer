@@ -1,11 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import * as v from 'valibot'
 import { NonEmptyArraySchema } from './non-empty-array-valibot'
+import type { NonEmptyArray } from './non-empty-array'
 
 describe('NonEmptyArraySchema (Valibot)', () => {
   it('should accept a non-empty array', () => {
     const schema = NonEmptyArraySchema(v.number())
-    expect(v.parse(schema, [1, 2, 3])).toEqual([1, 2, 3])
+    const output: NonEmptyArray<number> = v.parse(schema, [1, 2, 3])
+    expect(output).toEqual([1, 2, 3])
   })
 
   it('should reject an empty array', () => {

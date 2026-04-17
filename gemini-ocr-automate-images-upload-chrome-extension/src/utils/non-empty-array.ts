@@ -87,5 +87,5 @@ export function Array_groupByKeys_toNonEmptyArrays<V, K extends string>(
   xs: readonly V[],
   getKey: (v: V) => K,
 ): Partial<Record<K, NonEmptyArray<V>>> {
-  return recordOfArrays_mapValues_to_nonEmptyArrayOrUndefined_mutating(Array_groupByKeys(xs, getKey) as any)
+  return recordOfArrays_mapValues_to_nonEmptyArrayOrUndefined_mutating(Array_groupByKeys(xs, getKey) as unknown as Record<K, readonly V[]>)
 }

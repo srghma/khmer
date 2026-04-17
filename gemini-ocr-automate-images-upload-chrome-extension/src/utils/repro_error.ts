@@ -1,5 +1,5 @@
 
-import { NonEmptyArray } from './non-empty-array'
+import type { NonEmptyArray } from './non-empty-array'
 
 export type NonEmptyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>> & {
   readonly _nonEmptyRecordBrand: 'NonEmptyRecord'
@@ -15,7 +15,7 @@ export function Record_toNonEmptyRecord_addKeysIfKeyIsNotPresentAlready_withUnde
   } {
   const result: {
     [P in K]: V | undefined;
-  } = { ...record }
+  } = { ...record } as any
   for (const key of keys) {
     if (Object.hasOwn(result, key)) continue
     result[key] = undefined

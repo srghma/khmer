@@ -17,7 +17,7 @@ export const mk_element_to_orThrow =
     throw new Error(`Expected an ${constructor.name}, but got something else.`)
   }
 
-export const assert_element_is_HTMLElement = assert_element_is(HTMLElement)
+export const assert_element_is_HTMLElement: (element: unknown) => asserts element is HTMLElement = assert_element_is(HTMLElement)
 export const element_to_HTMLElement_orThrow = mk_element_to_orThrow(HTMLElement)
 
 export const assert_element_is_HTMLIFrameElement = assert_element_is(HTMLIFrameElement)

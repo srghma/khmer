@@ -5,7 +5,7 @@ import type { NonEmptySet } from './non-empty-set'
 import { Record_entriesToArray } from './record'
 import { Option_none, Option_some, type Option, identityFn } from './types'
 
-export type NonEmptyRecord<K extends PropertyKey, V> = Record<K, V> & {
+export type NonEmptyRecord<K extends PropertyKey, V> = { [P in K]: V } & {
   readonly _nonEmptyRecordBrand: 'NonEmptyRecord'
 }
 
@@ -21,7 +21,7 @@ export function Record_toNonEmptyRecord<K extends PropertyKey, V>(
 }
 
 export const Record_toNonEmptyRecord_unsafe = identityFn as <K extends PropertyKey, V>(
-  record: Readonly<Record<K, V>>,
+  record: { readonly [P in K]: V },
 ) => NonEmptyRecord<K, V>
 
 export function Record_toNonEmptyRecord_orUndefined<K extends PropertyKey, V>(
@@ -100,7 +100,7 @@ export function NonEmptyRecord_toMap_getOrderFromSet<K extends PropertyKey, V>(
 ): NonEmptyMap<K, V> {
   const m = new Map<K, V>()
   for (const key of set) m.set(key, assertIsDefinedAndReturn(r[key]))
-  return m as any
+  return m as unknown as NonEmptyMap<K, V>
 }
 
 export const NonEmptyRecord_entriesToArray = Record_entriesToArray as unknown as <K extends PropertyKey, V, R>(
