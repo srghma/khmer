@@ -3,7 +3,7 @@ import type { NonEmptyMap } from './non-empty-map'
 import type { NonEmptyRecord } from './non-empty-record'
 import { Set_toNonEmptySet_orThrow, type NonEmptySet } from './non-empty-set'
 import { sortBy_immutable } from './sort'
-import { Option_none, Option_some, type Option } from './types'
+import { identityFn, Option_none, Option_some, type Option } from './types'
 
 // export type NonEmptyArray<T> = T[] & { readonly __NonEmptyArrayBrand: 'NonEmptyArray' }
 export type NonEmptyArray<T> = readonly [T, ...(readonly T[])]
@@ -18,9 +18,7 @@ export function Array_toNonEmptyArray_orUndefined<T>(arr: readonly T[]): NonEmpt
   return arr as NonEmptyArray<T>
 }
 
-export function Array_toNonEmptyArray_unsafe<T>(arr: readonly T[]): NonEmptyArray<T> {
-  return arr as any
-}
+export const Array_toNonEmptyArray_unsafe = identityFn as <T>(arr: readonly T[]) => NonEmptyArray<T>
 
 export function Array_toNonEmptyArray_orThrow<T>(arr: readonly T[]): NonEmptyArray<T> {
   Array_assertNonEmptyArray(arr)

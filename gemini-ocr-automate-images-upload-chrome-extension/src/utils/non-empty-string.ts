@@ -1,7 +1,8 @@
 // Copyright 2023 srghma
 
 import type { NonEmptyArray } from './non-empty-array.js'
-import { Option_none, Option_some, type Option } from './types.js'
+import { Option_none, Option_some, type Option, identityFn } from './types'
+
 
 // -- Types --
 
@@ -20,6 +21,8 @@ export const String_toNonEmptyString_orUndefined = (str: string): NonEmptyString
 export const String_toNonEmptyString = (str: string): Option<NonEmptyString> => {
   return str.length > 0 ? Option_some(str as NonEmptyString) : Option_none
 }
+
+export const String_toNonEmptyString_unsafe = identityFn as (str: string) => NonEmptyString
 
 // -- Single Value: Assert/Throw --
 

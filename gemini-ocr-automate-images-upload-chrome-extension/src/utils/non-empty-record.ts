@@ -3,7 +3,7 @@ import type { NonEmptyArray } from './non-empty-array'
 import type { NonEmptyMap } from './non-empty-map'
 import type { NonEmptySet } from './non-empty-set'
 import { Record_entriesToArray } from './record'
-import { Option_none, Option_some, type Option } from './types'
+import { Option_none, Option_some, type Option, identityFn } from './types'
 
 export type NonEmptyRecord<K extends PropertyKey, V> = Record<K, V> & {
   readonly _nonEmptyRecordBrand: 'NonEmptyRecord'
@@ -20,11 +20,9 @@ export function Record_toNonEmptyRecord<K extends PropertyKey, V>(
   return Option_none
 }
 
-export function Record_toNonEmptyRecord_unsafe<K extends PropertyKey, V>(
+export const Record_toNonEmptyRecord_unsafe = identityFn as <K extends PropertyKey, V>(
   record: Readonly<Record<K, V>>,
-): NonEmptyRecord<K, V> {
-  return record as NonEmptyRecord<K, V>
-}
+) => NonEmptyRecord<K, V>
 
 export function Record_toNonEmptyRecord_orUndefined<K extends PropertyKey, V>(
   record: Readonly<Record<K, V>>,

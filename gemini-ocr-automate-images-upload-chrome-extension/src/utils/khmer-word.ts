@@ -3,6 +3,7 @@
 import { reorderText as reorderTextImpl } from 'khmer-normalize'
 import { khnormal as khnormalImpl } from 'khmer-normalizer'
 import { Iterator_yieldUnique_usingSet } from './iterator'
+import { identityFn } from './types'
 import type { TypedContainsKhmer } from './string-contains-khmer-char'
 
 // Khmer Unicode range: U+1780 to U+17FF
@@ -19,7 +20,7 @@ export const strToKhmerWordOrThrow = (value: string): TypedKhmerWord => {
   if (!uuid) throw new Error(`Invalid KhmerWord format: '${value}'`)
   return uuid
 }
-export const strToKhmerWord_unsafe = (value: string): TypedKhmerWord => value as TypedKhmerWord
+export const strToKhmerWord_unsafe = identityFn as (value: string) => TypedKhmerWord
 
 export function* iterateKhmerWords(value: string): IterableIterator<TypedKhmerWord> {
   for (const match of value.matchAll(/\p{Script=Khmer}+/gu)) yield strToKhmerWordOrThrow(match[0])

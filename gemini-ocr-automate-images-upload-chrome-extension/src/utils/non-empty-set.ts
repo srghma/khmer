@@ -1,5 +1,5 @@
 import { Set_map, Set_union_onCollisionIgnore } from './sets'
-import { Option_none, Option_some, type Option } from './types'
+import { identityFn, Option_none, Option_some, type Option } from './types'
 
 export type NonEmptySet<T> = ReadonlySet<T> & {
   readonly _nonEmptySetBrand: 'NonEmptySet'
@@ -14,6 +14,8 @@ export function Set_toNonEmptySet_orUndefined<T>(set: ReadonlySet<T>): NonEmptyS
   if (set.size === 0) return undefined
   return set as NonEmptySet<T>
 }
+
+export const Set_toNonEmptySet_unsafe = identityFn as <T>(set: Set<T>) => NonEmptySet<T>
 
 export function Set_toNonEmptySet_orThrow<T>(set: ReadonlySet<T>): NonEmptySet<T> {
   Set_assertNonEmptySet(set)

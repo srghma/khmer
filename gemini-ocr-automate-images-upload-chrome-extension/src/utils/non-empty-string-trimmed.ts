@@ -1,6 +1,6 @@
 import { type NonEmptyArray } from './non-empty-array'
 import { type NonEmptyString } from './non-empty-string'
-import { type Option, Option_some, Option_none } from './types'
+import { identityFn, type Option, Option_some, Option_none } from './types'
 
 export type NonEmptyStringTrimmed = NonEmptyString & {
   readonly __NonEmptyStringTrimmedBrand: 'NonEmptyStringTrimmed'
@@ -15,6 +15,8 @@ export const String_toNonEmptyString_afterTrim = (str: string): Option<NonEmptyS
   const trimmed = str.trim()
   return trimmed.length > 0 ? Option_some(trimmed as NonEmptyStringTrimmed) : Option_none
 }
+
+export const String_toNonEmptyStringTrimmed_unsafe = identityFn as (str: string) => NonEmptyStringTrimmed
 
 export function nonEmptyString_afterTrim(str: ''): never
 export function nonEmptyString_afterTrim(str: string): NonEmptyStringTrimmed

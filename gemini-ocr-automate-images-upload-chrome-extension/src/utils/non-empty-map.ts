@@ -1,7 +1,7 @@
 import { Map_keysToSet } from './map'
 import type { NonEmptyArray } from './non-empty-array'
 import type { NonEmptySet } from './non-empty-set'
-import { Option_none, Option_some, type Option } from './types'
+import { identityFn, Option_none, Option_some, type Option } from './types'
 
 export type NonEmptyMap<K, V> = ReadonlyMap<K, V> & {
   readonly _nonEmptyMapBrand: 'NonEmptyMap'
@@ -21,6 +21,8 @@ export function Map_toNonEmptyMap_orThrow<K, V>(map: ReadonlyMap<K, V>): NonEmpt
   Map_assertNonEmptyMap(map)
   return map
 }
+
+export const Map_toNonEmptyMap_unsafe = identityFn as <K, V>(map: Map<K, V>) => NonEmptyMap<K, V>
 
 export function Map_isNonEmptyMap<K, V>(map: ReadonlyMap<K, V>): map is NonEmptyMap<K, V> {
   return map.size !== 0
