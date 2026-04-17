@@ -1,13 +1,17 @@
-export const assert_element_is = <T>(constructor: new (...args: any[]) => T) =>
+export const assert_element_is =
+  <T>(constructor: new (...args: any[]) => T) =>
   (element: unknown): asserts element is T => {
     if (element instanceof constructor) return
     throw new Error(`Expected an ${constructor.name}, but got something else.`)
   }
 
-export const mk_element_is = <T>(constructor: new (...args: any[]) => T) =>
-  (el: unknown): el is T => el instanceof constructor
+export const mk_element_is =
+  <T>(constructor: new (...args: any[]) => T) =>
+  (el: unknown): el is T =>
+    el instanceof constructor
 
-export const mk_element_to_orThrow = <T>(constructor: new (...args: any[]) => T) =>
+export const mk_element_to_orThrow =
+  <T>(constructor: new (...args: any[]) => T) =>
   (el: unknown): T => {
     if (el instanceof constructor) return el
     throw new Error(`Expected an ${constructor.name}, but got something else.`)
@@ -28,7 +32,6 @@ export const assert_element_is_HTMLTextAreaElement = assert_element_is(HTMLTextA
 export const element_to_HTMLTextAreaElement_orThrow = mk_element_to_orThrow(HTMLTextAreaElement)
 
 export function element_is_visible(el: Element | null | undefined): boolean {
-
   if (!el) return false
   if (!(el instanceof HTMLElement)) return false
   if (el.tagName.toLowerCase() === 'input' && (el as HTMLInputElement).type === 'hidden') return false
@@ -45,4 +48,5 @@ export function element_is_visible(el: Element | null | undefined): boolean {
   return true
 }
 
-export const unlessUndefined_use = <X, Y>(x: X | null | undefined, to: (x: X) => NonNullable<Y>): Y | undefined => x ? to(x) : undefined
+export const unlessUndefined_use = <X, Y>(x: X | null | undefined, to: (x: X) => NonNullable<Y>): Y | undefined =>
+  x ? to(x) : undefined
