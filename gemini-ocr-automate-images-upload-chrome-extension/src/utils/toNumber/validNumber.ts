@@ -1,5 +1,5 @@
-import { countDigitsAfterDotAndBeforeDot } from '../number/countDigitsBeforeAndAfterDot.js'
-import { nOfDigitsBeforeDot } from '../number/nOfDigitsBeforeDot.js'
+// import { countDigitsAfterDotAndBeforeDot } from '../number/countDigitsBeforeAndAfterDot.js'
+// import { nOfDigitsBeforeDot } from '../number/nOfDigitsBeforeDot.js'
 
 //// IDEA: numbers that can be send to db and db will not throw
 // NOTE: there is a db check on ProductAttributeValues that allows only: max 20 decimals before dot, 10 after, no trailing dot

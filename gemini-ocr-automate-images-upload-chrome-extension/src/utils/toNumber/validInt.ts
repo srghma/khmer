@@ -1,5 +1,8 @@
-import { type ValidNumber, validNumber__maxDigitsBeforeDot } from './validNumber.js'
-import { nOfDigitsBeforeDot } from '../number/nOfDigitsBeforeDot.js'
+import {
+  type ValidNumber,
+  // validNumber__maxDigitsBeforeDot
+} from './validNumber.js'
+// import { nOfDigitsBeforeDot } from '../number/nOfDigitsBeforeDot.js'
 
 export type ValidInt = ValidNumber & { readonly __ValidIntBrand: 'ValidInt' }
 
