@@ -3,9 +3,19 @@ import {
   numberToValidNonNegativeIntOrUndefined,
   strToNonNegativeIntOrUndefined_lenient,
   strToNonNegativeIntOrUndefined_strict,
+  number_isValidNonNegativeInt,
 } from './validNonNegativeInt.js'
+import { validNonNegativeIntCases } from './test-data.js'
 
 describe('validNonNegativeInt utils', () => {
+  describe('number_isValidNonNegativeInt', () => {
+    it('should correctly validate non-negative integers', () => {
+      for (const [input, expected] of validNonNegativeIntCases) {
+        expect(number_isValidNonNegativeInt(input), `Failed for ${input}`).toBe(expected)
+      }
+    })
+  })
+
   describe('numberToValidNonNegativeIntOrUndefined', () => {
     it('should convert numbers correctly with round and clamp', () => {
       const cases = [

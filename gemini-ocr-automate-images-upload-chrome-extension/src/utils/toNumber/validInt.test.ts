@@ -3,9 +3,19 @@ import {
   numberToValidIntOrUndefined,
   strToIntOrUndefined_lenient,
   strToIntOrUndefined_strict,
+  number_isValidInt,
 } from './validInt.js'
+import { validIntCases } from './test-data.js'
 
 describe('validInt utils', () => {
+  describe('number_isValidInt', () => {
+    it('should correctly validate integers', () => {
+      for (const [input, expected] of validIntCases) {
+        expect(number_isValidInt(input), `Failed for ${input}`).toBe(expected)
+      }
+    })
+  })
+
   describe('numberToValidIntOrUndefined', () => {
     it('should convert numbers correctly', () => {
       const cases = [

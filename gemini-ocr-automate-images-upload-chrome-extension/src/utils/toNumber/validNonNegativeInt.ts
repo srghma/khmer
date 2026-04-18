@@ -37,6 +37,10 @@ export function numberToValidNonNegativeIntOrUndefined(
   return num
 }
 
+export function number_toValidNonNegativeInt_unsafe(num: number): ValidNonNegativeInt {
+  return num as ValidNonNegativeInt
+}
+
 
 // lenient - uses parseInt which accepts integer prefixes
 export function strToNonNegativeIntOrUndefined_lenient(value: string): ValidNonNegativeInt | undefined {

@@ -39,6 +39,10 @@ export function numberToValidPercentOrUndefined(value: number, round = true, cla
   return num
 }
 
+export function number_toValidPercent_unsafe(num: number): ValidPercent {
+  return num as ValidPercent
+}
+
 export function strToPercentOrUndefined_lenient(value: string, round = true, clamp = true): ValidPercent | undefined {
   let num: number | undefined = strToNumberOrUndefined_lenient(value)
   if (num === undefined) return undefined

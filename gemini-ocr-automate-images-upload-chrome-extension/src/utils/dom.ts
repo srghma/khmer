@@ -33,14 +33,18 @@ export function toConstructor_orThrow<T>(
   throw new Error(`Expected an ${constructor.name}, but got something else.`)
 }
 
-export function elementOrNullabel_is_visible(el: Element | null | undefined): boolean {
+export function element_is_notNullableAndVisible(el: Element | null | undefined): el is HTMLElement {
   if (!el) return false
+  return element_is_visible(el)
+}
+
+export function element_is_visible(el: Element): el is HTMLElement {
   if (!(el instanceof HTMLElement)) return false
   return htmlElement_is_visible(el)
 }
 
-export function htmlElement_is_visible(el: HTMLElement): boolean {
-  if (el.tagName.toLowerCase() === 'input' && (el as HTMLInputElement).type === 'hidden') return false
+export function htmlElement_is_visible(el: HTMLElement): el is HTMLElement {
+  if (el instanceof HTMLInputElement && el.type === 'hidden') return false
 
   const style = window.getComputedStyle(el)
   if (style.display === 'none') return false
@@ -64,7 +68,14 @@ export function querySelectorOrThrow<T>(
   return toConstructor_orThrow(constructor, document.querySelector(selector));
 }
 
-export function* querySelectorAllOrThrow<T>(
+export function querySelectorAllOrThrow<T>(
+  selector: string,
+  constructor: new (...args: unknown[]) => T,
+): T[] {
+  return Array.from(document.querySelectorAll(selector)).map(toConstructor_orThrow_curried(constructor));
+}
+
+export function* querySelectorAllOrThrow_iterator<T>(
   selector: string,
   constructor: new (...args: unknown[]) => T,
 ): IterableIterator<T> {
@@ -74,18 +85,23 @@ export function* querySelectorAllOrThrow<T>(
   }
 }
 
-export async function waitForElement<T>(
+export async function waitForElement(
   selector: string,
-  constructor: new (...args: unknown[]) => T,
+  predicate: ((el: Element) => boolean) | undefined = undefined, // can be element_is_visible
   timeout = 5000,
-): Promise<T | null> {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    const el = document.querySelector(selector);
-    if (el && htmlElement_is_visible(toConstructor_orThrow(HTMLElement, el))) {
-      return toConstructor_orThrow(constructor, el);
-    }
-    await new Promise(r => setTimeout(r, 200));
-  }
-  return null;
+  checkFrequencyInMs = 100,
+): Promise<Element | undefined> {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    (function loopSearch() {
+      const el = document.querySelector(selector);
+      if (el && (predicate ? predicate(el) : true)) {
+        return resolve(el);
+      }
+      if (Date.now() - start > timeout) {
+        return resolve(undefined);
+      }
+      setTimeout(loopSearch, checkFrequencyInMs);
+    })();
+  });
 }

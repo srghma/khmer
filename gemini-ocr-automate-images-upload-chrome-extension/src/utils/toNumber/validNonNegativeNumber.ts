@@ -44,6 +44,10 @@ export function numberToValidNonNegativeNumberOrUndefined(
   return num
 }
 
+export function number_toValidNonNegativeNumber_unsafe(num: number): ValidNonNegativeNumber {
+  return num as ValidNonNegativeNumber
+}
+
 
 // Converts a string to a non-negative number (strict mode)
 // e.g. "0" -> 0, "10.5" -> 10.5, "-1" -> undefined, "abc" -> undefined

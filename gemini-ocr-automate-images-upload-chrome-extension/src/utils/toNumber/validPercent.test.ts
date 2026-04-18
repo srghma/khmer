@@ -3,9 +3,19 @@ import {
   numberToValidPercentOrUndefined,
   strToPercentOrUndefined_lenient,
   strToPercentOrUndefined_strict,
+  number_isValidPercent,
 } from './validPercent.js'
+import { validPercentCases } from './test-data.js'
 
 describe('validPercent utils', () => {
+  describe('number_isValidPercent', () => {
+    it('should correctly validate percents', () => {
+      for (const [input, expected] of validPercentCases) {
+        expect(number_isValidPercent(input), `Failed for ${input}`).toBe(expected)
+      }
+    })
+  })
+
   describe('numberToValidPercentOrUndefined', () => {
     it('should convert numbers to percent correctly with round and clamp', () => {
       const cases: [number, [number | undefined, number | undefined, number | undefined, number | undefined]][] = [

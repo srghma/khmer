@@ -1,10 +1,11 @@
-import { type ValidNumber } from './validNumber.js'
+import { type ValidNumber, validNumber__maxDigitsBeforeDot } from './validNumber.js'
+import { nOfDigitsBeforeDot } from '../number/nOfDigitsBeforeDot.js'
 
 export type ValidInt = ValidNumber & { readonly __ValidIntBrand: 'ValidInt' }
 
 export function number_isValidInt(num: number): num is ValidInt {
-  return Number.isInteger(num)
-  // && nOfDigitsBeforeDot(num) <= validNumber__maxDigitsBeforeDot
+  // return Number.isInteger(num) && nOfDigitsBeforeDot(num) <= validNumber__maxDigitsBeforeDot // UNCOMMENT ME IF checking length of digits before dot
+  return Number.isInteger(num) // COMMENT ME IF checking length of digits before dot
 }
 
 export function number_throwIfNotValidInt(num: number): asserts num is ValidInt {
@@ -20,6 +21,10 @@ export function numberToValidIntOrUndefined(value: number, round = true): ValidI
   if (num === 0) num = 0 // Normalize -0 to 0
   if (!number_isValidInt(num)) return undefined
   return num
+}
+
+export function number_toValidInt_unsafe(num: number): ValidInt {
+  return num as ValidInt
 }
 
 

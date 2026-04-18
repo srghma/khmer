@@ -1,5 +1,5 @@
-// import { countDigitsAfterDotAndBeforeDot } from './number/countDigitsBeforeAndAfterDot'
-// import { nOfDigitsBeforeDot } from './number/nOfDigitsBeforeDot'
+import { countDigitsAfterDotAndBeforeDot } from '../number/countDigitsBeforeAndAfterDot.js'
+import { nOfDigitsBeforeDot } from '../number/nOfDigitsBeforeDot.js'
 
 //// IDEA: numbers that can be send to db and db will not throw
 // NOTE: there is a db check on ProductAttributeValues that allows only: max 20 decimals before dot, 10 after, no trailing dot
@@ -10,17 +10,19 @@ export type ValidNumber = number & {
 } // ok are 1 or 1.1
 
 // global config
-// export const validNumber__maxDigitsBeforeDot: ValidNonNegativeInt = 20 as ValidNonNegativeInt
+export const validNumber__maxDigitsBeforeDot = 20 as number
 export const validNumber__maxDigitsAfterDot = 10 as number // I want to allow seeing 1.1 and 1.12 and 1.1234567890, but not 1.12345678901
 
 export function number_isValidNumber(num: number): num is ValidNumber {
   if (!Number.isFinite(num)) return false // is not NaN, Infinity, -Infinity
-  return true
-  // const { before, after } = countDigitsAfterDotAndBeforeDot(num)
-  // return (
-  //   before <= validNumber__maxDigitsBeforeDot && // Q: isnt it always true? isnt js numbers has only 15 digits (dot is moving)? A: no, consider numbers written in scientific notation
-  //   after <= validNumber__maxDigitsAfterDot
-  // )
+  // const { before, after } = countDigitsAfterDotAndBeforeDot(num) // UNCOMMENT ME IF checking length of digits before or after dot
+  return true // COMMENT ME IF checking length of digits before or after dot
+  /* // UNCOMMENT ME IF checking length of digits before or after dot
+  return (
+    before <= validNumber__maxDigitsBeforeDot && // UNCOMMENT ME IF checking length of digits before dot
+    after <= validNumber__maxDigitsAfterDot // UNCOMMENT ME IF checking length of digits after dot
+  )
+  */ // UNCOMMENT ME IF checking length of digits before or after dot
 }
 
 export function number_throwIfNotValidNumber(num: number): asserts num is ValidNumber {
@@ -38,6 +40,10 @@ export function numberToValidNumberOrUndefined(value: number, round = true): Val
   if (num === 0) num = 0 // Normalize -0 to 0
   if (!number_isValidNumber(num)) return undefined
   return num
+}
+
+export function number_toValidNumber_unsafe(num: number): ValidNumber {
+  return num as ValidNumber
 }
 
 // ===== STR TO =====
