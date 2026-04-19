@@ -1,135 +1,91 @@
 @import 'tailwindcss';
 
-@plugin "./hero.ts";
-
-@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
-
 @custom-variant dark (&:is(.dark *));
 
-/* UI Scaling Transformation */
-html {
-  font-size: calc(16px * var(--app-ui-scale));
-  transform-origin: top left;
-}
-
-#root {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 @theme {
-  /*
-     Update the default sans-serif stack to include:
-     1. Inter (Your preferred UI font)
-     2. Khmer fonts (Noto Serif Khmer, Battambang)
-     3. IPA/Unicode fallback fonts (Segoe UI, Arial Unicode MS, Lucida Sans Unicode, Gentium)
-  */
   --font-sans:
     'Inter', 'Noto Serif Khmer', 'Battambang', 'Segoe UI', 'Arial Unicode MS', 'Lucida Sans Unicode', 'Gentium',
     'DejaVu Sans', sans-serif;
 
-  /* Define specific font utilities */
   --font-inter: 'Inter', sans-serif;
   --font-khmer: var(--app-khmer-font-family);
 
-  /* UI Scaling */
   --spacing-app-hide-toggle-icon: var(--app-hide-toggle-icon-size);
   --spacing-app-hide-toggle-status-icon: var(--app-hide-toggle-status-icon-size);
-}
 
-.font-khmer {
-  font-family: var(--app-khmer-font-family);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
-
-.font-inter {
-  font-family: var(--font-inter);
-}
-
-/* Apply to all colorized/segmented Khmer words globally */
-[class^='khmer--'],
-[class*=' khmer--'] {
-  font-family: var(--app-khmer-font-family);
-}
-
-/* .font-ipa { */
-/*   font-family: var(--font-ipa); */
-/* } */
 
 :root {
-  /* Apply the robust font stack globally */
-  font-family: var(--font-sans);
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
 
-  /* Keep your other base styles */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-
-  /* Sidebar Tabs */
-  --app-ui-left-sidebar-tab-icon-size: 1.5rem;
-  --app-ui-left-sidebar-tab-text-size: 1.5rem;
-
-  /* Details Header */
-  --app-ui-details-header-icon-size: 2rem;
-  --app-ui-details-header-text-size: 2rem;
-
-  --app-ui-details-header-sup-text-size: 1.5rem;
-  --app-ui-details-header-sup-icon-size: 0.8rem;
-
-  --app-ui-details-header-sub-text-size: 0.8rem;
-  --app-ui-details-header-sub-icon-size: 0.8rem;
+  --app-ui-scale: 1;
+  --app-details-scale: 1;
 }
 
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+}
 
-.scaling-details {
-  /* Local multiplier for elements in details view */
-  --app-scale-factor: calc(var(--app-details-scale) / var(--app-ui-scale));
-
-  /* Override Tailwind v4 and HeroUI font-size variables */
-  --text-tiny: calc(0.75rem * var(--app-scale-factor));
-  --text-xs: calc(0.75rem * var(--app-scale-factor));
-  --text-sm: calc(0.875rem * var(--app-scale-factor));
-  --text-base: calc(1rem * var(--app-scale-factor));
-  --text-lg: calc(1.125rem * var(--app-scale-factor));
-  --text-xl: calc(1.25rem * var(--app-scale-factor));
-  --text-2xl: calc(1.5rem * var(--app-scale-factor));
-  --text-3xl: calc(1.875rem * var(--app-scale-factor));
-  --text-4xl: calc(2.25rem * var(--app-scale-factor));
-  --text-5xl: calc(3rem * var(--app-scale-factor));
-
-  --heroui-font-size-tiny: calc(0.75rem * var(--app-scale-factor));
-  --heroui-font-size-small: calc(0.875rem * var(--app-scale-factor));
-  --heroui-font-size-medium: calc(1rem * var(--app-scale-factor));
-  --heroui-font-size-large: calc(1.125rem * var(--app-scale-factor));
-
-  /* Base Scaling */
-  font-size: calc(1rem * var(--app-scale-factor));
-
-  /* Header Overrides */
-  /* h1 {
-    font-size: calc(2.25rem * var(--app-scale-factor));
-  }
-
-  h2 {
-    font-size: calc(1.875rem * var(--app-scale-factor));
-  }
-
-  h3 {
-    font-size: calc(1.5rem * var(--app-scale-factor));
-  }
-
-  h4 {
-    font-size: calc(1.25rem * var(--app-scale-factor));
-  }
-
-  h5 {
-    font-size: calc(1.125rem * var(--app-scale-factor));
-  }
-
-  h6 {
-    font-size: calc(1rem * var(--app-scale-factor));
-  } */
+html {
+  font-size: calc(16px * var(--app-ui-scale));
+  transform-origin: top left;
 }
