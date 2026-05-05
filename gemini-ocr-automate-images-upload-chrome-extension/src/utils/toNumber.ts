@@ -1,5 +1,0 @@
-export * from './toNumber/validNumber.js'
-export * from './toNumber/validNonNegativeNumber.js'
-export * from './toNumber/validPercent.js'
-export * from './toNumber/validInt.js'
-export * from './toNumber/validNonNegativeInt.js'

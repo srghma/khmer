@@ -17,12 +17,12 @@ describe('NonEmptyStringTrimmedSchema (Valibot)', () => {
     const result = v.safeParse(NonEmptyStringTrimmedSchema, '')
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.issues[0].type).toBe('non_empty')
+      expect(result.issues[0].type).toBe('non_empty_string_trimmed')
     }
   })
 
   it('should reject strings containing only whitespace', () => {
-    // After trimming, "   " becomes "" and should fail the nonEmpty() check
+    // After trimming, "   " becomes "" and should fail the check
     const result1 = v.safeParse(NonEmptyStringTrimmedSchema, '   ')
     expect(result1.success).toBe(false)
 

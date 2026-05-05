@@ -2,7 +2,10 @@
 
 import { assertNever } from './asserts.js'
 
-export const identityFn = <X>(x: X) => x
+// @__NO_SIDE_EFFECTS__
+export function identityFn<X>(x: X): X {
+  return x
+}
 
 // ------------ Option type
 
