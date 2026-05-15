@@ -10,7 +10,7 @@ import {
   strOrNumberToNonNegativeIntOrThrow_strict,
   strOrNumberToNonNegativeIntOrUndefined_strict,
   type ValidNonNegativeInt,
-} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+} from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber/validNonNegativeInt'
 import { memoizeAsync1Lru } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 import { get_en_km_com_images_ocr, type ShortDefinitionKm } from '../db/dict'
 import {

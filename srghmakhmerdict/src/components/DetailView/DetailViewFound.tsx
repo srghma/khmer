@@ -133,7 +133,7 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
   // 3. Selection / Popup Handlers
   const handleOpenKhmerAnalyzer = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
-      window.getSelection()?.removeAllRanges()
+      window.getSelection()?.collapseToEnd()
       setLocation(makeKhmerAnalyzerUrl(sanitizeTextForAnalyzer(selectedText)))
     },
     [setLocation],
@@ -146,7 +146,7 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
       const targetMode = detectModeFromText(selectedText) ?? currentNavigationStackItem.mode
 
       handleNavigate(selectedText, targetMode)
-      window.getSelection()?.removeAllRanges()
+      window.getSelection()?.collapseToEnd()
     },
     [handleNavigate, currentNavigationStackItem, mode],
   )

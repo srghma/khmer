@@ -1,4 +1,12 @@
-import { speak, isSpeaking as tauriIsSpeaking } from 'tauri-plugin-tts-api'
+const isTauri = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__
+
+async function getTtsApi() {
+  if (isTauri) {
+    return await import('tauri-plugin-tts-api')
+  }
+
+  return null
+}
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -22,7 +30,8 @@ async function waitForTauriTts(): Promise<void> {
 
   return new Promise(resolve => {
     const interval = setInterval(async () => {
-      const active = await tauriIsSpeaking()
+      const api = await getTtsApi()
+      const active = api ? await api.isSpeaking() : false
 
       if (!active) {
         clearInterval(interval)
@@ -37,7 +46,11 @@ export const executeNativeTts = async (
   langIso: BCP47LanguageTagName,
 ): Promise<NativeTtsExecutionResult> => {
   try {
-    await speak({
+    const api = await getTtsApi()
+
+    if (!api) throw new Error('Not in Tauri')
+
+    await api.speak({
       text: text,
       language: langIso,
       queueMode: 'flush',

@@ -1,20 +1,21 @@
 import Database from '@tauri-apps/plugin-sql'
 
-// let dictDbPromise: Promise<Database> | undefined = undefined
+const isTauri = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__
+
 let userDbPromise: Promise<Database> | undefined = undefined
-
-// Connect to the Read-Only Dictionary DB
-// we should not have 2 connections to same db. Why? sqlite doesnt support
-// export const getDictDb = (): Promise<Database> => {
-//   if (!dictDbPromise) {
-//     dictDbPromise = Database.load('sqlite:dict.db?mode=ro')
-//   }
-
-//   return dictDbPromise
-// }
 
 // Connect to the Read-Write User Data DB
 export const getUserDb = (): Promise<Database> => {
+  if (!isTauri) {
+    // Return a mock database for the webapp
+    return Promise.resolve({
+      execute: async () => ({ rowsAffected: 0, lastInsertId: 0 }),
+      select: async () => [],
+      load: async () => ({}) as any,
+      close: async () => {},
+    } as any)
+  }
+
   if (!userDbPromise) userDbPromise = Database.load('sqlite:user_data.db')
 
   return userDbPromise

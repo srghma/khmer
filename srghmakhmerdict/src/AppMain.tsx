@@ -50,8 +50,7 @@ export function AppMain() {
 
   const leftClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] text-base ${
-        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] text-base ${currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
       }`,
     [currentNavigationStackItem],
   )
@@ -155,7 +154,7 @@ export function AppMain() {
                 (viewToRender.type === 'history' ||
                   viewToRender.type === 'favorites' ||
                   viewToRender.type === 'dashboard') &&
-                viewToRender.word
+                  viewToRender.word
                   ? { word: viewToRender.word, mode: viewToRender.mode }
                   : undefined
 

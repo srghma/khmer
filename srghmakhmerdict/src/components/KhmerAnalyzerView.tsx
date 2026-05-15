@@ -121,7 +121,7 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
           selectedText={selectedText}
           onClosePopupAndKhmerAnalyzerModal={undefined}
           onClosePopupAndOpenSearch={() => {
-            window.getSelection()?.removeAllRanges()
+            window.getSelection()?.collapseToEnd()
             setLocation(makeKhmerAnalyzerUrl(sanitizeTextForAnalyzer(selectedText)))
           }}
         />

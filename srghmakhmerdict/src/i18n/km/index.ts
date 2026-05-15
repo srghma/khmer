@@ -14,6 +14,7 @@ const km = {
     },
     ACTIONS: {
       OPEN_KHMER_COMPLEX_TABLE: 'បើកតារាងតួអក្សរខ្មែរ',
+      OPEN_ANKI_TABLE: 'បើកតារាងហ្គេម Anki',
       OPEN_KHMER_ANALYZER: 'បើកឧបករណ៍វិភាគខ្មែរ',
       ABOUT: 'អំពីវចនានុក្រម',
       DONATE: 'បរិច្ចាគ',

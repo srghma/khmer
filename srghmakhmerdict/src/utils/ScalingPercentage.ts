@@ -1,4 +1,4 @@
-import { type ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+import { type ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber/validNonNegativeInt'
 
 export type ScalingPercentage = ValidNonNegativeInt & { __brandScalingPercentage: 'ScalingPercentage' }
 

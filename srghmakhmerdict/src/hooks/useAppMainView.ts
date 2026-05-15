@@ -32,59 +32,56 @@ export const useAppMainView = () => {
   const [location] = useLocation()
 
   const currentView = useMemo((): AppMainView => {
-    // 1. Special routes
-    if (location === '/history') return AppMainView__history_list
-    if (location === '/favorites') return AppMainView__favorites_list
-    if (location === '/settings') return AppMainView__settings
-    if (location === '/about') return { type: 'about' }
+    let result: AppMainView = { type: 'dashboard', mode: 'en' }
 
-    if (location === '/khmer_analyzer') {
+    // 1. Special routes
+    if (location === '/history') result = AppMainView__history_list
+    else if (location === '/favorites') result = AppMainView__favorites_list
+    else if (location === '/settings') result = AppMainView__settings
+    else if (location === '/about') result = { type: 'about' }
+    else if (location === '/khmer_analyzer') {
       const rawText = getUrlSearchParam(KHMER_ANALYZER_PARAM_TEXT)
       const text = String_toNonEmptyString_orUndefined_afterTrim(rawText || '')
 
-      return { type: 'khmer-analyzer', text }
-    }
+      result = { type: 'khmer-analyzer', text }
+    } else {
+      // 2. Explicit Detail routes: /{history,favorites}/{en,ru,km}/:word
+      const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/(.+)$/)
 
-    // 2. Explicit Detail routes: /{history,favorites}/{en,ru,km}/:word
-    const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/(.+)$/)
+      if (detailListMatch) {
+        const type = detailListMatch[1] as 'history' | 'favorites'
+        const modeStr = detailListMatch[2] ?? ''
+        const mode = stringToDictionaryLanguageOrUndefined(modeStr)
 
-    if (detailListMatch) {
-      const type = detailListMatch[1] as 'history' | 'favorites'
+        if (!mode) {
+          result = { type: 'dashboard', mode: 'en' }
+        } else {
+          const rawWord = tryDecode(detailListMatch[3] || '')
+          const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
 
-      // Safe parsing of Language
-      const modeStr = detailListMatch[2] ?? ''
-      const mode = stringToDictionaryLanguageOrUndefined(modeStr)
+          if (!word) {
+            result = { type: 'dashboard', mode: 'en' }
+          } else {
+            result = { type, word, mode }
+          }
+        }
+      } else {
+        // 3. Standard Dashboard/Word routes: /en, /ru, /km, /en/:word, etc.
+        const langMatch = location.match(/^\/(en|ru|km)(?:\/(.+))?$/)
 
-      if (!mode) {
-        // Fallback if language code is invalid
-        return { type: 'dashboard', mode: 'en' }
+        if (langMatch) {
+          const mode = stringToDictionaryLanguageOrThrow(langMatch[1] ?? '')
+          const rawWord = langMatch[2] ? tryDecode(langMatch[2]) : ''
+          const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
+
+          result = { type: 'dashboard', word, mode }
+        } else {
+          result = { type: 'dashboard', mode: 'en' }
+        }
       }
-
-      // Safe parsing of Word
-      const rawWord = tryDecode(detailListMatch[3] || '')
-      const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
-
-      if (!word) {
-        // If word is empty after trim, fallback to dashboard
-        return { type: 'dashboard', mode: 'en' }
-      }
-
-      return { type, word, mode }
     }
 
-    // 3. Standard Dashboard/Word routes: /en, /ru, /km, /en/:word, etc.
-    const langMatch = location.match(/^\/(en|ru|km)(?:\/(.+))?$/)
-
-    if (langMatch) {
-      const mode = stringToDictionaryLanguageOrThrow(langMatch[1] ?? '')
-
-      const rawWord = langMatch[2] ? tryDecode(langMatch[2]) : ''
-      const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
-
-      return { type: 'dashboard', word, mode }
-    }
-
-    return { type: 'dashboard', mode: 'en' }
+    return result
   }, [location])
 
   return currentView

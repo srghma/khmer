@@ -114,6 +114,40 @@ const DEFAULT_FILTERS: DictFilterSettings = {
   },
 }
 
+export type AnkiTableSortMode = 'index' | 'due'
+
+export interface AnkiTableState {
+  hideFront: boolean
+  hideBack: boolean
+  hideInfo: boolean
+  showDue: boolean
+  showNew: boolean
+  showNotDue: boolean
+  sortMode: AnkiTableSortMode
+  disabledPos: string[]
+  currentTime: number
+  audioModeOpus: boolean
+  audioModeGoogle: boolean
+  audioModeNative: boolean
+  showShortDefinitionOnSelect: boolean
+}
+
+export const DEFAULT_ANKI_TABLE_STATE: AnkiTableState = {
+  hideFront: false,
+  hideBack: true,
+  hideInfo: true,
+  showDue: true,
+  showNew: true,
+  showNotDue: false,
+  sortMode: 'index',
+  disabledPos: [],
+  currentTime: Date.now(),
+  audioModeOpus: true,
+  audioModeGoogle: false,
+  audioModeNative: false,
+  showShortDefinitionOnSelect: true,
+}
+
 // --- Context Interface ---
 
 export interface SettingsContextType {
@@ -188,6 +222,9 @@ export interface SettingsContextType {
   isShowShortDetailAboutKhmerWordEnabled: boolean
   setIsShowShortDetailAboutKhmerWordEnabled: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
   toggleShowShortDetailAboutKhmerWord: () => void
+
+  ankiTableState: AnkiTableState
+  setAnkiTableState: (v: AnkiTableState | ((prev: AnkiTableState | undefined) => AnkiTableState)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -295,6 +332,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       defaultValue: false,
     })
 
+  const [ankiTableState, setAnkiTableState] = useLocalStorageState<AnkiTableState>(
+    'srghmakhmerdict__anki_table_state',
+    {
+      defaultValue: DEFAULT_ANKI_TABLE_STATE,
+    },
+  )
+
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
@@ -353,6 +397,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isShowShortDetailAboutKhmerWordEnabled: isShowShortDetailAboutKhmerWordEnabled ?? false,
       setIsShowShortDetailAboutKhmerWordEnabled,
       toggleShowShortDetailAboutKhmerWord,
+
+      ankiTableState: ankiTableState ?? DEFAULT_ANKI_TABLE_STATE,
+      setAnkiTableState,
     }),
     [
       searchMode,
@@ -400,6 +447,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       isShowShortDetailAboutKhmerWordEnabled,
       setIsShowShortDetailAboutKhmerWordEnabled,
       toggleShowShortDetailAboutKhmerWord,
+
+      ankiTableState,
+      setAnkiTableState,
     ],
   )
 

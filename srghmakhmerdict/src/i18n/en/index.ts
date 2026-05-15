@@ -14,6 +14,7 @@ const en = {
     },
     ACTIONS: {
       OPEN_KHMER_COMPLEX_TABLE: 'Open Khmer Characters Table',
+      OPEN_ANKI_TABLE: 'Open Anki Game Table',
       OPEN_KHMER_ANALYZER: 'Open Khmer Analyzer',
       ABOUT: 'About Dictionary',
       DONATE: 'Donate',

@@ -158,14 +158,14 @@ export const AnkiCardDetailView = React.memo(function AnkiCardDetailView({
         return
       }
 
-      window.getSelection()?.removeAllRanges()
+      window.getSelection()?.collapseToEnd()
     },
     [setLocation, mode],
   )
 
   const handleOpenKhmerAnalyzer = useCallback(
     (selectedText: NonEmptyStringTrimmed) => {
-      window.getSelection()?.removeAllRanges()
+      window.getSelection()?.collapseToEnd()
       setLocation(makeKhmerAnalyzerUrl(sanitizeTextForAnalyzer(selectedText)))
     },
     [setLocation],

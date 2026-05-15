@@ -1,5 +1,5 @@
-import { listen } from '@tauri-apps/api/event'
-import { invoke } from '@tauri-apps/api/core'
+import { listen } from './utils/tauriEvents'
+import { invoke } from './db/invoke'
 import * as DictDb from './db/dict'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import {
@@ -148,9 +148,9 @@ async function waitForDatabase(): Promise<void> {
 
       // Listen for errors
       unlistenError = await listen<string>('db-error', evt => {
-        // console.error('❌ Database Error:', evt.payload)
+        // console.error('❌ Database Error:', evt)
         cleanup()
-        reject(new Error(`Database error: ${evt.payload}`))
+        reject(new Error(`Database error: ${evt}`))
       })
 
       // Check if DB is already ready

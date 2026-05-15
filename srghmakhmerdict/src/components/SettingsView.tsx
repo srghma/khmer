@@ -8,6 +8,7 @@ import { LanguageSelector } from './LanguageSelector'
 import { ThemeSwitch } from './theme-switch'
 import { GoTable, GoInfo } from 'react-icons/go'
 import { FaDollarSign, FaSearchPlus } from 'react-icons/fa'
+import { LuLayers } from 'react-icons/lu'
 import { SiGooglepay } from 'react-icons/si'
 import {
   DICT_FILTER_SETTINGS_KM_MODES,
@@ -151,6 +152,7 @@ export const SettingsView: React.FC = memo(() => {
     [setScalingPercentage_details],
   )
   const goToKhmerAnalyzer = useCallback(() => setLocation('~/khmer_analyzer'), [setLocation])
+  const goToAnkiTable = useCallback(() => setLocation('~/anki_table'), [setLocation])
   const goToKhmerComplexTable = useCallback(() => setLocation('~/khmer_complex_table'), [setLocation])
 
   return (
@@ -235,6 +237,15 @@ export const SettingsView: React.FC = memo(() => {
               onPress={goToKhmerAnalyzer}
             >
               <span className="text-base truncate">{LL.SETTINGS.ACTIONS.OPEN_KHMER_ANALYZER()}</span>
+            </Button>
+            <Button
+              className="w-full justify-start font-medium"
+              color="primary"
+              startContent={<LuLayers className="text-xl" />}
+              variant="flat"
+              onPress={goToAnkiTable}
+            >
+              <span className="text-base truncate">{LL.SETTINGS.ACTIONS.OPEN_ANKI_TABLE()}</span>
             </Button>
           </div>
         </div>

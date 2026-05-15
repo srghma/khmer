@@ -14,6 +14,7 @@ const ru = {
     },
     ACTIONS: {
       OPEN_KHMER_COMPLEX_TABLE: 'Открыть таблицу кхмерских символов',
+      OPEN_ANKI_TABLE: 'Открыть таблицу Anki',
       OPEN_KHMER_ANALYZER: 'Открыть кхмерский анализатор',
       ABOUT: 'О словаре',
       DONATE: 'Пожертвовать',

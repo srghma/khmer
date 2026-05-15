@@ -2,7 +2,7 @@ import {
   number_isValidNonNegativeNumber,
   number_throwIfNotValidNonNegativeNumber,
   type ValidNonNegativeNumber,
-} from './toNumber'
+} from './toNumber/validNonNegativeNumber'
 
 export type NOfDays = ValidNonNegativeNumber & { readonly __NOfDaysBrand: 'NOfDays' }
 

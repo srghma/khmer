@@ -1,307 +1,75 @@
-use super::common::{
-    KmShortDefinitionSource, ShortDefinitionKm, WordRow, fetch_many, get_placeholders,
-    parse_json_opt, to_optional_map, to_optional_map_wrap, to_strict_map, validate_words_not_empty,
-};
+#[cfg(feature = "tauri-app")]
 use crate::app_state::AppState;
-use serde::Serialize;
+#[cfg(feature = "tauri-app")]
+use crate::db::dict::km_impl::{
+    KmWord, WordDetailKm, ShortDefinitionKm,
+    get_km_words_impl, get_word_detail_km_impl, search_km_content_impl,
+    km_for_many_short_description_none_if_word_not_found_impl,
+    km_for_many_short_description_throws_if_word_not_found_impl,
+    km_for_many_full_details_none_if_word_not_found_impl,
+    km_for_many_full_details_throws_if_word_not_found_impl,
+};
+#[cfg(feature = "tauri-app")]
 use std::collections::HashMap;
+#[cfg(feature = "tauri-app")]
 use tauri::{State, command};
 
-const KM_SHORT_DESC_COALESCE: &str = "COALESCE(from_csv_rawHtml, en_km_com, Desc, from_chuon_nath_translated, wiktionary, from_russian_wiki, gorgoniev)";
-const KM_SHORT_DESC_SOURCE: &str = "(CASE
-    WHEN from_csv_rawHtml IS NOT NULL THEN 1
-    WHEN en_km_com IS NOT NULL THEN 2
-    WHEN Desc IS NOT NULL THEN 3
-    WHEN from_chuon_nath_translated IS NOT NULL THEN 4
-    WHEN wiktionary IS NOT NULL THEN 5
-    WHEN from_russian_wiki IS NOT NULL THEN 6
-    WHEN gorgoniev IS NOT NULL THEN 7
-    ELSE 0 END)";
-
-#[derive(Serialize, sqlx::FromRow)]
-pub struct KmWord {
-    #[sqlx(rename = "Word")]
-    pub word: String,
-    pub is_verified: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub my_ru_translit: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub my_en_translit: Option<String>,
-    #[serde(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
-    #[sqlx(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub wiktionary_ipa_or_from_csv_pronunciations: Option<String>,
-}
-
-#[derive(Serialize, sqlx::FromRow, Debug)]
-pub struct WordDetailKmRaw {
-    #[sqlx(rename = "Word")]
-    pub word: String,
-    #[sqlx(rename = "Desc")]
-    pub desc: Option<String>,
-    #[sqlx(rename = "Phonetic")]
-    pub phonetic: Option<String>,
-    #[sqlx(rename = "Wiktionary")]
-    pub wiktionary: Option<String>,
-    #[sqlx(rename = "from_csv_variants")]
-    pub from_csv_variants_raw: Option<String>,
-    #[sqlx(rename = "from_csv_nounForms")]
-    pub from_csv_noun_forms_raw: Option<String>,
-    #[sqlx(rename = "from_csv_pronunciations")]
-    pub from_csv_pronunciations_raw: Option<String>,
-    #[sqlx(rename = "from_csv_rawHtml")]
-    pub from_csv_raw_html: Option<String>,
-    #[sqlx()]
-    pub from_chuon_nath: Option<String>,
-    #[sqlx()]
-    pub from_chuon_nath_translated: Option<String>,
-    #[sqlx()]
-    pub from_russian_wiki: Option<String>,
-    #[sqlx()]
-    pub gorgoniev: Option<String>,
-    #[sqlx()]
-    pub en_km_com: Option<String>,
-}
-
-#[derive(Serialize, Debug)]
-pub struct WordDetailKm {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub desc: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub phonetic: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub wiktionary: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_csv_variants: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_csv_noun_forms: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_csv_pronunciations: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_csv_raw_html: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_chuon_nath: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_chuon_nath_translated: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_russian_wiki: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub gorgoniev: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub en_km_com: Option<String>,
-}
-
-impl From<WordDetailKmRaw> for WordDetailKm {
-    fn from(raw: WordDetailKmRaw) -> Self {
-        Self {
-            desc: raw.desc,
-            phonetic: raw.phonetic,
-            wiktionary: raw.wiktionary,
-            from_csv_variants: parse_json_opt(raw.from_csv_variants_raw),
-            from_csv_noun_forms: parse_json_opt(raw.from_csv_noun_forms_raw),
-            from_csv_pronunciations: parse_json_opt(raw.from_csv_pronunciations_raw),
-            from_csv_raw_html: raw.from_csv_raw_html,
-            from_chuon_nath: raw.from_chuon_nath,
-            from_chuon_nath_translated: raw.from_chuon_nath_translated,
-            from_russian_wiki: raw.from_russian_wiki,
-            gorgoniev: raw.gorgoniev,
-            en_km_com: raw.en_km_com,
-        }
-    }
-}
-
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn get_km_words(state: State<'_, AppState>) -> Result<Vec<KmWord>, String> {
-    let pool = state.get_pool().await?;
-
-    let sql = "SELECT
-            Word,
-            (
-                Wiktionary IS NOT NULL
-                OR from_csv_variants IS NOT NULL
-                OR from_csv_nounForms IS NOT NULL
-                OR from_csv_pronunciations IS NOT NULL
-                OR from_csv_rawHtml IS NOT NULL
-                OR from_chuon_nath IS NOT NULL
-                OR from_chuon_nath_translated IS NOT NULL
-                OR from_russian_wiki IS NOT NULL
-                OR gorgoniev IS NOT NULL
-                OR en_km_com IS NOT NULL
-            ) AS is_verified,
-            my_ru_translit,
-            my_en_translit,
-            COALESCE(
-                Wiktionary_ipa,
-                (SELECT GROUP_CONCAT(value, ', ') FROM json_each(COALESCE(from_csv_pronunciations, '[]')))
-            ) AS Wiktionary_ipa_or_from_csv_pronunciations
-         FROM km_Dict
-         ORDER BY Word ASC";
-
-    let rows = sqlx::query_as::<_, KmWord>(&sql)
-        .fetch_all(&pool)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    Ok(rows)
+    get_km_words_impl(&state).await
 }
 
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn get_word_detail_km(
     state: State<'_, AppState>,
     word: String,
 ) -> Result<Option<WordDetailKm>, String> {
-    let pool = state.get_pool().await?;
-    let sql = "SELECT * FROM km_Dict WHERE Word = ?";
-    let row = sqlx::query_as::<_, WordDetailKmRaw>(&sql)
-        .bind(word)
-        .fetch_optional(&pool)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    Ok(row.map(WordDetailKm::from))
+    get_word_detail_km_impl(&state, word).await
 }
 
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn search_km_content(
     state: State<'_, AppState>,
     query: String,
 ) -> Result<Vec<String>, String> {
-    let pool = state.get_pool().await?;
-    let pattern = format!("%{}%", query);
-    let sql = "SELECT Word FROM km_Dict
-         WHERE Desc LIKE ?
-            OR Wiktionary LIKE ?
-            OR from_chuon_nath LIKE ?
-            OR from_russian_wiki LIKE ?
-            OR gorgoniev LIKE ?
-            OR from_csv_rawHtml LIKE ?
-            OR en_km_com LIKE ?
-         ORDER BY LENGTH(Word) ASC LIMIT 50";
-    let rows = sqlx::query_as::<_, WordRow>(&sql)
-        .bind(&pattern)
-        .bind(&pattern)
-        .bind(&pattern)
-        .bind(&pattern)
-        .bind(&pattern)
-        .bind(&pattern)
-        .fetch_all(&pool)
-        .await
-        .map_err(|e| e.to_string())?;
-    Ok(rows.into_iter().map(|r| r.word).collect())
+    search_km_content_impl(&state, query).await
 }
 
-#[derive(Serialize, sqlx::FromRow)]
-pub struct WordKmWordsDetailShortRow {
-    #[sqlx(rename = "Word")]
-    pub word: String,
-    pub definition: String,
-    pub source: KmShortDefinitionSource,
-    #[sqlx(rename = "Wiktionary_ipa_or_from_csv_pronunciations")]
-    pub wiktionary_ipa_or_from_csv_pronunciations: Option<String>,
-}
-
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn km_for_many_short_description_none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<ShortDefinitionKm>>, String> {
-    // for analyzer page
-    validate_words_not_empty(&words)?;
-
-    println!("words: {:#?}", words);
-
-    let pool = state.get_pool().await?;
-    let sql = format!(
-        "SELECT Word, {} as definition, {} as source, COALESCE(Wiktionary_ipa, (SELECT GROUP_CONCAT(value, ', ') FROM json_each(COALESCE(from_csv_pronunciations, '[]')))) AS Wiktionary_ipa_or_from_csv_pronunciations FROM km_Dict WHERE Word IN ({})",
-        KM_SHORT_DESC_COALESCE,
-        KM_SHORT_DESC_SOURCE,
-        get_placeholders(words.len())
-    );
-
-    let rows: Vec<WordKmWordsDetailShortRow> = fetch_many(&pool, &words, sql).await?;
-
-    println!("rows: {}", rows.len());
-
-    Ok(to_optional_map(
-        words,
-        rows,
-        |r| r.word.clone(),
-        |r| {
-            Some(ShortDefinitionKm {
-                definition: r.definition,
-                source: r.source,
-                wiktionary_ipa_or_from_csv_pronunciations: r.wiktionary_ipa_or_from_csv_pronunciations,
-            })
-        },
-    ))
+    km_for_many_short_description_none_if_word_not_found_impl(&state, words).await
 }
 
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn km_for_many_short_description_throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, ShortDefinitionKm>, String> {
-    validate_words_not_empty(&words)?;
-
-    let pool = state.get_pool().await?;
-    let sql = format!(
-        "SELECT Word, {} as definition, {} as source, COALESCE(Wiktionary_ipa, (SELECT GROUP_CONCAT(value, ', ') FROM json_each(COALESCE(from_csv_pronunciations, '[]')))) AS Wiktionary_ipa_or_from_csv_pronunciations FROM km_Dict WHERE Word IN ({})",
-        KM_SHORT_DESC_COALESCE,
-        KM_SHORT_DESC_SOURCE,
-        get_placeholders(words.len())
-    );
-
-    let rows: Vec<WordKmWordsDetailShortRow> = fetch_many(&pool, &words, sql).await?;
-
-    to_strict_map(
-        words,
-        rows,
-        |r| r.word.clone(),
-        |r| ShortDefinitionKm {
-            definition: r.definition,
-            source: r.source,
-            wiktionary_ipa_or_from_csv_pronunciations: r.wiktionary_ipa_or_from_csv_pronunciations,
-        },
-    )
+    km_for_many_short_description_throws_if_word_not_found_impl(&state, words).await
 }
 
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn km_for_many_full_details_none_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, Option<WordDetailKm>>, String> {
-    validate_words_not_empty(&words)?;
-
-    let pool = state.get_pool().await?;
-    let sql = format!(
-        "SELECT * FROM km_Dict WHERE Word IN ({})",
-        get_placeholders(words.len())
-    );
-
-    let rows: Vec<WordDetailKmRaw> = fetch_many(&pool, &words, sql).await?;
-
-    Ok(to_optional_map_wrap(
-        words,
-        rows,
-        |r| r.word.clone(),
-        WordDetailKm::from,
-    ))
+    km_for_many_full_details_none_if_word_not_found_impl(&state, words).await
 }
 
+#[cfg(feature = "tauri-app")]
 #[command]
 pub async fn km_for_many_full_details_throws_if_word_not_found(
     state: State<'_, AppState>,
     words: Vec<String>,
 ) -> Result<HashMap<String, WordDetailKm>, String> {
-    validate_words_not_empty(&words)?;
-
-    let pool = state.get_pool().await?;
-    let sql = format!(
-        "SELECT * FROM km_Dict WHERE Word IN ({})",
-        get_placeholders(words.len())
-    );
-
-    let rows: Vec<WordDetailKmRaw> = fetch_many(&pool, &words, sql).await?;
-
-    to_strict_map(words, rows, |r| r.word.clone(), WordDetailKm::from)
+    km_for_many_full_details_throws_if_word_not_found_impl(&state, words).await
 }

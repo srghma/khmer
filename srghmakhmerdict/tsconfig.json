@@ -3,7 +3,8 @@
     "paths": {
       "@gemini-ocr-automate-images-upload-chrome-extension/*": [
         "./node_modules/gemini-ocr-automate-images-upload-chrome-extension/src/*"
-      ]
+      ],
+      "@/*": ["./src/*"]
     },
     "target": "ESnext",
     "useDefineForClassFields": true,

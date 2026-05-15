@@ -15,32 +15,55 @@ name = "srghmakhmerdict_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2", optional = true , features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["devtools"] }
-# tauri-plugin-opener = "2"
+tauri = { version = "2", features = ["devtools"], optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri-plugin-deep-link = "2"
-# tauri-plugin-store = "2"
-# tauri-plugin-clipboard-manager = "2"
+tauri-plugin-deep-link = { version = "2", optional = true }
 sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "sqlite"] }
 tokio = { version = "1", features = ["full"] }
-tauri-plugin-fs = "2"
-tauri-plugin-http = { version = "2", features = ["stream"] }
+tauri-plugin-fs = { version = "2", optional = true }
+tauri-plugin-http = { version = "2", features = ["stream"], optional = true }
 flate2 = "1"
-tauri-plugin-tts = "0.1"
-tauri-plugin-log = "2"
+tauri-plugin-tts = { version = "0.1", optional = true }
+tauri-plugin-log = { version = "2", optional = true }
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 futures-util = "0.3"
 urlencoding = "2.1.3"
-tauri-plugin-opener = "2"
-tauri-plugin-iap = "0.7"
-# tauri-plugin-in-app-review = "0.1"
-tauri-plugin-in-app-review = { git = "https://github.com/srghma/tauri-plugin-in-app-review", rev = "4f1149ec12b90219590f12b575a382befcd74e81" }
-tauri-plugin-dialog = "2"
+tauri-plugin-opener = { version = "2", optional = true }
+tauri-plugin-iap = { version = "0.7", optional = true }
+tauri-plugin-in-app-review = { git = "https://github.com/srghma/tauri-plugin-in-app-review", rev = "4f1149ec12b90219590f12b575a382befcd74e81", optional = true }
+tauri-plugin-dialog = { version = "2", optional = true }
+axum = { version = "0.7", optional = true }
+tower-http = { version = "0.5", features = ["cors"], optional = true }
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
+tts = { version = "0.26", optional = true }
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"] # or "postgres", or "mysql"
 version = "2"
+optional = true
+
+[features]
+default = ["tauri-app", "tauri-tts"]
+tauri-app = [
+    "dep:tauri",
+    "dep:tauri-build",
+    "dep:tauri-plugin-fs",
+    "dep:tauri-plugin-http",
+    "dep:tauri-plugin-log",
+    "dep:tauri-plugin-sql",
+    "dep:tauri-plugin-deep-link",
+    "dep:tauri-plugin-opener",
+    "dep:tauri-plugin-iap",
+    "dep:tauri-plugin-in-app-review",
+    "dep:tauri-plugin-dialog",
+]
+tauri-tts = ["dep:tauri-plugin-tts"]
+webapp-server = ["axum", "tower-http"]
+native-tts = ["dep:tts"]

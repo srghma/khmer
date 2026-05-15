@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import type { ValidNonNegativeNumber } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+import type { ValidNonNegativeNumber } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber/validNonNegativeNumber'
 import type { PulseStore } from '../utils/createPulseStore'
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000

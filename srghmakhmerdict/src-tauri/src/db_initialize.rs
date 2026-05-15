@@ -1,39 +1,14 @@
 use crate::app_state::AppState;
+use crate::db_initialize_impl::get_existing_db_version_impl;
 use flate2::read::GzDecoder;
-use sqlx::Row;
 use sqlx::sqlite::SqlitePoolOptions;
 use std::fs;
 use std::io::Cursor;
 use std::path::PathBuf;
+use std::sync::Arc;
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_fs::FsExt;
-
-/// Helper to check the version inside the existing extracted DB
-async fn get_existing_db_version(db_path: &PathBuf) -> Option<String> {
-    if !db_path.exists() {
-        return None;
-    }
-
-    let db_url = format!("sqlite://{}", db_path.display());
-
-    // Try to connect. If DB is corrupt or locked, treat as None (triggers re-extraction)
-    let pool = SqlitePoolOptions::new()
-        .max_connections(1)
-        .connect(&db_url)
-        .await
-        .ok()?;
-
-    let row = sqlx::query("SELECT value FROM metadata WHERE key = 'version'")
-        .fetch_optional(&pool)
-        .await
-        .ok()
-        .flatten();
-
-    pool.close().await; // Explicitly close
-
-    row.map(|r| r.get::<String, _>("value"))
-}
 
 // Return Result<PathBuf, String> to ensure the Future is Send (Box<dyn Error> is !Send)
 async fn ensure_dict_db(app_handle: &AppHandle) -> Result<PathBuf, String> {
@@ -54,7 +29,7 @@ async fn ensure_dict_db(app_handle: &AppHandle) -> Result<PathBuf, String> {
     let target_version = app_handle.package_info().version.to_string();
 
     // 2. Get Existing Version (from DB metadata)
-    let existing_version = get_existing_db_version(&dest_path).await;
+    let existing_version = get_existing_db_version_impl(&dest_path).await;
 
     let is_dev = cfg!(debug_assertions);
     let db_missing = existing_version.is_none();
@@ -101,6 +76,10 @@ async fn ensure_dict_db(app_handle: &AppHandle) -> Result<PathBuf, String> {
     }
 
     Ok(dest_path)
+}
+
+pub async fn init_db_standalone(state: Arc<AppState>, db_path: PathBuf) {
+    crate::db_initialize_impl::init_db_standalone_impl(state, db_path).await;
 }
 
 pub async fn init_db_process(app_handle: AppHandle) {

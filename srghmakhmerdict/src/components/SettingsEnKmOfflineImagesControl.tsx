@@ -3,8 +3,8 @@ import { Switch } from '@heroui/switch'
 import { Button } from '@heroui/button'
 import { Progress } from '@heroui/progress'
 import { MdOutlineCloudDownload, MdCheckCircle } from 'react-icons/md'
-import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { invoke } from '@/db/invoke'
+import { listen } from '@/utils/tauriEvents'
 import { useAppToast } from '../providers/ToastProvider'
 import { useSettings } from '../providers/SettingsProvider'
 import { unknown_to_errorMessage } from '../utils/errorMessage'
@@ -48,9 +48,9 @@ export const SettingsEnKmOfflineImagesControl = () => {
     let unlisten: (() => void) | undefined
 
     const setupListener = async () => {
-      unlisten = await listen<ProgressPayload>('download-progress', event => {
-        setProgress(event.payload.percentage)
-        setStatusLabel(event.payload.label)
+      unlisten = await listen<ProgressPayload>('download-progress', payload => {
+        setProgress(payload.percentage)
+        setStatusLabel(payload.label)
       })
     }
 

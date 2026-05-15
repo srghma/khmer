@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../invoke'
 import { isKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
 import { Map_toNonEmptyMap_orThrow } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-map'
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'

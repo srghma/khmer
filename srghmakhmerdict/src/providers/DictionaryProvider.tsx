@@ -31,13 +31,11 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
       try {
         // Phase 1: Waiting for DB connection
         if (mounted) setStage('initializing_db')
-        // console.log('Provider: Waiting for DB...')
 
         const getDataPromise = await initPromise
 
         // Phase 2: DB is ready, waiting for SQL queries
         if (mounted) setStage('loading_data')
-        // console.log('Provider: DB Ready. Waiting for data...')
 
         const data = await getDataPromise()
 
@@ -45,12 +43,9 @@ export function DictionaryProvider({ initPromise, children }: DictionaryProvider
         if (mounted) {
           setDictData(data)
           setStage('ready')
-
-          // console.log('Provider: Ready')
         }
       } catch (e: unknown) {
         if (mounted) {
-          // console.error('Provider Error:', err)
           setError(unknown_to_errorMessage(e))
           setStage('error')
         }

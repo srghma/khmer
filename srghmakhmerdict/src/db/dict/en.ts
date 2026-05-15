@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../invoke'
 import type { NonEmptyArray } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-array'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import type { NonEmptySet } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
@@ -6,7 +6,7 @@ import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-e
 import { memoizeAsync0_throwIfInFly } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize-async'
 import { WordDetailEnSchema } from './schema'
 import type { WordDetailEn, ShortDefinitionEn } from './types'
-import type { ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+import type { ValidNonNegativeInt } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber/validNonNegativeInt'
 
 export const getEnWords = memoizeAsync0_throwIfInFly(() => invoke<NonEmptyArray<NonEmptyStringTrimmed>>('get_en_words'))
 

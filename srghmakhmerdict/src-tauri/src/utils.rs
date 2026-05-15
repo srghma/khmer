@@ -1,4 +1,5 @@
 use std::path::Path;
+#[cfg(feature = "tauri-app")]
 use tauri::Manager;
 
 pub fn log_dir_tree(path: &Path, prefix: &str, depth: usize, max_depth: usize) {
@@ -56,6 +57,7 @@ pub fn log_dir_tree(path: &Path, prefix: &str, depth: usize, max_depth: usize) {
     }
 }
 
+#[cfg(feature = "tauri-app")]
 pub fn investigate_paths(app: &mut tauri::App) {
     println!("\n{}", "=".repeat(60));
     println!("🔍 INVESTIGATING ANDROID ASSETS & PATHS");

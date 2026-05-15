@@ -10,6 +10,7 @@ import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-c
 interface ReactSelectionPopupProps {
   children: ReactNode
   popupContent: (text: NonEmptyStringTrimmed) => ReactNode
+  disabled?: boolean
 }
 
 interface Position {
@@ -21,7 +22,7 @@ const cardClassNames = {
   base: 'w-full md:w-[40vw] max-h-[40vh] md:max-h-[50vh]',
 }
 
-export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ children, popupContent }) => {
+export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ children, popupContent, disabled }) => {
   const uniqueId = useId().replace(/:/g, '')
   const wrapperClass = `selection-wrapper-${uniqueId}`
 
@@ -66,6 +67,8 @@ export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ childr
 
   // 3. Handle Selection Change
   const handleSelectionChange = useCallback(() => {
+    if (disabled) return
+
     const selectionData = getValidSelection(wrapperClass)
 
     if (selectionData) {
@@ -101,7 +104,7 @@ export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ childr
         setSelectedText(null)
       }
     }
-  }, [wrapperClass])
+  }, [disabled, wrapperClass])
 
   // 4. Handle Outside Interaction (Document level)
   const handleDocumentPointerDown = useCallback((e: PointerEvent) => {
@@ -163,31 +166,31 @@ export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ childr
 
       {selectedText && content && typeof document !== 'undefined'
         ? createPortal(
-            <Card
-              ref={popupRef}
-              className="fixed z-[9999] shadow-xl border border-default-200 dark:border-default-100 bg-content1/90 backdrop-blur-md rounded-lg overflow-hidden flex flex-col"
-              classNames={cardClassNames}
-              style={popupStyle}
-              onClick={handleStopPropagation}
-              onMouseDown={handleMouseDown}
-              onMouseUp={handleStopPropagation}
-              onPointerDown={handleStopPropagation} // Isolate all interaction events
+          <Card
+            ref={popupRef}
+            className="fixed z-[9999] shadow-xl border border-default-200 dark:border-default-100 bg-content1/90 backdrop-blur-md rounded-lg overflow-hidden flex flex-col"
+            classNames={cardClassNames}
+            style={popupStyle}
+            onClick={handleStopPropagation}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleStopPropagation}
+            onPointerDown={handleStopPropagation} // Isolate all interaction events
+          >
+            {/* Drag Handle */}
+            <button
+              {...moveProps}
+              className="flex justify-center items-center py-2 cursor-grab active:cursor-grabbing bg-default-100/50 hover:bg-default-200/50 dark:bg-zinc-800/50 transition-colors border-b border-default-100 touch-none w-full"
+              title="Drag to move"
+              onMouseDown={handleDragHandleMouseDown}
             >
-              {/* Drag Handle */}
-              <button
-                {...moveProps}
-                className="flex justify-center items-center py-2 cursor-grab active:cursor-grabbing bg-default-100/50 hover:bg-default-200/50 dark:bg-zinc-800/50 transition-colors border-b border-default-100 touch-none w-full"
-                title="Drag to move"
-                onMouseDown={handleDragHandleMouseDown}
-              >
-                <RxDragHandleDots2 className="text-default-400 rotate-90 text-xl" />
-              </button>
+              <RxDragHandleDots2 className="text-default-400 rotate-90 text-xl" />
+            </button>
 
-              {/* Content Area */}
-              <div className="p-2 overflow-y-auto custom-scrollbar relative">{content}</div>
-            </Card>,
-            document.body,
-          )
+            {/* Content Area */}
+            <div className="p-2 overflow-y-auto custom-scrollbar relative">{content}</div>
+          </Card>,
+          document.body,
+        )
         : null}
     </>
   )

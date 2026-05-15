@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, memo } from 'react'
-import { getProducts, purchase, onPurchaseUpdated, type Product } from '@choochmeque/tauri-plugin-iap-api'
-import { requestReview } from '@gbyte/tauri-plugin-in-app-review'
+import type { Product } from '@choochmeque/tauri-plugin-iap-api'
 import { useAppToast } from './ToastProvider'
 
 // Define the donation tiers
@@ -37,15 +36,35 @@ export const IapProvider = memo(function IapProvider({ children }: { children: R
   const [isPurchasing, setIsPurchasing] = useState(false)
   const toast = useAppToast()
 
+  const isTauri = typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__
+
   // 1. Initialize logic
   useEffect(() => {
+    if (!isTauri) {
+      setIsLoading(false)
+
+      return
+    }
+
+    let listener: { unregister: () => Promise<void> } | undefined
+
     const init = async () => {
       try {
+        const { getProducts, onPurchaseUpdated } = await import('@choochmeque/tauri-plugin-iap-api')
+
         // Fetch product details
         const fetchedProducts = await getProducts([...DONATION_PRODUCT_IDS], 'inapp')
 
         // GetProductsResponse likely contains products array
         setProducts(fetchedProducts.products)
+
+        // 2. Setup listener for purchase updates
+        onPurchaseUpdated(p => {
+          // eslint-disable-next-line no-console
+          console.log('[IAP] Purchase updated:', p)
+        }).then(l => {
+          listener = l
+        })
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('[IAP] Failed to fetch products:', error)
@@ -56,28 +75,27 @@ export const IapProvider = memo(function IapProvider({ children }: { children: R
 
     init()
 
-    // 2. Setup listener for purchase updates
-    let listener: { unregister: () => Promise<void> } | undefined
-
-    onPurchaseUpdated(p => {
-      // eslint-disable-next-line no-console
-      console.log('[IAP] Purchase updated:', p)
-    }).then(l => {
-      listener = l
-    })
-
     return () => {
       if (listener) {
         listener.unregister()
       }
     }
-  }, [])
+  }, [isTauri])
 
   // 3. Purchase handler
   const handlePurchase = useCallback(
     async (productId: DonationProductId): Promise<boolean> => {
+      if (!isTauri) {
+        toast.warn('Not Supported' as any, 'In-app purchases are only available in the desktop application.' as any)
+
+        return false
+      }
+
       setIsPurchasing(true)
       try {
+        const { purchase } = await import('@choochmeque/tauri-plugin-iap-api')
+        const { requestReview } = await import('@gbyte/tauri-plugin-in-app-review')
+
         const result = await purchase(productId, 'inapp')
 
         // eslint-disable-next-line no-console
@@ -102,7 +120,7 @@ export const IapProvider = memo(function IapProvider({ children }: { children: R
         setIsPurchasing(false)
       }
     },
-    [toast],
+    [isTauri, toast],
   )
 
   return (

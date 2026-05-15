@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { listen } from '@tauri-apps/api/event'
+import { listen } from '@/utils/tauriEvents'
 import {
   String_toNonEmptyString_orUndefined_afterTrim,
   type NonEmptyStringTrimmed,
@@ -49,8 +49,8 @@ export const useDeepLinkHandler = ({ resetNavigation }: DeepLinkHandlerProps) =>
     }
 
     // Set up Tauri event listener
-    const unlistenPromise = listen<string[]>('deep-link://new-url', event => {
-      handleUrl(event.payload[0])
+    const unlistenPromise = listen<string[]>('deep-link://new-url', payload => {
+      handleUrl(payload[0])
     })
 
     // Cleanup function

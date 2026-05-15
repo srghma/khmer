@@ -14,6 +14,7 @@ const uk = {
     },
     ACTIONS: {
       OPEN_KHMER_COMPLEX_TABLE: 'Відкрити таблицю кхмерських символів',
+      OPEN_ANKI_TABLE: 'Відкрити таблицю Anki',
       OPEN_KHMER_ANALYZER: 'Відкрити кхмерський аналізатор',
       ABOUT: 'Про словник',
       DONATE: 'Пожертвувати',

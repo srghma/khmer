@@ -1,16 +1,25 @@
+#[cfg(feature = "tauri-app")]
 use crate::app_state::AppState;
+#[cfg(feature = "tauri-app")]
 use tauri::Manager;
+#[cfg(feature = "tauri-app")]
 use tauri_plugin_sql::{Migration, MigrationKind};
+#[cfg(feature = "tauri-app")]
 use tokio::sync::RwLock;
 
-mod app_state;
-mod constants;
-mod db;
-mod db_initialize;
+pub mod app_state;
+pub mod constants;
+pub mod db;
+#[cfg(feature = "tauri-app")]
+pub mod db_initialize;
+pub mod db_initialize_impl;
+#[cfg(feature = "tauri-app")]
 mod image_manager;
+#[cfg(feature = "tauri-app")]
 mod protocols;
 pub mod utils;
 
+#[cfg(feature = "tauri-app")]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![Migration {
@@ -51,7 +60,7 @@ pub fn run() {
         kind: MigrationKind::Up,
     }];
 
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .register_uri_scheme_protocol("imglocal", move |ctx, request| {
@@ -64,8 +73,14 @@ pub fn run() {
         })
         .plugin(tauri_plugin_iap::init())
         .plugin(tauri_plugin_in_app_review::init())
-        .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_tts::init())
+        .plugin(tauri_plugin_deep_link::init());
+
+    #[cfg(feature = "tauri-tts")]
+    {
+        builder = builder.plugin(tauri_plugin_tts::init());
+    }
+
+    builder
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
@@ -120,7 +135,9 @@ pub fn run() {
             db::dict::are_words_in_dict::are_words_in_dict,
             // db::anki::get_all_anki_cards,
             // db::anki::save_anki_cards,
+            #[cfg(feature = "tauri-app")]
             image_manager::check_offline_images_status,
+            #[cfg(feature = "tauri-app")]
             image_manager::download_offline_images
         ])
         .run(tauri::generate_context!())

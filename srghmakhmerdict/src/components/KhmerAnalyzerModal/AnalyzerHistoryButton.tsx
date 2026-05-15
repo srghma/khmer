@@ -9,7 +9,7 @@ import { nonEmptyString_afterTrim } from '@gemini-ocr-automate-images-upload-chr
 import { details_header__text_className } from '../header_classNames'
 import { assertIsDate } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toValidDate'
 import { truncateString } from '../../utils/truncateString'
-import { strOrNumberToIntOrThrow_strict } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber'
+import { strOrNumberToIntOrThrow_strict } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/toNumber/validInt'
 import { EditAnalyzerHistoryModal } from './EditAnalyzerHistoryModal'
 
 const MAX_PREVIEW_LENGTH = 60
