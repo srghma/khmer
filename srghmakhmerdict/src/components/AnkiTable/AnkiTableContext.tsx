@@ -17,7 +17,9 @@ interface AnkiTableContextValue {
   toggleShowDue: () => void
   toggleShowNew: () => void
   toggleShowNotDue: () => void
-  togglePos: (pos: string) => void
+  setDisabledPosDue: (disabledPos: string[]) => void
+  setDisabledPosNew: (disabledPos: string[]) => void
+  setDisabledPosWait: (disabledPos: string[]) => void
   showAllFront: () => void
   hideAllFront: () => void
   showAllBack: () => void
@@ -67,39 +69,40 @@ export const AnkiTableProvider: React.FC<AnkiTableProviderProps> = ({
       audio: audioMemo,
       state,
       currentTime,
-      toggleFront: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideFront: !prev?.hideFront })),
-      toggleBack: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideBack: !prev?.hideBack })),
-      toggleInfo: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideInfo: !prev?.hideInfo })),
+      toggleFront: () =>
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideFront: !prev?.hideFront })),
+      toggleBack: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideBack: !prev?.hideBack })),
+      toggleInfo: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideInfo: !prev?.hideInfo })),
       setSortMode: (sortMode: AnkiTableSortMode) =>
-        setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), sortMode })),
-      toggleShowDue: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), showDue: !prev?.showDue })),
-      toggleShowNew: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), showNew: !prev?.showNew })),
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), sortMode })),
+      toggleShowDue: () =>
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), showDue: !prev?.showDue })),
+      toggleShowNew: () =>
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), showNew: !prev?.showNew })),
       toggleShowNotDue: () =>
-        setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), showNotDue: !prev?.showNotDue })),
-      togglePos: (pos: string) =>
-        setState(prev => {
-          const p = prev || DEFAULT_ANKI_TABLE_STATE
-
-          return {
-            ...p,
-            disabledPos: p.disabledPos.includes(pos) ? p.disabledPos.filter(x => x !== pos) : [...p.disabledPos, pos],
-          }
-        }),
-      showAllFront: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideFront: false })),
-      hideAllFront: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideFront: true })),
-      showAllBack: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideBack: false })),
-      hideAllBack: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideBack: true })),
-      showAllInfo: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideInfo: false })),
-      hideAllInfo: () => setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), hideInfo: true })),
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), showNotDue: !prev?.showNotDue })),
+      setDisabledPosDue: (disabledPosDue: string[]) =>
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), disabledPosDue })),
+      setDisabledPosNew: (disabledPosNew: string[]) =>
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), disabledPosNew })),
+      setDisabledPosWait: (disabledPosWait: string[]) =>
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), disabledPosWait })),
+      showAllFront: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideFront: false })),
+      hideAllFront: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideFront: true })),
+      showAllBack: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideBack: false })),
+      hideAllBack: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideBack: true })),
+      showAllInfo: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideInfo: false })),
+      hideAllInfo: () => setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), hideInfo: true })),
       toggleAudioModeOpus: () =>
-        setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), audioModeOpus: !prev?.audioModeOpus })),
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), audioModeOpus: !prev?.audioModeOpus })),
       toggleAudioModeGoogle: () =>
-        setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), audioModeGoogle: !prev?.audioModeGoogle })),
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), audioModeGoogle: !prev?.audioModeGoogle })),
       toggleAudioModeNative: () =>
-        setState(prev => ({ ...(prev || DEFAULT_ANKI_TABLE_STATE), audioModeNative: !prev?.audioModeNative })),
+        setState(prev => ({ ...DEFAULT_ANKI_TABLE_STATE, ...(prev || {}), audioModeNative: !prev?.audioModeNative })),
       toggleShowShortDefinitionOnSelect: () =>
         setState(prev => ({
-          ...(prev || DEFAULT_ANKI_TABLE_STATE),
+          ...DEFAULT_ANKI_TABLE_STATE,
+          ...(prev || {}),
           showShortDefinitionOnSelect: !prev?.showShortDefinitionOnSelect,
         })),
       onWiktionaryClick,

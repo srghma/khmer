@@ -234,14 +234,18 @@ export class AudioQueue {
 
         // 2. Google
         if (state.audioModeGoogle && !this.stopRequested) {
-          try {
-            await playGoogleTts(track.text)
-          } catch (e: any) {
-            console.error('[AnkiTableAudio] Google failed', e)
-            toast.error(
-              'Google failed' as NonEmptyStringTrimmed,
-              (e.message || 'Unknown error') as NonEmptyStringTrimmed,
-            )
+          if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            console.warn('[AnkiTableAudio] Skipping Google TTS because browser is offline')
+          } else {
+            try {
+              await playGoogleTts(track.text)
+            } catch (e: any) {
+              console.error('[AnkiTableAudio] Google failed', e)
+              toast.error(
+                'Google failed' as NonEmptyStringTrimmed,
+                (e.message || 'Unknown error') as NonEmptyStringTrimmed,
+              )
+            }
           }
         }
 

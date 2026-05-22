@@ -124,7 +124,9 @@ export interface AnkiTableState {
   showNew: boolean
   showNotDue: boolean
   sortMode: AnkiTableSortMode
-  disabledPos: string[]
+  disabledPosDue: string[]
+  disabledPosNew: string[]
+  disabledPosWait: string[]
   currentTime: number
   audioModeOpus: boolean
   audioModeGoogle: boolean
@@ -140,7 +142,9 @@ export const DEFAULT_ANKI_TABLE_STATE: AnkiTableState = {
   showNew: true,
   showNotDue: false,
   sortMode: 'index',
-  disabledPos: [],
+  disabledPosDue: [],
+  disabledPosNew: [],
+  disabledPosWait: [],
   currentTime: Date.now(),
   audioModeOpus: true,
   audioModeGoogle: false,
@@ -398,7 +402,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setIsShowShortDetailAboutKhmerWordEnabled,
       toggleShowShortDetailAboutKhmerWord,
 
-      ankiTableState: ankiTableState ?? DEFAULT_ANKI_TABLE_STATE,
+      ankiTableState: { ...DEFAULT_ANKI_TABLE_STATE, ...ankiTableState },
       setAnkiTableState,
     }),
     [

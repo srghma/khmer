@@ -364,10 +364,17 @@ export const AnkiTableContent: React.FC<Props> = ({ notes, currentTime, hideFron
     return notes.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   }, [notes, page])
 
-  // Reset page only when structural filters or sort mode change
   useEffect(() => {
     setPage(0)
-  }, [state.sortMode, state.disabledPos, state.showDue, state.showNew, state.showNotDue])
+  }, [
+    state.sortMode,
+    state.disabledPosDue,
+    state.disabledPosNew,
+    state.disabledPosWait,
+    state.showDue,
+    state.showNew,
+    state.showNotDue,
+  ])
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
 
@@ -431,30 +438,36 @@ export const AnkiTableContent: React.FC<Props> = ({ notes, currentTime, hideFron
     [dictData, setLocation],
   )
 
-  const handlePrevPage = () => setPage(p => Math.max(0, p - 1))
-  const handleNextPage = () => setPage(p => Math.min(totalPages - 1, p + 1))
-  const handleFirstPage = () => setPage(0)
-  const handleLastPage = () => setPage(totalPages - 1)
-  const handlePageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value, 10)
+  const handlePrevPage = useCallback(() => setPage(p => Math.max(0, p - 1)), [])
+  const handleNextPage = useCallback(() => setPage(p => Math.min(totalPages - 1, p + 1)), [totalPages])
+  const handleFirstPage = useCallback(() => setPage(0), [])
+  const handleLastPage = useCallback(() => setPage(totalPages - 1), [totalPages])
+  const handlePageInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = parseInt(e.target.value, 10)
 
-    if (!isNaN(val)) {
-      setPage(Math.min(Math.max(0, val - 1), totalPages - 1))
-    }
-  }
+      if (!isNaN(val)) {
+        setPage(Math.min(Math.max(0, val - 1), totalPages - 1))
+      }
+    },
+    [totalPages],
+  )
 
-  const jumpTo = (index: number) => {
-    if (index === -1) return
-    const newPage = Math.floor(index / PAGE_SIZE)
+  const jumpTo = useCallback(
+    (index: number) => {
+      if (index === -1) return
+      const newPage = Math.floor(index / PAGE_SIZE)
 
-    setPage(newPage)
-    const word = notes[index]!.word
-    const params = new URLSearchParams(window.location.search)
+      setPage(newPage)
+      const word = notes[index]!.word
+      const params = new URLSearchParams(window.location.search)
 
-    params.set('page', (newPage + 1).toString())
-    params.set('word', word)
-    setLocation(`${location}?${params.toString()}`, { replace: true })
-  }
+      params.set('page', (newPage + 1).toString())
+      params.set('word', word)
+      setLocation(`${location}?${params.toString()}`, { replace: true })
+    },
+    [notes, setLocation, location],
+  )
 
   const firstDueIdx = useMemo(() => {
     return notes.findIndex(n => {

@@ -166,31 +166,31 @@ export const ReactSelectionPopup: React.FC<ReactSelectionPopupProps> = ({ childr
 
       {selectedText && content && typeof document !== 'undefined'
         ? createPortal(
-          <Card
-            ref={popupRef}
-            className="fixed z-[9999] shadow-xl border border-default-200 dark:border-default-100 bg-content1/90 backdrop-blur-md rounded-lg overflow-hidden flex flex-col"
-            classNames={cardClassNames}
-            style={popupStyle}
-            onClick={handleStopPropagation}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleStopPropagation}
-            onPointerDown={handleStopPropagation} // Isolate all interaction events
-          >
-            {/* Drag Handle */}
-            <button
-              {...moveProps}
-              className="flex justify-center items-center py-2 cursor-grab active:cursor-grabbing bg-default-100/50 hover:bg-default-200/50 dark:bg-zinc-800/50 transition-colors border-b border-default-100 touch-none w-full"
-              title="Drag to move"
-              onMouseDown={handleDragHandleMouseDown}
+            <Card
+              ref={popupRef}
+              className="fixed z-[9999] shadow-xl border border-default-200 dark:border-default-100 bg-content1/90 backdrop-blur-md rounded-lg overflow-hidden flex flex-col"
+              classNames={cardClassNames}
+              style={popupStyle}
+              onClick={handleStopPropagation}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleStopPropagation}
+              onPointerDown={handleStopPropagation} // Isolate all interaction events
             >
-              <RxDragHandleDots2 className="text-default-400 rotate-90 text-xl" />
-            </button>
+              {/* Drag Handle */}
+              <button
+                {...moveProps}
+                className="flex justify-center items-center py-2 cursor-grab active:cursor-grabbing bg-default-100/50 hover:bg-default-200/50 dark:bg-zinc-800/50 transition-colors border-b border-default-100 touch-none w-full"
+                title="Drag to move"
+                onMouseDown={handleDragHandleMouseDown}
+              >
+                <RxDragHandleDots2 className="text-default-400 rotate-90 text-xl" />
+              </button>
 
-            {/* Content Area */}
-            <div className="p-2 overflow-y-auto custom-scrollbar relative">{content}</div>
-          </Card>,
-          document.body,
-        )
+              {/* Content Area */}
+              <div className="p-2 overflow-y-auto custom-scrollbar relative">{content}</div>
+            </Card>,
+            document.body,
+          )
         : null}
     </>
   )

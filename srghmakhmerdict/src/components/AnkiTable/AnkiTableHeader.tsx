@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import {
   IoListOutline as ListOrdered,
   IoTimeOutline as Clock,
@@ -12,25 +12,27 @@ import {
   IoClose as X,
   IoRepeat as Repeat,
   IoChatbubbleEllipsesOutline as Chat,
+  IoSearchOutline as SearchIcon,
+  IoFilterOutline as FilterIcon,
 } from 'react-icons/io5'
 import { Button } from '@heroui/button'
 import { useAnkiTable } from './AnkiTableContext'
+import { useOnline } from '../../hooks/useOnline'
 import { cn } from '@heroui/theme'
-import { type SortMode } from './types'
 
 interface Props {
-  allPos: string[]
   onBack: () => void
+  onSearchClick: () => void
+  onPosConfigClick: () => void
 }
 
-export const AnkiTableHeader: React.FC<Props> = ({ allPos, onBack }) => {
+export const AnkiTableHeader: React.FC<Props> = React.memo(({ onBack, onSearchClick, onPosConfigClick }) => {
   const {
     state,
     toggleShowDue,
     toggleShowNew,
     toggleShowNotDue,
     setSortMode,
-    togglePos,
     toggleFront,
     toggleBack,
     toggleInfo,
@@ -54,13 +56,22 @@ export const AnkiTableHeader: React.FC<Props> = ({ allPos, onBack }) => {
     clearQueue,
   } = audio
 
-  const handleWheel = (e: React.WheelEvent) => {
+  const isOnline = useOnline()
+  const isOffline = !isOnline
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
     if (e.deltaY !== 0) {
       const container = e.currentTarget as HTMLElement
 
       container.scrollLeft += e.deltaY
     }
-  }
+  }, [])
+
+  const handleToggleRepeat = useCallback(() => setIsRepeatQueue(!isRepeatQueue), [isRepeatQueue, setIsRepeatQueue])
+  const handlePlayPause = useCallback(() => (isPlaying ? pause() : play()), [isPlaying, pause, play])
+
+  const setSortModeIndex = useCallback(() => setSortMode('index'), [setSortMode])
+  const setSortModeDue = useCallback(() => setSortMode('due'), [setSortMode])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md shrink-0 pt-[env(safe-area-inset-top)]">
@@ -90,7 +101,7 @@ export const AnkiTableHeader: React.FC<Props> = ({ allPos, onBack }) => {
                     color="primary"
                     size="sm"
                     variant="flat"
-                    onClick={isPlaying ? pause : play}
+                    onClick={handlePlayPause}
                   >
                     {isPlaying ? <Pause size={16} /> : <Play className="ml-0.5" size={16} />}
                   </Button>
@@ -114,7 +125,7 @@ export const AnkiTableHeader: React.FC<Props> = ({ allPos, onBack }) => {
                     className={cn('h-7 w-7 min-w-0', isRepeatQueue ? 'text-primary' : 'text-default-400')}
                     size="sm"
                     variant="light"
-                    onClick={() => setIsRepeatQueue(!isRepeatQueue)}
+                    onClick={handleToggleRepeat}
                   >
                     <Repeat size={14} />
                   </Button>
@@ -190,6 +201,7 @@ export const AnkiTableHeader: React.FC<Props> = ({ allPos, onBack }) => {
                   'h-9 md:h-7 min-w-0 px-3 md:px-2 text-[10px] md:text-[9px] font-bold uppercase transition-all',
                   state.audioModeGoogle ? 'bg-secondary text-secondary-foreground shadow-sm' : 'text-default-400',
                 )}
+                isDisabled={isOffline}
                 size="sm"
                 variant={state.audioModeGoogle ? 'solid' : 'light'}
                 onClick={toggleAudioModeGoogle}
@@ -256,51 +268,60 @@ export const AnkiTableHeader: React.FC<Props> = ({ allPos, onBack }) => {
 
             {/* Sorting */}
             <div className="flex items-center gap-0.5 rounded-full border bg-default-100/50 p-0.5">
-              {(['index', 'due'] as SortMode[]).map(mode => (
-                <Button
-                  key={mode}
-                  isIconOnly
-                  className={cn(
-                    'h-9 w-9 md:h-7 md:w-7 min-w-0 rounded-full transition-all',
-                    state.sortMode === mode ? 'bg-background text-primary shadow-sm' : 'text-default-400',
-                  )}
-                  size="sm"
-                  variant="light"
-                  onClick={() => setSortMode(mode)}
-                >
-                  {mode === 'index' ? <ListOrdered size={16} /> : <Clock size={16} />}
-                </Button>
-              ))}
+              <Button
+                isIconOnly
+                className={cn(
+                  'h-9 w-9 md:h-7 md:w-7 min-w-0 rounded-full transition-all',
+                  state.sortMode === 'index' ? 'bg-background text-primary shadow-sm' : 'text-default-400',
+                )}
+                size="sm"
+                variant="light"
+                onClick={setSortModeIndex}
+              >
+                <ListOrdered size={16} />
+              </Button>
+              <Button
+                isIconOnly
+                className={cn(
+                  'h-9 w-9 md:h-7 md:w-7 min-w-0 rounded-full transition-all',
+                  state.sortMode === 'due' ? 'bg-background text-primary shadow-sm' : 'text-default-400',
+                )}
+                size="sm"
+                variant="light"
+                onClick={setSortModeDue}
+              >
+                <Clock size={16} />
+              </Button>
             </div>
 
             <div className="h-5 w-[1px] bg-default-200" />
 
-            {/* POS Toggles */}
-            <div className="flex items-center gap-1 py-1 pr-8">
-              {allPos.map(pos => {
-                const isDisabled = state.disabledPos.includes(pos)
-
-                return (
-                  <Button
-                    key={pos}
-                    className={cn(
-                      'h-9 md:h-7 min-w-fit px-3 md:px-2.5 text-[10px] md:text-[9px] font-bold uppercase transition-all whitespace-nowrap rounded-full border',
-                      !isDisabled
-                        ? 'bg-primary/10 border-primary/20 text-primary shadow-sm'
-                        : 'bg-transparent border-default-200 text-default-400 line-through opacity-50',
-                    )}
-                    size="sm"
-                    variant="bordered"
-                    onClick={() => togglePos(pos)}
-                  >
-                    {pos}
-                  </Button>
-                )
-              })}
+            {/* POS Config & Search Buttons */}
+            <div className="flex items-center gap-0.5 rounded-full border bg-default-100/50 p-0.5 mr-4">
+              <Button
+                isIconOnly
+                className="h-9 w-9 md:h-7 md:w-7 min-w-0 rounded-full transition-all text-default-400 hover:text-primary"
+                size="sm"
+                variant="light"
+                onClick={onSearchClick}
+              >
+                <SearchIcon size={16} />
+              </Button>
+              <Button
+                isIconOnly
+                className="h-9 w-9 md:h-7 md:w-7 min-w-0 rounded-full transition-all text-default-400 hover:text-primary"
+                size="sm"
+                variant="light"
+                onClick={onPosConfigClick}
+              >
+                <FilterIcon size={16} />
+              </Button>
             </div>
           </div>
         </div>
       </div>
     </header>
   )
-}
+})
+
+AnkiTableHeader.displayName = 'AnkiTableHeader'

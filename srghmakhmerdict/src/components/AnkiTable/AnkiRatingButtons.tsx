@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Grade } from 'femto-fsrs'
 import { cn } from '@heroui/theme'
 import { useAnkiTable } from './AnkiTableContext'
@@ -24,28 +24,65 @@ interface Props {
   audio: AnkiTableAudioPlayer
 }
 
+interface RatingButtonProps {
+  config: (typeof ratingConfigs)[0]
+  handleRate: (e: React.MouseEvent, grade: Grade) => void
+  preview: Record<Grade, string>
+}
+
+const RatingButton: React.FC<RatingButtonProps> = React.memo(({ config, handleRate, preview }) => {
+  const onClick = useCallback((e: React.MouseEvent) => handleRate(e, config.rating), [handleRate, config.rating])
+
+  return (
+    <button
+      className={cn(
+        'flex-1 flex flex-col items-center justify-center rounded border border-transparent px-1.5 md:px-1 py-1 md:py-0.5 text-[9px] md:text-[8px] font-bold transition-all',
+        'bg-zinc-100 text-zinc-900 hover:scale-105 active:scale-95 dark:bg-zinc-800 dark:text-zinc-100',
+        'hover:border-zinc-400 dark:hover:border-zinc-500',
+      )}
+      onClick={onClick}
+    >
+      <span className="uppercase opacity-70">{config.label}</span>
+      <span className="font-medium text-muted-foreground">{preview[config.rating]}</span>
+    </button>
+  )
+})
+
+RatingButton.displayName = 'RatingButton'
+
 export const AnkiRatingButtons: React.FC<Props> = React.memo(
   ({ word, sent, word_audio, sent_audio, isRevealed, onReveal, className, anki, audio }) => {
     const { state: _state } = useAnkiTable()
     const preview = anki.getPreview(word)
 
-    const handleRate = (e: React.MouseEvent, grade: Grade) => {
-      e.stopPropagation()
-      anki.rate(word, grade)
-      onReveal(false)
-    }
+    const handleRate = useCallback(
+      (e: React.MouseEvent, grade: Grade) => {
+        e.stopPropagation()
+        anki.rate(word, grade)
+        onReveal(false)
 
-    const handleShowAnswer = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onReveal(true)
+        if (word_audio) audio.removeFromQueue({ url: word_audio, text: word })
+        if (sent_audio && sent) audio.removeFromQueue({ url: sent_audio, text: sent })
+      },
+      [anki, audio, onReveal, sent, sent_audio, word, word_audio],
+    )
 
-      const tracks = []
+    const handleShowAnswer = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation()
+        onReveal(true)
 
-      if (word_audio) tracks.push({ text: word, audioUrl: word_audio })
-      if (sent && sent_audio) tracks.push({ text: sent, audioUrl: sent_audio })
+        const tracks = []
 
-      audio.playMultipleTexts(tracks)
-    }
+        if (word_audio) tracks.push({ text: word, audioUrl: word_audio })
+        if (sent && sent_audio) tracks.push({ text: sent, audioUrl: sent_audio })
+
+        audio.playMultipleTexts(tracks)
+      },
+      [audio, onReveal, sent, sent_audio, word, word_audio],
+    )
+
+    const handleEasyRate = useCallback((e: React.MouseEvent) => handleRate(e, Grade.EASY), [handleRate])
 
     return (
       <div className={cn('flex flex-col gap-1.5', className)}>
@@ -66,7 +103,7 @@ export const AnkiRatingButtons: React.FC<Props> = React.memo(
                   'flex-1 flex flex-col items-center justify-center rounded border border-transparent px-2 md:px-1 py-1 md:py-0.5 text-[9px] md:text-[8px] font-bold transition-all',
                   'bg-zinc-100 text-zinc-900 hover:scale-105 active:scale-95 dark:bg-zinc-800 dark:text-zinc-100',
                 )}
-                onClick={e => handleRate(e, Grade.EASY)}
+                onClick={handleEasyRate}
               >
                 <span className="uppercase opacity-70">Easy</span>
                 <span className="font-medium text-muted-foreground">{preview[Grade.EASY]}</span>
@@ -74,18 +111,7 @@ export const AnkiRatingButtons: React.FC<Props> = React.memo(
             </>
           ) : (
             ratingConfigs.map(config => (
-              <button
-                key={config.rating}
-                className={cn(
-                  'flex-1 flex flex-col items-center justify-center rounded border border-transparent px-1.5 md:px-1 py-1 md:py-0.5 text-[9px] md:text-[8px] font-bold transition-all',
-                  'bg-zinc-100 text-zinc-900 hover:scale-105 active:scale-95 dark:bg-zinc-800 dark:text-zinc-100',
-                  'hover:border-zinc-400 dark:hover:border-zinc-500',
-                )}
-                onClick={e => handleRate(e, config.rating)}
-              >
-                <span className="uppercase opacity-70">{config.label}</span>
-                <span className="font-medium text-muted-foreground">{preview[config.rating]}</span>
-              </button>
+              <RatingButton key={config.rating} config={config} handleRate={handleRate} preview={preview} />
             ))
           )}
         </div>

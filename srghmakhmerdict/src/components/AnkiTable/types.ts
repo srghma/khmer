@@ -41,7 +41,9 @@ export interface AnkiTableState {
   showDue: boolean
   showNew: boolean
   showNotDue: boolean
-  disabledPos: string[]
+  disabledPosDue: string[]
+  disabledPosNew: string[]
+  disabledPosWait: string[]
   audioModeOpus: boolean
   audioModeGoogle: boolean
   audioModeNative: boolean

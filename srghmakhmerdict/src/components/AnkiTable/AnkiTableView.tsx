@@ -7,6 +7,8 @@ import { WiktionaryModal } from './WiktionaryModal'
 import { AnkiTableContent } from './AnkiTableContent'
 import { type Note, type NoteWithMetadata, type NoteStatus } from './types'
 import { safeBack } from '../../utils/safeBack'
+import { AnkiSearchModal } from './AnkiSearchModal'
+import { PosConfigModal } from './PosConfigModal'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
@@ -17,10 +19,17 @@ const AnkiTableInner: React.FC<{
   const { data: rawNotes, error } = useSWRImmutable<Note[]>('/data.json', fetcher)
   const { state, anki, currentTime } = useAnkiTable()
   const [, setLocation] = useLocation()
+  const [isSearchOpen, setSearchOpen] = useState(false)
+  const [isPosConfigOpen, setPosConfigOpen] = useState(false)
 
   const handleClose = useCallback(() => {
     safeBack(setLocation)
   }, [setLocation])
+
+  const openSearch = useCallback(() => setSearchOpen(true), [])
+  const closeSearch = useCallback(() => setSearchOpen(false), [])
+  const openPosConfig = useCallback(() => setPosConfigOpen(true), [])
+  const closePosConfig = useCallback(() => setPosConfigOpen(false), [])
 
   const baseNotes = useMemo(() => {
     if (!rawNotes) return []
@@ -31,9 +40,21 @@ const AnkiTableInner: React.FC<{
     })) as NoteWithMetadata[]
   }, [rawNotes])
 
-  const allPos = useMemo(() => {
-    return [...new Set(baseNotes.map(n => n.pos?.trim() || 'unknown'))].sort()
+  const posCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+
+    for (const note of baseNotes) {
+      const p = note.pos?.trim() || 'unknown'
+
+      counts[p] = (counts[p] || 0) + 1
+    }
+
+    return counts
   }, [baseNotes])
+
+  const allPos = useMemo(() => {
+    return Object.keys(posCounts).sort()
+  }, [posCounts])
 
   const sortedNotes = useMemo(() => {
     const now = currentTime
@@ -43,12 +64,20 @@ const AnkiTableInner: React.FC<{
     list = list.filter(note => {
       const notePos = note.pos?.trim() || 'unknown'
 
-      if (state.disabledPos.includes(notePos)) return false
-
       const status = anki.getStatus(note.word)
 
-      if (!status) return state.showNew
-      if (status.due <= now) return state.showDue
+      if (!status) {
+        if (state.disabledPosNew.includes(notePos)) return false
+
+        return state.showNew
+      }
+      if (status.due <= now) {
+        if (state.disabledPosDue.includes(notePos)) return false
+
+        return state.showDue
+      }
+
+      if (state.disabledPosWait.includes(notePos)) return false
 
       return state.showNotDue
     })
@@ -80,14 +109,25 @@ const AnkiTableInner: React.FC<{
     }
 
     return list
-  }, [baseNotes, state.disabledPos, state.showDue, state.showNew, state.showNotDue, state.sortMode, anki, currentTime])
+  }, [
+    baseNotes,
+    state.disabledPosDue,
+    state.disabledPosNew,
+    state.disabledPosWait,
+    state.showDue,
+    state.showNew,
+    state.showNotDue,
+    state.sortMode,
+    anki,
+    currentTime,
+  ])
 
   if (error) return <div className="p-10 text-danger">Failed to load data.json</div>
   if (!rawNotes && !error) return <div className="p-10">Loading notes...</div>
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden animate-in slide-in-from-right duration-200">
-      <AnkiTableHeader allPos={allPos} onBack={handleClose} />
+      <AnkiTableHeader onBack={handleClose} onPosConfigClick={openPosConfig} onSearchClick={openSearch} />
 
       <main className="relative flex-1 w-full overflow-hidden">
         <div className="h-full w-full">
@@ -102,6 +142,8 @@ const AnkiTableInner: React.FC<{
       </main>
 
       <WiktionaryModal content={selectedWiktionary} onClose={() => setSelectedWiktionary(null)} />
+      <AnkiSearchModal isOpen={isSearchOpen} notes={baseNotes} onClose={closeSearch} />
+      <PosConfigModal allPos={allPos} isOpen={isPosConfigOpen} posCounts={posCounts} onClose={closePosConfig} />
     </div>
   )
 }

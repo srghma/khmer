@@ -93,52 +93,61 @@ export const AnkiNoteCell: React.FC<Props> = React.memo(
       }
     }, [timeoutId])
 
-    const handlePlayClick = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      playAudio()
-    }
+    const handlePlayClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation()
+        playAudio()
+      },
+      [playAudio],
+    )
 
-    const toggleRepeat = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      if (!currentCellTrack) return
+    const toggleRepeat = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (!currentCellTrack) return
 
-      if (audio.isInQueue(currentCellTrack)) {
-        audio.removeFromQueue(currentCellTrack)
-      } else {
-        audio.addToQueue(currentCellTrack)
-      }
-    }
-
-    const handleWiktionaryLookup = async (e: React.MouseEvent) => {
-      e.stopPropagation()
-      if (!word) return
-
-      if (wiktionaryContent) {
-        onWiktionaryClick(wiktionaryContent)
-
-        return
-      }
-
-      setIsLoadingWiktionary(true)
-      try {
-        const detail = await getWordDetailKm(word)
-
-        if (detail?.wiktionary) {
-          setWiktionaryContent(detail.wiktionary)
-          onWiktionaryClick(detail.wiktionary)
+        if (audio.isInQueue(currentCellTrack)) {
+          audio.removeFromQueue(currentCellTrack)
         } else {
-          setIsWiktionaryNotFound(true)
-          toast.warn('Wiktionary' as NonEmptyStringTrimmed, 'No entry found in database.' as NonEmptyStringTrimmed)
+          audio.addToQueue(currentCellTrack)
         }
-      } catch (err: any) {
-        toast.error(
-          'Wiktionary Lookup Error' as NonEmptyStringTrimmed,
-          (err.message || 'Unknown error') as NonEmptyStringTrimmed,
-        )
-      } finally {
-        setIsLoadingWiktionary(false)
-      }
-    }
+      },
+      [audio, currentCellTrack],
+    )
+
+    const handleWiktionaryLookup = useCallback(
+      async (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (!word) return
+
+        if (wiktionaryContent) {
+          onWiktionaryClick(wiktionaryContent)
+
+          return
+        }
+
+        setIsLoadingWiktionary(true)
+        try {
+          const detail = await getWordDetailKm(word)
+
+          if (detail?.wiktionary) {
+            setWiktionaryContent(detail.wiktionary)
+            onWiktionaryClick(detail.wiktionary)
+          } else {
+            setIsWiktionaryNotFound(true)
+            toast.warn('Wiktionary' as NonEmptyStringTrimmed, 'No entry found in database.' as NonEmptyStringTrimmed)
+          }
+        } catch (err: any) {
+          toast.error(
+            'Wiktionary Lookup Error' as NonEmptyStringTrimmed,
+            (err.message || 'Unknown error') as NonEmptyStringTrimmed,
+          )
+        } finally {
+          setIsLoadingWiktionary(false)
+        }
+      },
+      [onWiktionaryClick, toast, wiktionaryContent, word],
+    )
 
     if (!shouldRender) return null
 
