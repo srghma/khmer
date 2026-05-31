@@ -87,7 +87,7 @@ const ConsonantBlock = memo(function ConsonantBlock({
     <div className="border-2 border-default-300 dark:border-default-100 bg-content1 mb-2 break-inside-avoid shadow-sm">
       <button
         className={`w-full text-center text-2xl font-bold py-1 font-khmer transition-colors hover:bg-default-100 ${
-          isSeriesA ? 'text-danger-500' : 'text-primary-500'
+          isSeriesA ? 'text-primary-500' : 'text-danger-500'
         }`}
         onClick={handleReadHeaderCharUsingGoogleOrNative}
       >
@@ -164,10 +164,10 @@ export const KhmerComplexTableContent = memo(function KhmerComplexTableContent({
           {graphemeIndex && (
             <div className="text-sm font-normal text-default-500 flex gap-4 border-l border-divider pl-4">
               <span>
-                <span className="text-danger-500 font-bold">■</span> Series A
+                <span className="text-primary-500 font-bold">■</span> Series A
               </span>
               <span>
-                <span className="text-primary-500 font-bold">■</span> Series O
+                <span className="text-danger-500 font-bold">■</span> Series O
               </span>
               <span className="text-default-400">({graphemeIndex.count} verified words)</span>
             </div>

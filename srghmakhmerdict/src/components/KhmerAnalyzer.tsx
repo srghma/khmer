@@ -123,7 +123,7 @@ const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Enri
 
       return (
         <button className={boxClass} onClick={handleSpeak}>
-          <div className={clsx('text-xl leading-none mb-1', isSeriesA ? 'text-danger-600' : 'text-primary-600')}>
+          <div className={clsx('text-xl leading-none mb-1', isSeriesA ? 'text-primary-600' : 'text-danger-600')}>
             {text}
           </div>
           <div className={cn('font-bold text-default-600', 'text-xs')}>{def.trans}</div>

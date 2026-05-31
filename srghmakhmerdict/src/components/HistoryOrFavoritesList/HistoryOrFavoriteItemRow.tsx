@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react'
-import { motion, useAnimation, type PanInfo } from 'framer-motion'
+import React, { useCallback, useMemo, useRef } from 'react'
+import { useLongPress } from 'ahooks'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 // Types & Utils
@@ -9,11 +9,12 @@ import { type DictionaryLanguage } from '../../types'
 import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 import { colorizeText } from '../../utils/text-processing/text'
 
-import { TrashIcon, ChevronIcon } from './SharedComponents'
 import { tab_title_ru } from '../SidebarHeader'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
 import { useFavorites } from '../../providers/FavoritesProvider'
+import { Button, type PressEvent } from '@heroui/button'
+import { FaRegTrashAlt, FaCheckCircle, FaRegCircle } from 'react-icons/fa'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -23,39 +24,52 @@ const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
 
 const SENTENCE_ICON = '📜'
 
-const ANIM_TRASH_EXIT = { x: -500, transition: { duration: 0.2 } } as const
-const ANIM_SNAP_BACK = { x: 0, transition: { type: 'spring', stiffness: 400, damping: 25 } } as const
-const DRAG_CONSTRAINTS = { left: -1000, right: 0 } as const
-const TOUCH_STYLE: React.CSSProperties = { touchAction: 'pan-y' } as const
-
 interface HistoryOrFavoriteItemRowProps {
   word: NonEmptyStringTrimmed
   language: DictionaryLanguage
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   onDelete: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => void
   maybeColorMode: MaybeColorizationMode
-  renderRightAction?: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => React.ReactNode
+  renderRightAction: ((word: NonEmptyStringTrimmed, language: DictionaryLanguage) => React.ReactNode) | undefined
+  isSelected: boolean
+  selectionMode: boolean
+  onToggleSelection: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => void
 }
 
 export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps>(
-  ({ word, language, onSelect, onDelete, maybeColorMode, renderRightAction }) => {
-    const controls = useAnimation()
+  ({
+    word,
+    language,
+    onSelect,
+    onDelete,
+    maybeColorMode,
+    renderRightAction,
+    isSelected,
+    selectionMode,
+    onToggleSelection,
+  }) => {
     const { km_map, en, ru } = useDictionary()
     const { favoritesMap } = useFavorites()
+    const rowRef = useRef<HTMLDivElement>(null)
 
-    const handleDragEnd = useCallback(
-      async (_: unknown, info: PanInfo) => {
-        const offset = info.offset.x
-        const velocity = info.velocity.x
-
-        if (offset < -100 || (offset < -50 && velocity < -500)) {
-          await controls.start(ANIM_TRASH_EXIT)
-          onDelete(word, language)
-        } else {
-          controls.start(ANIM_SNAP_BACK)
+    useLongPress(
+      () => {
+        if (onToggleSelection) {
+          onToggleSelection(word, language)
         }
       },
-      [controls, onDelete, word, language],
+      rowRef,
+      {
+        onClick: (event: MouseEvent | TouchEvent) => {
+          event.preventDefault()
+          event.stopPropagation()
+          if (selectionMode && onToggleSelection) {
+            onToggleSelection(word, language)
+          } else {
+            onSelect(word, language)
+          }
+        },
+      },
     )
 
     const isSentence = useMemo(() => {
@@ -81,37 +95,47 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
       }
     }, [word, km_map, maybeColorMode, favoritesMap])
 
-    const onTap = useCallback(() => onSelect(word, language), [onSelect, word, language])
+    const handleDelete = useCallback(
+      (_e: PressEvent) => {
+        onDelete(word, language)
+      },
+      [onDelete, word, language],
+    )
 
     return (
-      <motion.div className="relative overflow-hidden border-b border-divider bg-content1">
-        <TrashIcon />
-        <motion.div
-          animate={controls}
-          className="relative bg-content1 flex items-center px-4 py-1 w-full cursor-pointer hover:bg-default-100 transition-colors"
-          drag="x"
-          dragConstraints={DRAG_CONSTRAINTS}
-          dragElastic={0.1}
-          style={TOUCH_STYLE}
-          onDragEnd={handleDragEnd}
-          onTap={onTap}
+      <div className="relative border-b border-divider bg-content1">
+        <div
+          ref={rowRef}
+          className={`relative flex items-center px-4 py-1 w-full cursor-pointer hover:bg-default-100 transition-colors select-none ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
         >
+          {selectionMode && (
+            <div className="mr-3 flex-shrink-0 text-primary">
+              {isSelected ? <FaCheckCircle size={20} /> : <FaRegCircle className="text-default-300" size={20} />}
+            </div>
+          )}
           <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0">
             {isSentence ? SENTENCE_ICON : MODES_ICON[language]}
           </div>
-          <div className="flex-1 min-w-0 pointer-events-none select-none">
+          <div className="flex-1 min-w-0 pointer-events-none">
             <div
               dangerouslySetInnerHTML={wordColorized}
               className={`text-foreground leading-snug truncate ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${language === 'km' ? 'font-khmer' : ''}`}
             />
           </div>
 
-          {/* Render the action if provided (e.g., the star button) */}
           {!isSentence && renderRightAction?.(word, language)}
-
-          <ChevronIcon />
-        </motion.div>
-      </motion.div>
+          <Button
+            isIconOnly
+            className="min-w-8 w-8 h-8"
+            color="danger"
+            size="sm"
+            variant="light"
+            onPress={handleDelete}
+          >
+            <FaRegTrashAlt />
+          </Button>
+        </div>
+      </div>
     )
   },
 )

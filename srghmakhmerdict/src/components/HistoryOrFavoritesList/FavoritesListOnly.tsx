@@ -10,13 +10,14 @@ import type { MaybeColorizationMode } from '../../utils/text-processing/utils'
 
 import { EmptyState } from './SharedComponents'
 import { HistoryOrFavoriteItemRow } from './HistoryOrFavoriteItemRow'
-import { useListLogic } from './useListLogic'
 import { useSettings } from '../../providers/SettingsProvider'
 import { ConfirmAction } from '../ConfirmAction'
 import { useFavorites } from '../../providers/FavoritesProvider'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 
 import { VirtualizedList } from '../VirtualizedList'
+import { ListFilterModal } from './ListFilterModal'
+import { useSharedListLogic } from './useSharedListLogic'
 
 interface ListPropsCommon {
   onSelect: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
@@ -28,20 +29,40 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
 
   const { favorites: items, loading, removeFavorite, deleteAllFavorites } = useFavorites()
 
-  const { handleDelete, handleClearAll } = useListLogic(removeFavorite, deleteAllFavorites)
+  const {
+    listRef,
+    filteredItems,
+    filters,
+    setFilters,
+    selectedKeys,
+    hasSelection,
+    titleText,
+    handleNavigate,
+    handleToggleSelection,
+    handleDeleteItem,
+    handleClearSelectedOrAll,
+  } = useSharedListLogic({
+    items,
+    onNavigate: onSelect,
+    removeFn: removeFavorite,
+    clearAllFn: deleteAllFavorites,
+  })
 
   const renderItem = useCallback(
     (item: (typeof items)[0]) => (
       <HistoryOrFavoriteItemRow
+        isSelected={selectedKeys.has(`${item.word}-${item.language}`)}
         language={item.language}
         maybeColorMode={maybeColorMode}
         renderRightAction={undefined}
+        selectionMode={hasSelection}
         word={item.word}
-        onDelete={handleDelete}
-        onSelect={onSelect}
+        onDelete={handleDeleteItem}
+        onSelect={handleNavigate}
+        onToggleSelection={handleToggleSelection}
       />
     ),
-    [maybeColorMode, handleDelete, onSelect],
+    [maybeColorMode, handleDeleteItem, handleNavigate, selectedKeys, hasSelection, handleToggleSelection],
   )
 
   const { scaling_ui } = useSettings()
@@ -50,30 +71,37 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
 
   const confirmContent = React.useMemo(
     () => (
-      <p className="text-small text-default-500">{LL.FAVORITES.CONFIRM_DELETE_ALL({ count: items?.length ?? 0 })}</p>
+      <p className="text-small text-default-500">
+        {hasSelection
+          ? 'Delete selected items?'
+          : LL.FAVORITES.CONFIRM_DELETE_ALL({ count: filteredItems?.length ?? 0 })}
+      </p>
     ),
-    [items?.length, LL],
+    [filteredItems?.length, LL, hasSelection],
   )
 
   if (loading) return <div className="p-4 text-center">{LL.COMMON.LOADING()}</div>
 
-  const hasItems = items.length > 0
+  const hasItems = filteredItems.length > 0
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-content1 overflow-x-hidden text-base">
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-1 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm">
-        <span className="font-bold uppercase text-default-500 tracking-wider text-small">
-          {LL.FAVORITES.TITLE_WITH_COUNT({ count: items.length })}
+      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-1 bg-default-50/90 backdrop-blur-md border-b border-divider shadow-sm overflow-x-auto no-scrollbar gap-4">
+        <span className="font-bold uppercase text-default-500 tracking-wider text-small whitespace-nowrap">
+          {titleText}
         </span>
-        <div className="flex gap-2">
-          <Tooltip content={LL.FAVORITES.OPEN_ANKI()}>
-            <Button as={Link} color="secondary" href="/anki" size="sm" variant="flat">
-              <span className="font-bold text-base">{LL.FAVORITES.ANKI_BUTTON()}</span>
-            </Button>
-          </Tooltip>
+        <div className="flex items-center gap-2 shrink-0">
+          {filters && <ListFilterModal filters={filters} onChange={setFilters as any} />}
+          {!hasSelection && (
+            <Tooltip content={LL.FAVORITES.OPEN_ANKI()}>
+              <Button as={Link} color="secondary" href="/anki" size="sm" variant="flat">
+                <span className="font-bold text-base">{LL.FAVORITES.ANKI_BUTTON()}</span>
+              </Button>
+            </Tooltip>
+          )}
           <ConfirmAction
-            confirmLabel={LL.COMMON.CLEAR_ALL()}
-            title={LL.FAVORITES.CLEAR_TITLE()}
+            confirmLabel={hasSelection ? 'Clear Selected' : LL.COMMON.CLEAR_ALL()}
+            title={hasSelection ? 'Clear Selected' : LL.FAVORITES.CLEAR_TITLE()}
             trigger={onOpen => (
               <Button
                 className="min-h-8 h-auto font-medium text-base"
@@ -83,10 +111,10 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
                 variant="light"
                 onPress={onOpen}
               >
-                {LL.COMMON.CLEAR_ALL()}
+                {hasSelection ? 'Clear Selected' : LL.COMMON.CLEAR_ALL()}
               </Button>
             )}
-            onConfirm={handleClearAll}
+            onConfirm={handleClearSelectedOrAll}
           >
             {confirmContent}
           </ConfirmAction>
@@ -97,8 +125,9 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
         <EmptyState type="favorites" />
       ) : (
         <VirtualizedList
+          ref={listRef}
           estimateSize={estimateSize}
-          items={items}
+          items={filteredItems}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
         />

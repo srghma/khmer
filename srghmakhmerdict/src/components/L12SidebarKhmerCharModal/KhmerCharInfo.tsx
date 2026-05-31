@@ -12,7 +12,7 @@ const Row = React.memo(({ label, value, code }: { label: string; value: React.Re
 Row.displayName = 'KhmerCharInfoRow'
 
 const SeriesBadge = React.memo(({ series }: { series: 'a' | 'o' }) => (
-  <Chip className="capitalize" color={series === 'a' ? 'primary' : 'secondary'} size="sm" variant="flat">
+  <Chip className="capitalize" color={series === 'a' ? 'primary' : 'danger'} size="sm" variant="flat">
     Series {series.toUpperCase()}
   </Chip>
 ))
@@ -54,7 +54,7 @@ export const KhmerCharInfo: React.FC<KhmerCharDefinition> = React.memo(data => {
               <Row code label="IPA" value={`/${data.def.ipa_a}/`} />
             </div>
             <div>
-              <span className="text-xs text-secondary font-bold">Series O</span>
+              <span className="text-xs text-danger font-bold">Series O</span>
               <Row label="Trans" value={data.def.trans_o} />
               <Row code label="IPA" value={`/${data.def.ipa_o}/`} />
             </div>
@@ -98,7 +98,7 @@ export const KhmerCharInfo: React.FC<KhmerCharDefinition> = React.memo(data => {
               <Row code label="IPA" value={`/${data.def.ipa_a}/`} />
             </div>
             <div>
-              <span className="text-xs text-secondary font-bold">Series O</span>
+              <span className="text-xs text-danger font-bold">Series O</span>
               <Row label="Trans" value={data.def.trans_o} />
               <Row code label="IPA" value={`/${data.def.ipa_o}/`} />
             </div>
