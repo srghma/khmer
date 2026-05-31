@@ -13,10 +13,9 @@ export interface SharedListItem {
   language: DictionaryLanguage
 }
 
-const storageKeyPrefix = 'fav_history'
-
 interface UseSharedListLogicOptions<T extends SharedListItem> {
   items: T[]
+  storageKeyPrefix: 'history' | 'favorites'
   onNavigate: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
   removeFn: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<boolean>
   clearAllFn: () => Promise<void>
@@ -24,6 +23,7 @@ interface UseSharedListLogicOptions<T extends SharedListItem> {
 
 export function useSharedListLogic<T extends SharedListItem>({
   items,
+  storageKeyPrefix,
   onNavigate,
   removeFn,
   clearAllFn,
@@ -97,6 +97,33 @@ export function useSharedListLogic<T extends SharedListItem>({
     })
   }, [])
 
+  const handleSelectAll = useCallback(() => {
+    const allKeys = filteredItems.map(item => `${item.word}-${item.language}`)
+    setSelectedKeys(new Set(allKeys))
+  }, [filteredItems])
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedKeys(new Set())
+  }, [])
+
+  useEffect(() => {
+    if (hasSelection) {
+      window.history.pushState({ selectionMode: true }, '')
+    }
+
+    const onPopState = () => {
+      if (hasSelection) {
+        setSelectedKeys(new Set())
+      }
+    }
+
+    window.addEventListener('popstate', onPopState)
+
+    return () => {
+      window.removeEventListener('popstate', onPopState)
+    }
+  }, [hasSelection])
+
   const handleClearSelectedOrAll = useCallback(() => {
     if (hasSelection) {
       Array.from(selectedKeys).forEach(key => {
@@ -127,6 +154,8 @@ export function useSharedListLogic<T extends SharedListItem>({
     titleText,
     handleNavigate,
     handleToggleSelection,
+    handleSelectAll,
+    handleDeselectAll,
     handleDeleteItem: originalHandleDelete,
     handleClearSelectedOrAll,
   }

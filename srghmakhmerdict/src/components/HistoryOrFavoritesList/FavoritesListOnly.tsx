@@ -39,10 +39,13 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
     titleText,
     handleNavigate,
     handleToggleSelection,
+    handleSelectAll,
+    handleDeselectAll,
     handleDeleteItem,
     handleClearSelectedOrAll,
   } = useSharedListLogic({
     items,
+    storageKeyPrefix: 'favorites',
     onNavigate: onSelect,
     removeFn: removeFavorite,
     clearAllFn: deleteAllFavorites,
@@ -83,6 +86,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
   if (loading) return <div className="p-4 text-center">{LL.COMMON.LOADING()}</div>
 
   const hasItems = filteredItems.length > 0
+  const allSelected = hasSelection && selectedKeys.size === filteredItems.length
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-content1 overflow-x-hidden text-base">
@@ -92,6 +96,17 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
         </span>
         <div className="flex items-center gap-2 shrink-0">
           {filters && <ListFilterModal filters={filters} onChange={setFilters as any} />}
+          {hasSelection && (
+            <Button
+              className="min-h-8 h-auto font-medium text-base"
+              color="default"
+              size="sm"
+              variant="flat"
+              onPress={allSelected ? handleDeselectAll : handleSelectAll}
+            >
+              {allSelected ? 'Deselect All' : 'Select All'}
+            </Button>
+          )}
           {!hasSelection && (
             <Tooltip content={LL.FAVORITES.OPEN_ANKI()}>
               <Button as={Link} color="secondary" href="/anki" size="sm" variant="flat">

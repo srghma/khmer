@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef } from 'react'
-import { useLongPress } from 'ahooks'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 // Types & Utils
@@ -52,25 +51,65 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     const { favoritesMap } = useFavorites()
     const rowRef = useRef<HTMLDivElement>(null)
 
-    useLongPress(
-      () => {
-        if (onToggleSelection) {
-          onToggleSelection(word, language)
+    // Custom touch/pointer handler for long press that ignores scrolls
+    const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const isScrolling = useRef(false)
+    const startPos = useRef<{ x: number; y: number } | null>(null)
+
+    const startPress = useCallback(
+      (e: React.PointerEvent) => {
+        isScrolling.current = false
+        startPos.current = { x: e.clientX, y: e.clientY }
+
+        pressTimer.current = setTimeout(() => {
+          if (!isScrolling.current && onToggleSelection) {
+            onToggleSelection(word, language)
+          }
+        }, 500)
+      },
+      [onToggleSelection, word, language],
+    )
+
+    const cancelPress = useCallback(() => {
+      if (pressTimer.current) {
+        clearTimeout(pressTimer.current)
+        pressTimer.current = null
+      }
+    }, [])
+
+    const handlePointerMove = useCallback(
+      (e: React.PointerEvent) => {
+        if (!startPos.current) return
+
+        const dx = Math.abs(e.clientX - startPos.current.x)
+        const dy = Math.abs(e.clientY - startPos.current.y)
+
+        if (dx > 10 || dy > 10) {
+          isScrolling.current = true
+          cancelPress()
         }
       },
-      rowRef,
-      {
-        onClick: (event: MouseEvent | TouchEvent) => {
-          event.preventDefault()
-          event.stopPropagation()
-          if (selectionMode && onToggleSelection) {
-            onToggleSelection(word, language)
-          } else {
-            onSelect(word, language)
-          }
-        },
-      },
+      [cancelPress],
     )
+
+    const handlePointerUp = useCallback(() => {
+      cancelPress()
+
+      if (!isScrolling.current) {
+        if (selectionMode && onToggleSelection) {
+          onToggleSelection(word, language)
+        } else {
+          onSelect(word, language)
+        }
+      }
+
+      startPos.current = null
+      isScrolling.current = false
+    }, [cancelPress, selectionMode, onToggleSelection, word, language, onSelect])
+
+    const handleStopPropagation = useCallback((e: React.MouseEvent | React.PointerEvent) => {
+      e.stopPropagation()
+    }, [])
 
     const isSentence = useMemo(() => {
       switch (language) {
@@ -107,6 +146,10 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
         <div
           ref={rowRef}
           className={`relative flex items-center px-4 py-1 w-full cursor-pointer hover:bg-default-100 transition-colors select-none ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
+          onPointerCancel={cancelPress}
+          onPointerDown={startPress}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
         >
           {selectionMode && (
             <div className="mr-3 flex-shrink-0 text-primary">
@@ -123,17 +166,25 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
             />
           </div>
 
-          {!isSentence && renderRightAction?.(word, language)}
-          <Button
-            isIconOnly
-            className="min-w-8 w-8 h-8"
-            color="danger"
-            size="sm"
-            variant="light"
-            onPress={handleDelete}
-          >
-            <FaRegTrashAlt />
-          </Button>
+          {!selectionMode && (
+            <div
+              className="flex items-center gap-2"
+              onClick={handleStopPropagation}
+              onPointerDown={handleStopPropagation}
+            >
+              {!isSentence && renderRightAction?.(word, language)}
+              <Button
+                isIconOnly
+                className="min-w-8 w-8 h-8"
+                color="danger"
+                size="sm"
+                variant="light"
+                onPress={handleDelete}
+              >
+                <FaRegTrashAlt />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     )

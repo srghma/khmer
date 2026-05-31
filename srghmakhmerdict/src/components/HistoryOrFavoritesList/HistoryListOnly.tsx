@@ -41,10 +41,13 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
     titleText,
     handleNavigate,
     handleToggleSelection,
+    handleSelectAll,
+    handleDeselectAll,
     handleDeleteItem,
     handleClearSelectedOrAll,
   } = useSharedListLogic({
     items,
+    storageKeyPrefix: 'history',
     onNavigate,
     removeFn: removeHistoryItem,
     clearAllFn: deleteAllHistory,
@@ -98,6 +101,7 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
   }
 
   const hasItems = filteredItems.length > 0
+  const allSelected = hasSelection && selectedKeys.size === filteredItems.length
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-content1 overflow-x-hidden text-base">
@@ -108,6 +112,17 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
         <div className="flex items-center gap-1 shrink-0">
           {filters && <ListFilterModal filters={filters} onChange={setFilters as any} />}
           <ExportHistoryModal isDisabled={!hasItems} items={itemsToExport} />
+          {hasSelection && (
+            <Button
+              className="min-h-8 h-auto font-medium text-base"
+              color="default"
+              size="sm"
+              variant="flat"
+              onPress={allSelected ? handleDeselectAll : handleSelectAll}
+            >
+              {allSelected ? 'Deselect All' : 'Select All'}
+            </Button>
+          )}
           <ConfirmAction
             confirmLabel={hasSelection ? 'Clear Selected' : LL.COMMON.CLEAR_ALL()}
             title={hasSelection ? 'Clear Selected' : LL.HISTORY.CLEAR_TITLE()}
