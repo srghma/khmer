@@ -7,6 +7,7 @@ import { strToContainsKhmerOrUndefined } from '@gemini-ocr-automate-images-uploa
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { type ListFilters } from './ListFilterModal'
 import { useListLogic } from './useListLogic'
+import { useLocation } from 'wouter'
 
 export interface SharedListItem {
   word: NonEmptyStringTrimmed
@@ -31,6 +32,7 @@ export function useSharedListLogic<T extends SharedListItem>({
   const { km_map, en, ru } = useDictionary()
   const { handleDelete: originalHandleDelete, handleClearAll } = useListLogic(removeFn, clearAllFn)
 
+  const [blinkKey, setBlinkKey] = useState<string | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
   const hasSelection = selectedKeys.size > 0
 
@@ -61,27 +63,48 @@ export function useSharedListLogic<T extends SharedListItem>({
   }, [items, filters, km_map, en, ru])
 
   const listRef = useRef<any>(null)
+  const [location] = useLocation()
+  const scrollProcessedRef = useRef({ location: '', processed: false })
 
   useEffect(() => {
-    const sessionKey = `${storageKeyPrefix}_last_clicked_key`
+    if (scrollProcessedRef.current.location === location && scrollProcessedRef.current.processed) {
+      return
+    }
+
+    if (filteredItems.length === 0) return // Wait for items to load
+
+    scrollProcessedRef.current = { location, processed: true }
+
+    const sessionKey = 'last_opened_item_key'
     const lastClickedKey = sessionStorage.getItem(sessionKey)
 
-    if (lastClickedKey && filteredItems.length > 0) {
+    if (lastClickedKey) {
       const idx = filteredItems.findIndex(item => `${item.word}-${item.language}` === lastClickedKey)
 
-      if (idx !== -1 && listRef.current) {
-        setTimeout(() => listRef.current?.scrollToIndex(idx, 'center'), 50)
+      if (idx !== -1) {
+        setBlinkKey(lastClickedKey)
+        setTimeout(() => setBlinkKey(null), 2000)
+
+        let attempts = 0
+        const attemptScroll = () => {
+          if (listRef.current) {
+            listRef.current.scrollToIndex(idx, 'center')
+          }
+          if (++attempts < 10) {
+            setTimeout(attemptScroll, 100)
+          }
+        }
+        setTimeout(attemptScroll, 50)
       }
-      sessionStorage.removeItem(sessionKey)
     }
-  }, [filteredItems, storageKeyPrefix])
+  }, [filteredItems, location])
 
   const handleNavigate = useCallback(
     (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
-      sessionStorage.setItem(`${storageKeyPrefix}_last_clicked_key`, `${word}-${mode}`)
+      sessionStorage.setItem('last_opened_item_key', `${word}-${mode}`)
       onNavigate(word, mode)
     },
-    [onNavigate, storageKeyPrefix],
+    [onNavigate],
   )
 
   const handleToggleSelection = useCallback((word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
@@ -150,6 +173,7 @@ export function useSharedListLogic<T extends SharedListItem>({
     setFilters,
     selectedKeys,
     hasSelection,
+    blinkKey,
     itemsToExport,
     titleText,
     handleNavigate,

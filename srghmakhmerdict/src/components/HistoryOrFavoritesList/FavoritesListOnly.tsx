@@ -36,6 +36,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
     setFilters,
     selectedKeys,
     hasSelection,
+    blinkKey,
     titleText,
     handleNavigate,
     handleToggleSelection,
@@ -54,6 +55,7 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
   const renderItem = useCallback(
     (item: (typeof items)[0]) => (
       <HistoryOrFavoriteItemRow
+        isBlinking={blinkKey === `${item.word}-${item.language}`}
         isSelected={selectedKeys.has(`${item.word}-${item.language}`)}
         language={item.language}
         maybeColorMode={maybeColorMode}
@@ -65,7 +67,10 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
         onToggleSelection={handleToggleSelection}
       />
     ),
-    [maybeColorMode, handleDeleteItem, handleNavigate, selectedKeys, hasSelection, handleToggleSelection],
+    [maybeColorMode, handleDeleteItem, handleNavigate, selectedKeys, hasSelection,
+      blinkKey,
+      handleToggleSelection,
+    ],
   )
 
   const { scaling_ui } = useSettings()

@@ -31,6 +31,7 @@ interface HistoryOrFavoriteItemRowProps {
   maybeColorMode: MaybeColorizationMode
   renderRightAction: ((word: NonEmptyStringTrimmed, language: DictionaryLanguage) => React.ReactNode) | undefined
   isSelected: boolean
+  isBlinking: boolean
   selectionMode: boolean
   onToggleSelection: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => void
 }
@@ -44,6 +45,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     maybeColorMode,
     renderRightAction,
     isSelected,
+    isBlinking,
     selectionMode,
     onToggleSelection,
   }) => {
@@ -54,15 +56,18 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     // Custom touch/pointer handler for long press that ignores scrolls
     const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const isScrolling = useRef(false)
+    const longPressFired = useRef(false)
     const startPos = useRef<{ x: number; y: number } | null>(null)
 
     const startPress = useCallback(
       (e: React.PointerEvent) => {
         isScrolling.current = false
+        longPressFired.current = false
         startPos.current = { x: e.clientX, y: e.clientY }
 
         pressTimer.current = setTimeout(() => {
           if (!isScrolling.current && onToggleSelection) {
+            longPressFired.current = true
             onToggleSelection(word, language)
           }
         }, 500)
@@ -95,7 +100,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     const handlePointerUp = useCallback(() => {
       cancelPress()
 
-      if (!isScrolling.current) {
+      if (!isScrolling.current && !longPressFired.current) {
         if (selectionMode && onToggleSelection) {
           onToggleSelection(word, language)
         } else {
@@ -105,9 +110,10 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
 
       startPos.current = null
       isScrolling.current = false
+      longPressFired.current = false
     }, [cancelPress, selectionMode, onToggleSelection, word, language, onSelect])
 
-    const handleStopPropagation = useCallback((e: React.MouseEvent | React.PointerEvent) => {
+    const handleStopPropagation = useCallback((e: React.MouseEvent | React.PointerEvent | React.KeyboardEvent) => {
       e.stopPropagation()
     }, [])
 
@@ -145,7 +151,15 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
       <div className="relative border-b border-divider bg-content1">
         <div
           ref={rowRef}
-          className={`relative flex items-center px-4 py-1 w-full cursor-pointer hover:bg-default-100 transition-colors select-none ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
+          className={`relative flex items-center px-4 py-1 w-full cursor-pointer transition-colors select-none ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-default-100'}`}
+          style={
+            isBlinking
+              ? {
+                  backgroundColor: 'var(--heroui-warning-100, rgba(245, 165, 36, 0.4))',
+                  transition: 'background-color 0.3s ease',
+                }
+              : undefined
+          }
           onPointerCancel={cancelPress}
           onPointerDown={startPress}
           onPointerMove={handlePointerMove}
@@ -169,7 +183,9 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
           {!selectionMode && (
             <div
               className="flex items-center gap-2"
+              role="presentation"
               onClick={handleStopPropagation}
+              onKeyDown={handleStopPropagation}
               onPointerDown={handleStopPropagation}
             >
               {!isSentence && renderRightAction?.(word, language)}

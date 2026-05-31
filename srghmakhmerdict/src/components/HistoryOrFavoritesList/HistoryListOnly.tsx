@@ -37,6 +37,7 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
     setFilters,
     selectedKeys,
     hasSelection,
+    blinkKey,
     itemsToExport,
     titleText,
     handleNavigate,
@@ -61,6 +62,7 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
   const renderItem = useCallback(
     (item: (typeof items)[0]) => (
       <HistoryOrFavoriteItemRow
+        isBlinking={blinkKey === `${item.word}-${item.language}`}
         isSelected={selectedKeys.has(`${item.word}-${item.language}`)}
         language={item.language}
         maybeColorMode={maybeColorMode}
@@ -79,6 +81,7 @@ export const HistoryListOnly = React.memo(function HistoryListOnly({
       handleNavigate,
       selectedKeys,
       hasSelection,
+      blinkKey,
       handleToggleSelection,
     ],
   )

@@ -55,15 +55,24 @@ export const SidebarContent = memo<SidebarContentProps>(props => {
   const toast = useAppToast()
 
   const handleWordClickKm = useCallback(
-    (w: NonEmptyStringTrimmed) => setLocation_khmerWord_ifInDictionary(w, km_map, toast, setLocation, LL),
+    (w: NonEmptyStringTrimmed) => {
+      sessionStorage.setItem('last_opened_item_key', `${w}-km`)
+      setLocation_khmerWord_ifInDictionary(w, km_map, toast, setLocation, LL)
+    },
     [setLocation, km_map, toast, LL],
   )
   const handleWordClickEn = useCallback(
-    (w: NonEmptyStringTrimmed) => setLocation_enWord_ifInDictionary(w, en, toast, setLocation, LL),
+    (w: NonEmptyStringTrimmed) => {
+      sessionStorage.setItem('last_opened_item_key', `${w}-en`)
+      setLocation_enWord_ifInDictionary(w, en, toast, setLocation, LL)
+    },
     [setLocation, en, toast, LL],
   )
   const handleWordClickRu = useCallback(
-    (w: NonEmptyStringTrimmed) => setLocation_ruWord_ifInDictionary(w, ru, toast, setLocation, LL),
+    (w: NonEmptyStringTrimmed) => {
+      sessionStorage.setItem('last_opened_item_key', `${w}-ru`)
+      setLocation_ruWord_ifInDictionary(w, ru, toast, setLocation, LL)
+    },
     [setLocation, ru, toast, LL],
   )
 
