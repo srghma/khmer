@@ -10,6 +10,7 @@ import { DictionaryProvider } from './providers/DictionaryProvider'
 import { GlobalErrorBoundary } from './components/ErrorBoundary'
 import { FavoritesProvider } from './providers/FavoritesProvider'
 import { HistoryProvider } from './providers/HistoryProvider'
+import { NotesProvider } from './providers/NotesProvider'
 import { I18nAppProvider } from './providers/I18nAppProvider'
 import { IapProvider } from './providers/IapProvider'
 import { ShortDefinitionPopoverProvider } from './providers/ShortDefinitionPopoverProvider'
@@ -28,17 +29,19 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
           <DictionaryProvider initPromise={initPromise}>
             <FavoritesProvider>
               <HistoryProvider>
-                <SettingsProvider>
-                  <IapProvider>
-                    <I18nAppProvider>
-                      <ShortDefinitionPopoverProvider>
-                        <FillInTheBlankModalProvider>
-                          <App />
-                        </FillInTheBlankModalProvider>
-                      </ShortDefinitionPopoverProvider>
-                    </I18nAppProvider>
-                  </IapProvider>
-                </SettingsProvider>
+                <NotesProvider>
+                  <SettingsProvider>
+                    <IapProvider>
+                      <I18nAppProvider>
+                        <ShortDefinitionPopoverProvider>
+                          <FillInTheBlankModalProvider>
+                            <App />
+                          </FillInTheBlankModalProvider>
+                        </ShortDefinitionPopoverProvider>
+                      </I18nAppProvider>
+                    </IapProvider>
+                  </SettingsProvider>
+                </NotesProvider>
               </HistoryProvider>
             </FavoritesProvider>
           </DictionaryProvider>

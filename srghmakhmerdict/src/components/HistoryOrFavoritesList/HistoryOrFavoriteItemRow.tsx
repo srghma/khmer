@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 // Types & Utils
@@ -12,8 +12,10 @@ import { tab_title_ru } from '../SidebarHeader'
 import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
 import { useFavorites } from '../../providers/FavoritesProvider'
+import { useNotes } from '../../providers/NotesProvider'
+import { NoteModal } from '../NoteModal'
 import { Button, type PressEvent } from '@heroui/button'
-import { FaRegTrashAlt, FaCheckCircle, FaRegCircle } from 'react-icons/fa'
+import { FaRegTrashAlt, FaCheckCircle, FaRegCircle, FaRegEdit, FaEdit } from 'react-icons/fa'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -51,7 +53,9 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
   }) => {
     const { km_map, en, ru } = useDictionary()
     const { favoritesMap } = useFavorites()
+    const { getNote } = useNotes()
     const rowRef = useRef<HTMLDivElement>(null)
+    const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
 
     // Custom touch/pointer handler for long press that ignores scrolls
     const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -113,9 +117,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
       longPressFired.current = false
     }, [cancelPress, selectionMode, onToggleSelection, word, language, onSelect])
 
-    const handleStopPropagation = useCallback((e: React.MouseEvent | React.PointerEvent | React.KeyboardEvent) => {
-      e.stopPropagation()
-    }, [])
+    const hasNote = !!getNote(word, language)
 
     const isSentence = useMemo(() => {
       switch (language) {
@@ -148,61 +150,81 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     )
 
     return (
-      <div className="relative border-b border-divider bg-content1">
-        <div
-          ref={rowRef}
-          className={`relative flex items-center px-4 py-1 w-full cursor-pointer transition-colors select-none ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-default-100'}`}
-          style={
-            isBlinking
-              ? {
-                  backgroundColor: 'var(--heroui-warning-100, rgba(245, 165, 36, 0.4))',
-                  transition: 'background-color 0.3s ease',
-                }
-              : undefined
-          }
-          onPointerCancel={cancelPress}
-          onPointerDown={startPress}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-        >
-          {selectionMode && (
-            <div className="mr-3 flex-shrink-0 text-primary">
-              {isSelected ? <FaCheckCircle size={20} /> : <FaRegCircle className="text-default-300" size={20} />}
-            </div>
-          )}
-          <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0">
-            {isSentence ? SENTENCE_ICON : MODES_ICON[language]}
-          </div>
-          <div className="flex-1 min-w-0 pointer-events-none">
-            <div
-              dangerouslySetInnerHTML={wordColorized}
-              className={`text-foreground leading-snug truncate ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${language === 'km' ? 'font-khmer' : ''}`}
-            />
-          </div>
-
-          {!selectionMode && (
-            <div
-              className="flex items-center gap-2"
-              role="presentation"
-              onClick={handleStopPropagation}
-              onKeyDown={handleStopPropagation}
-              onPointerDown={handleStopPropagation}
-            >
-              {!isSentence && renderRightAction?.(word, language)}
+      <>
+        <div className="relative border-b border-divider bg-content1" id={word}>
+          <div
+            ref={rowRef}
+            className={`relative flex items-center px-4 py-1 w-full transition-colors select-none ${isSelected ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-default-100'}`}
+            style={
+              isBlinking
+                ? {
+                    backgroundColor: 'var(--heroui-warning-100, rgba(245, 165, 36, 0.4))',
+                    transition: 'background-color 0.3s ease',
+                  }
+                : undefined
+            }
+          >
+            {selectionMode && (
               <Button
-                isIconOnly
-                className="min-w-8 w-8 h-8"
-                color="danger"
-                size="sm"
-                variant="light"
-                onPress={handleDelete}
+                className="m-0 flex-shrink-0 text-primary cursor-pointer"
+                onPress={() => onToggleSelection(word, language)}
               >
-                <FaRegTrashAlt />
+                {isSelected ? <FaCheckCircle size={20} /> : <FaRegCircle className="text-default-300" size={20} />}
               </Button>
+            )}
+
+            {/* Clickable Area for Navigation */}
+            <div
+              className="flex items-center flex-1 min-w-0 cursor-pointer"
+              onPointerCancel={cancelPress}
+              onPointerDown={startPress}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+            >
+              <div className="w-8 h-8 rounded-full bg-default-100 flex items-center justify-center mr-3 text-lg shadow-sm shrink-0 pointer-events-none">
+                {isSentence ? SENTENCE_ICON : MODES_ICON[language]}
+              </div>
+              <div className="flex-1 min-w-0 pointer-events-none pr-2">
+                <div
+                  dangerouslySetInnerHTML={wordColorized}
+                  className={`text-foreground leading-snug truncate ${srghma_khmer_dict_content_styles.srghma_khmer_dict_content} ${language === 'km' ? 'font-khmer' : ''}`}
+                />
+              </div>
             </div>
-          )}
+
+            {/* Actions Area */}
+            {!selectionMode && (
+              <div className="flex items-center gap-1">
+                {!isSentence && renderRightAction?.(word, language)}
+
+                {/* Edit Note Button */}
+                <Button
+                  isIconOnly
+                  className="min-w-8 w-8 h-8"
+                  color="primary"
+                  size="sm"
+                  variant="light"
+                  onPress={() => setIsNoteModalOpen(true)}
+                >
+                  {hasNote ? <FaEdit /> : <FaRegEdit />}
+                </Button>
+
+                <Button
+                  isIconOnly
+                  className="min-w-8 w-8 h-8"
+                  color="danger"
+                  size="sm"
+                  variant="light"
+                  onPress={handleDelete}
+                >
+                  <FaRegTrashAlt />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+        <NoteModal isOpen={isNoteModalOpen} language={language} word={word} onClose={() => setIsNoteModalOpen(false)} />
+      </>
     )
   },
 )
