@@ -46,11 +46,12 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [loadNotes])
 
   const saveNote = useCallback(async (word: NonEmptyStringTrimmed, language: DictionaryLanguage, note: string) => {
-    await saveNoteDb(word, language, note)
+    const trimmed = note.trim()
+    await saveNoteDb(word, language, trimmed)
     setNotesMap(prev => {
       const next = new Map(prev)
 
-      next.set(`${language}_${word}`, note)
+      next.set(`${language}_${word}`, trimmed)
 
       return next
     })

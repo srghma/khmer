@@ -23,7 +23,7 @@ import { GoogleSpeechAction } from './Tooltips/GoogleSpeechAction'
 import { NativeSpeechAction } from './Tooltips/NativeSpeechAction'
 import { KhmerHideToggleIcon } from '../Icons/KhmerHideToggleIcon'
 import { NonKhmerHideToggleIcon } from '../Icons/NonKhmerHideToggleIcon'
-import { AutoReadAction } from './DetailViewHeaderActions/AutoReadAction'
+
 import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 
@@ -485,7 +485,6 @@ const DetailViewActionsSentenceAnalyzer = memo(function DetailViewActionsSentenc
         onToggle={toggleShowShortDetailAboutKhmerWord}
       />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
-      <AutoReadAction />
     </>
   )
 })
@@ -558,7 +557,6 @@ const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(prop
         onToggle={toggleShowShortDetailAboutKhmerWord}
       />
       <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-      <AutoReadAction />
     </>
   )
 })
@@ -597,7 +595,6 @@ const DetailViewActionsAnkiBack = memo(function DetailViewActionsAnkiBack(props:
       />
       <KhmerFontAction khmerFontName={khmerFontName} onChange={setKhmerFontName} />
       <ColorizationAction colorMode={maybeColorMode} onChange={setMaybeColorMode} />
-      <AutoReadAction />
       <AutoFocusAnswerAction isEnabled={props.isAutoFocusAnswerEnabled} onToggle={props.toggleAutoFocusAnswer} />
     </>
   )

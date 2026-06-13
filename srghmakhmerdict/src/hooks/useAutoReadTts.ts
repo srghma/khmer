@@ -9,12 +9,21 @@ import { executeTtsOrchestrator } from '../utils/tts/googleOrNative'
 
 const globalLastReadWord = { current: undefined as NonEmptyStringTrimmed | undefined }
 
-export const useAutoReadCaller = (autoReadMode: AutoReadMode) => {
+export const useAutoReadCaller = (
+  autoReadModeOverride?: AutoReadMode,
+  autoReadLangsOverride?: Partial<Record<ToTranslateLanguage, boolean>>,
+) => {
   const toast = useAppToast()
+  const { autoReadMode: settingsAutoReadMode, autoReadLangs: settingsAutoReadLangs } = useSettings()
+
+  const autoReadMode = autoReadModeOverride ?? settingsAutoReadMode
+  const autoReadLangs = autoReadLangsOverride ?? settingsAutoReadLangs
 
   return useCallback(
     async (word: NonEmptyStringTrimmed, language: ToTranslateLanguage, signal?: AbortSignal) => {
-      if (!word || autoReadMode === 'disabled' || globalLastReadWord.current === word) return
+      if (!word || autoReadMode === 'disabled' || !(autoReadLangs as Record<string, boolean>)[language] || globalLastReadWord.current === word) {
+        return
+      }
       globalLastReadWord.current = word
 
       const result = await executeTtsOrchestrator(word, language, autoReadMode, signal)
@@ -47,13 +56,12 @@ export const useAutoReadCaller = (autoReadMode: AutoReadMode) => {
         }
       }
     },
-    [autoReadMode, toast],
+    [autoReadMode, autoReadLangs, toast],
   )
 }
 
 export const useAutoReadTts = (word: NonEmptyStringTrimmed | undefined, language: ToTranslateLanguage) => {
-  const { autoReadMode } = useSettings()
-  const speak = useAutoReadCaller(autoReadMode)
+  const speak = useAutoReadCaller()
   const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {

@@ -204,6 +204,13 @@ export interface SettingsContextType {
   autoReadMode: AutoReadMode
   setAutoReadMode: (v: AutoReadMode | ((prev: AutoReadMode | undefined) => AutoReadMode)) => void
 
+  autoReadLangs: Record<'en' | 'km' | 'ru', boolean>
+  setAutoReadLangs: (
+    v:
+      | Record<'en' | 'km' | 'ru', boolean>
+      | ((prev: Record<'en' | 'km' | 'ru', boolean> | undefined) => Record<'en' | 'km' | 'ru', boolean>),
+  ) => void
+
   location: LanguagesOrAuto
   setLocation: (v: LanguagesOrAuto | ((prev: LanguagesOrAuto | undefined) => LanguagesOrAuto)) => void
 
@@ -306,6 +313,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     defaultValue: 'disabled',
   })
 
+  const [autoReadLangs, setAutoReadLangs] = useLocalStorageState<Record<'en' | 'km' | 'ru', boolean>>(
+    'srghmakhmerdict__auto_read_langs',
+    {
+      defaultValue: { en: true, km: true, ru: true },
+    },
+  )
+
   const [location, setLocation] = useLocalStorageState<LanguagesOrAuto>('srghmakhmerdict__location', {
     defaultValue: 'auto',
   })
@@ -385,6 +399,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerFontName,
       autoReadMode: autoReadMode ?? 'disabled',
       setAutoReadMode,
+      autoReadLangs: autoReadLangs ?? { en: true, km: true, ru: true },
+      setAutoReadLangs,
       location: location ?? 'auto',
       setLocation,
       khmerAnalyzerEnabledSegmenters: khmerAnalyzerEnabledSegmenters ?? 'segmenter',
@@ -435,6 +451,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       setKhmerFontName,
       autoReadMode,
       setAutoReadMode,
+      autoReadLangs,
+      setAutoReadLangs,
       location,
       setLocation,
       khmerAnalyzerEnabledSegmenters,

@@ -201,12 +201,12 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
                 <Button
                   isIconOnly
                   className="min-w-8 w-8 h-8"
-                  color="primary"
+                  color={hasNote ? 'primary' : 'default'}
                   size="sm"
                   variant="light"
                   onPress={() => setIsNoteModalOpen(true)}
                 >
-                  {hasNote ? <FaEdit /> : <FaRegEdit />}
+                  {hasNote ? <FaEdit className="text-primary" /> : <FaRegEdit className="text-default-400" />}
                 </Button>
 
                 <Button

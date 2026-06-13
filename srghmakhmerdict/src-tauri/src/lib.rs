@@ -58,6 +58,12 @@ pub fn run() {
                 );
         ",
         kind: MigrationKind::Up,
+    },
+    Migration {
+        version: 2,
+        description: "dummy_migration_to_fix_crash",
+        sql: "",
+        kind: MigrationKind::Up,
     }];
 
     let mut builder = tauri::Builder::default()

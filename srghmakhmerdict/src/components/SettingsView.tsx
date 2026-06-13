@@ -18,6 +18,7 @@ import {
   type DictFilterSettings_Km_Mode,
 } from '../providers/SettingsProvider'
 import { SettingsEnKmOfflineImagesControl } from './SettingsEnKmOfflineImagesControl'
+import { SettingsAutoReadControl } from './SettingsAutoReadControl'
 import { assertIsDefinedAndReturn } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/asserts'
 import { useLocation } from 'wouter'
 import { useI18nContext } from '../i18n/i18n-react-custom'
@@ -341,6 +342,8 @@ export const SettingsView: React.FC = memo(() => {
         </div>
 
         <SettingsEnKmOfflineImagesControl />
+
+        <SettingsAutoReadControl />
 
         {/* About & Support Group */}
         <div className="flex flex-col gap-3 p-3 rounded-medium bg-warning-50/50 border border-warning-100 dark:bg-warning-900/10 dark:border-primary-900/30">

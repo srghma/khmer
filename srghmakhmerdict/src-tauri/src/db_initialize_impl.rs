@@ -33,13 +33,13 @@ pub async fn get_existing_db_version_impl(db_path: &PathBuf) -> Option<String> {
 pub async fn init_db_standalone_impl(state: Arc<AppState>, db_path: PathBuf) {
     let db_url = format!("sqlite://{}", db_path.display());
     println!("🔥 Connecting to Main DB at: {}", db_url);
-    
+
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(&db_url)
         .await
         .expect("Failed to connect to DB");
-        
+
     let mut guard = state.dict_pool.write().await;
     *guard = Some(pool);
     println!("✅ Dictionary DB Connected");
