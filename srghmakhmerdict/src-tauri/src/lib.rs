@@ -22,10 +22,11 @@ pub mod utils;
 #[cfg(feature = "tauri-app")]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![Migration {
-        version: 1,
-        description: "create_initial_tables",
-        sql: "
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "create_initial_tables",
+            sql: "
                 CREATE TABLE IF NOT EXISTS history (
                     word TEXT NOT NULL,
                     language TEXT NOT NULL,
@@ -57,14 +58,21 @@ pub fn run() {
                     PRIMARY KEY (word, language)
                 );
         ",
-        kind: MigrationKind::Up,
-    },
-    Migration {
-        version: 2,
-        description: "dummy_migration_to_fix_crash",
-        sql: "",
-        kind: MigrationKind::Up,
-    }];
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "dummy_migration_to_fix_crash",
+            sql: "",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "add_check_again",
+            sql: "ALTER TABLE favorites ADD COLUMN check_again INTEGER NOT NULL DEFAULT 0;",
+            kind: MigrationKind::Up,
+        },
+    ];
 
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())

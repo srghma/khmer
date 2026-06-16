@@ -345,6 +345,60 @@ export const SettingsView: React.FC = memo(() => {
 
         <SettingsAutoReadControl />
 
+        {/* Data & Backup Group */}
+        <div className="flex flex-col gap-3 p-3 rounded-medium bg-secondary-50/50 border border-secondary-100 dark:bg-secondary-900/10 dark:border-secondary-900/30">
+          <span className="font-semibold text-secondary-600 uppercase tracking-wider text-xs">Data & Backup</span>
+          <div className="flex flex-col gap-2">
+            <Button
+              className="w-full justify-start font-medium"
+              color="secondary"
+              variant="flat"
+              onPress={async () => {
+                try {
+                  const { exportAllUserStateToCSV } = await import('../utils/csv-export-import')
+                  const csv = await exportAllUserStateToCSV()
+                  const blob = new Blob([csv], { type: 'text/csv' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `backup_${new Date().toISOString()}.csv`
+                  a.click()
+                  URL.revokeObjectURL(url)
+                } catch (e) {
+                  alert(`Export failed: ${e}`)
+                }
+              }}
+            >
+              <span className="text-base">Export My Notes & State (CSV)</span>
+            </Button>
+            <Button
+              className="w-full justify-start font-medium"
+              color="secondary"
+              variant="flat"
+              onPress={() => {
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = '.csv'
+                input.onchange = async (e: any) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  try {
+                    const text = await file.text()
+                    const { importAllUserStateFromCSV } = await import('../utils/csv-export-import')
+                    await importAllUserStateFromCSV(text)
+                    alert('Import successful! Please refresh the page to see changes.')
+                  } catch (err) {
+                    alert(`Import failed: ${err}`)
+                  }
+                }
+                input.click()
+              }}
+            >
+              <span className="text-base">Import My Notes & State (CSV)</span>
+            </Button>
+          </div>
+        </div>
+
         {/* About & Support Group */}
         <div className="flex flex-col gap-3 p-3 rounded-medium bg-warning-50/50 border border-warning-100 dark:bg-warning-900/10 dark:border-primary-900/30">
           <span className="font-semibold text-warning-600 uppercase tracking-wider text-xs">

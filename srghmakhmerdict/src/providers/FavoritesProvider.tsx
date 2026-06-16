@@ -8,6 +8,7 @@ import {
 } from '../db/favorite'
 import { reviewCard as reviewCardDb } from '../db/favorite/anki'
 import { updateFavoriteHtml as updateFavoriteHtmlDb } from '../db/favorite/anki_html'
+import { updateCheckAgain as updateCheckAgainDb } from '../db/favorite'
 import { reviewCard_calculateReviewUpdates } from '../components/Anki/utils'
 import { FavoriteItem_mk, type FavoriteItem } from '../db/favorite/item'
 import type { NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
@@ -36,6 +37,7 @@ interface FavoritesContextType {
     update_to: 'additional_html_front' | 'additional_html_back',
     data: NonEmptyStringTrimmed | undefined,
   ) => Promise<void>
+  toggleCheckAgain: (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => Promise<void>
   importFavorites: (
     input: NonEmptyStringTrimmed,
     separator: Char,
@@ -245,6 +247,32 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [favorites, runMutation, toast],
   )
 
+  const toggleCheckAgain = useCallback(
+    async (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => {
+      return runMutation(async () => {
+        const prevState = favorites
+        const existing = favorites.find(item => item.word === word && item.language === language)
+        if (!existing) return
+
+        const newValue = !existing.check_again
+
+        setFavorites(prev =>
+          prev.map(item =>
+            item.word === word && item.language === language ? { ...item, check_again: newValue } : item,
+          ),
+        )
+        try {
+          await updateCheckAgainDb(word, language, newValue)
+        } catch (e) {
+          setFavorites(prevState)
+          toast.error('Failed to update check again' as NonEmptyStringTrimmed, unknown_to_errorMessage(e))
+          throw e
+        }
+      })
+    },
+    [favorites, runMutation, toast],
+  )
+
   const importFavorites = useCallback(
     async (input: NonEmptyStringTrimmed, separator: Char) => {
       return runMutation(async () => {
@@ -293,6 +321,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       reviewCard,
       isFavorite,
       updateFavoriteHtml,
+      toggleCheckAgain,
       importFavorites,
     }),
     [
@@ -306,6 +335,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       reviewCard,
       isFavorite,
       updateFavoriteHtml,
+      toggleCheckAgain,
       importFavorites,
     ],
   )

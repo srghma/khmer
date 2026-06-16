@@ -21,7 +21,12 @@ export const useAutoReadCaller = (
 
   return useCallback(
     async (word: NonEmptyStringTrimmed, language: ToTranslateLanguage, signal?: AbortSignal) => {
-      if (!word || autoReadMode === 'disabled' || !(autoReadLangs as Record<string, boolean>)[language] || globalLastReadWord.current === word) {
+      if (
+        !word ||
+        autoReadMode === 'disabled' ||
+        !(autoReadLangs as Record<string, boolean>)[language] ||
+        globalLastReadWord.current === word
+      ) {
         return
       }
       globalLastReadWord.current = word

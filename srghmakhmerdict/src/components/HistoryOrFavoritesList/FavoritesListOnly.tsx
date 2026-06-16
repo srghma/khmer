@@ -52,24 +52,66 @@ export const FavoritesListOnly = React.memo(function FavoritesListOnly({ onSelec
     clearAllFn: deleteAllFavorites,
   })
 
+  const { toggleCheckAgain, favoritesMap } = useFavorites()
+
   const renderItem = useCallback(
-    (item: (typeof items)[0]) => (
-      <HistoryOrFavoriteItemRow
-        isBlinking={blinkKey === `${item.word}-${item.language}`}
-        isSelected={selectedKeys.has(`${item.word}-${item.language}`)}
-        language={item.language}
-        maybeColorMode={maybeColorMode}
-        renderRightAction={undefined}
-        selectionMode={hasSelection}
-        word={item.word}
-        onDelete={handleDeleteItem}
-        onSelect={handleNavigate}
-        onToggleSelection={handleToggleSelection}
-      />
-    ),
-    [maybeColorMode, handleDeleteItem, handleNavigate, selectedKeys, hasSelection,
+    (item: (typeof items)[0]) => {
+      const renderRightAction = (word: NonEmptyStringTrimmed, language: DictionaryLanguage) => {
+        const isCheckAgain = favoritesMap.get(word)?.check_again ?? false
+        return (
+          <Tooltip content="Check again">
+            <Button
+              isIconOnly
+              className="min-w-8 w-8 h-8"
+              color={isCheckAgain ? 'warning' : 'default'}
+              size="sm"
+              variant="light"
+              onPress={() => toggleCheckAgain(word, language)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`w-4 h-4 ${isCheckAgain ? 'text-warning' : 'text-default-400'}`}
+              >
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </Button>
+          </Tooltip>
+        )
+      }
+
+      return (
+        <HistoryOrFavoriteItemRow
+          isBlinking={blinkKey === `${item.word}-${item.language}`}
+          isSelected={selectedKeys.has(`${item.word}-${item.language}`)}
+          language={item.language}
+          maybeColorMode={maybeColorMode}
+          renderRightAction={renderRightAction}
+          selectionMode={hasSelection}
+          word={item.word}
+          onDelete={handleDeleteItem}
+          onSelect={handleNavigate}
+          onToggleSelection={handleToggleSelection}
+        />
+      )
+    },
+    [
+      maybeColorMode,
+      handleDeleteItem,
+      handleNavigate,
+      selectedKeys,
+      hasSelection,
       blinkKey,
       handleToggleSelection,
+      toggleCheckAgain,
+      favoritesMap,
     ],
   )
 

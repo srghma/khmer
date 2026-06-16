@@ -17,6 +17,7 @@ export interface FavoriteItem {
 
   readonly additional_html_front: NonEmptyStringTrimmed | null
   readonly additional_html_back: NonEmptyStringTrimmed | null
+  readonly check_again: boolean
 }
 
 /**
@@ -29,6 +30,7 @@ export const FavoriteItem_mk = (
   timestamp: number,
   additional_html_front: NonEmptyStringTrimmed | undefined,
   additional_html_back: NonEmptyStringTrimmed | undefined,
+  check_again: boolean = false,
 ): FavoriteItem => ({
   word,
   language,
@@ -39,6 +41,7 @@ export const FavoriteItem_mk = (
   last_review: null,
   additional_html_front: additional_html_front ?? null,
   additional_html_back: additional_html_back ?? null,
+  check_again,
 })
 
 export const FavoriteItem_wordLanguageEq = (
@@ -74,9 +77,10 @@ export function favoriteItemArray_add(
   nowTimestamp: () => number,
   additional_html_front: NonEmptyStringTrimmed | undefined,
   additional_html_back: NonEmptyStringTrimmed | undefined,
+  check_again: boolean = false,
 ): FavoriteItem[] {
   return [
-    FavoriteItem_mk(word, word_language, nowTimestamp(), additional_html_front, additional_html_back),
+    FavoriteItem_mk(word, word_language, nowTimestamp(), additional_html_front, additional_html_back, check_again),
     ...allFavorites,
   ]
 }

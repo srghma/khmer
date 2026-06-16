@@ -17,7 +17,7 @@ export KEY_PASSWORD="$KEYSTORE_PASSWORD"
 
 tauri android build --target aarch64
 
-# adb uninstall com.srghma.srghmakhmerdict >/dev/null 2>&1 || true
+### adb uninstall com.srghma.srghmakhmerdict # >/dev/null 2>&1 ## # || true
 
 # -r is for reinstall. Will make sure that app is not uninstalled. Just additional safety option. To not reset state of app.
 adb install -r src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
