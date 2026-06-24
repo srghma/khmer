@@ -12,6 +12,7 @@ import { RightPanel } from './components/RightPanel'
 import { useDictionary } from './providers/DictionaryProvider'
 import { AboutView } from './components/About/AboutView'
 import { KhmerAnalyzerView } from './components/KhmerAnalyzerView'
+import { NoteEditView } from './components/NoteEditView'
 import { useAddToHistoryEffect } from './hooks/useAddToHistoryEffect'
 import { useAppMainView, useAppActiveTab } from './hooks/useAppMainView'
 import { useAppToast } from './providers/ToastProvider'
@@ -78,6 +79,7 @@ export function AppMain() {
     switch (currentView.type) {
       case 'about':
       case 'khmer-analyzer':
+      case 'note-edit':
         return currentView
       case 'history':
       case 'favorites':
@@ -143,6 +145,12 @@ export function AppMain() {
               return (
                 <div className={`${detailClass} ${mobileVisibilityClass}`}>
                   <KhmerAnalyzerView initialText={viewToRender.text} />
+                </div>
+              )
+            case 'note-edit':
+              return (
+                <div className={`${detailClass} ${mobileVisibilityClass}`}>
+                  <NoteEditView word={viewToRender.word} language={viewToRender.mode} />
                 </div>
               )
             case 'history':

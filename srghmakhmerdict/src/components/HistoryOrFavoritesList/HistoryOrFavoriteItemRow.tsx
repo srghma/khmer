@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import srghma_khmer_dict_content_styles from '../../srghma_khmer_dict_content.module.css'
 
 // Types & Utils
@@ -13,9 +13,9 @@ import { useDictionary } from '../../providers/DictionaryProvider'
 import { isWordInKmMap } from '../../utils/isWordInKmMap'
 import { useFavorites } from '../../providers/FavoritesProvider'
 import { useNotes } from '../../providers/NotesProvider'
-import { NoteModal } from '../NoteModal'
 import { Button, type PressEvent } from '@heroui/button'
 import { FaRegTrashAlt, FaCheckCircle, FaRegCircle, FaRegEdit, FaEdit } from 'react-icons/fa'
+import { useLocation } from 'wouter'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -55,7 +55,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     const { favoritesMap } = useFavorites()
     const { getNote } = useNotes()
     const rowRef = useRef<HTMLDivElement>(null)
-    const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
+    const [, setLocation] = useLocation()
 
     // Custom touch/pointer handler for long press that ignores scrolls
     const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -204,7 +204,7 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
                   color={hasNote ? 'primary' : 'default'}
                   size="sm"
                   variant="light"
-                  onPress={() => setIsNoteModalOpen(true)}
+                  onPress={() => setLocation(`/notes/${language}/${encodeURIComponent(word)}`)}
                 >
                   {hasNote ? <FaEdit className="text-primary" /> : <FaRegEdit className="text-default-400" />}
                 </Button>
@@ -223,7 +223,6 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
             )}
           </div>
         </div>
-        <NoteModal isOpen={isNoteModalOpen} language={language} word={word} onClose={() => setIsNoteModalOpen(false)} />
       </>
     )
   },

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, memo, useState } from 'react'
+import { useCallback, useMemo, memo } from 'react'
 import { MdTextFields, MdCenterFocusStrong, MdCenterFocusWeak, MdOutlineSubject } from 'react-icons/md'
 import { IoColorPalette } from 'react-icons/io5'
 import { TbLink, TbLinkOff } from 'react-icons/tb'
@@ -28,7 +28,7 @@ import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import { FaEdit, FaRegEdit } from 'react-icons/fa'
 import { useNotes } from '../../providers/NotesProvider'
-import { NoteModal } from '../NoteModal'
+import { useLocation } from 'wouter'
 
 import { cn } from '@heroui/react'
 import { details_header__text_className } from '../header_classNames'
@@ -330,29 +330,26 @@ export const NoteAction = memo(function NoteAction({
 }) {
   const { getNote } = useNotes()
   const { LL } = useI18nContext()
-  const [isOpen, setIsOpen] = useState(false)
+  const [, setLocation] = useLocation()
 
   const hasNote = !!getNote(word, language)
 
   return (
-    <>
-      <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.ADD_NOTE()}>
-        <Button
-          isIconOnly
-          className={hasNote ? 'text-primary' : 'text-default-500'}
-          radius="full"
-          variant="light"
-          onPress={() => setIsOpen(true)}
-        >
-          {hasNote ? (
-            <FaEdit className={details_header__text_className} />
-          ) : (
-            <FaRegEdit className={details_header__text_className} />
-          )}
-        </Button>
-      </TooltipMobileFriendly>
-      <NoteModal isOpen={isOpen} language={language} word={word} onClose={() => setIsOpen(false)} />
-    </>
+    <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.ADD_NOTE()}>
+      <Button
+        isIconOnly
+        className={hasNote ? 'text-primary' : 'text-default-500'}
+        radius="full"
+        variant="light"
+        onPress={() => setLocation(`/notes/${language}/${encodeURIComponent(word)}`)}
+      >
+        {hasNote ? (
+          <FaEdit className={details_header__text_className} />
+        ) : (
+          <FaRegEdit className={details_header__text_className} />
+        )}
+      </Button>
+    </TooltipMobileFriendly>
   )
 })
 NoteAction.displayName = 'NoteAction'

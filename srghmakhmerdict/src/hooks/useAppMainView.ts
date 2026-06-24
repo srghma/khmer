@@ -22,6 +22,7 @@ export type AppMainView =
   | { type: 'history'; word: NonEmptyStringTrimmed; mode: DictionaryLanguage }
   | { type: 'favorites'; word: NonEmptyStringTrimmed; mode: DictionaryLanguage }
   | { type: 'dashboard'; word?: NonEmptyStringTrimmed; mode: DictionaryLanguage }
+  | { type: 'note-edit'; word: NonEmptyStringTrimmed; mode: DictionaryLanguage }
   | typeof AppMainView__history_list
   | typeof AppMainView__favorites_list
   | typeof AppMainView__settings
@@ -44,6 +45,18 @@ export const useAppMainView = () => {
       const text = String_toNonEmptyString_orUndefined_afterTrim(rawText || '')
 
       result = { type: 'khmer-analyzer', text }
+    } else if (location.startsWith('/notes/')) {
+      const match = location.match(/^\/notes\/(en|ru|km)\/(.+)$/)
+
+      if (match) {
+        const mode = stringToDictionaryLanguageOrThrow(match[1] ?? '')
+        const rawWord = tryDecode(match[2] || '')
+        const word = String_toNonEmptyString_orUndefined_afterTrim(rawWord)
+
+        if (word) {
+          result = { type: 'note-edit', word, mode }
+        }
+      }
     } else {
       // 2. Explicit Detail routes: /{history,favorites}/{en,ru,km}/:word
       const detailListMatch = location.match(/^\/(history|favorites)\/(en|ru|km)\/(.+)$/)
@@ -102,6 +115,8 @@ export const useAppActiveTab = () => {
       case 'about':
       case 'khmer-analyzer':
         return 'settings'
+      case 'note-edit':
+        return currentView.mode
       case 'dashboard':
         return currentView.mode
       default:
