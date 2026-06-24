@@ -1,4 +1,4 @@
-import { useCallback, useMemo, memo } from 'react'
+import { useCallback, useMemo, memo, useState } from 'react'
 import { MdTextFields, MdCenterFocusStrong, MdCenterFocusWeak, MdOutlineSubject } from 'react-icons/md'
 import { IoColorPalette } from 'react-icons/io5'
 import { TbLink, TbLinkOff } from 'react-icons/tb'
@@ -26,6 +26,9 @@ import { NonKhmerHideToggleIcon } from '../Icons/NonKhmerHideToggleIcon'
 
 import { TooltipMobileFriendly } from '../TooltipMobileFriendly'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
+import { FaEdit, FaRegEdit } from 'react-icons/fa'
+import { useNotes } from '../../providers/NotesProvider'
+import { NoteModal } from '../NoteModal'
 
 import { cn } from '@heroui/react'
 import { details_header__text_className } from '../header_classNames'
@@ -316,6 +319,45 @@ export const FavoriteAction = memo(function FavoriteAction({
 FavoriteAction.displayName = 'FavoriteAction'
 
 /**
+ * 7.5 NOTE ACTION
+ */
+export const NoteAction = memo(function NoteAction({
+  word,
+  language,
+}: {
+  word: NonEmptyStringTrimmed
+  language: DictionaryLanguage
+}) {
+  const { getNote } = useNotes()
+  const { LL } = useI18nContext()
+  const [isOpen, setIsOpen] = useState(false)
+
+  const hasNote = !!getNote(word, language)
+
+  return (
+    <>
+      <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.ADD_NOTE()}>
+        <Button
+          isIconOnly
+          className={hasNote ? 'text-primary' : 'text-default-500'}
+          radius="full"
+          variant="light"
+          onPress={() => setIsOpen(true)}
+        >
+          {hasNote ? (
+            <FaEdit className={details_header__text_className} />
+          ) : (
+            <FaRegEdit className={details_header__text_className} />
+          )}
+        </Button>
+      </TooltipMobileFriendly>
+      <NoteModal isOpen={isOpen} language={language} word={word} onClose={() => setIsOpen(false)} />
+    </>
+  )
+})
+NoteAction.displayName = 'NoteAction'
+
+/**
  * 8. AUTOFOCUS ANSWER TOGGLE
  */
 export interface AutoFocusAnswerActionProps {
@@ -539,6 +581,7 @@ const DetailViewActionsKnownWord = memo(function DetailViewActionsKnownWord(prop
   return (
     <>
       <FavoriteAction isFav={isFav} onToggle={toggleFav} />
+      <NoteAction language={word_or_sentence__language} word={word_or_sentence} />
       <NativeSpeechAction
         mode={map_DictionaryLanguage_to_BCP47LanguageTagName[word_or_sentence__language]}
         word={word_or_sentence}
