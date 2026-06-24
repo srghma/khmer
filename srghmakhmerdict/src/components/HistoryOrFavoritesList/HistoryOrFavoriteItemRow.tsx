@@ -14,8 +14,8 @@ import { isWordInKmMap } from '../../utils/isWordInKmMap'
 import { useFavorites } from '../../providers/FavoritesProvider'
 import { useNotes } from '../../providers/NotesProvider'
 import { Button, type PressEvent } from '@heroui/button'
-import { FaRegTrashAlt, FaCheckCircle, FaRegCircle, FaRegEdit, FaEdit } from 'react-icons/fa'
-import { useLocation } from 'wouter'
+import { FaRegTrashAlt, FaCheckCircle, FaRegCircle } from 'react-icons/fa'
+import { NoteEditButton } from '../NoteEditButton'
 
 const MODES_ICON: Record<DictionaryLanguage, React.ReactNode> = {
   en: '🇬🇧',
@@ -55,7 +55,6 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
     const { favoritesMap } = useFavorites()
     const { getNote } = useNotes()
     const rowRef = useRef<HTMLDivElement>(null)
-    const [, setLocation] = useLocation()
 
     // Custom touch/pointer handler for long press that ignores scrolls
     const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -198,16 +197,13 @@ export const HistoryOrFavoriteItemRow = React.memo<HistoryOrFavoriteItemRowProps
                 {!isSentence && renderRightAction?.(word, language)}
 
                 {/* Edit Note Button */}
-                <Button
-                  isIconOnly
-                  className="min-w-8 w-8 h-8"
-                  color={hasNote ? 'primary' : 'default'}
+                <NoteEditButton
+                  className={`min-w-8 w-8 h-8 ${hasNote ? 'text-primary' : 'text-default-400'}`}
                   size="sm"
                   variant="light"
-                  onPress={() => setLocation(`/notes/${language}/${encodeURIComponent(word)}`)}
-                >
-                  {hasNote ? <FaEdit className="text-primary" /> : <FaRegEdit className="text-default-400" />}
-                </Button>
+                  word={word}
+                  language={language}
+                />
 
                 <Button
                   isIconOnly
