@@ -155,6 +155,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, word, lan
       }}
       isOpen={isOpen}
       placement="center"
+      scrollBehavior="inside"
       size="full"
       onClose={handleClose}
     >

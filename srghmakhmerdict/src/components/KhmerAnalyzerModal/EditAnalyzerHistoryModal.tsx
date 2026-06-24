@@ -21,7 +21,7 @@ export const EditAnalyzerHistoryModal = memo(function EditAnalyzerHistoryModal({
   onUpdate,
 }: EditAnalyzerHistoryModalProps) {
   return (
-    <Modal isOpen={isOpen} size="xl" onOpenChange={onClose}>
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="xl" onOpenChange={onClose}>
       <ModalContent key={item.savedAt}>
         {onClose => <EditAnalyzerHistoryModalInner item={item} onClose={onClose} onUpdate={onUpdate} />}
       </ModalContent>
