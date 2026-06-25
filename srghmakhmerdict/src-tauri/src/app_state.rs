@@ -3,6 +3,7 @@ use tokio::sync::RwLock;
 
 pub struct AppState {
     pub dict_pool: RwLock<Option<SqlitePool>>,
+    pub user_pool: RwLock<Option<SqlitePool>>,
     pub init_error: RwLock<Option<String>>,
 }
 

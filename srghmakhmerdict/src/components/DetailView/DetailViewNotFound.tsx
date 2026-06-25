@@ -22,9 +22,11 @@ interface DetailViewNotFoundProps {
   word: NonEmptyStringTrimmed
   mode: DictionaryLanguage
   backButton_goBack: (() => void) | undefined
+  onNavigate?: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
+  isModal?: boolean
 }
 
-export const DetailViewNotFound = ({ word, mode, backButton_goBack }: DetailViewNotFoundProps) => {
+export const DetailViewNotFound = ({ word, mode, backButton_goBack, onNavigate, isModal }: DetailViewNotFoundProps) => {
   const { LL } = useI18nContext()
   const [analyzedText, setAnalyzedText] = useState<string>(word)
   const analyzedText_nonEmptyTrimmed = useMemo(
@@ -89,6 +91,8 @@ export const DetailViewNotFound = ({ word, mode, backButton_goBack }: DetailView
         type="sentence_analyzer"
         word_or_sentence={word}
         word_or_sentence__language={res.t !== 'empty_text' ? res.analyzedText_language : 'km'}
+        isModal={isModal}
+        onNavigate={onNavigate}
       />
 
       <ScrollShadow className="flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
@@ -112,6 +116,7 @@ export const DetailViewNotFound = ({ word, mode, backButton_goBack }: DetailView
           khmerWordsHidingMode={khmerWordsHidingMode}
           nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
           res={res}
+          onNavigate={onNavigate}
         />
       </ScrollShadow>
     </Card>

@@ -257,11 +257,32 @@ export const ColorizationAction = memo(function ColorizationAction({ colorMode, 
     [onChange],
   )
 
+  const handleRightClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      switch (colorMode) {
+        case 'segmenter':
+          onChange('dictionary')
+          break
+        case 'dictionary':
+          onChange('segmenter')
+          break
+        case 'none':
+          onChange('segmenter')
+          break
+        default:
+          break
+      }
+    },
+    [colorMode, onChange],
+  )
+
   return (
     <Dropdown>
       <DropdownTrigger>
         <TooltipMobileFriendly closeDelay={0} content={LL.ACTIONS.COLOR_LABEL()}>
-          <Button isIconOnly radius="full" variant="light">
+          <Button isIconOnly radius="full" variant="light" onContextMenu={handleRightClick}>
             <IoColorPalette
               className={cn(details_header__text_className, colorMode !== 'none' ? 'text-primary' : 'text-default-500')}
             />

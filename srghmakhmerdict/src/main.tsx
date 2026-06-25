@@ -15,6 +15,7 @@ import { I18nAppProvider } from './providers/I18nAppProvider'
 import { IapProvider } from './providers/IapProvider'
 import { ShortDefinitionPopoverProvider } from './providers/ShortDefinitionPopoverProvider'
 import { FillInTheBlankModalProvider } from './providers/FillInTheBlankModalProvider'
+import { DetailsModalProvider } from './providers/DetailsModalProvider'
 import { useHashLocation } from 'wouter/use-hash-location'
 
 import { Router } from 'wouter'
@@ -33,11 +34,13 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
                   <SettingsProvider>
                     <IapProvider>
                       <I18nAppProvider>
-                        <ShortDefinitionPopoverProvider>
-                          <FillInTheBlankModalProvider>
-                            <App />
-                          </FillInTheBlankModalProvider>
-                        </ShortDefinitionPopoverProvider>
+                        <FillInTheBlankModalProvider>
+                          <DetailsModalProvider>
+                            <ShortDefinitionPopoverProvider>
+                              <App />
+                            </ShortDefinitionPopoverProvider>
+                          </DetailsModalProvider>
+                        </FillInTheBlankModalProvider>
                       </I18nAppProvider>
                     </IapProvider>
                   </SettingsProvider>

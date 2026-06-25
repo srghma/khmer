@@ -8,6 +8,7 @@ import { unknown_to_errorMessage } from '../utils/errorMessage'
 import type { ShortDefinition } from '../db/dict'
 import { Set_toNonEmptySet_orUndefined } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-set'
 import { useKhmerDefinitions } from '../hooks/useKhmerDefinitions'
+import { useDetailsModal } from './DetailsModalProvider'
 
 interface ShortDefinitionPopoverContextType {
   showPopover: (word: TypedKhmerWord, anchor: HTMLElement, definition?: ShortDefinition | null) => void
@@ -33,6 +34,14 @@ export const ShortDefinitionPopoverProvider: React.FC<{ children: React.ReactNod
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [definitionState, setDefinitionState] = useState<ShortDefinition | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const { openDetails } = useDetailsModal()
+
+  const handlePopoverClick = useCallback(() => {
+    setIsOpen(false)
+    if (activeWord) {
+      openDetails(activeWord, 'km')
+    }
+  }, [openDetails, activeWord])
 
   const showPopover = useCallback(
     (word: TypedKhmerWord, targetAnchor: HTMLElement, def?: ShortDefinition | null) => {
@@ -104,7 +113,18 @@ export const ShortDefinitionPopoverProvider: React.FC<{ children: React.ReactNod
             </PopoverTrigger>
           </div>
           <PopoverContent className="p-0 max-w-[min(300px,calc(100vw-32px))] w-max">
-            <div className="flex flex-col max-h-[400px] overflow-y-auto outline-none">
+            <div
+              className="flex flex-col max-h-[400px] overflow-y-auto outline-none cursor-pointer hover:bg-content2/50 transition-colors"
+              role="button"
+              tabIndex={0}
+              onClick={handlePopoverClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handlePopoverClick()
+                }
+              }}
+            >
               {activeWord && (
                 <div className="p-3 border-b border-divider bg-content2/30">
                   {definition?.wiktionary_ipa_or_from_csv_pronunciations && (

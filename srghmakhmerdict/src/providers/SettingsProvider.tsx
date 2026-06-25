@@ -236,6 +236,8 @@ export interface SettingsContextType {
 
   ankiTableState: AnkiTableState
   setAnkiTableState: (v: AnkiTableState | ((prev: AnkiTableState | undefined) => AnkiTableState)) => void
+  isSidebarCollapsed: boolean
+  setIsSidebarCollapsed: (v: boolean | ((prev: boolean | undefined) => boolean)) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -357,6 +359,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     },
   )
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useLocalStorageState<boolean>(
+    'srghmakhmerdict__is_sidebar_collapsed',
+    {
+      defaultValue: false,
+    },
+  )
+
   const toggleKhmerLinks = useCallback(() => {
     setIsKhmerLinksEnabled(prev => !prev)
   }, [setIsKhmerLinksEnabled])
@@ -420,6 +429,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
       ankiTableState: { ...DEFAULT_ANKI_TABLE_STATE, ...ankiTableState },
       setAnkiTableState,
+      isSidebarCollapsed: isSidebarCollapsed ?? false,
+      setIsSidebarCollapsed,
     }),
     [
       searchMode,
@@ -472,6 +483,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
       ankiTableState,
       setAnkiTableState,
+      isSidebarCollapsed,
+      setIsSidebarCollapsed,
     ],
   )
 

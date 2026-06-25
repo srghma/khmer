@@ -39,6 +39,8 @@ interface DetailViewFoundProps {
 
   // Appearance / Nav
   backButton_goBack: (() => void) | undefined
+  onNavigate?: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
+  isModal?: boolean
 }
 
 export const SelectionMenuBodyLocalWrapper = memo(function SelectionMenuBodyLocalWrapper({
@@ -70,15 +72,30 @@ export const SelectionMenuBodyLocalWrapper = memo(function SelectionMenuBodyLoca
 
 SelectionMenuBodyLocalWrapper.displayName = 'SelectionMenuBodyLocalWrapper'
 
-const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButton_goBack }: DetailViewFoundProps) => {
+const DetailViewFoundComponent = ({
+  word,
+  data,
+  mode,
+  isFav,
+  toggleFav,
+  backButton_goBack,
+  onNavigate: onNavigateProp,
+  isModal,
+}: DetailViewFoundProps) => {
   // 1. Logic
   const { LL } = useI18nContext()
   const toast = useAppToast()
   const [, setLocation] = useLocation()
 
   const onNavigate = useCallback(
-    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => setLocation(`~/${mode}/${encodeURIComponent(word)}`),
-    [setLocation],
+    (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => {
+      if (onNavigateProp) {
+        onNavigateProp(word, mode)
+      } else {
+        setLocation(`~/${mode}/${encodeURIComponent(word)}`)
+      }
+    },
+    [onNavigateProp, setLocation],
   )
 
   const handleNavigate = useCallback(
@@ -220,6 +237,7 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
         backButton_goBack={backButton_goBack}
         isFav={isFav}
         isKhmerLinksEnabled={isKhmerLinksEnabled}
+        isModal={isModal}
         isShowShortDetailAboutKhmerWordEnabled={isShowShortDetailAboutKhmerWordEnabled}
         khmerFontFamily={khmerFontFamily}
         khmerFontName={khmerFontName}
@@ -238,6 +256,7 @@ const DetailViewFoundComponent = ({ word, data, mode, isFav, toggleFav, backButt
         word_displayHtml={data.word_display ?? word}
         word_or_sentence={word}
         word_or_sentence__language={mode}
+        onNavigate={onNavigateProp}
       />
 
       <div className="flex-1 overflow-hidden w-full relative">

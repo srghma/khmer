@@ -106,6 +106,7 @@ pub fn run() {
         .setup(|app| {
             app.manage(AppState {
                 dict_pool: RwLock::new(None),
+                user_pool: RwLock::new(None),
                 init_error: RwLock::new(None),
             });
 

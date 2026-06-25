@@ -19,10 +19,12 @@ interface RightPanelProps {
 }
 
 const NoSelectedWord = ({ LL }: { LL: TranslationFunctions }) => (
-  <div className="hidden md:flex flex-1 bg-background items-center justify-center text-default-400 p-8 text-center h-full">
-    <div>
-      <p className="mb-2 text-lg font-semibold">{LL.COMMON.WELCOME_TITLE()}</p>
-      <p className="text-sm">{LL.COMMON.WELCOME_SUBTITLE()}</p>
+  <div className="hidden md:flex flex-1 flex-col bg-background h-full relative">
+    <div className="flex-1 flex items-center justify-center text-default-400 p-8 text-center">
+      <div>
+        <p className="mb-2 text-lg font-semibold">{LL.COMMON.WELCOME_TITLE()}</p>
+        <p className="text-sm">{LL.COMMON.WELCOME_SUBTITLE()}</p>
+      </div>
     </div>
   </div>
 )

@@ -3,6 +3,9 @@ import { useTheme } from '@heroui/use-theme'
 import { ThemeProps } from '@heroui/use-theme'
 import { useDeepLinkHandler } from './hooks/useDeepLinkHandler'
 import { Route, Switch, useLocation } from 'wouter'
+import { useSettings } from './providers/SettingsProvider'
+import { DetailsModal } from './providers/DetailsModalProvider'
+import './App.css'
 const AppAnki = React.lazy(() => import('./AppAnki').then(m => ({ default: m.AppAnki })))
 const AppMain = React.lazy(() => import('./AppMain').then(m => ({ default: m.AppMain })))
 const KhmerComplexTableView = React.lazy(() =>
@@ -11,9 +14,6 @@ const KhmerComplexTableView = React.lazy(() =>
 const AnkiTableView = React.lazy(() =>
   import('./components/AnkiTable/AnkiTableView').then(m => ({ default: m.AnkiTableView })),
 )
-
-import { useSettings } from './providers/SettingsProvider'
-import './App.css'
 
 function App() {
   const { theme } = useTheme()
@@ -68,6 +68,7 @@ function App() {
           <AppMain />
         </Route>
       </Switch>
+      <DetailsModal />
     </Suspense>
   )
 }

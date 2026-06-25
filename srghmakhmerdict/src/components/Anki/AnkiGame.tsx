@@ -21,8 +21,8 @@ import { AnkiImport } from './Import'
 import { AnkiExport } from './Export'
 import { AnkiSettingsMenu } from './AnkiSettings'
 import { AnkiGeneralSettings } from './AnkiGeneralSettings'
+import { useSettings } from '../../providers/SettingsProvider'
 
-import { memoizeSync1_Boolean } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/memoize'
 import type { FavoriteItem } from '../../db/favorite/item'
 import { type NonEmptyStringTrimmed } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-string-trimmed'
 import { useAnkiPulseStore } from './AnkiPulseContext'
@@ -30,7 +30,7 @@ import { useAnkiPulseStore } from './AnkiPulseContext'
 import { useAppToast } from '../../providers/ToastProvider'
 import { useI18nContext } from '../../i18n/i18n-react-custom'
 import type { AnkiDirection } from './types'
-import { DetailViewBackButton } from '../DetailView/DetailViewHeader'
+import { DetailViewBackButton, SidebarToggleButton } from '../DetailView/DetailViewHeader'
 import { Card, CardBody, CardHeader } from '@heroui/react'
 
 // --- 1. Helper Styles & Components ---
@@ -41,19 +41,42 @@ const LoadingSpinner = (
   </div>
 )
 
-const getSidebarClassName = memoizeSync1_Boolean((isRightPanelVisible: boolean) => {
+const getSidebarClassName = (isRightPanelVisible: boolean, isSidebarCollapsed: boolean) => {
   return [
-    'flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[400px] lg:w-[450px] md:max-w-[40vw] pt-[env(safe-area-inset-top)]',
+    'flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all duration-300 pt-[env(safe-area-inset-top)]',
+    isSidebarCollapsed
+      ? 'md:w-0 md:min-w-0 md:max-w-0 lg:w-0 lg:min-w-0 lg:max-w-0 md:overflow-hidden md:border-r-0 md:shadow-none'
+      : 'md:w-[400px] lg:w-[450px] md:max-w-[40vw]',
     isRightPanelVisible ? 'hidden md:flex' : 'w-full',
   ].join(' ')
-})
+}
 
-const getRightPanelClassName = memoizeSync1_Boolean((isRightPanelVisible: boolean) => {
+const getRightPanelClassName = (isRightPanelVisible: boolean) => {
   return [
     'flex-1 flex flex-col bg-background relative overflow-hidden transition-all w-full md:w-auto',
     !isRightPanelVisible ? 'hidden md:flex' : 'flex',
   ].join(' ')
+}
+
+const AnkiWelcomeArea = memo(function AnkiWelcomeArea({
+  children,
+  header,
+}: {
+  children: React.ReactNode
+  header?: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-1 flex-col bg-background h-full relative">
+      <div className="h-[5rem] flex items-center px-4 border-b border-divider shrink-0 pt-[calc(env(safe-area-inset-top))]">
+        <SidebarToggleButton />
+        {header && <div className="ml-2 font-semibold text-default-600">{header}</div>}
+      </div>
+      <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
+    </div>
+  )
 })
+
+AnkiWelcomeArea.displayName = 'AnkiWelcomeArea'
 
 // --- 2. Hooks ---
 
@@ -106,9 +129,11 @@ const AnkiGameLayout = React.memo<AnkiGameLayoutProps>(
     isRightPanelVisibleOnMobile,
     headerPage,
   }) => {
+    const { isSidebarCollapsed } = useSettings()
+
     const sidebarClassName = useMemo(
-      () => getSidebarClassName(isRightPanelVisibleOnMobile),
-      [isRightPanelVisibleOnMobile],
+      () => getSidebarClassName(isRightPanelVisibleOnMobile, isSidebarCollapsed && isRightPanelVisibleOnMobile),
+      [isRightPanelVisibleOnMobile, isSidebarCollapsed],
     )
     const rightPanelClassName = useMemo(
       () => getRightPanelClassName(isRightPanelVisibleOnMobile),
@@ -209,10 +234,12 @@ const AnkiGameActiveSession = React.memo<AnkiGameActiveSessionProps>(
       if (selectedId) {
         if (!itemData) {
           return (
-            <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-              <span className="text-4xl">❓</span>
-              <p>{LL.ANKI.CARD_NOT_FOUND()}</p>
-            </div>
+            <AnkiWelcomeArea>
+              <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2 p-8 text-center">
+                <span className="text-4xl">❓</span>
+                <p>{LL.ANKI.CARD_NOT_FOUND()}</p>
+              </div>
+            </AnkiWelcomeArea>
           )
         }
 
@@ -220,10 +247,12 @@ const AnkiGameActiveSession = React.memo<AnkiGameActiveSessionProps>(
       }
 
       return (
-        <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-          <span className="text-4xl">🎴</span>
-          <p>{LL.ANKI.SELECT_CARD()}</p>
-        </div>
+        <AnkiWelcomeArea>
+          <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2 p-8 text-center">
+            <span className="text-4xl">🎴</span>
+            <p>{LL.ANKI.SELECT_CARD()}</p>
+          </div>
+        </AnkiWelcomeArea>
       )
     }, [selectedId, itemData, handleRate, LL])
 
@@ -260,11 +289,12 @@ const AnkiSettingsItemWrapper = memo(function AnkiSettingsItemWrapper({
 }) {
   return (
     <Card className="flex flex-col h-full w-full border-none rounded-none bg-background shadow-none">
-      <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
-        {<DetailViewBackButton onPress={backButton_goBack} />}
+      <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem] border-b border-divider">
+        <DetailViewBackButton onPress={backButton_goBack} />
+        <SidebarToggleButton />
 
         {/* Central Text */}
-        {header}
+        <div className="flex-grow min-w-0">{header}</div>
       </CardHeader>
 
       <CardBody>{children}</CardBody>
@@ -345,7 +375,11 @@ const AnkiGameController = React.memo(function AnkiGameController({ allFavorites
         )
         break
       default:
-        rightPanelContent = <AnkiGeneralSettings />
+        rightPanelContent = (
+          <AnkiWelcomeArea>
+            <AnkiGeneralSettings />
+          </AnkiWelcomeArea>
+        )
         break
     }
 
@@ -388,10 +422,12 @@ const AnkiGameController = React.memo(function AnkiGameController({ allFavorites
   )
 
   const emptyRightContent = (
-    <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2">
-      <span className="text-4xl">📭</span>
-      <p>{LL.ANKI.NO_FAVORITES()}</p>
-    </div>
+    <AnkiWelcomeArea>
+      <div className="flex h-full flex-col items-center justify-center text-default-400 gap-2 p-8 text-center">
+        <span className="text-4xl">📭</span>
+        <p>{LL.ANKI.NO_FAVORITES()}</p>
+      </div>
+    </AnkiWelcomeArea>
   )
 
   return (

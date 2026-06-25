@@ -33,7 +33,22 @@ export function AppMain() {
     return undefined
   }, [currentView])
 
-  const { searchMode, searchInContent, highlightInList, filters, maybeColorMode } = useSettings()
+  const detailViewOrNull = useMemo(() => {
+    switch (currentView.type) {
+      case 'about':
+      case 'khmer-analyzer':
+      case 'note-edit':
+        return currentView
+      case 'history':
+      case 'favorites':
+      case 'dashboard':
+        return currentView.word ? currentView : null
+      default:
+        return null
+    }
+  }, [currentView])
+
+  const { searchMode, searchInContent, highlightInList, filters, maybeColorMode, isSidebarCollapsed } = useSettings()
   const activeTab = useAppActiveTab()
   const [, setLocation] = useLocation()
 
@@ -49,12 +64,16 @@ export function AppMain() {
     [searchQuery],
   )
 
+  const shouldCollapseSidebar = isSidebarCollapsed && detailViewOrNull !== null
+
   const leftClassName = useMemo(
     () =>
-      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all md:w-[25rem] lg:w-[28rem] max-md:max-w-full md:max-w-[40vw] pt-[env(safe-area-inset-top)] text-base ${
-        currentNavigationStackItem ? 'hidden md:flex' : 'w-full'
-      }`,
-    [currentNavigationStackItem],
+      `flex flex-col bg-background border-r border-divider z-10 shadow-medium shrink-0 transition-all duration-300 max-md:max-w-full pt-[env(safe-area-inset-top)] text-base ${
+        shouldCollapseSidebar
+          ? 'md:w-0 md:min-w-0 md:max-w-0 lg:w-0 lg:min-w-0 lg:max-w-0 md:overflow-hidden md:border-r-0 md:shadow-none'
+          : 'md:w-[25rem] lg:w-[28rem] md:max-w-[40vw]'
+      } ${currentNavigationStackItem ? 'hidden md:flex' : 'w-full'}`,
+    [currentNavigationStackItem, shouldCollapseSidebar],
   )
   const toast = useAppToast()
 
@@ -74,21 +93,6 @@ export function AppMain() {
     },
     [setLocation],
   )
-
-  const detailViewOrNull = useMemo(() => {
-    switch (currentView.type) {
-      case 'about':
-      case 'khmer-analyzer':
-      case 'note-edit':
-        return currentView
-      case 'history':
-      case 'favorites':
-      case 'dashboard':
-        return currentView.word ? currentView : null
-      default:
-        return null
-    }
-  }, [currentView])
 
   const [lastDetailView, setLastDetailView] = useState<typeof currentView | null>(null)
 
@@ -150,7 +154,7 @@ export function AppMain() {
             case 'note-edit':
               return (
                 <div className={`${detailClass} ${mobileVisibilityClass}`}>
-                  <NoteEditView word={viewToRender.word} language={viewToRender.mode} />
+                  <NoteEditView language={viewToRender.mode} word={viewToRender.word} />
                 </div>
               )
             case 'history':

@@ -17,6 +17,7 @@ use srghmakhmerdict_lib::app_state::AppState;
 async fn main() {
     let state = Arc::new(AppState {
         dict_pool: RwLock::new(None),
+        user_pool: RwLock::new(None),
         init_error: RwLock::new(None),
     });
 
@@ -27,13 +28,63 @@ async fn main() {
          panic!("Database not found at {:?}", db_path);
     }
 
-    srghmakhmerdict_lib::db_initialize_impl::init_db_standalone_impl(state.clone(), db_path).await;
+    srghmakhmerdict_lib::db_initialize_impl::init_db_standalone_impl(state.clone(), db_path.clone()).await;
+
+    // Connect to user_data.db and perform migrations
+    let user_db_path = db_path.with_file_name("user_data.db");
+    let user_db_url = format!("sqlite://{}", user_db_path.display());
+    println!("🔥 Connecting to User DB at: {}", user_db_url);
+    use std::str::FromStr;
+    let user_db_options = sqlx::sqlite::SqliteConnectOptions::from_str(&user_db_url)
+        .expect("Failed to parse User DB URL")
+        .create_if_missing(true);
+
+    let user_pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect_with(user_db_options)
+        .await
+        .expect("Failed to connect to User DB");
+
+    sqlx::query("
+        CREATE TABLE IF NOT EXISTS history (
+            word TEXT NOT NULL,
+            language TEXT NOT NULL,
+            timestamp INTEGER NOT NULL,
+            PRIMARY KEY (word, language)
+        );
+    ").execute(&user_pool).await.expect("Failed to create history table");
+
+    sqlx::query("
+        CREATE TABLE IF NOT EXISTS favorites (
+            word TEXT NOT NULL,
+            language TEXT NOT NULL,
+            timestamp INTEGER NOT NULL,
+            stability REAL NOT NULL DEFAULT 0,
+            difficulty REAL NOT NULL DEFAULT 0,
+            last_review INTEGER,
+            due INTEGER NOT NULL,
+            additional_html_front TEXT CHECK(additional_html_front != ''),
+            additional_html_back TEXT CHECK(additional_html_back != ''),
+            check_again INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (word, language)
+        );
+    ").execute(&user_pool).await.expect("Failed to create favorites table");
+
+    let _ = sqlx::query("ALTER TABLE favorites ADD COLUMN check_again INTEGER NOT NULL DEFAULT 0;").execute(&user_pool).await;
+
+    {
+        let mut guard = state.user_pool.write().await;
+        *guard = Some(user_pool);
+    }
+    println!("✅ User DB Connected and Migrated");
 
     let app = Router::new()
         .route("/api/:command", post(handler))
         .route("/google_tts", axum::routing::get(google_tts_handler))
         .route("/native_tts", axum::routing::get(native_tts_audio_handler))
         .route("/update_pos", axum::routing::post(update_pos_handler))
+        .route("/sql/execute", post(sql_execute_handler))
+        .route("/sql/select", post(sql_select_handler))
         .layer(CorsLayer::permissive())
         .with_state(state);
 
@@ -144,6 +195,9 @@ async fn handler(
             let words = payload["words"].as_array().unwrap_or(&vec![]).iter().map(|v| v.as_str().unwrap_or_default().to_string()).collect();
             json!(srghmakhmerdict_lib::db::dict::ru_impl::ru_for_many_full_details_throws_if_word_not_found_impl(&state, words).await)
         }
+
+        "check_offline_images_status" => json!(Option::<usize>::None),
+        "download_offline_images" => json!(Option::<usize>::None),
 
         _ => return (StatusCode::NOT_FOUND, Json(json!({"error": "Unknown command"}))).into_response(),
     };
@@ -321,4 +375,200 @@ async fn update_pos_handler(
 
     println!("✅ POS updated successfully");
     (StatusCode::OK, "Updated").into_response()
+}
+
+#[derive(serde::Deserialize)]
+struct SqlPayload {
+    query: String,
+    #[serde(rename = "bindValues")]
+    bind_values: Option<Vec<serde_json::Value>>,
+}
+
+fn count_parameters(sql: &str) -> usize {
+    let mut max_param = 0;
+    for word in sql.split(|c: char| !c.is_alphanumeric() && c != '$' && c != '_') {
+        if word.starts_with('$') {
+            if let Ok(num) = word[1..].parse::<usize>() {
+                if num > max_param {
+                    max_param = num;
+                }
+            }
+        }
+    }
+    max_param
+}
+
+async fn sql_execute_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<SqlPayload>,
+) -> impl IntoResponse {
+    let guard = state.user_pool.read().await;
+    let pool = match &*guard {
+        Some(p) => p,
+        None => return (StatusCode::INTERNAL_SERVER_ERROR, "User database not connected".to_string()).into_response(),
+    };
+
+    let mut tx = match pool.begin().await {
+        Ok(t) => t,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to start transaction: {}", e)).into_response(),
+    };
+
+    let bind_values = payload.bind_values.unwrap_or_default();
+    let statements: Vec<&str> = payload.query.split(';').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+    let mut rows_affected = 0;
+    let mut last_insert_id = 0;
+
+    for stmt in statements {
+        if stmt.eq_ignore_ascii_case("begin") || stmt.eq_ignore_ascii_case("commit") || stmt.eq_ignore_ascii_case("rollback") {
+            continue;
+        }
+
+        let mut q = sqlx::query(stmt);
+        let num_params = count_parameters(stmt);
+        for (i, val) in bind_values.iter().enumerate() {
+            if i >= num_params {
+                break;
+            }
+            q = match val {
+                serde_json::Value::Null => q.bind(None::<String>),
+                serde_json::Value::Bool(b) => q.bind(*b),
+                serde_json::Value::Number(n) => {
+                    if let Some(i_val) = n.as_i64() {
+                        q.bind(i_val)
+                    } else if let Some(f_val) = n.as_f64() {
+                        q.bind(f_val)
+                    } else {
+                        q
+                    }
+                }
+                serde_json::Value::String(s) => q.bind(s.clone()),
+                _ => q.bind(val.to_string()),
+            };
+        }
+
+        match q.execute(&mut *tx).await {
+            Ok(res) => {
+                rows_affected += res.rows_affected();
+                last_insert_id = res.last_insert_rowid();
+            }
+            Err(e) => {
+                let _ = tx.rollback().await;
+                return (StatusCode::INTERNAL_SERVER_ERROR, format!("SQL execution error in statement '{}': {}", stmt, e)).into_response();
+            }
+        }
+    }
+
+    if let Err(e) = tx.commit().await {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to commit transaction: {}", e)).into_response();
+    }
+
+    Json(json!({
+        "rowsAffected": rows_affected,
+        "lastInsertId": last_insert_id
+    })).into_response()
+}
+
+async fn sql_select_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<SqlPayload>,
+) -> impl IntoResponse {
+    let guard = state.user_pool.read().await;
+    let pool = match &*guard {
+        Some(p) => p,
+        None => return (StatusCode::INTERNAL_SERVER_ERROR, "User database not connected".to_string()).into_response(),
+    };
+
+    let bind_values = payload.bind_values.unwrap_or_default();
+    let mut q = sqlx::query(&payload.query);
+    let num_params = count_parameters(&payload.query);
+    for (i, val) in bind_values.iter().enumerate() {
+        if i >= num_params {
+            break;
+        }
+        q = match val {
+            serde_json::Value::Null => q.bind(None::<String>),
+            serde_json::Value::Bool(b) => q.bind(*b),
+            serde_json::Value::Number(n) => {
+                if let Some(i_val) = n.as_i64() {
+                    q.bind(i_val)
+                } else if let Some(f_val) = n.as_f64() {
+                    q.bind(f_val)
+                } else {
+                    q
+                }
+            }
+            serde_json::Value::String(s) => q.bind(s.clone()),
+            _ => q.bind(val.to_string()),
+        };
+    }
+
+    use sqlx::{Column, Row, TypeInfo};
+    let rows = match q.fetch_all(pool).await {
+        Ok(r) => r,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, format!("SQL select error: {}", e)).into_response(),
+    };
+
+    let mut json_rows = Vec::new();
+    for row in rows {
+        let mut map = serde_json::Map::new();
+        for col in row.columns() {
+            let col_name = col.name();
+            let val: serde_json::Value = match row.try_get_raw(col_name) {
+                Ok(raw_val) => {
+                    use sqlx::ValueRef;
+                    if raw_val.is_null() {
+                        serde_json::Value::Null
+                    } else {
+                        let type_name = col.type_info().name();
+                        match type_name {
+                            "INTEGER" | "INT" | "TINYINT" | "SMALLINT" | "MEDIUMINT" | "BIGINT" | "UNSIGNED BIG INT" | "INT2" | "INT8" => {
+                                if let Ok(i) = row.try_get::<i64, _>(col_name) {
+                                    serde_json::json!(i)
+                                } else {
+                                    serde_json::Value::Null
+                                }
+                            }
+                            "REAL" | "DOUBLE" | "DOUBLE PRECISION" | "FLOAT" => {
+                                if let Ok(f) = row.try_get::<f64, _>(col_name) {
+                                    serde_json::json!(f)
+                                } else {
+                                    serde_json::Value::Null
+                                }
+                            }
+                            "TEXT" | "CLOB" | "CHAR" | "VARCHAR" | "VARYING CHARACTER" | "NCHAR" | "NATIVE CHARACTER" | "NVARCHAR" => {
+                                if let Ok(s) = row.try_get::<String, _>(col_name) {
+                                    serde_json::json!(s)
+                                } else {
+                                    serde_json::Value::Null
+                                }
+                            }
+                            "BOOLEAN" => {
+                                if let Ok(b) = row.try_get::<bool, _>(col_name) {
+                                    serde_json::json!(b)
+                                } else {
+                                    serde_json::Value::Null
+                                }
+                            }
+                            _ => {
+                                if let Ok(s) = row.try_get::<String, _>(col_name) {
+                                    serde_json::json!(s)
+                                } else if let Ok(i) = row.try_get::<i64, _>(col_name) {
+                                    serde_json::json!(i)
+                                } else if let Ok(f) = row.try_get::<f64, _>(col_name) {
+                                    serde_json::json!(f)
+                                } else {
+                                    serde_json::Value::Null
+                                }
+                            }
+                        }
+                    }
+                }
+                Err(_) => serde_json::Value::Null,
+            };
+            map.insert(col_name.to_string(), val);
+        }
+        json_rows.push(serde_json::Value::Object(map));
+    }
+
+    Json(json_rows).into_response()
 }

@@ -15,6 +15,8 @@ import type { TextSegmentEnhanced } from '../utils/text-processing/text-enhanced
 import { Alert } from '@heroui/alert'
 import { Spinner } from '@heroui/react'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
+import type { DictionaryLanguage } from '../types'
 import type { NonEmptyRecord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/non-empty-record'
 import { KhmerAnalyzer } from './KhmerAnalyzer'
 import { SegmentationPreview } from './KhmerAnalyzerModal/SegmentationPreview'
@@ -41,6 +43,7 @@ import { useDictionary } from '../providers/DictionaryProvider'
 import { useAppToast } from '../providers/ToastProvider'
 import type { ShortDefinitionKm } from '../db/dict/types'
 import { useScrollPreservation } from '../hooks/useScrollPreservation'
+import { SidebarToggleButton } from './DetailView/DetailViewHeader'
 
 interface HeaderTogglerOfSegmenterProps {
   children: (data: NonEmptyArray<TextSegment | TextSegmentEnhanced>) => React.ReactNode
@@ -100,12 +103,14 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
   nonKhmerWordsHidingMode,
   isShowShortDetailAboutKhmerWordEnabled,
   shortDefinitions,
+  onNavigate: onNavigateProp,
 }: {
   markdown: NonEmptyStringTrimmed
   khmerWordsHidingMode: WordsHidingMode
   nonKhmerWordsHidingMode: WordsHidingMode
   isShowShortDetailAboutKhmerWordEnabled: boolean
   shortDefinitions: NonEmptyRecord<TypedKhmerWord, ShortDefinitionKm | null> | undefined
+  onNavigate?: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }) {
   const { LL } = useI18nContext()
   const [, setLocation] = useLocation()
@@ -135,9 +140,17 @@ const RenderMarkdownColorized = memo(function RenderMarkdownColorized({
 
   const handleNavigate = useCallback(
     (word: NonEmptyStringTrimmed) => {
-      setLocation_khmerWord_ifInDictionary(word, km_map, toast, setLocation, LL)
+      if (onNavigateProp) {
+        if (km_map.has(word as TypedContainsKhmer)) {
+          onNavigateProp(word, 'km')
+        } else {
+          toast.error(LL.ANALYZER.WORD_NOT_IN_KHMER_DICTIONARY({ word }))
+        }
+      } else {
+        setLocation_khmerWord_ifInDictionary(word, km_map, toast, setLocation, LL)
+      }
     },
-    [setLocation, km_map, toast, LL],
+    [onNavigateProp, setLocation, km_map, toast, LL],
   )
 
   if (html.t === 'empty') {
@@ -183,6 +196,7 @@ interface KhmerAnalysisResultsProps {
   isShowShortDetailAboutKhmerWordEnabled: boolean
   isSegmentationEnabled: boolean
   isCharacterAnalysisEnabled: boolean
+  onNavigate?: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }
 
 export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
@@ -192,6 +206,7 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
   isShowShortDetailAboutKhmerWordEnabled,
   isSegmentationEnabled,
   isCharacterAnalysisEnabled,
+  onNavigate: onNavigateProp,
 }) => {
   const { LL } = useI18nContext()
   const { khmerAnalyzerMarkdownEnabled, isKhmerLinksEnabled } = useSettings()
@@ -201,9 +216,17 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
 
   const handleNavigate = useCallback(
     (word: NonEmptyStringTrimmed) => {
-      setLocation_khmerWord_ifInDictionary(word, km_map, toast, setLocation, LL)
+      if (onNavigateProp) {
+        if (km_map.has(word as TypedContainsKhmer)) {
+          onNavigateProp(word, 'km')
+        } else {
+          toast.error(LL.ANALYZER.WORD_NOT_IN_KHMER_DICTIONARY({ word }))
+        }
+      } else {
+        setLocation_khmerWord_ifInDictionary(word, km_map, toast, setLocation, LL)
+      }
     },
-    [setLocation, km_map, toast, LL],
+    [onNavigateProp, setLocation, km_map, toast, LL],
   )
 
   if (res.t === 'empty_text') {
@@ -246,6 +269,7 @@ export const KhmerAnalysisResults: React.FC<KhmerAnalysisResultsProps> = ({
                 khmerWordsHidingMode={khmerWordsHidingMode}
                 markdown={res.analyzedText}
                 nonKhmerWordsHidingMode={nonKhmerWordsHidingMode}
+                onNavigate={onNavigateProp}
                 shortDefinitions={
                   res.t === 'non_empty_text_with_at_least_one_khmer_char__defs_request_success'
                     ? res.definitions
@@ -374,6 +398,7 @@ export const KhmerAnalyzerView: React.FC<KhmerAnalyzerViewProps> = memo(({ initi
           <Button isIconOnly className="mr-2 text-default-500 shrink-0" variant="light" onPress={handleBack}>
             <HiArrowLeft className="w-6 h-6" />
           </Button>
+          <SidebarToggleButton />
 
           <div className="shrink-0">
             <h1 className="text-xl font-bold">{LL.ANALYZER.TITLE()}</h1>

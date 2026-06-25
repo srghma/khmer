@@ -1,5 +1,6 @@
-import type { WordsHidingMode } from '../../providers/SettingsProvider'
+import { type WordsHidingMode, useSettings } from '../../providers/SettingsProvider'
 import React, { memo, useMemo, useRef } from 'react'
+import { LuMaximize, LuMinimize } from 'react-icons/lu'
 import { CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
 import { ScrollShadow } from '@heroui/scroll-shadow'
@@ -16,6 +17,7 @@ import { useDictionary } from '../../providers/DictionaryProvider'
 import { calculateKhmerAndNonKhmerContentStyles, useKhmerAndNonKhmerClickListener } from '../../hooks/useKhmerLinks'
 import type { DictionaryLanguage } from '../../types'
 import type { TypedKhmerWord } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/khmer-word'
+import type { TypedContainsKhmer } from '@gemini-ocr-automate-images-upload-chrome-extension/utils/string-contains-khmer-char'
 import { setLocation_khmerWord_ifInDictionary } from '../../utils/url-navigation'
 import { useAppToast } from '../../providers/ToastProvider'
 import { useLocation } from 'wouter'
@@ -23,12 +25,12 @@ import { useFavorites } from '../../providers/FavoritesProvider'
 
 interface DetailViewBackButtonProps {
   onPress: () => void
-  // desktopOnlyStyles_showButton: boolean
+  isModal?: boolean
 }
 
-export const DetailViewBackButton = React.memo(function DetailViewBackButton({ onPress }: DetailViewBackButtonProps) {
+export const DetailViewBackButton = React.memo(function DetailViewBackButton({ onPress, isModal }: DetailViewBackButtonProps) {
   return (
-    <Button isIconOnly className={`mr-1 text-default-500 -ml-2 md:hidden shrink-0`} variant="light" onPress={onPress}>
+    <Button isIconOnly className={`mr-1 text-default-500 -ml-2 ${isModal ? '' : 'md:hidden'} shrink-0`} variant="light" onPress={onPress}>
       <HiArrowLeft className="w-6 h-6" />
     </Button>
   )
@@ -36,8 +38,29 @@ export const DetailViewBackButton = React.memo(function DetailViewBackButton({ o
 
 DetailViewBackButton.displayName = 'DetailViewBackButton'
 
+export const SidebarToggleButton = React.memo(function SidebarToggleButton() {
+  const { isSidebarCollapsed, setIsSidebarCollapsed } = useSettings()
+
+  return (
+    <Button
+      isIconOnly
+      className={`mr-1 -ml-2 hidden md:flex shrink-0 animate-in fade-in duration-300 ${
+        isSidebarCollapsed ? 'text-primary' : 'text-default-500'
+      }`}
+      variant="light"
+      onPress={() => setIsSidebarCollapsed(prev => !prev)}
+    >
+      {isSidebarCollapsed ? <LuMinimize className="w-6 h-6" /> : <LuMaximize className="w-6 h-6" />}
+    </Button>
+  )
+})
+
+SidebarToggleButton.displayName = 'SidebarToggleButton'
+
 export interface DetailViewHeaderProps_Common extends DetailViewActionsProps_Common {
   backButton_goBack: (() => void) | undefined
+  isModal?: boolean
+  onNavigate?: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }
 
 export interface DetailViewHeaderProps_KnownWord extends DetailViewHeaderProps_Common {
@@ -131,6 +154,7 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
   khmerWordsHidingMode,
   nonKhmerWordsHidingMode,
   isKhmerLinkEnabled,
+  onNavigate: onNavigateProp,
 }: {
   word_displayHtml: NonEmptyStringTrimmed
   word_or_sentence__language: DictionaryLanguage
@@ -138,6 +162,7 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
   khmerWordsHidingMode: WordsHidingMode
   nonKhmerWordsHidingMode: WordsHidingMode
   isKhmerLinkEnabled: boolean
+  onNavigate?: (word: NonEmptyStringTrimmed, mode: DictionaryLanguage) => void
 }) {
   const { km_map } = useDictionary()
   const { LL } = useI18nContext()
@@ -182,9 +207,17 @@ const DetailViewHeaderWord_WordHeader = memo(function DetailViewHeaderWord_WordH
     if (!isKhmerLinkEnabled) return undefined
 
     return (w: TypedKhmerWord) => {
-      setLocation_khmerWord_ifInDictionary(w, km_map, toast, setLocation, LL)
+      if (onNavigateProp) {
+        if (km_map.has(w as TypedContainsKhmer)) {
+          onNavigateProp(w, 'km')
+        } else {
+          toast.error(LL.ANALYZER.WORD_NOT_IN_KHMER_DICTIONARY({ word: w }))
+        }
+      } else {
+        setLocation_khmerWord_ifInDictionary(w, km_map, toast, setLocation, LL)
+      }
     }
-  }, [isKhmerLinkEnabled, km_map, toast, LL, setLocation])
+  }, [isKhmerLinkEnabled, km_map, toast, LL, setLocation, onNavigateProp])
 
   useKhmerAndNonKhmerClickListener(
     containerRef,
@@ -204,8 +237,12 @@ const DetailViewHeaderWord = (
 
   return (
     <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
-      {/* 1. Back Button (Always Visible) */}
-      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
+      {props.backButton_goBack && (
+        <>
+          <DetailViewBackButton onPress={props.backButton_goBack} isModal={props.isModal} />
+          {!props.isModal && <SidebarToggleButton />}
+        </>
+      )}
 
       {/* 2. Central Text (Max 40%, Truncated) */}
       <div className="flex flex-col justify-center max-w-[40%] min-w-0 shrink-0 mr-auto">
@@ -216,6 +253,7 @@ const DetailViewHeaderWord = (
           nonKhmerWordsHidingMode={props.nonKhmerWordsHidingMode}
           word_displayHtml={props.word_displayHtml}
           word_or_sentence__language={props.word_or_sentence__language}
+          onNavigate={props.onNavigate}
         />
         <div className="flex items-center gap-1 truncate">
           {phonetic && (
@@ -248,7 +286,12 @@ const DetailViewHeaderWord = (
 const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer) => {
   return (
     <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
-      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
+      {props.backButton_goBack && (
+        <>
+          <DetailViewBackButton onPress={props.backButton_goBack} isModal={props.isModal} />
+          {!props.isModal && <SidebarToggleButton />}
+        </>
+      )}
 
       {/* Central Text */}
       <div className="max-w-[40%] min-w-0 shrink-0 truncate">{props.header}</div>
@@ -266,7 +309,12 @@ const DetailViewHeaderSentence = (props: DetailViewHeaderProps_SentenceAnalyzer)
 const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_Shown) => {
   return (
     <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
-      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
+      {props.backButton_goBack && (
+        <>
+          <DetailViewBackButton onPress={props.backButton_goBack} isModal={props.isModal} />
+          {!props.isModal && <SidebarToggleButton />}
+        </>
+      )}
 
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest truncate">{props.header}</span>
@@ -280,7 +328,12 @@ const AnkiFrontHeaderShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Kh
 const AnkiFrontHeaderNotShown = (props: DetailViewHeaderProps_AnkiGame_Front_And_Khmer_Words_Are_NotShown) => {
   return (
     <CardHeader className="pt-[calc(env(safe-area-inset-top))] flex items-center gap-2 h-auto min-h-[5rem]">
-      {props.backButton_goBack && <DetailViewBackButton onPress={props.backButton_goBack} />}
+      {props.backButton_goBack && (
+        <>
+          <DetailViewBackButton onPress={props.backButton_goBack} isModal={props.isModal} />
+          {!props.isModal && <SidebarToggleButton />}
+        </>
+      )}
 
       <div className="flex-1">
         <span className="text-small uppercase text-default-400 font-bold tracking-widest truncate">{props.header}</span>

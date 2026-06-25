@@ -150,27 +150,27 @@
 
               # For rust-analyzer
               export RUST_SRC_PATH="${rustToolchain}/lib/rustlib/src/rust/library"
-            '';
 
-            # # Bindgen / TTS / Linux Desktop support
-            # export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang.lib}/lib"
-            # export CLANG_PATH="${pkgs.llvmPackages_latest.clang}/bin/clang"
-            # export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.llvmPackages_latest.libclang.lib}/lib/clang/${pkgs.llvmPackages_latest.clang.version}/include"
-            #
-            # export LD_LIBRARY_PATH="${
-            #   pkgs.lib.makeLibraryPath [
-            #     pkgs.webkitgtk_4_1
-            #     pkgs.gtk3
-            #     pkgs.cairo
-            #     pkgs.gdk-pixbuf
-            #     pkgs.glib
-            #     pkgs.dbus
-            #     pkgs.openssl
-            #     pkgs.librsvg
-            #     pkgs.speechd
-            #     pkgs.llvmPackages_latest.libclang.lib
-            #   ]
-            # }:$LD_LIBRARY_PATH"
+              # Bindgen / TTS / Linux Desktop support
+              export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang.lib}/lib"
+              export CLANG_PATH="${pkgs.llvmPackages_latest.clang}/bin/clang"
+              export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.llvmPackages_latest.libclang.lib}/lib/clang/${pkgs.llvmPackages_latest.clang.version}/include"
+
+              export LD_LIBRARY_PATH="${
+                pkgs.lib.makeLibraryPath [
+                  pkgs.webkitgtk_4_1
+                  pkgs.gtk3
+                  pkgs.cairo
+                  pkgs.gdk-pixbuf
+                  pkgs.glib
+                  pkgs.dbus
+                  pkgs.openssl
+                  pkgs.librsvg
+                  pkgs.speechd
+                  pkgs.llvmPackages_latest.libclang.lib
+                ]
+              }:$LD_LIBRARY_PATH"
+            '';
           };
       }
     );

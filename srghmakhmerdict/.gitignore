@@ -34,3 +34,4 @@ dict.dbgz
 /public/en_Dict_en_km_com_assets_images_png
 
 fastlane/report.xml
+src-tauri/user_data.db
